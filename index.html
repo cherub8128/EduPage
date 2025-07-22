@@ -16,6 +16,8 @@
         - Report Info: System Architecture (Section 2 & 3) -> Goal: Organize and show relationships -> Viz/Method: Interactive HTML/CSS Diagram -> Interaction: Clicking on a component in the diagram reveals a detailed description of its role. -> Justification: A static block diagram is informative, but an interactive one allows users to actively explore the system's data flow, improving comprehension and retention.
         - Report Info: Required vs. Available Parts (Section 6) -> Goal: Inform and summarize status -> Viz/Method: Donut Chart (Chart.js) -> Interaction: Hovering reveals quantities. -> Justification: A donut chart instantly communicates the project's readiness and what's missing, providing a clear call to action.
         - Report Info: Phased Prototyping (Section 6.3) -> Goal: Organize a process -> Viz/Method: Numbered, styled HTML sections with icons. -> Interaction: Clickable tabs for each phase. -> Justification: Breaking the complex process into clear, visually distinct steps with icons makes it less intimidating and easier to follow than a simple numbered list.
+        - Report Info: PCB Stackup (Section 5.3) -> Goal: Inform and visualize structure -> Viz/Method: HTML/CSS Diagram -> Interaction: Static visual aid. -> Justification: A clear, color-coded visual diagram built with HTML/CSS effectively explains the complex 4-layer PCB structure without external libraries or images, reinforcing the importance of proper PCB design.
+        - Report Info: 4x4 Prototype Schematic -> Goal: Organize and show relationships for a smaller prototype -> Viz/Method: Dynamic JavaScript Canvas Diagram -> Interaction: Static visual aid. -> Justification: A detailed, dynamically drawn schematic using the Canvas API provides a clear, scalable, and integrated visualization of the prototype's architecture, demonstrating the signal flow from MCU to transducers.
     -->
     <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
     <style>
@@ -79,6 +81,20 @@
             font-size: 2rem;
             color: #9CA3AF;
             line-height: 1;
+        }
+        .stackup-layer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.5rem 1rem;
+            font-weight: 500;
+        }
+        .stackup-copper { background-color: #F59E0B; color: white; }
+        .stackup-fr4 { background-color: #047857; color: white; }
+        #circuitCanvas {
+            background-color: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
         }
     </style>
 </head>
@@ -215,11 +231,62 @@
             </div>
 
             <div class="card p-6 md:p-8 rounded-lg">
-                <div class="mb-6">
+                <div class="mb-8">
                     <div class="flex items-center justify-center p-3 bg-red-100 border-l-4 border-red-500 rounded-r-lg">
                         <p class="text-red-700 font-semibold">
                             <span class="font-bold">중대 경고:</span> 브레드보드와 점퍼선만으로는 이 프로젝트를 완성할 수 없습니다. 고주파/고전류 환경에서 발생하는 노이즈와 신호 왜곡으로 인해 시스템은 거의 확실하게 오작동합니다. 최종 결과물은 반드시 맞춤형 PCB로 제작해야 합니다.
                         </p>
+                    </div>
+                </div>
+                
+                <div class="mb-8">
+                    <h4 class="font-bold text-lg mb-4 text-center">권장 4층 PCB 스택업 구조</h4>
+                    <p class="text-center mb-4 text-gray-600">안정적인 전원 공급과 신호 무결성을 위해 아래와 같은 4층 구조의 PCB를 강력히 권장합니다.</p>
+                    <div class="max-w-md mx-auto border-2 border-gray-300 rounded-lg overflow-hidden shadow-lg">
+                        <div class="stackup-layer stackup-copper">
+                            <span>L1: TOP</span>
+                            <span>COPPER (Signal)</span>
+                            <span>0.035mm</span>
+                        </div>
+                        <div class="stackup-layer stackup-fr4 h-12">
+                            <span></span>
+                            <span>FR-4 (Dielectric)</span>
+                            <span>0.38mm</span>
+                        </div>
+                        <div class="stackup-layer stackup-copper">
+                            <span>L2: GND_PLANE</span>
+                            <span>COPPER (Ground)</span>
+                            <span>0.035mm</span>
+                        </div>
+                        <div class="stackup-layer stackup-fr4 h-20">
+                            <span></span>
+                            <span>FR-4 (Dielectric)</span>
+                            <span>0.70mm</span>
+                        </div>
+                        <div class="stackup-layer stackup-copper">
+                            <span>L3: PWR_PLANE</span>
+                            <span>COPPER (Power)</span>
+                            <span>0.035mm</span>
+                        </div>
+                        <div class="stackup-layer stackup-fr4 h-12">
+                            <span></span>
+                            <span>FR-4 (Dielectric)</span>
+                            <span>0.38mm</span>
+                        </div>
+                        <div class="stackup-layer stackup-copper">
+                            <span>L4: BOTTOM</span>
+                            <span>COPPER (Signal)</span>
+                            <span>0.035mm</span>
+                        </div>
+                    </div>
+                    <p class="text-center mt-2 text-sm text-gray-500">전용 접지(GND) 및 전원(PWR) 평면은 노이즈를 최소화하는 핵심입니다.</p>
+                </div>
+
+                <div class="mb-8">
+                    <h4 class="font-bold text-lg mb-4 text-center">4x4 프로토타입 시스템 회로도</h4>
+                    <p class="text-center mb-4 text-gray-600">아래는 16채널 프로토타입의 전체 신호 흐름을 보여주는 블록 다이어그램입니다. 작은 화면에서는 좌우로 스크롤할 수 있습니다.</p>
+                    <div class="overflow-x-auto p-2 bg-gray-50 rounded-lg">
+                        <canvas id="circuitCanvas" width="1200" height="800"></canvas>
                     </div>
                 </div>
 
@@ -405,6 +472,116 @@
             sections.forEach(section => {
                 observer.observe(section);
             });
+
+            // Draw 4x4 Circuit Diagram
+            const circuitCanvas = document.getElementById('circuitCanvas');
+            if (circuitCanvas) {
+                const ctx = circuitCanvas.getContext('2d');
+                ctx.font = '12px "Noto Sans KR"';
+                ctx.lineWidth = 1.5;
+
+                function drawBox(x, y, w, h, text, color = '#e5e7eb', textColor = '#1f2937') {
+                    ctx.fillStyle = '#ffffff';
+                    ctx.strokeStyle = color;
+                    ctx.strokeRect(x, y, w, h);
+                    ctx.fillStyle = textColor;
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    const lines = text.split('\n');
+                    const lineHeight = 14;
+                    const startY = y + h / 2 - (lines.length - 1) * lineHeight / 2;
+                    lines.forEach((line, i) => {
+                        ctx.fillText(line, x + w / 2, startY + i * lineHeight);
+                    });
+                }
+
+                function drawLine(x1, y1, x2, y2, color = '#6b7280', dashed = false) {
+                    ctx.beginPath();
+                    ctx.strokeStyle = color;
+                    if (dashed) {
+                        ctx.setLineDash([5, 5]);
+                    }
+                    ctx.moveTo(x1, y1);
+                    ctx.lineTo(x2, y2);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                }
+                
+                function drawArrow(x1, y1, x2, y2, color = '#6b7280') {
+                    drawLine(x1, y1, x2, y2, color);
+                    const headlen = 10;
+                    const angle = Math.atan2(y2 - y1, x2 - x1);
+                    ctx.beginPath();
+                    ctx.fillStyle = color;
+                    ctx.moveTo(x2, y2);
+                    ctx.lineTo(x2 - headlen * Math.cos(angle - Math.PI / 6), y2 - headlen * Math.sin(angle - Math.PI / 6));
+                    ctx.lineTo(x2 - headlen * Math.cos(angle + Math.PI / 6), y2 - headlen * Math.sin(angle + Math.PI / 6));
+                    ctx.closePath();
+                    ctx.fill();
+                }
+
+                const esp32 = { x: 50, y: 350, w: 120, h: 100 };
+                const ioExpander = { x: 250, y: 350, w: 120, h: 100 };
+                const driverArrayStart = { x: 450, y: 100 };
+                const mosfetArrayStart = { x: 650, y: 100 };
+                const transducerArrayStart = { x: 850, y: 100 };
+                const componentSize = { w: 120, h: 30 };
+                const vSpacing = 40;
+
+                drawBox(esp32.x, esp32.y, esp32.w, esp32.h, '🧠\nESP32\n(Master)', '#4f46e5');
+                drawBox(ioExpander.x, ioExpander.y, ioExpander.w, ioExpander.h, '📡\nMCP23S17\n(I/O Expander)', '#059669');
+                drawArrow(esp32.x + esp32.w, esp32.y + esp32.h / 2, ioExpander.x, ioExpander.y + ioExpander.h / 2, '#4f46e5');
+                ctx.fillStyle = '#4f46e5';
+                ctx.fillText('SPI Bus', (esp32.x + esp32.w + ioExpander.x) / 2, esp32.y + esp32.h / 2 - 15);
+
+                for (let i = 0; i < 16; i++) {
+                    const yPos = driverArrayStart.y + i * vSpacing;
+                    if (i % 2 === 0) {
+                        drawBox(driverArrayStart.x, yPos, componentSize.w, componentSize.h * 2 + (vSpacing - componentSize.h), `⚡\nTC4427\n(Driver IC ${i/2 + 1})`, '#d97706');
+                    }
+                    drawBox(mosfetArrayStart.x, yPos, componentSize.w, componentSize.h, `💡 MOSFET ${i+1}`, '#db2777');
+                    drawBox(transducerArrayStart.x, yPos, componentSize.w, componentSize.h, `🔊 Transducer ${i+1}`, '#0ea5e9');
+                    
+                    const driverY = driverArrayStart.y + Math.floor(i/2) * (componentSize.h*2 + (vSpacing-componentSize.h)) + (i%2 === 0 ? componentSize.h/2 : componentSize.h*1.5 + (vSpacing-componentSize.h)/2);
+                    drawLine(ioExpander.x + ioExpander.w, ioExpander.y + ioExpander.h/2, ioExpander.x + ioExpander.w + 30, ioExpander.y + ioExpander.h/2);
+                    drawLine(ioExpander.x + ioExpander.w + 30, ioExpander.y + ioExpander.h/2, driverArrayStart.x - 30, yPos + componentSize.h/2);
+                    drawArrow(driverArrayStart.x - 30, yPos + componentSize.h/2, driverArrayStart.x, yPos + componentSize.h/2);
+                    drawArrow(driverArrayStart.x + componentSize.w, yPos + componentSize.h/2, mosfetArrayStart.x, yPos + componentSize.h/2, '#d97706');
+                    drawArrow(mosfetArrayStart.x + componentSize.w, yPos + componentSize.h/2, transducerArrayStart.x, yPos + componentSize.h/2, '#db2777');
+                    
+                    drawLine(transducerArrayStart.x + componentSize.w, yPos + componentSize.h/2, transducerArrayStart.x + componentSize.w + 50, yPos + componentSize.h/2);
+                    drawLine(transducerArrayStart.x + componentSize.w + 50, yPos + componentSize.h/2, transducerArrayStart.x + componentSize.w + 50, 50);
+                    drawLine(mosfetArrayStart.x + componentSize.w/2, mosfetArrayStart.y + (i * vSpacing) + componentSize.h, mosfetArrayStart.x + componentSize.w/2, 750);
+                }
+                
+                ctx.strokeStyle = '#ef4444';
+                ctx.lineWidth = 4;
+                drawLine(transducerArrayStart.x + componentSize.w + 50, 50, 1150, 50);
+                drawBox(1080, 20, 80, 30, '+12V', '#ef4444', '#ef4444');
+
+                ctx.strokeStyle = '#1f2937';
+                ctx.lineWidth = 4;
+                drawLine(mosfetArrayStart.x - 50, 750, 1150, 750);
+                drawBox(1080, 720, 80, 30, 'GND', '#1f2937', '#1f2937');
+                
+                for (let i = 0; i < 16; i++) {
+                    const yPos = mosfetArrayStart.y + i * vSpacing;
+                    drawLine(mosfetArrayStart.x + componentSize.w/2, yPos + componentSize.h, mosfetArrayStart.x + componentSize.w/2, 750, '#1f2937');
+                }
+
+                ctx.fillStyle = '#1f2937';
+                ctx.textAlign = 'left';
+                ctx.font = 'bold 14px "Noto Sans KR"';
+                ctx.fillText('제어 영역', 50, 50);
+                ctx.fillText('드라이버 배열 (16채널)', 450, 50);
+                ctx.fillText('초음파 트랜스듀서 배열', 850, 50);
+                
+                ctx.font = '12px "Noto Sans KR"';
+                ctx.fillStyle = '#6b7280';
+                ctx.fillText('디지털 제어 신호', 280, 480);
+                ctx.fillText('증폭된 게이트 신호', 520, 760);
+                ctx.fillText('스위칭된 고전력 신호', 720, 760);
+            }
         });
     </script>
 </body>
