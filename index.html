@@ -18,6 +18,8 @@
         - Report Info: Phased Prototyping (Section 6.3) -> Goal: Organize a process -> Viz/Method: Numbered, styled HTML sections with icons. -> Interaction: Clickable tabs for each phase. -> Justification: Breaking the complex process into clear, visually distinct steps with icons makes it less intimidating and easier to follow than a simple numbered list.
         - Report Info: PCB Stackup (Section 5.3) -> Goal: Inform and visualize structure -> Viz/Method: HTML/CSS Diagram -> Interaction: Static visual aid. -> Justification: A clear, color-coded visual diagram built with HTML/CSS effectively explains the complex 4-layer PCB structure without external libraries or images, reinforcing the importance of proper PCB design.
         - Report Info: 4x4 Prototype Schematic -> Goal: Organize and show relationships for a smaller prototype -> Viz/Method: Dynamic JavaScript Canvas Diagram -> Interaction: Static visual aid. -> Justification: A detailed, dynamically drawn schematic using the Canvas API provides a clear, scalable, and integrated visualization of the prototype's architecture, demonstrating the signal flow from MCU to transducers.
+        - Report Info: Carrier vs Modulation frequency explanation -> Goal: Explain a core concept -> Viz/Method: Analogical text in a styled card -> Interaction: Reading. -> Justification: A clear, non-technical analogy (AM radio, delivery truck) is the most effective way to explain the complex relationship between the two frequencies, preventing common misconceptions.
+        - Report Info: Waveform example -> Goal: Visualize the modulation concept -> Viz/Method: Dynamic line chart (Chart.js) -> Interaction: Hovering shows values, visual inspection. -> Justification: A graph visually confirms the abstract "delivery truck" analogy, showing how a high-frequency carrier is "packaged" by a low-frequency signal, solidifying user understanding of the core principle.
     -->
     <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
     <style>
@@ -132,7 +134,7 @@
                 <h3 class="text-2xl md:text-3xl font-bold mt-2">핵심 원리: 어떻게 공기를 만질까?</h3>
                 <p class="mt-2 text-gray-600 max-w-2xl mx-auto">이 섹션에서는 초음파가 어떻게 물리적인 힘을 만들어내고, 인간이 이를 어떻게 촉감으로 인지하는지에 대한 과학적 원리를 알아봅니다.</p>
             </div>
-            <div class="grid md:grid-cols-3 gap-8">
+            <div class="grid md:grid-cols-2 gap-8">
                 <div class="card p-6 rounded-lg">
                     <h4 class="font-bold text-lg mb-2">🔊 음향 방사압과 빔포밍</h4>
                     <p class="text-gray-600">다수의 초음파를 한 점에 집중시켜(보강 간섭) 공기 중에 국소적인 압력 지점을 만드는 기술입니다. 각 센서의 신호 출발 시간을 정밀하게 조절하여 원하는 위치에 '초점'을 형성합니다.</p>
@@ -144,6 +146,21 @@
                 <div class="card p-6 rounded-lg">
                     <h4 class="font-bold text-lg mb-2">🖐️ 저주파 변조와 촉각 인지</h4>
                     <p class="text-gray-600">인간의 피부는 40kHz의 고주파 압력을 직접 감지하지 못합니다. 따라서 초점의 세기를 200~300Hz의 저주파로 껐다 켰다 반복(변조)해야만, 우리 뇌가 '떨림'이나 '압력'으로 인지할 수 있는 유의미한 촉감이 생성됩니다.</p>
+                </div>
+                <div class="card p-6 rounded-lg bg-amber-50 border-amber-200">
+                    <h4 class="font-bold text-lg mb-2 text-amber-800">📡 반송파와 변조: 두 주파수의 비밀</h4>
+                    <p class="text-gray-700 mb-2">두 주파수가 동시에 나오는 걸까요? 정답은 '아니오'입니다. 이 시스템은 AM 라디오 방송과 같은 원리로 동작합니다.</p>
+                    <p class="text-gray-700 mb-2"><strong class="text-gray-900">40kHz 초음파 (반송파):</strong> 위치를 정밀하게 제어하는 '택배 트럭'입니다. 이 트럭 자체는 느낄 수 없습니다.</p>
+                    <p class="text-gray-700"><strong class="text-gray-900">200~300Hz 리듬 (변조 신호):</strong> 트럭에 실려 주기적으로 배달되는 '소포'입니다. 우리는 이 소포가 도착하는 리듬을 '촉감'으로 인지합니다.</p>
+                    <p class="text-gray-600 mt-3 text-sm">결론: 회로는 40kHz의 초음파를 200~300Hz의 리듬으로 껐다 켰다 반복할 뿐입니다. 하나의 신호로 위치 제어와 촉감 생성을 모두 해내는 효율적인 방식입니다.</p>
+                </div>
+            </div>
+            <!-- NEW WAVEFORM CHART -->
+            <div class="card p-6 md:p-8 rounded-lg mt-8">
+                <h4 class="font-bold text-lg mb-4 text-center">변조된 파형의 시각적 예시</h4>
+                <p class="text-center mb-4 text-gray-600 max-w-2xl mx-auto">아래 그래프는 실제 트랜스듀서에서 방사되는 파형을 보여줍니다. 파란색의 고주파(40kHz) 신호가 빨간색의 저주파(250Hz) 신호에 의해 주기적으로 켜지고 꺼지는 것을 볼 수 있습니다.</p>
+                <div class="chart-container" style="height: 300px; max-height: 350px;">
+                    <canvas id="waveformChart"></canvas>
                 </div>
             </div>
         </section>
@@ -447,6 +464,74 @@
                             display: false,
                             text: '부품 현황'
                         }
+                    }
+                }
+            });
+
+            // Waveform Chart
+            const waveformCtx = document.getElementById('waveformChart').getContext('2d');
+            const samples = 500;
+            const carrierFreq = 20; // Visual representation, not actual 40kHz
+            const modulationFreq = 1; // Visual representation
+            const labels = [];
+            const modulatedData = [];
+            const modulationEnvelope = [];
+
+            for (let i = 0; i < samples; i++) {
+                const t = i / samples * 2 * Math.PI;
+                labels.push(i);
+                const carrier = Math.sin(t * carrierFreq);
+                const modulator = (Math.sin(t * modulationFreq) + 1) / 2 > 0.5 ? 1 : 0; // Square wave
+                modulatedData.push(carrier * modulator);
+                modulationEnvelope.push(modulator * 1.1); // Slightly higher for visibility
+            }
+
+            new Chart(waveformCtx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: '변조된 40kHz 신호 (결과)',
+                            data: modulatedData,
+                            borderColor: 'rgb(59, 130, 246)',
+                            borderWidth: 2,
+                            pointRadius: 0,
+                            tension: 0.1
+                        },
+                        {
+                            label: '250Hz 변조 신호 (제어)',
+                            data: modulationEnvelope,
+                            borderColor: 'rgba(239, 68, 68, 0.5)',
+                            borderWidth: 2,
+                            pointRadius: 0,
+                            stepped: true,
+                            fill: true,
+                            backgroundColor: 'rgba(239, 68, 68, 0.1)'
+                        }
+                    ]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            min: -1.2,
+                            max: 1.2,
+                            title: { display: true, text: '진폭' }
+                        },
+                        x: {
+                            display: false, // Hide x-axis labels for clarity
+                            title: { display: true, text: '시간' }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                    },
+                    animation: {
+                        duration: 0
                     }
                 }
             });
