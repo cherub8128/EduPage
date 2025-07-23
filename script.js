@@ -1,5 +1,3 @@
-// script.js
-
 const N_PINS = 60;
 let inferenceSession = null;
 // 0/1로 관리되는 현재 핀 상태
