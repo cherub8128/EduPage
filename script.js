@@ -143,7 +143,8 @@ async function aiTurn() {
         
         // ONNX 모델 출력에서 action_logits 가져오기
         const actionLogits = results.action_logits.data;
-        console.log("AI Turn - Raw Action Logits:", actionLogits); // 디버깅 로그 추가
+        console.log("AI Turn - Raw Action Logits (first 10):", actionLogits.slice(0, 10), "..."); // 디버깅 로그 추가 (일부만)
+        console.log("AI Turn - Raw Action Logits length:", actionLogits.length); // 디버깅 로그 추가
 
         // 유효한 행동 마스크 생성 (JavaScript 버전)
         const actionMasks = [];
@@ -155,16 +156,29 @@ async function aiTurn() {
         // 마스크된 행동 중에서 가장 높은 확률을 가진 행동 선택
         let bestActionIndex = -1;
         let maxLogit = -Infinity;
+        let validActionsConsidered = 0; // 디버깅: 유효한 행동 중 몇 개를 고려했는지
 
         for (let i = 0; i < actionLogits.length; i++) {
             if (actionMasks[i]) { // 유효한 행동인 경우에만 고려
-                if (actionLogits[i] > maxLogit) {
-                    maxLogit = actionLogits[i];
+                validActionsConsidered++;
+                const currentLogit = actionLogits[i];
+                console.log(`  Action ${i}: logit = ${currentLogit}`); // 각 유효 행동의 logit 값 출력
+
+                // NaN 또는 Infinity 값 체크
+                if (isNaN(currentLogit) || !isFinite(currentLogit)) {
+                    console.warn(`  Warning: Logit for action ${i} is NaN or Infinity. Skipping.`);
+                    continue; // 비정상적인 logit 값은 건너뛰기
+                }
+
+                if (currentLogit > maxLogit) {
+                    maxLogit = currentLogit;
                     bestActionIndex = i;
                 }
             }
         }
-        console.log("AI Turn - Chosen bestActionIndex:", bestActionIndex); // 디버깅 로그 추가
+        console.log("AI Turn - Total valid actions considered:", validActionsConsidered);
+        console.log("AI Turn - Max Logit found:", maxLogit);
+        console.log("AI Turn - Chosen bestActionIndex (after loop):", bestActionIndex);
 
         if (bestActionIndex !== -1) {
             // AI가 선택한 핀 인덱스 계산
@@ -189,7 +203,7 @@ async function aiTurn() {
             // AI가 둘 곳이 없는 경우 (이론적으로는 게임 종료 조건에서 처리되어야 함)
             // 이 else 블록에 들어온다는 것은 hasValidMoves(pins)가 true인데도 AI가 유효한 수를 찾지 못했다는 의미.
             // 이는 버그의 핵심일 수 있음.
-            console.error("AI Turn - No valid action found by AI, but game is not terminated yet."); // 핵심 디버깅 로그
+            console.error("AI Turn - No valid action found by AI, but game is not terminated yet. This indicates a problem in AI's action selection."); // 핵심 디버깅 로그
             gameEnded = true;
             gameMessage.textContent = 'AI가 둘 곳이 없습니다. 당신이 승리했습니다!';
             currentTurnSpan.textContent = '종료';
