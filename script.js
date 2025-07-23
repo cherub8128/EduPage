@@ -89,4 +89,6 @@ async function aiTurn() {
 
 // 5) 초기화 및 버튼 연결
 initModel();
-document.getElementById('ai-move-btn').addEventListener('click', aiTurn);
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('ai-move-btn').addEventListener('click', aiTurn);
+});
