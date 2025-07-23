@@ -138,7 +138,12 @@ async function aiTurn() {
     console.log("AI Turn - Current Pins:", pins); // 디버깅 로그 추가
 
     try {
-        const feeds = { obs: inputTensor }; // action_masks 입력 제거
+        const maskData = new Uint8Array(actionMasks.map(m => m ? 1 : 0));
+        const maskTensor = new ort.Tensor('bool', maskData, [1, N_PINS - 1]);
+        const feeds = {
+            obs: inputTensor,
+            action_masks: maskTensor
+       };
         const results = await inferenceSession.run(feeds);
         
         // ONNX 모델 출력에서 action_logits 가져오기
