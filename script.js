@@ -138,7 +138,7 @@ async function aiTurn() {
     console.log("AI Turn - Current Pins:", pins); // 디버깅 로그 추가
 
     try {
-        const feeds = { obs: inputTensor };
+        const feeds = { obs: inputTensor }; // action_masks 입력 제거
         const results = await inferenceSession.run(feeds);
         
         // ONNX 모델 출력에서 action_logits 가져오기
@@ -151,7 +151,7 @@ async function aiTurn() {
         for (let i = 0; i < N_PINS - 1; i++) {
             actionMasks.push(pins[i] === 1 && pins[i+1] === 1);
         }
-        console.log("AI Turn - Action Masks:", actionMasks); // 디버깅 로그 추가
+        console.log("AI Turn - Action Masks (for JS filtering):", actionMasks); // 디버깅 로그 추가
 
         // 마스크된 행동 중에서 가장 높은 확률을 가진 행동 선택
         let bestActionIndex = -1;
@@ -161,7 +161,7 @@ async function aiTurn() {
         for (let i = 0; i < actionLogits.length; i++) {
             if (actionMasks[i]) { // 유효한 행동인 경우에만 고려
                 validActionsConsidered++;
-                const currentLogit = Number(actionLogits[i]); // BigInt를 Number로 변환
+                const currentLogit = Number(actionLogits[i]); // BigInt를 Number로 변환 (여전히 필요할 수 있음)
                 console.log(`  Action ${i}: logit = ${currentLogit}`); // 각 유효 행동의 logit 값 출력
 
                 // NaN 또는 Infinity 값 체크
@@ -200,9 +200,6 @@ async function aiTurn() {
             }, 1000); // 1초 후 핀 제거
 
         } else {
-            // AI가 둘 곳이 없는 경우 (이론적으로는 게임 종료 조건에서 처리되어야 함)
-            // 이 else 블록에 들어온다는 것은 hasValidMoves(pins)가 true인데도 AI가 유효한 수를 찾지 못했다는 의미.
-            // 이는 버그의 핵심일 수 있음.
             console.error("AI Turn - No valid action found by AI, but game is not terminated yet. This indicates a problem in AI's action selection."); // 핵심 디버깅 로그
             gameEnded = true;
             gameMessage.textContent = 'AI가 둘 곳이 없습니다. 당신이 승리했습니다!';
