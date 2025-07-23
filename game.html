@@ -3,21 +3,33 @@
 <head>
   <meta charset="UTF-8">
   <title>Kayles Game</title>
+  <!-- 외부 스타일시트 -->
   <link rel="stylesheet" href="style.css">
-  <!-- ONNX Runtime UMD -->
+  <!-- ONNX Runtime UMD 빌드 (ort 전역변수 제공) -->
   <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort.min.js"></script>
+  <!-- 게임 로직 -->
   <script src="script.js" defer></script>
 </head>
 <body>
   <div class="game-container">
     <h1>Kayles Game</h1>
+
+    <!-- 핀을 렌더링할 컨테이너 -->
     <div class="pins-container" id="pins-container"></div>
+
+    <!-- 사람 턴용 확인 버튼 -->
     <div class="controls">
-      <button id="confirm-move-btn" disabled>Confirm Move</button>
+      <button id="confirm-move-btn" disabled>확인</button>
     </div>
+
+    <!-- 메시지 및 상태 표시 -->
     <div id="game-message"></div>
-    <div class="player-turn">Player: <span id="player-turn">You</span></div>
-    <div class="ai-status">AI: <span id="ai-status">Waiting</span></div>
+    <div class="player-turn">
+      Player: <span id="player-turn">You</span>
+    </div>
+    <div class="ai-status">
+      AI: <span id="ai-status">Waiting</span>
+    </div>
   </div>
 </body>
 </html>
