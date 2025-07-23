@@ -161,7 +161,7 @@ async function aiTurn() {
         for (let i = 0; i < actionLogits.length; i++) {
             if (actionMasks[i]) { // 유효한 행동인 경우에만 고려
                 validActionsConsidered++;
-                const currentLogit = actionLogits[i];
+                const currentLogit = Number(actionLogits[i]); // BigInt를 Number로 변환
                 console.log(`  Action ${i}: logit = ${currentLogit}`); // 각 유효 행동의 logit 값 출력
 
                 // NaN 또는 Infinity 값 체크
