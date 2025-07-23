@@ -1,5 +1,3 @@
-// script.js
-
 import * as ort from 'onnxruntime-web';
 
 const N_PINS = 60;
