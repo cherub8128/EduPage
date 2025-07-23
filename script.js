@@ -111,12 +111,15 @@ function removePins(pin1, pin2) {
 
 // 유효한 움직임이 있는지 확인
 function hasValidMoves(currentPins) {
+    let valid = false;
     for (let i = 0; i < N_PINS - 1; i++) {
         if (currentPins[i] === 1 && currentPins[i+1] === 1) {
-            return true; // 인접한 두 핀이 서있으면 유효한 움직임이 있음
+            valid = true; // 인접한 두 핀이 서있으면 유효한 움직임이 있음
+            break; // 하나라도 찾으면 바로 종료
         }
     }
-    return false;
+    console.log("hasValidMoves:", valid, "for pins:", currentPins); // 디버깅 로그 추가
+    return valid;
 }
 
 // 턴 표시 업데이트
@@ -132,18 +135,22 @@ async function aiTurn() {
     // 현재 핀 상태를 ONNX 모델 입력 형식으로 변환
     const inputTensor = new ort.Tensor('float32', new Float32Array(pins), [1, N_PINS]);
 
+    console.log("AI Turn - Current Pins:", pins); // 디버깅 로그 추가
+
     try {
         const feeds = { obs: inputTensor };
         const results = await inferenceSession.run(feeds);
         
         // ONNX 모델 출력에서 action_logits 가져오기
         const actionLogits = results.action_logits.data;
+        console.log("AI Turn - Raw Action Logits:", actionLogits); // 디버깅 로그 추가
 
         // 유효한 행동 마스크 생성 (JavaScript 버전)
         const actionMasks = [];
         for (let i = 0; i < N_PINS - 1; i++) {
             actionMasks.push(pins[i] === 1 && pins[i+1] === 1);
         }
+        console.log("AI Turn - Action Masks:", actionMasks); // 디버깅 로그 추가
 
         // 마스크된 행동 중에서 가장 높은 확률을 가진 행동 선택
         let bestActionIndex = -1;
@@ -157,11 +164,13 @@ async function aiTurn() {
                 }
             }
         }
+        console.log("AI Turn - Chosen bestActionIndex:", bestActionIndex); // 디버깅 로그 추가
 
         if (bestActionIndex !== -1) {
             // AI가 선택한 핀 인덱스 계산
             const pin1 = bestActionIndex;
             const pin2 = bestActionIndex + 1;
+            console.log(`AI Turn - Chosen Pins: ${pin1}, ${pin2}`); // 디버깅 로그 추가
 
             // AI가 선택한 핀 시각적으로 표시
             document.querySelector(`.pin[data-index="${pin1}"]`).classList.add('selected');
@@ -178,6 +187,9 @@ async function aiTurn() {
 
         } else {
             // AI가 둘 곳이 없는 경우 (이론적으로는 게임 종료 조건에서 처리되어야 함)
+            // 이 else 블록에 들어온다는 것은 hasValidMoves(pins)가 true인데도 AI가 유효한 수를 찾지 못했다는 의미.
+            // 이는 버그의 핵심일 수 있음.
+            console.error("AI Turn - No valid action found by AI, but game is not terminated yet."); // 핵심 디버깅 로그
             gameEnded = true;
             gameMessage.textContent = 'AI가 둘 곳이 없습니다. 당신이 승리했습니다!';
             currentTurnSpan.textContent = '종료';
