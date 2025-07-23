@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kayles Game (AI vs Human)</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="game-container">
+        <h1>Kayles Game</h1>
+        <div id="pins-container" class="pins-container"></div>
+        <div class="controls">
+            <p id="game-message"></p>
+            <button id="reset-button">게임 재시작</button>
+        </div>
+        <div class="player-turn">
+            <p>현재 턴: <span id="current-turn"></span></p>
+        </div>
+        <div class="ai-status">
+            <p>AI 상태: <span id="ai-status">로딩 중...</span></p>
+        </div>
+    </div>
+
+    <!-- ONNX Runtime Web 라이브러리 로드 -->
+    <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,97 @@
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+    background-color: #282c34;
+    color: #e0e0e0;
+}
+
+.game-container {
+    background-color: #3a3f47;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+    text-align: center;
+    width: 90%;
+    max-width: 800px;
+}
+
+h1 {
+    color: #61dafb;
+    margin-bottom: 20px;
+}
+
+.pins-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 5px;
+    margin-bottom: 20px;
+    min-height: 100px; /* 핀이 없을 때도 공간 유지 */
+}
+
+.pin {
+    width: 15px;
+    height: 25px;
+    background-color: #f0f0f0;
+    border: 1px solid #555;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 0.7em;
+    color: #333;
+    font-weight: bold;
+}
+
+.pin.selected {
+    background-color: #ffeb3b;
+    border-color: #fbc02d;
+    transform: scale(1.1);
+}
+
+.pin.removed {
+    background-color: #555;
+    border-color: #333;
+    cursor: default;
+    opacity: 0.5;
+}
+
+.controls button {
+    background-color: #61dafb;
+    color: #282c34;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1em;
+    transition: background-color 0.2s;
+    margin-top: 10px;
+}
+
+.controls button:hover {
+    background-color: #21a1f1;
+}
+
+#game-message {
+    font-size: 1.2em;
+    font-weight: bold;
+    color: #e91e63;
+    margin-bottom: 15px;
+}
+
+.player-turn, .ai-status {
+    margin-top: 15px;
+    font-size: 0.9em;
+    color: #bbbbbb;
+}
+
+.player-turn span, .ai-status span {
+    font-weight: bold;
+    color: #ffffff;
+}
