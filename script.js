@@ -2,27 +2,32 @@
 
 const N_PINS = 60;
 let inferenceSession = null;
-let currentPins = Array(N_PINS).fill(1);
-let selected = []; // 사람 선택한 핀 인덱스
+
+// 게임 상태
+let currentPins   = Array(N_PINS).fill(1);
+let selectedPins  = [];
+let currentPlayer = 'human';
+let gameEnded     = false;
 
 // DOM 요소
 let pinsContainer, confirmBtn, gameMessageEl, playerTurnEl, aiStatusEl;
 
-////////////////////////////////////////////////////////////////////////////////
-// 1) 모델 로드
+// 1) ONNX 모델 로드
 async function initModel() {
+  aiStatusEl.textContent = 'Loading…';
   inferenceSession = await ort.InferenceSession.create('kayles_60pins_misere_model.onnx');
+  aiStatusEl.textContent = 'Ready';
   console.log('ONNX 모델 로드 완료.');
 }
 
-////////////////////////////////////////////////////////////////////////////////
-// 2) 보드 렌더링 (그리고 클릭 핸들러 연결)
+// 2) 보드 렌더링
 function renderBoard() {
   pinsContainer.innerHTML = '';
   currentPins.forEach((alive, idx) => {
     const pin = document.createElement('div');
-    pin.className = alive ? 'pin' : 'pin removed';
-    if (selected.includes(idx)) pin.classList.add('selected');
+    pin.classList.add('pin');
+    if (!alive)           pin.classList.add('removed');
+    if (selectedPins.includes(idx)) pin.classList.add('selected');
     pin.dataset.index = idx;
     pin.addEventListener('click', () => onPinClick(idx));
     pinsContainer.appendChild(pin);
@@ -30,93 +35,121 @@ function renderBoard() {
   updateConfirmBtn();
 }
 
-////////////////////////////////////////////////////////////////////////////////
-// 3) 핀 클릭: 최대 2개까지 선택/해제
+// 3) 핀 클릭 핸들러 (사람 턴에만 작동)
 function onPinClick(idx) {
-  if (!currentPins[idx]) return; // 이미 제거된 핀
-  const pos = selected.indexOf(idx);
-  if (pos >= 0) {
-    selected.splice(pos, 1);
-  } else if (selected.length < 2) {
-    selected.push(idx);
+  if (gameEnded || currentPlayer !== 'human') return;
+  if (!currentPins[idx]) return;  // 이미 제거된 핀
+
+  const pos = selectedPins.indexOf(idx);
+  if (pos > -1) {
+    selectedPins.splice(pos, 1);
+  } else if (selectedPins.length < 2) {
+    selectedPins.push(idx);
   }
   renderBoard();
 }
 
-////////////////////////////////////////////////////////////////////////////////
-// 4) Confirm 버튼 활성/비활성
+// 4) 확인 버튼 활성/비활성
 function updateConfirmBtn() {
-  confirmBtn.disabled = (selected.length !== 2);
+  confirmBtn.disabled = !(currentPlayer === 'human' && selectedPins.length === 2);
 }
 
-////////////////////////////////////////////////////////////////////////////////
-// 5) 사람 턴 실행
+// 5) 사람 턴 확정
 function humanTurn() {
-  // 선택된 두 핀이 인접해야 유효
-  const [i, j] = selected.sort((a, b) => a - b);
+  const [i, j] = selectedPins.sort((a, b) => a - b);
   if (j !== i + 1) {
-    gameMessageEl.textContent = '인접한 두 핀만 선택할 수 있습니다.';
+    gameMessageEl.textContent = '인접한 두 핀을 선택하세요.';
+    setTimeout(() => gameMessageEl.textContent = '', 1000);
+    selectedPins = [];
+    renderBoard();
     return;
   }
-  // 제거
+
+  // 핀 제거
   currentPins[i] = 0;
   currentPins[j] = 0;
   gameMessageEl.textContent = `Player removed ${i}, ${j}`;
+  currentPlayer = 'ai';
   playerTurnEl.textContent = 'AI';
-  selected = [];
+  selectedPins = [];
   renderBoard();
-  // AI 턴으로
-  setTimeout(aiTurn, 300);  // 약간의 딜레이 후 AI 실행
+
+  // AI 턴으로 전환
+  setTimeout(aiTurn, 500);
 }
 
-////////////////////////////////////////////////////////////////////////////////
-// 6) AI 턴 실행
+// 6) AI 턴
 async function aiTurn() {
-  if (!inferenceSession) return;
-  const pins = currentPins.slice();
-  // obs Tensor
-  const obsTensor = new ort.Tensor('float32', new Float32Array(pins), [1, N_PINS]);
-  // action mask
-  const masks = pins.slice(0, N_PINS-1).map((v,i) => v===1 && pins[i+1]===1);
-  const maskTensor = new ort.Tensor('bool', new Uint8Array(masks.map(b=>b?1:0)), [1, N_PINS-1]);
-  // 추론
-  let res;
+  if (gameEnded) return;
+
+  aiStatusEl.textContent    = 'Thinking…';
+  gameMessageEl.textContent = 'AI가 수를 두고 있습니다…';
+
+  // (1) obs 텐서
+  const obsTensor = new ort.Tensor(
+    'float32',
+    new Float32Array(currentPins),
+    [1, N_PINS]
+  );
+
+  // (2) mask 계산
+  const maskArr = currentPins
+    .slice(0, N_PINS - 1)
+    .map((v, k) => v === 1 && currentPins[k + 1] === 1);
+  const maskTensor = new ort.Tensor(
+    'bool',
+    new Uint8Array(maskArr.map(b => b ? 1 : 0)),
+    [1, N_PINS - 1]
+  );
+
+  // (3) 추론 실행
+  let results;
   try {
-    res = await inferenceSession.run({ obs: obsTensor, action_masks: maskTensor });
+    results = await inferenceSession.run({
+      obs: obsTensor,
+      action_masks: maskTensor
+    });
   } catch (e) {
-    console.error('ONNX 추론 오류', e);
+    console.error('ONNX Runtime 오류:', e);
+    gameEnded = true;
     return;
   }
-  const logits = res.action_logits.data;
-  // best action
-  let best=-1, maxLog=-Infinity;
-  masks.forEach((ok,i) => {
-    if (ok && logits[i]>maxLog) { maxLog=logits[i]; best=i; }
+
+  // (4) best action 선택
+  const logits = results.action_logits.data;
+  let bestIdx = -1, bestLogit = -Infinity;
+  maskArr.forEach((ok, i) => {
+    if (ok && logits[i] > bestLogit) {
+      bestLogit = logits[i];
+      bestIdx   = i;
+    }
   });
-  if (best < 0) {
+
+  if (bestIdx < 0) {
     gameMessageEl.textContent = 'AI: No valid move';
+    gameEnded = true;
     return;
   }
-  // 제거
-  currentPins[best]=0;
-  currentPins[best+1]=0;
-  gameMessageEl.textContent = `AI removed ${best}, ${best+1}`;
-  playerTurnEl.textContent = 'You';
-  aiStatusEl.textContent = 'Waiting';
+
+  // (5) 핀 제거 & 상태 업데이트
+  currentPins[bestIdx]     = 0;
+  currentPins[bestIdx + 1] = 0;
+  gameMessageEl.textContent = `AI removed ${bestIdx}, ${bestIdx + 1}`;
+  currentPlayer             = 'human';
+  playerTurnEl.textContent  = 'You';
+  aiStatusEl.textContent    = 'Waiting';
   renderBoard();
 }
 
-////////////////////////////////////////////////////////////////////////////////
 // 7) 초기화
 document.addEventListener('DOMContentLoaded', async () => {
-  // 엘리먼트 캐싱
-  pinsContainer = document.getElementById('pins-container');
-  confirmBtn    = document.getElementById('confirm-move-btn');
-  gameMessageEl = document.getElementById('game-message');
-  playerTurnEl  = document.getElementById('player-turn');
-  aiStatusEl    = document.getElementById('ai-status');
+  pinsContainer  = document.getElementById('pins-container');
+  confirmBtn     = document.getElementById('confirm-move-btn');
+  gameMessageEl  = document.getElementById('game-message');
+  playerTurnEl   = document.getElementById('player-turn');
+  aiStatusEl     = document.getElementById('ai-status');
 
+  confirmBtn.addEventListener('click', humanTurn);
   renderBoard();
   await initModel();
-  confirmBtn.addEventListener('click', humanTurn);
 });
