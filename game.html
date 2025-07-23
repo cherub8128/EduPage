@@ -3,20 +3,17 @@
 <head>
   <meta charset="UTF-8">
   <title>Kayles Game</title>
-  <!-- external stylesheet -->
-  <link rel="stylesheet" href="style.css"> <!-- 스타일 그대로 사용 :contentReference[oaicite:0]{index=0} -->
+  <link rel="stylesheet" href="style.css">
   <!-- ONNX Runtime UMD -->
   <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort.min.js"></script>
-  <!-- 게임 로직 (DOM 파싱 후 실행) -->
   <script src="script.js" defer></script>
 </head>
 <body>
   <div class="game-container">
     <h1>Kayles Game</h1>
-    <!-- class뿐 아니라 id도 반드시 추가! -->
     <div class="pins-container" id="pins-container"></div>
     <div class="controls">
-      <button id="ai-move-btn">AI Move</button>
+      <button id="confirm-move-btn" disabled>Confirm Move</button>
     </div>
     <div id="game-message"></div>
     <div class="player-turn">Player: <span id="player-turn">You</span></div>
