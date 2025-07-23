@@ -8,9 +8,9 @@ async function initModel() {
   console.log('ONNX 모델 로드 완료.');
 }
 
-// 2) 현재 핀 상태 읽어오는 부분 (예시)
+// 2) 현재 핀 상태 읽어오는 부분
 function getCurrentPins() {
-  return window.currentPins;  // 실제 코드에 맞춰 바꿔주세요
+  return window.currentPins; 
 }
 
 // 3) 핀 제거 함수 (i, j 인덱스)
