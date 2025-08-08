@@ -6,10 +6,6 @@ const MAX_PINS = 128; // 모델이 학습된 최대 핀 개수
 const MODEL_PATH = './kayles_82pins.onnx'; // ONNX 모델 파일
 
 // --- DOM 요소 ---
-const setupScreen = document.getElementById('setup-screen');
-const gameScreen = document.getElementById('game-screen');
-const nPinsInput = document.getElementById('n-pins-input');
-const startButton = document.getElementById('start-button');
 const pinsContainer = document.getElementById('pins-container');
 const gameMessage = document.getElementById('game-message');
 const resetButton = document.getElementById('reset-button');
@@ -25,21 +21,23 @@ let inferenceSession;
 
 // --- 게임 시작 및 초기화 ---
 
-function startGame() {
-    const userPins = parseInt(nPinsInput.value, 10);
-
-    // 입력값 유효성 검사
-    if (isNaN(userPins) || userPins < 10 || userPins > 82) {
-        alert('핀 개수는 10에서 82 사이의 숫자로 입력해주세요.');
-        return;
+function promptForPinsAndStart() {
+    let userPins;
+    while (true) {
+        const input = prompt("시작할 핀의 개수를 입력하세요 (10 ~ 82):", "60");
+        // 사용자가 취소 버튼을 누른 경우
+        if (input === null) {
+            gameMessage.textContent = "게임이 취소되었습니다.";
+            return; // 함수 종료
+        }
+        userPins = parseInt(input, 10);
+        if (!isNaN(userPins) && userPins >= 10 && userPins <= 82) {
+            break; // 올바른 값이 입력되면 루프 탈출
+        }
+        alert("잘못된 값입니다. 10에서 82 사이의 숫자를 입력해주세요.");
     }
 
     N_PINS = userPins;
-
-    // UI 전환
-    setupScreen.classList.add('hidden');
-    gameScreen.classList.remove('hidden');
-
     initializeGame();
 }
 
@@ -211,29 +209,22 @@ async function aiTurn() {
 // --- 모델 로드 및 이벤트 리스너 설정 ---
 
 async function loadOnnxModel() {
-    // AI 상태는 게임 시작 전까지 '준비 중'으로 표시
-    const aiStatusElement = document.querySelector('#game-screen #ai-status span');
-    aiStatusElement.textContent = '준비 중...';
+    aiStatusSpan.textContent = '모델 로딩 중...';
     try {
         inferenceSession = await ort.InferenceSession.create(MODEL_PATH, { executionProviders: ['wasm'] });
+        aiStatusSpan.textContent = '모델 로드 완료!';
         console.log('ONNX 모델 로드 완료:', inferenceSession);
-        // 모델 로드 후 AI 상태를 '준비 완료'로 변경
-        aiStatusElement.textContent = '준비 완료';
+        // 모델 로드 후, 사용자에게 핀 개수를 물어보고 게임 시작
+        promptForPinsAndStart();
     } catch (e) {
         console.error('ONNX 모델 로드 오류:', e);
-        aiStatusElement.textContent = '모델 로드 실패!';
-        alert(`AI 모델(${MODEL_PATH}) 로드에 실패했습니다. 파일을 확인해주세요.`);
+        aiStatusSpan.textContent = '모델 로드 실패!';
+        gameMessage.textContent = `AI 모델(${MODEL_PATH}) 로드에 실패했습니다. 파일을 확인해주세요.`;
     }
 }
 
-// "새 게임 시작" 버튼은 설정 화면으로 돌아감
-resetButton.addEventListener('click', () => {
-    gameScreen.classList.add('hidden');
-    setupScreen.classList.remove('hidden');
-});
+// "게임 재시작" 버튼은 새로운 핀 개수를 물어보고 다시 시작
+resetButton.addEventListener('click', promptForPinsAndStart);
 
-// "게임 시작" 버튼 이벤트 리스너
-startButton.addEventListener('click', startGame);
-
-// 페이지 로드 시 모델 로드 시작
+// 페이지 로드 시 모델 로드 및 게임 시작 프로세스 시작
 window.onload = loadOnnxModel;

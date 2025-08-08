@@ -9,29 +9,16 @@
 <body>
     <div class="game-container">
         <h1>Kayles Game</h1>
-
-        <!-- 게임 시작 설정 화면 -->
-        <div id="setup-screen">
-            <div class="setup-controls">
-                <label for="n-pins-input">핀 개수 (10 ~ 82):</label>
-                <input type="number" id="n-pins-input" value="60" min="10" max="82">
-                <button id="start-button">게임 시작</button>
-            </div>
+        <div id="pins-container" class="pins-container"></div>
+        <div class="controls">
+            <p id="game-message"></p>
+            <button id="reset-button">게임 재시작</button>
         </div>
-
-        <!-- 게임 플레이 화면 (초기에는 숨김) -->
-        <div id="game-screen" class="hidden">
-            <div id="pins-container" class="pins-container"></div>
-            <div class="controls">
-                <p id="game-message"></p>
-                <button id="reset-button">새 게임 시작</button>
-            </div>
-            <div class="player-turn">
-                <p>현재 턴: <span id="current-turn"></span></p>
-            </div>
-            <div class="ai-status">
-                <p>AI 상태: <span id="ai-status">로딩 중...</span></p>
-            </div>
+        <div class="player-turn">
+            <p>현재 턴: <span id="current-turn"></span></p>
+        </div>
+        <div class="ai-status">
+            <p>AI 상태: <span id="ai-status">로딩 중...</span></p>
         </div>
     </div>
 
