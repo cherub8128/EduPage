@@ -1,35 +1,29 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <title>Kayles Game</title>
-  <!-- 외부 스타일시트 -->
-  <link rel="stylesheet" href="style.css">
-  <!-- ONNX Runtime UMD 빌드 (ort 전역변수 제공) -->
-  <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort.min.js"></script>
-  <!-- 게임 로직 -->
-  <script src="script.js" defer></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kayles Game (AI vs Human)</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="game-container">
-    <h1>Kayles Game</h1>
-
-    <!-- 핀을 렌더링할 컨테이너 -->
-    <div class="pins-container" id="pins-container"></div>
-
-    <!-- 사람 턴용 확인 버튼 -->
-    <div class="controls">
-      <button id="confirm-move-btn" disabled>확인</button>
+    <div class="game-container">
+        <h1>Kayles Game</h1>
+        <div id="pins-container" class="pins-container"></div>
+        <div class="controls">
+            <p id="game-message"></p>
+            <button id="reset-button">게임 재시작</button>
+        </div>
+        <div class="player-turn">
+            <p>현재 턴: <span id="current-turn"></span></p>
+        </div>
+        <div class="ai-status">
+            <p>AI 상태: <span id="ai-status">로딩 중...</span></p>
+        </div>
     </div>
 
-    <!-- 메시지 및 상태 표시 -->
-    <div id="game-message"></div>
-    <div class="player-turn">
-      Player: <span id="player-turn">You</span>
-    </div>
-    <div class="ai-status">
-      AI: <span id="ai-status">Waiting</span>
-    </div>
-  </div>
+    <!-- ONNX Runtime Web 라이브러리 로드 -->
+    <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort.min.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
