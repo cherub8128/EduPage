@@ -1,9 +1,9 @@
 // Kayles Game Logic (script.js)
 
 // --- 설정 ---
-let N_PINS = 81; // 실제 게임에 사용할 핀 개수
+let N_PINS = 60; // 실제 게임에 사용할 핀 개수
 const MAX_PINS = 128; // 모델이 학습된 최대 핀 개수 (관찰/행동 공간 크기)
-const MODEL_PATH = './kayles_81pins.onnx'; // 사용할 ONNX 모델 파일
+const MODEL_PATH = './kayles_82pins.onnx'; // 사용할 ONNX 모델 파일
 
 // --- 전역 변수 ---
 let pins = []; // 핀 상태 (1: 서있음, 0: 제거됨)
@@ -23,14 +23,25 @@ let inferenceSession; // ONNX Runtime InferenceSession
 
 // 게임 초기화
 function initializeGame() {
-    pins = Array(N_PINS).fill(1); // 실제 핀 개수만큼 초기화
+    // 1. 핀 개수 랜덤 설정 (10 ~ 82개)
+    N_PINS = Math.floor(Math.random() * (82 - 10 + 1)) + 10;
+    
+    pins = Array(N_PINS).fill(1);
     selectedPins = [];
-    currentPlayer = 'human'; // 항상 사람이 먼저 시작
     gameEnded = false;
-    gameMessage.textContent = '인접한 핀 2개를 클릭하여 제거하세요.';
+
+    // 2. 선공 플레이어 랜덤 결정
+    currentPlayer = Math.random() < 0.5 ? 'human' : 'ai';
+
+    gameMessage.textContent = `핀 ${N_PINS}개로 게임을 시작합니다. 인접한 핀 2개를 제거하세요.`;
     renderPins();
     updateTurnDisplay();
     aiStatusSpan.textContent = '준비됨';
+
+    // 3. AI가 선공일 경우 AI 턴 시작
+    if (currentPlayer === 'ai') {
+        setTimeout(aiTurn, 500);
+    }
 }
 
 // 핀 렌더링
@@ -167,9 +178,12 @@ async function aiTurn() {
             document.querySelector(`.pin[data-index="${pin2}"]`)?.classList.add('selected');
 
             setTimeout(() => {
-                removePins(pin1, pin2);
-                aiStatusSpan.textContent = '준비됨';
-                gameMessage.textContent = '인접한 핀 2개를 클릭하여 제거하세요.';
+                removePins(pin1, pin2); // 이 호출로 게임이 종료될 수 있습니다.
+                // 게임이 종료되지 않았을 때만 메시지를 업데이트합니다.
+                if (!gameEnded) {
+                    aiStatusSpan.textContent = '준비됨';
+                    gameMessage.textContent = '인접한 핀 2개를 클릭하여 제거하세요.';
+                }
             }, 1000);
         } else {
             // 이 경우는 hasValidMoves가 false일 때만 발생해야 함
