@@ -1,36 +1,54 @@
 // Kayles Game Logic (script.js)
 
 // --- 설정 ---
-let N_PINS = 60; // 실제 게임에 사용할 핀 개수
-const MAX_PINS = 128; // 모델이 학습된 최대 핀 개수 (관찰/행동 공간 크기)
-const MODEL_PATH = './kayles_82pins.onnx'; // 사용할 ONNX 모델 파일
+let N_PINS = 60; // 기본 핀 개수
+const MAX_PINS = 128; // 모델이 학습된 최대 핀 개수
+const MODEL_PATH = './kayles_82pins.onnx'; // ONNX 모델 파일
 
-// --- 전역 변수 ---
-let pins = []; // 핀 상태 (1: 서있음, 0: 제거됨)
-let selectedPins = []; // 선택된 핀 인덱스
-let currentPlayer = 'human'; // 현재 턴 (human 또는 ai)
-let gameEnded = false;
-
+// --- DOM 요소 ---
+const setupScreen = document.getElementById('setup-screen');
+const gameScreen = document.getElementById('game-screen');
+const nPinsInput = document.getElementById('n-pins-input');
+const startButton = document.getElementById('start-button');
 const pinsContainer = document.getElementById('pins-container');
 const gameMessage = document.getElementById('game-message');
 const resetButton = document.getElementById('reset-button');
 const currentTurnSpan = document.getElementById('current-turn');
 const aiStatusSpan = document.getElementById('ai-status');
 
-let inferenceSession; // ONNX Runtime InferenceSession
+// --- 전역 변수 ---
+let pins = [];
+let selectedPins = [];
+let currentPlayer = 'human';
+let gameEnded = false;
+let inferenceSession;
 
-// --- 게임 로직 ---
+// --- 게임 시작 및 초기화 ---
 
-// 게임 초기화
+function startGame() {
+    const userPins = parseInt(nPinsInput.value, 10);
+
+    // 입력값 유효성 검사
+    if (isNaN(userPins) || userPins < 10 || userPins > 82) {
+        alert('핀 개수는 10에서 82 사이의 숫자로 입력해주세요.');
+        return;
+    }
+
+    N_PINS = userPins;
+
+    // UI 전환
+    setupScreen.classList.add('hidden');
+    gameScreen.classList.remove('hidden');
+
+    initializeGame();
+}
+
 function initializeGame() {
-    // 1. 핀 개수 랜덤 설정 (10 ~ 82개)
-    N_PINS = Math.floor(Math.random() * (82 - 10 + 1)) + 10;
-    
     pins = Array(N_PINS).fill(1);
     selectedPins = [];
     gameEnded = false;
 
-    // 2. 선공 플레이어 랜덤 결정
+    // 선공 플레이어 랜덤 결정
     currentPlayer = Math.random() < 0.5 ? 'human' : 'ai';
 
     gameMessage.textContent = `핀 ${N_PINS}개로 게임을 시작합니다. 인접한 핀 2개를 제거하세요.`;
@@ -38,16 +56,15 @@ function initializeGame() {
     updateTurnDisplay();
     aiStatusSpan.textContent = '준비됨';
 
-    // 3. AI가 선공일 경우 AI 턴 시작
     if (currentPlayer === 'ai') {
         setTimeout(aiTurn, 500);
     }
 }
 
-// 핀 렌더링
+// --- 렌더링 및 UI 업데이트 ---
+
 function renderPins() {
     pinsContainer.innerHTML = '';
-    // 실제 핀 개수(N_PINS)만큼만 렌더링
     for (let i = 0; i < N_PINS; i++) {
         const pinElement = document.createElement('div');
         pinElement.classList.add('pin');
@@ -55,13 +72,18 @@ function renderPins() {
         if (pins[i] === 0) {
             pinElement.classList.add('removed');
         }
-        pinElement.textContent = i + 1; // 핀 번호 표시
+        pinElement.textContent = i + 1;
         pinElement.addEventListener('click', handlePinClick);
         pinsContainer.appendChild(pinElement);
     }
 }
 
-// 핀 클릭 핸들러
+function updateTurnDisplay() {
+    currentTurnSpan.textContent = currentPlayer === 'human' ? '당신' : 'AI';
+}
+
+// --- 게임 플레이 로직 ---
+
 function handlePinClick(event) {
     if (gameEnded || currentPlayer !== 'human') return;
 
@@ -94,7 +116,6 @@ function handlePinClick(event) {
     }
 }
 
-// 핀 제거 로직
 function removePins(pin1, pin2) {
     pins[pin1] = 0;
     pins[pin2] = 0;
@@ -103,7 +124,6 @@ function removePins(pin1, pin2) {
 
     if (!hasValidMoves(pins)) {
         gameEnded = true;
-        // 미제르 플레이: 마지막으로 움직인 사람이 패배
         gameMessage.textContent = `게임 종료! ${currentPlayer === 'human' ? '당신' : 'AI'}의 패배입니다!`;
         currentTurnSpan.textContent = '종료';
     } else {
@@ -115,7 +135,6 @@ function removePins(pin1, pin2) {
     }
 }
 
-// 유효한 움직임이 있는지 확인
 function hasValidMoves(currentPins) {
     for (let i = 0; i < N_PINS - 1; i++) {
         if (currentPins[i] === 1 && currentPins[i + 1] === 1) {
@@ -125,26 +144,19 @@ function hasValidMoves(currentPins) {
     return false;
 }
 
-// 턴 표시 업데이트
-function updateTurnDisplay() {
-    currentTurnSpan.textContent = currentPlayer === 'human' ? '당신' : 'AI';
-}
+// --- AI 로직 ---
 
-// AI 턴 로직
 async function aiTurn() {
     if (gameEnded) return;
     aiStatusSpan.textContent = '생각 중...';
     gameMessage.textContent = 'AI가 수를 두고 있습니다...';
 
-    // 1. 관찰(obs) 준비: 실제 핀 상태를 MAX_PINS 크기로 패딩
     const paddedObs = new Float32Array(MAX_PINS).fill(0);
-    paddedObs.set(pins); // Float32Array의 시작 부분에 현재 핀 상태 복사
+    paddedObs.set(pins);
     const obsTensor = new ort.Tensor('float32', paddedObs, [1, MAX_PINS]);
 
-    // 2. 행동 마스크(action_masks) 준비: MAX_PINS-1 크기로 생성
     const actionMasks = Array(MAX_PINS - 1).fill(false);
     for (let i = 0; i < N_PINS - 1; i++) {
-        // 실제 게임판(N_PINS) 내에서만 유효한 행동을 true로 설정
         if (pins[i] === 1 && pins[i + 1] === 1) {
             actionMasks[i] = true;
         }
@@ -161,7 +173,7 @@ async function aiTurn() {
         let maxLogit = -Infinity;
 
         for (let i = 0; i < actionLogits.length; i++) {
-            if (actionMasks[i]) { // 유효한 행동 중에서만 선택
+            if (actionMasks[i]) {
                 if (actionLogits[i] > maxLogit) {
                     maxLogit = actionLogits[i];
                     bestActionIndex = i;
@@ -173,20 +185,17 @@ async function aiTurn() {
             const pin1 = bestActionIndex;
             const pin2 = bestActionIndex + 1;
 
-            // AI가 선택한 핀 시각적으로 표시
             document.querySelector(`.pin[data-index="${pin1}"]`)?.classList.add('selected');
             document.querySelector(`.pin[data-index="${pin2}"]`)?.classList.add('selected');
 
             setTimeout(() => {
-                removePins(pin1, pin2); // 이 호출로 게임이 종료될 수 있습니다.
-                // 게임이 종료되지 않았을 때만 메시지를 업데이트합니다.
+                removePins(pin1, pin2);
                 if (!gameEnded) {
                     aiStatusSpan.textContent = '준비됨';
                     gameMessage.textContent = '인접한 핀 2개를 클릭하여 제거하세요.';
                 }
             }, 1000);
         } else {
-            // 이 경우는 hasValidMoves가 false일 때만 발생해야 함
             console.error("AI가 유효한 행동을 찾지 못했습니다.");
             gameMessage.textContent = 'AI 오류: 행동 선택 실패';
         }
@@ -199,24 +208,32 @@ async function aiTurn() {
     }
 }
 
-// ONNX 모델 로드
+// --- 모델 로드 및 이벤트 리스너 설정 ---
+
 async function loadOnnxModel() {
-    aiStatusSpan.textContent = '모델 로딩 중...';
+    // AI 상태는 게임 시작 전까지 '준비 중'으로 표시
+    const aiStatusElement = document.querySelector('#game-screen #ai-status span');
+    aiStatusElement.textContent = '준비 중...';
     try {
-        // ort.env.wasm.numThreads = 1; // 필요시 Wasm 스레드 수 설정
         inferenceSession = await ort.InferenceSession.create(MODEL_PATH, { executionProviders: ['wasm'] });
-        aiStatusSpan.textContent = '모델 로드 완료!';
         console.log('ONNX 모델 로드 완료:', inferenceSession);
-        initializeGame(); // 모델 로드 후 게임 초기화
+        // 모델 로드 후 AI 상태를 '준비 완료'로 변경
+        aiStatusElement.textContent = '준비 완료';
     } catch (e) {
         console.error('ONNX 모델 로드 오류:', e);
-        aiStatusSpan.textContent = '모델 로드 실패!';
-        gameMessage.textContent = `AI 모델(${MODEL_PATH}) 로드에 실패했습니다. 파일을 확인해주세요.`;
+        aiStatusElement.textContent = '모델 로드 실패!';
+        alert(`AI 모델(${MODEL_PATH}) 로드에 실패했습니다. 파일을 확인해주세요.`);
     }
 }
 
-// 이벤트 리스너
-resetButton.addEventListener('click', initializeGame);
+// "새 게임 시작" 버튼은 설정 화면으로 돌아감
+resetButton.addEventListener('click', () => {
+    gameScreen.classList.add('hidden');
+    setupScreen.classList.remove('hidden');
+});
+
+// "게임 시작" 버튼 이벤트 리스너
+startButton.addEventListener('click', startGame);
 
 // 페이지 로드 시 모델 로드 시작
 window.onload = loadOnnxModel;
