@@ -3,7 +3,7 @@
 // --- 설정 ---
 let N_PINS = 60; // 기본 핀 개수
 const MAX_PINS = 128; // 모델이 학습된 최대 핀 개수
-const MODEL_PATH = './kayles_71pins.onnx'; // ONNX 모델 파일
+const MODEL_PATH = './hof_model_89pins.onnx'; // ONNX 모델 파일
 
 // --- DOM 요소 ---
 const pinsContainer = document.getElementById('pins-container');
@@ -24,17 +24,17 @@ let inferenceSession;
 function promptForPinsAndStart() {
     let userPins;
     while (true) {
-        const input = prompt("시작할 핀의 개수를 입력하세요 (10 ~ 71):", "60");
+        const input = prompt("시작할 핀의 개수를 입력하세요 (10 ~ 89):", "60");
         // 사용자가 취소 버튼을 누른 경우
         if (input === null) {
             gameMessage.textContent = "게임이 취소되었습니다.";
             return; // 함수 종료
         }
         userPins = parseInt(input, 10);
-        if (!isNaN(userPins) && userPins >= 10 && userPins <= 71) {
+        if (!isNaN(userPins) && userPins >= 10 && userPins <= 89) {
             break; // 올바른 값이 입력되면 루프 탈출
         }
-        alert("잘못된 값입니다. 10에서 71 사이의 숫자를 입력해주세요.");
+        alert("잘못된 값입니다. 10에서 89 사이의 숫자를 입력해주세요.");
     }
 
     N_PINS = userPins;
