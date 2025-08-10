@@ -6,6 +6,16 @@ let N_PINS = 60;
 const MAX_PINS = 130;
 const urlModel = new URLSearchParams(location.search).get("model");
 const DEFAULT_MODEL_PATH = urlModel || "model.onnx";
+// --- MCTS toggle (does not break existing logic) ---
+// Control via URL: ?mcts=1&sims=256&cpuct=1.4
+function _getParam(name, def) {
+  const q = new URLSearchParams(location.search);
+  return q.has(name) ? q.get(name) : def;
+}
+const USE_MCTS = _getParam('mcts', '1') !== '0';
+const MCTS_SIMS = parseInt(_getParam('sims', '256'), 10);
+const MCTS_CPUCT = parseFloat(_getParam('cpuct', '1.4'));
+
 
 // DOM
 const modelBadgeEl = document.getElementById("modelBadge");
@@ -105,6 +115,94 @@ function onPinClick(i) {
 }
 
 // ---- AI ----
+
+// --- MCTS utilities (safe add-on) ---
+class _MNode {
+  constructor(key, pins, player, parent=null, prior=0.0) {
+    this.key = key;
+    this.pins = pins;
+    this.player = player; // +1 human, -1 AI
+    this.parent = parent;
+    this.children = new Map(); // action -> _MNode
+    this.N = 0;
+    this.W = 0.0;
+    this.P = prior;
+  }
+  get Q(){ return this.N === 0 ? 0.0 : this.W / this.N; }
+}
+function _stateKey(p){ return p.join(''); }
+function _softmaxMasked(logits, mask){
+  let maxv = -Infinity;
+  for (let i=0;i<logits.length;i++){ if(mask[i] && logits[i] > maxv) maxv = logits[i]; }
+  const exps = new Float32Array(logits.length);
+  let sum = 0.0;
+  for (let i=0;i<logits.length;i++){
+    if(mask[i]){ const v = Math.exp(logits[i]-maxv); exps[i]=v; sum+=v; } else exps[i]=0;
+  }
+  const probs = new Float32Array(logits.length);
+  if(sum<=0) return probs;
+  for (let i=0;i<logits.length;i++) probs[i] = exps[i]/sum;
+  return probs;
+}
+async function _evalPV(pinsArr){
+  const obs = padObs(pinsArr);
+  const mask = buildMask(pinsArr);
+  const feeds = { obs: new ort.Tensor('float32', obs, [1, MAX_PINS]), action_masks: new ort.Tensor('bool', mask, [1, MAX_PINS-1]) };
+  const out = await runModel(feeds);
+  const logits = (out['policy_logits']?.data) || (out['action_logits']?.data);
+  const value = (out['value']?.data ? out['value'].data[0] : (out['value'] ? out['value'][0] : 0.0));
+  const probs = _softmaxMasked(logits, Array.from(mask, x=>!!x));
+  return { probs, value: Number(value) };
+}
+async function _mctsSuggest(pinsArr, sims=MCTS_SIMS, c_puct=MCTS_CPUCT){
+  const root = new _MNode(_stateKey(pinsArr), pinsArr.slice(), -1, null, 0.0); // AI to move (-1)
+  if (!hasValidMoves(root.pins)) return -1;
+  // Expand root
+  {
+    const { probs } = await _evalPV(root.pins);
+    for (let a=0;a<probs.length;a++){
+      if (probs[a] > 0){
+        const next = root.pins.slice(); next[a]=0; next[a+1]=0;
+        root.children.set(a, new _MNode(_stateKey(next), next, +1, root, probs[a]));
+      }
+    }
+  }
+  for (let t=0;t<sims;t++){
+    let node = root; const path=[node];
+    // Selection
+    while (node.children.size > 0){
+      let bestA=-1, best=null, bestScore=-1e9;
+      const sqrtN = Math.sqrt(Math.max(1,node.N));
+      for (const [a,ch] of node.children.entries()){
+        const u = c_puct * ch.P * sqrtN / (1 + ch.N);
+        const s = ch.Q + u;
+        if (s > bestScore){ bestScore=s; best=ch; bestA=a; }
+      }
+      node = best; path.push(node);
+    }
+    // Terminal?
+    if (!hasValidMoves(node.pins)){
+      // current node.player to move has no moves => wins in misère
+      let v = 1.0;
+      for (let i=path.length-1;i>=0;i--){ const n=path[i]; n.N+=1; n.W+=v; v = -v; }
+      continue;
+    }
+    // Expand by NN
+    const { probs, value } = await _evalPV(node.pins);
+    for (let a=0;a<probs.length;a++){
+      if (probs[a] > 0){
+        const next = node.pins.slice(); next[a]=0; next[a+1]=0;
+        node.children.set(a, new _MNode(_stateKey(next), next, -node.player, node, probs[a]));
+      }
+    }
+    // Backup
+    let v = value;
+    for (let i=path.length-1;i>=0;i--){ const n=path[i]; n.N+=1; n.W+=v; v = -v; }
+  }
+  let bestA=-1, bestN=-1;
+  for (const [a,ch] of root.children.entries()){ if (ch.N > bestN){ bestN=ch.N; bestA=a; } }
+  return bestA;
+}
 async function runModel(feeds) {
   try {
     // Try with mask first
@@ -121,6 +219,26 @@ async function runModel(feeds) {
 }
 
 async function aiTurn() {
+  if (!session) return;
+  if (player !== -1) return; // only when AI to move
+  if (USE_MCTS) {
+    try {
+      gameMsgEl.textContent = `AI(MCTS {'{'}MCTS_SIMS{'}'}) 생각 중...`;
+      if (!hasValidMoves(pins)) { declareWinner(player); return; }
+      const a = await _mctsSuggest(pins, MCTS_SIMS, MCTS_CPUCT);
+      if (a < 0) { gameMsgEl.textContent = "AI 오류: 합법 수 없음"; return; }
+      pins[a] = 0; pins[a+1] = 0;
+      player = -player;
+      render();
+      if (checkAndMaybeEnd()) return;
+      gameMsgEl.textContent = "당신의 차례입니다. 인접한 핀 2개를 제거하세요.";
+      return;
+    } catch (e) {
+      console.warn("MCTS 실패, 그리디로 폴백:", e);
+      // fall through to greedy
+    }
+  }
+
   if (!session) return;
   if (player !== -1) return; // only when AI to move
   gameMsgEl.textContent = "AI 생각 중...";
