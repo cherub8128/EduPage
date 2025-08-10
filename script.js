@@ -1,230 +1,194 @@
-// Kayles Game Logic (script.js)
+// Misère Kayles (no splitting) — Top toolbar, mobile-optimized, auto-load model.
+// - Auto-loads model from same folder: model.onnx (or override via ?model=name.onnx)
+// - Inputs: obs [1, MAX_PINS] float32, optional action_masks [1, MAX_PINS-1] bool
+// - Outputs: 'policy_logits' or 'action_logits' (length MAX_PINS-1)
+let N_PINS = 60;
+const MAX_PINS = 130;
+const urlModel = new URLSearchParams(location.search).get("model");
+const DEFAULT_MODEL_PATH = urlModel || "model.onnx";
 
-// --- 설정 ---
-let N_PINS = 60; // 기본 핀 개수
-const MAX_PINS = 128; // 모델이 학습된 최대 핀 개수
-const MODEL_PATH = './hof_model_89pins.onnx'; // ONNX 모델 파일
+// DOM
+const modelBadgeEl = document.getElementById("modelBadge");
+const nPinsEl = document.getElementById("nPins");
+const whoFirstEl = document.getElementById("whoFirst");
+const newGameBtn = document.getElementById("newGameBtn");
+const aiMoveBtn = document.getElementById("aiMoveBtn");
+const pinsEl = document.getElementById("pins");
+const gameMsgEl = document.getElementById("gameMsg");
+const turnWhoEl = document.getElementById("turnWho");
 
-// --- DOM 요소 ---
-const pinsContainer = document.getElementById('pins-container');
-const gameMessage = document.getElementById('game-message');
-const resetButton = document.getElementById('reset-button');
-const currentTurnSpan = document.getElementById('current-turn');
-const aiStatusSpan = document.getElementById('ai-status');
-
-// --- 전역 변수 ---
+// State
 let pins = [];
-let selectedPins = [];
-let currentPlayer = 'human';
-let gameEnded = false;
-let inferenceSession;
+let selected = [];
+let player = +1;  // +1: Human, -1: AI
+let session = null;
 
-// --- 게임 시작 및 초기화 ---
+// ---- Helpers ----
+function hasValidMoves(board) {
+  for (let i = 0; i < board.length - 1; i++) {
+    if (board[i] === 1 && board[i + 1] === 1) return true;
+  }
+  return false;
+}
 
-function promptForPinsAndStart() {
-    let userPins;
-    while (true) {
-        const input = prompt("시작할 핀의 개수를 입력하세요 (10 ~ 89):", "60");
-        // 사용자가 취소 버튼을 누른 경우
-        if (input === null) {
-            gameMessage.textContent = "게임이 취소되었습니다.";
-            return; // 함수 종료
-        }
-        userPins = parseInt(input, 10);
-        if (!isNaN(userPins) && userPins >= 10 && userPins <= 89) {
-            break; // 올바른 값이 입력되면 루프 탈출
-        }
-        alert("잘못된 값입니다. 10에서 89 사이의 숫자를 입력해주세요.");
+function padObs(pinsArr) {
+  const v = new Float32Array(MAX_PINS);
+  for (let i = 0; i < Math.min(MAX_PINS, pinsArr.length); i++) v[i] = pinsArr[i];
+  return v;
+}
+
+function buildMask(pinsArr) {
+  const mask = new Uint8Array(MAX_PINS - 1);
+  for (let i = 0; i < Math.min(MAX_PINS - 1, pinsArr.length - 1); i++) {
+    if (pinsArr[i] === 1 && pinsArr[i + 1] === 1) mask[i] = 1;
+  }
+  return mask;
+}
+
+function declareWinner(currentPlayer) {
+  const winner = currentPlayer === +1 ? "Human" : "AI";
+  gameMsgEl.textContent = `게임 종료! 승자: ${winner}`;
+  turnWhoEl.textContent = "종료";
+  aiMoveBtn.disabled = true;
+}
+
+function checkAndMaybeEnd() {
+  if (!hasValidMoves(pins)) { declareWinner(player); return true; }
+  return false;
+}
+
+// ---- Rendering ----
+function render() {
+  pinsEl.innerHTML = "";
+  pins.forEach((v, idx) => {
+    const div = document.createElement("div");
+    div.className = "pin " + (v ? "alive" : "removed");
+    div.textContent = idx + 1;
+    if (v && player === +1 && session) {
+      if (selected.includes(idx)) div.classList.add("selected");
+      div.addEventListener("click", () => onPinClick(idx), { passive: true });
     }
-
-    N_PINS = userPins;
-    initializeGame();
+    pinsEl.appendChild(div);
+  });
+  turnWhoEl.textContent = player === +1 ? "Human" : "AI";
+  aiMoveBtn.disabled = !(player === -1 && session);
 }
 
-function initializeGame() {
-    pins = Array(N_PINS).fill(1);
-    selectedPins = [];
-    gameEnded = false;
-
-    // 선공 플레이어 랜덤 결정
-    currentPlayer = Math.random() < 0.5 ? 'human' : 'ai';
-
-    gameMessage.textContent = `핀 ${N_PINS}개로 게임을 시작합니다. 인접한 핀 2개를 제거하세요.`;
-    renderPins();
-    updateTurnDisplay();
-    aiStatusSpan.textContent = '준비됨';
-
-    if (currentPlayer === 'ai') {
-        setTimeout(aiTurn, 500);
-    }
-}
-
-// --- 렌더링 및 UI 업데이트 ---
-
-function renderPins() {
-    pinsContainer.innerHTML = '';
-    for (let i = 0; i < N_PINS; i++) {
-        const pinElement = document.createElement('div');
-        pinElement.classList.add('pin');
-        pinElement.dataset.index = i;
-        if (pins[i] === 0) {
-            pinElement.classList.add('removed');
-        }
-        pinElement.textContent = i + 1;
-        pinElement.addEventListener('click', handlePinClick);
-        pinsContainer.appendChild(pinElement);
-    }
-}
-
-function updateTurnDisplay() {
-    currentTurnSpan.textContent = currentPlayer === 'human' ? '당신' : 'AI';
-}
-
-// --- 게임 플레이 로직 ---
-
-function handlePinClick(event) {
-    if (gameEnded || currentPlayer !== 'human') return;
-
-    const clickedPinIndex = parseInt(event.target.dataset.index);
-    if (pins[clickedPinIndex] === 0) return;
-
-    const indexInSelected = selectedPins.indexOf(clickedPinIndex);
-    if (indexInSelected > -1) {
-        selectedPins.splice(indexInSelected, 1);
-        event.target.classList.remove('selected');
+function onPinClick(i) {
+  if (player !== +1 || !session) return;
+  if (!pins[i]) return;
+  if (selected.includes(i)) {
+    selected = selected.filter(x => x !== i);
+  } else {
+    if (selected.length < 2) selected.push(i);
+  }
+  if (selected.length === 2) {
+    selected.sort((a,b)=>a-b);
+    const [p1, p2] = selected;
+    if (p2 - p1 === 1 && pins[p1] && pins[p2]) {
+      // apply player's move
+      pins[p1] = 0; pins[p2] = 0; selected = [];
+      // switch turn FIRST (misère checks are for TO-MOVE player)
+      player = -player;
+      render();
+      // terminal check for the to-move player
+      if (checkAndMaybeEnd()) return;
+      // AI moves if it's AI's turn
+      if (player === -1) setTimeout(aiTurn, 160);
     } else {
-        if (selectedPins.length < 2) {
-            selectedPins.push(clickedPinIndex);
-            event.target.classList.add('selected');
-        }
+      gameMsgEl.textContent = "인접한 살아있는 핀 2개를 선택하세요.";
+      setTimeout(()=>{ selected=[]; render(); gameMsgEl.textContent=""; }, 900);
     }
-
-    if (selectedPins.length === 2) {
-        const [p1, p2] = selectedPins.sort((a, b) => a - b);
-        if (p2 - p1 === 1 && pins[p1] === 1 && pins[p2] === 1) {
-            removePins(p1, p2);
-        } else {
-            gameMessage.textContent = '인접하고 아직 제거되지 않은 핀 2개를 선택해야 합니다.';
-            setTimeout(() => {
-                selectedPins.forEach(idx => document.querySelector(`.pin[data-index="${idx}"]`)?.classList.remove('selected'));
-                selectedPins = [];
-                gameMessage.textContent = '인접한 핀 2개를 클릭하여 제거하세요.';
-            }, 1500);
-        }
-    }
+  } else {
+    render();
+  }
 }
 
-function removePins(pin1, pin2) {
-    pins[pin1] = 0;
-    pins[pin2] = 0;
-    selectedPins = [];
-    renderPins();
-
-    if (!hasValidMoves(pins)) {
-        gameEnded = true;
-        gameMessage.textContent = `게임 종료! ${currentPlayer === 'human' ? '당신' : 'AI'}의 패배입니다!`;
-        currentTurnSpan.textContent = '종료';
+// ---- AI ----
+async function runModel(feeds) {
+  try {
+    // Try with mask first
+    return await session.run(feeds);
+  } catch (e) {
+    // Retry without action_masks if model doesn't expect it
+    if (feeds.action_masks) {
+      const { action_masks, ...feeds2 } = feeds;
+      return await session.run(feeds2);
     } else {
-        currentPlayer = currentPlayer === 'human' ? 'ai' : 'human';
-        updateTurnDisplay();
-        if (currentPlayer === 'ai') {
-            setTimeout(aiTurn, 500);
-        }
+      throw e;
     }
+  }
 }
-
-function hasValidMoves(currentPins) {
-    for (let i = 0; i < N_PINS - 1; i++) {
-        if (currentPins[i] === 1 && currentPins[i + 1] === 1) {
-            return true;
-        }
-    }
-    return false;
-}
-
-// --- AI 로직 ---
 
 async function aiTurn() {
-    if (gameEnded) return;
-    aiStatusSpan.textContent = '생각 중...';
-    gameMessage.textContent = 'AI가 수를 두고 있습니다...';
+  if (!session) return;
+  if (player !== -1) return; // only when AI to move
+  gameMsgEl.textContent = "AI 생각 중...";
 
-    const paddedObs = new Float32Array(MAX_PINS).fill(0);
-    paddedObs.set(pins);
-    const obsTensor = new ort.Tensor('float32', paddedObs, [1, MAX_PINS]);
+  // If AI has no moves, AI (to move) wins by misère
+  if (!hasValidMoves(pins)) { declareWinner(player); return; }
 
-    const actionMasks = Array(MAX_PINS - 1).fill(false);
-    for (let i = 0; i < N_PINS - 1; i++) {
-        if (pins[i] === 1 && pins[i + 1] === 1) {
-            actionMasks[i] = true;
-        }
-    }
-    const maskData = new Uint8Array(actionMasks.map(m => m ? 1 : 0));
-    const maskTensor = new ort.Tensor('bool', maskData, [1, MAX_PINS - 1]);
+  const obs = padObs(pins);
+  const mask = buildMask(pins);
+  const feeds = {
+    obs: new ort.Tensor("float32", obs, [1, MAX_PINS]),
+    action_masks: new ort.Tensor("bool", mask, [1, MAX_PINS - 1]),
+  };
 
-    try {
-        const feeds = { obs: obsTensor, action_masks: maskTensor };
-        const results = await inferenceSession.run(feeds);
-        const actionLogits = results.action_logits.data;
-
-        let bestActionIndex = -1;
-        let maxLogit = -Infinity;
-
-        for (let i = 0; i < actionLogits.length; i++) {
-            if (actionMasks[i]) {
-                if (actionLogits[i] > maxLogit) {
-                    maxLogit = actionLogits[i];
-                    bestActionIndex = i;
-                }
-            }
-        }
-
-        if (bestActionIndex !== -1) {
-            const pin1 = bestActionIndex;
-            const pin2 = bestActionIndex + 1;
-
-            document.querySelector(`.pin[data-index="${pin1}"]`)?.classList.add('selected');
-            document.querySelector(`.pin[data-index="${pin2}"]`)?.classList.add('selected');
-
-            setTimeout(() => {
-                removePins(pin1, pin2);
-                if (!gameEnded) {
-                    aiStatusSpan.textContent = '준비됨';
-                    gameMessage.textContent = '인접한 핀 2개를 클릭하여 제거하세요.';
-                }
-            }, 1000);
-        } else {
-            console.error("AI가 유효한 행동을 찾지 못했습니다.");
-            gameMessage.textContent = 'AI 오류: 행동 선택 실패';
-        }
-
-    } catch (e) {
-        console.error('ONNX Runtime 추론 오류:', e);
-        gameMessage.textContent = 'AI 오류 발생!';
-        aiStatusSpan.textContent = '오류';
-        gameEnded = true;
-    }
+  try {
+    const out = await runModel(feeds);
+    const logits = (out["policy_logits"]?.data) || (out["action_logits"]?.data);
+    if (!logits) throw new Error("ONNX 출력에 policy_logits/action_logits가 없습니다.");
+    // pick best legal
+    let best = -1, bestVal = -1e30;
+    for (let i = 0; i < mask.length; i++) if (mask[i] && logits[i] > bestVal) (bestVal = logits[i]), (best = i);
+    if (best < 0) { gameMsgEl.textContent = "AI 오류: 합법적 수 없음"; return; }
+    // apply AI move
+    pins[best] = 0; pins[best + 1] = 0;
+    // switch to human
+    player = -player;
+    render();
+    // terminal check for the to-move player (human)
+    if (checkAndMaybeEnd()) return;
+    gameMsgEl.textContent = "당신의 차례입니다. 인접한 핀 2개를 제거하세요.";
+  } catch (e) {
+    console.error(e);
+    gameMsgEl.textContent = "AI 추론 오류: " + e.message;
+  }
 }
 
-// --- 모델 로드 및 이벤트 리스너 설정 ---
-
-async function loadOnnxModel() {
-    aiStatusSpan.textContent = '모델 로딩 중...';
-    try {
-        inferenceSession = await ort.InferenceSession.create(MODEL_PATH, { executionProviders: ['wasm'] });
-        aiStatusSpan.textContent = '모델 로드 완료!';
-        console.log('ONNX 모델 로드 완료:', inferenceSession);
-        // 모델 로드 후, 사용자에게 핀 개수를 물어보고 게임 시작
-        promptForPinsAndStart();
-    } catch (e) {
-        console.error('ONNX 모델 로드 오류:', e);
-        aiStatusSpan.textContent = '모델 로드 실패!';
-        gameMessage.textContent = `AI 모델(${MODEL_PATH}) 로드에 실패했습니다. 파일을 확인해주세요.`;
-    }
+// ---- Init / Events ----
+async function loadModelFrom(path) {
+  modelBadgeEl.textContent = `Model: loading… (${path})`;
+  try {
+    session = await ort.InferenceSession.create(path, { executionProviders: ["wasm"] });
+    modelBadgeEl.textContent = `Model: loaded ✔ (${path})`;
+  } catch (e) {
+    session = null;
+    modelBadgeEl.textContent = `Model: failed — ${e.message}`;
+  }
 }
 
-// "게임 재시작" 버튼은 새로운 핀 개수를 물어보고 다시 시작
-resetButton.addEventListener('click', promptForPinsAndStart);
+newGameBtn.addEventListener("click", () => {
+  N_PINS = Math.max(2, Math.min(128, Number(nPinsEl.value) || 60));
+  pins = Array(N_PINS).fill(1);
+  selected = [];
+  const who = whoFirstEl.value;
+  player = (who === "human") ? +1 : -1;
+  render();
+  if (checkAndMaybeEnd()) return;
+  gameMsgEl.textContent = (player === +1) ? "인접한 핀 2개를 클릭하세요." : "AI가 먼저 둡니다.";
+  if (player === -1) setTimeout(aiTurn, 180);
+});
 
-// 페이지 로드 시 모델 로드 및 게임 시작 프로세스 시작
-window.onload = loadOnnxModel;
+aiMoveBtn.addEventListener("click", () => {
+  if (player === -1 && session) aiTurn();
+});
+
+(async function init(){
+  await loadModelFrom(DEFAULT_MODEL_PATH);
+  // initial board
+  pins = Array(N_PINS).fill(1);
+  render();
+  gameMsgEl.textContent = session ? "모델이 로드되었습니다. 새 게임을 시작하세요." : "모델 로드 실패. model.onnx 경로를 확인하세요.";
+})();

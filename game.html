@@ -1,29 +1,50 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kayles Game (AI vs Human)</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Misère Kayles (2-Adjacent Only)</title>
+  <link rel="stylesheet" href="style.css"/>
 </head>
 <body>
-    <div class="game-container">
-        <h1>Kayles Game</h1>
-        <div id="pins-container" class="pins-container"></div>
-        <div class="controls">
-            <p id="game-message"></p>
-            <button id="reset-button">게임 재시작</button>
-        </div>
-        <div class="player-turn">
-            <p>현재 턴: <span id="current-turn"></span></p>
-        </div>
-        <div class="ai-status">
-            <p>AI 상태: <span id="ai-status">로딩 중...</span></p>
-        </div>
-    </div>
+  <div class="app vstack">
+    <header class="toolbar card">
+      <div class="toolbar-top">
+        <h1 class="brand">Misère Kayles</h1>
+        <span id="modelBadge" class="pill">Model: loading…</span>
+      </div>
+      <div class="controls-grid">
+        <label class="ctrl">
+          <span>핀 개수</span>
+          <input id="nPins" type="number" min="2" max="128" value="60"/>
+        </label>
+        <label class="ctrl">
+          <span>선공</span>
+          <select id="whoFirst">
+            <option value="human" selected>Human</option>
+            <option value="ai">AI</option>
+          </select>
+        </label>
+        <button id="newGameBtn" class="btn primary">새 게임</button>
+        <button id="aiMoveBtn" class="btn">AI 수 두기</button>
+      </div>
+      <div class="legend">
+        <span><span class="swatch live"></span> 살아있는 핀</span>
+        <span><span class="swatch sel"></span> 선택됨</span>
+        <span><span class="swatch dead"></span> 제거됨</span>
+      </div>
+    </header>
 
-    <!-- ONNX Runtime Web 라이브러리 로드 -->
-    <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort.min.js"></script>
-    <script src="script.js"></script>
+    <main class="board card">
+      <div class="topbar">
+        <div>현재 턴: <b id="turnWho">-</b></div>
+        <div id="gameMsg" class="muted">모델을 로드한 후 시작하세요.</div>
+      </div>
+      <div id="pins" class="pins"></div>
+    </main>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort.min.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
