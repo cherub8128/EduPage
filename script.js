@@ -13,7 +13,7 @@ function _getParam(name, def) {
   return q.has(name) ? q.get(name) : def;
 }
 const USE_MCTS = _getParam('mcts', '1') !== '0';
-const MCTS_SIMS = parseInt(_getParam('sims', '256'), 10);
+const MCTS_SIMS = parseInt(_getParam('sims', '512'), 10);
 const MCTS_CPUCT = parseFloat(_getParam('cpuct', '1.4'));
 
 
