@@ -1,9 +1,12 @@
 // Misère Kayles (no splitting) — Top toolbar, mobile-optimized, auto-load model.
 // - Auto-loads model from same folder: model.onnx (or override via ?model=name.onnx)
-// - Inputs: obs [1, MAX_PINS] float32, optional action_masks [1, MAX_PINS-1] bool
-// - Outputs: 'policy_logits' or 'action_logits' (length MAX_PINS-1)
+// - Inputs: 'obs' [1, 130] float32 (run-length histogram + player)
+// - Outputs: 'policy_logits' (length 127) and 'value'
 let N_PINS = 60;
+// [수정] MAX_PINS는 이제 Python 코드의 `max_size` (128) + 2 와 일치하는 전체 관측 벡터 크기입니다.
 const MAX_PINS = 130;
+const MAX_BOARD_SIZE = 128; // 실제 핀의 최대 개수
+
 const urlModel = new URLSearchParams(location.search).get("model");
 const DEFAULT_MODEL_PATH = urlModel || "model.onnx";
 // --- MCTS toggle (does not break existing logic) ---
@@ -13,7 +16,7 @@ function _getParam(name, def) {
   return q.has(name) ? q.get(name) : def;
 }
 const USE_MCTS = _getParam('mcts', '1') !== '0';
-const MCTS_SIMS = parseInt(_getParam('sims', '512'), 10);
+const MCTS_SIMS = parseInt(_getParam('sims', '256'), 10);
 const MCTS_CPUCT = parseFloat(_getParam('cpuct', '1.4'));
 
 
@@ -41,15 +44,45 @@ function hasValidMoves(board) {
   return false;
 }
 
-function padObs(pinsArr) {
-  const v = new Float32Array(MAX_PINS);
-  for (let i = 0; i < Math.min(MAX_PINS, pinsArr.length); i++) v[i] = pinsArr[i];
-  return v;
+// [추가] Python의 _get_run_lengths 함수와 동일한 기능을 하는 JavaScript 함수
+function _getRunLengths(pinsArr) {
+    const runs = [];
+    let currentRun = 0;
+    for (const pin of pinsArr) {
+        if (pin === 1) {
+            currentRun++;
+        } else {
+            if (currentRun > 0) {
+                runs.push(currentRun);
+            }
+            currentRun = 0;
+        }
+    }
+    if (currentRun > 0) {
+        runs.push(currentRun);
+    }
+    return runs;
+}
+
+// [수정] AI 모델의 새로운 입력 형식에 맞게 관측(observation) 벡터를 생성하는 함수
+function buildObs(pinsArr, currentPlayer) {
+    const obs = new Float32Array(MAX_PINS); // MAX_PINS = 130
+    const runs = _getRunLengths(pinsArr);
+    
+    for (const r_len of runs) {
+        if (r_len >= 1 && r_len <= MAX_BOARD_SIZE) {
+            // obs 벡터의 (길이-1) 인덱스에 덩어리 개수를 1 더합니다.
+            obs[r_len - 1] += 1.0;
+        }
+    }
+    // 플레이어 턴 정보를 벡터의 마지막에서 두 번째 위치에 저장 (인덱스 129)
+    obs[MAX_PINS - 1] = (currentPlayer === +1) ? 1.0 : -1.0;
+    return obs;
 }
 
 function buildMask(pinsArr) {
-  const mask = new Uint8Array(MAX_PINS - 1);
-  for (let i = 0; i < Math.min(MAX_PINS - 1, pinsArr.length - 1); i++) {
+  const mask = new Uint8Array(MAX_BOARD_SIZE - 1); // Mask는 실제 핀 개수에 따라
+  for (let i = 0; i < Math.min(MAX_BOARD_SIZE - 1, pinsArr.length - 1); i++) {
     if (pinsArr[i] === 1 && pinsArr[i + 1] === 1) mask[i] = 1;
   }
   return mask;
@@ -144,13 +177,14 @@ function _softmaxMasked(logits, mask){
   for (let i=0;i<logits.length;i++) probs[i] = exps[i]/sum;
   return probs;
 }
-async function _evalPV(pinsArr){
-  const obs = padObs(pinsArr);
+async function _evalPV(pinsArr, currentPlayer){
+  // [수정] 새로운 buildObs 함수를 사용하여 모델 입력 생성
+  const obs = buildObs(pinsArr, currentPlayer);
   const mask = buildMask(pinsArr);
-  const feeds = { obs: new ort.Tensor('float32', obs, [1, MAX_PINS]), action_masks: new ort.Tensor('bool', mask, [1, MAX_PINS-1]) };
+  const feeds = { obs: new ort.Tensor('float32', obs, [1, MAX_PINS]) };
   const out = await runModel(feeds);
-  const logits = (out['policy_logits']?.data) || (out['action_logits']?.data);
-  const value = (out['value']?.data ? out['value'].data[0] : (out['value'] ? out['value'][0] : 0.0));
+  const logits = (out['policy']?.data) || (out['policy_logits']?.data) || (out['action_logits']?.data);
+  const value = (out['value']?.data ? out['value'].data[0] : 0.0);
   const probs = _softmaxMasked(logits, Array.from(mask, x=>!!x));
   return { probs, value: Number(value) };
 }
@@ -159,7 +193,7 @@ async function _mctsSuggest(pinsArr, sims=MCTS_SIMS, c_puct=MCTS_CPUCT){
   if (!hasValidMoves(root.pins)) return -1;
   // Expand root
   {
-    const { probs } = await _evalPV(root.pins);
+    const { probs } = await _evalPV(root.pins, root.player);
     for (let a=0;a<probs.length;a++){
       if (probs[a] > 0){
         const next = root.pins.slice(); next[a]=0; next[a+1]=0;
@@ -188,7 +222,7 @@ async function _mctsSuggest(pinsArr, sims=MCTS_SIMS, c_puct=MCTS_CPUCT){
       continue;
     }
     // Expand by NN
-    const { probs, value } = await _evalPV(node.pins);
+    const { probs, value } = await _evalPV(node.pins, node.player);
     for (let a=0;a<probs.length;a++){
       if (probs[a] > 0){
         const next = node.pins.slice(); next[a]=0; next[a+1]=0;
@@ -204,29 +238,23 @@ async function _mctsSuggest(pinsArr, sims=MCTS_SIMS, c_puct=MCTS_CPUCT){
   return bestA;
 }
 async function runModel(feeds) {
-  try {
-    // Try with mask first
+    // [수정] 새 모델은 action_masks를 입력으로 받지 않으므로 해당 로직 제거
     return await session.run(feeds);
-  } catch (e) {
-    // Retry without action_masks if model doesn't expect it
-    if (feeds.action_masks) {
-      const { action_masks, ...feeds2 } = feeds;
-      return await session.run(feeds2);
-    } else {
-      throw e;
-    }
-  }
 }
 
 async function aiTurn() {
-  if (!session) return;
-  if (player !== -1) return; // only when AI to move
+  if (!session || player !== -1) return;
+  
+  if (checkAndMaybeEnd()) return;
+
   if (USE_MCTS) {
     try {
-      gameMsgEl.textContent = `AI(MCTS {'{'}MCTS_SIMS{'}'}) 생각 중...`;
-      if (!hasValidMoves(pins)) { declareWinner(player); return; }
-      const a = await _mctsSuggest(pins, MCTS_SIMS, MCTS_CPUCT);
-      if (a < 0) { gameMsgEl.textContent = "AI 오류: 합법 수 없음"; return; }
+      gameMsgEl.textContent = `AI(MCTS ${MCTS_SIMS}) 생각 중...`;
+      const a = await _mctsSuggest(pins);
+      if (a < 0) {
+        if (hasValidMoves(pins)) gameMsgEl.textContent = "AI 오류: MCTS가 수를 찾지 못했습니다.";
+        return;
+      }
       pins[a] = 0; pins[a+1] = 0;
       player = -player;
       render();
@@ -235,38 +263,41 @@ async function aiTurn() {
       return;
     } catch (e) {
       console.warn("MCTS 실패, 그리디로 폴백:", e);
-      // fall through to greedy
     }
   }
 
-  if (!session) return;
-  if (player !== -1) return; // only when AI to move
+  // Greedy Fallback
   gameMsgEl.textContent = "AI 생각 중...";
-
-  // If AI has no moves, AI (to move) wins by misère
-  if (!hasValidMoves(pins)) { declareWinner(player); return; }
-
-  const obs = padObs(pins);
-  const mask = buildMask(pins);
+  
+  // [수정] 새로운 buildObs 함수를 사용하여 모델 입력 생성
+  const obs = buildObs(pins, player);
   const feeds = {
     obs: new ort.Tensor("float32", obs, [1, MAX_PINS]),
-    action_masks: new ort.Tensor("bool", mask, [1, MAX_PINS - 1]),
   };
 
   try {
     const out = await runModel(feeds);
-    const logits = (out["policy_logits"]?.data) || (out["action_logits"]?.data);
-    if (!logits) throw new Error("ONNX 출력에 policy_logits/action_logits가 없습니다.");
-    // pick best legal
-    let best = -1, bestVal = -1e30;
-    for (let i = 0; i < mask.length; i++) if (mask[i] && logits[i] > bestVal) (bestVal = logits[i]), (best = i);
-    if (best < 0) { gameMsgEl.textContent = "AI 오류: 합법적 수 없음"; return; }
-    // apply AI move
+    const logits = (out['policy']?.data) || (out['policy_logits']?.data) || (out['action_logits']?.data);
+    if (!logits) throw new Error("ONNX 출력에 policy/policy_logits/action_logits가 없습니다.");
+    
+    const mask = buildMask(pins);
+    let best = -1, bestVal = -Infinity;
+    for (let i = 0; i < mask.length; i++) {
+        if (mask[i] && logits[i] > bestVal) {
+            bestVal = logits[i];
+            best = i;
+        }
+    }
+
+    if (best < 0) {
+        if(hasValidMoves(pins)) gameMsgEl.textContent = "AI 오류: 합법적인 수가 없습니다.";
+        return;
+    }
+    
     pins[best] = 0; pins[best + 1] = 0;
-    // switch to human
     player = -player;
     render();
-    // terminal check for the to-move player (human)
+
     if (checkAndMaybeEnd()) return;
     gameMsgEl.textContent = "당신의 차례입니다. 인접한 핀 2개를 제거하세요.";
   } catch (e) {
@@ -288,7 +319,7 @@ async function loadModelFrom(path) {
 }
 
 newGameBtn.addEventListener("click", () => {
-  N_PINS = Math.max(2, Math.min(128, Number(nPinsEl.value) || 60));
+  N_PINS = Math.max(2, Math.min(MAX_BOARD_SIZE, Number(nPinsEl.value) || 60));
   pins = Array(N_PINS).fill(1);
   selected = [];
   const who = whoFirstEl.value;
