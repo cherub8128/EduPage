@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Colab으로 RL 모델 효율적으로 학습하기</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-okaidia.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: #282c34;
+            color: #abb2bf;
+        }
+        .slide {
+            display: none;
+        }
+        .slide.active {
+            display: block;
+        }
+        .code-highlight {
+            background-color: rgba(255, 255, 0, 0.15);
+            display: block;
+            margin: -0.25rem -0.5rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+        }
+        pre[class*="language-python"] {
+            font-size: 0.9rem;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        .explanation-box {
+            background-color: #21252b;
+            border-left: 4px solid #61afef;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <div class="max-w-7xl mx-auto bg-[#21252b] rounded-xl shadow-2xl overflow-hidden">
+        <div class="p-8">
+            <h1 class="text-3xl md:text-4xl font-bold text-white text-center">Google Colab으로 RL 모델 효율적으로 학습하기</h1>
+            <p class="text-center text-gray-400 mt-2">체크포인트, 텐서보드 설정 팁</p>
+        </div>
+
+        <div id="slider-container" class="p-4 md:p-8 border-t border-gray-700 min-h-[500px]">
+            <!-- Slides will be injected here by JS -->
+        </div>
+
+        <div class="bg-[#282c34] p-4 flex justify-between items-center">
+            <button id="prevBtn" class="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed">이전</button>
+            <div id="slide-counter" class="text-white text-lg font-semibold"></div>
+            <button id="nextBtn" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 px-4 rounded-lg transition duration-300">다음</button>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script>
+        const slides = [
+            {
+                title: "1. 왜 Google Colab을 사용할까요?",
+                explanation: `
+                    <p>Google Colab은 웹 브라우저에서 바로 Python 코드를 실행할 수 있는 무료 클라우드 환경입니다. 강화학습에 Colab을 사용하면 다음과 같은 엄청난 장점이 있습니다.</p>
+                    <ul class="list-disc list-inside space-y-2 mt-4">
+                        <li><strong>무료 GPU/TPU:</strong> 복잡한 계산이 많은 RL 학습 속도를 크게 높여줍니다.</li>
+                        <li><strong>설치 필요 없음:</strong> 내 컴퓨터에 복잡한 라이브러리를 설치할 필요가 없습니다.</li>
+                        <li><strong>어디서든 접속 가능:</strong> 인터넷만 되면 어디서든 학습을 계속할 수 있습니다.</li>
+                    </ul>
+                    <div class="explanation-box">
+                        <p><strong>오늘의 목표:</strong><br>
+                        Colab에서 소코반 AI를 훈련시키되, 중간에 튕겨도 괜찮도록 <strong>안전하게 저장</strong>하고, 학습 과정을 <strong>그래프로 확인</strong>하는 방법을 배웁니다.</p>
+                    </div>
+                `,
+                code: ``
+            },
+            {
+                title: "2. Colab 노트북 기본 설정",
+                explanation: `
+                    <p>가장 먼저, Colab 노트북에서 필요한 라이브러리들을 설치해야 합니다. 코드 셀에 아래 명령어를 입력하고 실행(Shift+Enter)하세요.</p>
+                    <p class="mt-2"><code class="bg-gray-700 p-1 rounded">!</code>는 Colab에서 터미널 명령어를 실행하라는 의미입니다.</p>
+                `,
+                code: `
+# Pygame은 화면(Display)이 없는 환경에서 실행하기 위해 xvfb가 필요합니다.
+<span class="code-highlight">!pip install pygame gymnasium stable-baselines3[extra] xvfbwrapper</span>
+                `
+            },
+            {
+                title: "3. 내 구글 드라이브 연결하기",
+                explanation: `
+                    <p>Colab은 일정 시간이 지나면 연결이 끊기고 파일이 초기화됩니다. 소중한 학습 결과를 잃지 않으려면, 내 구글 드라이브에 저장해야 합니다.</p>
+                    <p class="mt-2">아래 코드를 실행하면 인증 링크가 나타납니다. 링크를 클릭하여 나오는 코드를 복사해 입력창에 붙여넣으세요.</p>
+                `,
+                code: `
+from google.colab import drive
+<span class="code-highlight">drive.mount('/content/drive')</span>
+
+# 실행 후 출력되는 링크를 클릭하여 인증하고,
+# 생성된 코드를 복사하여 아래 입력창에 붙여넣으세요.
+                `
+            },
+            {
+                title: "4. Pygame을 위한 '가상 화면' 설정",
+                explanation: `
+                    <p>Colab은 눈에 보이는 모니터가 없는 서버 컴퓨터입니다. Pygame은 화면이 없으면 오류를 일으키기 때문에, '가상 화면'이 있는 것처럼 속여줘야 합니다.</p>
+                    <p class="mt-2">학습 코드 맨 위에 아래 두 줄을 추가하면 Pygame이 이 가상 화면을 사용하게 되어 오류 없이 실행됩니다.</p>
+                `,
+                code: `
+import os
+<span class="code-highlight">os.environ['SDL_VIDEODRIVER']='dummy'</span>
+<span class="code-highlight">pygame.display.set_mode((1,1)) # 더미 화면 초기화</span>
+                `
+            },
+            {
+                title: "5. 안전한 저장을 위한 '체크포인트'",
+                explanation: `
+                    <p>수십 시간 걸리는 학습이 중간에 멈추면 너무 슬프겠죠? Stable-Baselines3의 <code class="bg-gray-700 p-1 rounded">CheckpointCallback</code>은 '자동 저장' 기능과 같습니다.</p>
+                    <p class="mt-2">아래 코드는 <strong>10,000 스텝마다</strong> 학습된 모델을 구글 드라이브의 지정된 폴더에 <code class="bg-gray-700 p-1 rounded">sokoban_model_10000.zip</code>과 같은 이름으로 자동 저장해줍니다.</p>
+                `,
+                code: `
+from stable_baselines3.common.callbacks import CheckpointCallback
+
+# 저장할 경로와 파일명 접두사 설정
+<span class="code-highlight">save_path = "/content/drive/MyDrive/RL/Sokoban/models/"</span>
+<span class="code-highlight">checkpoint_callback = CheckpointCallback(</span>
+<span class="code-highlight">  save_freq=10000,</span>
+<span class="code-highlight">  save_path=save_path,</span>
+<span class="code-highlight">  name_prefix="sokoban_model"</span>
+<span class="code-highlight">)</span>
+                `
+            },
+            {
+                title: "6. 학습 과정 시각화 'TensorBoard'",
+                explanation: `
+                    <p>AI가 잘 학습되고 있는지, 보상은 오르고 있는지 궁금할 때 사용하는 도구가 바로 TensorBoard입니다.</p>
+                    <p class="mt-2">PPO 모델을 만들 때 <code class="bg-gray-700 p-1 rounded">tensorboard_log</code> 옵션에 구글 드라이브 경로를 지정해주기만 하면, 학습 로그가 자동으로 기록됩니다.</p>
+                `,
+                code: `
+# 로그를 저장할 경로 설정
+<span class="code-highlight">log_path = "/content/drive/MyDrive/RL/Sokoban/logs/"</span>
+
+# 모델을 생성할 때 tensorboard_log 경로를 지정
+model = PPO(
+    "MlpPolicy", 
+    env, 
+    verbose=1, 
+<span class="code-highlight">    tensorboard_log=log_path</span>
+)
+                `
+            },
+            {
+                title: "7. 전체 학습 스크립트 (Colab ver.)",
+                explanation: `
+                    <p>이제 모든 조각을 합쳐 Colab에서 실행할 최종 스크립트를 만듭니다.</p>
+                    <p class="mt-2">하나의 코드 셀에 이 모든 코드를 복사해서 실행하면, 구글 드라이브에 로그와 모델이 저장되면서 학습이 시작됩니다.</p>
+                `,
+                code: `
+# 1. 라이브러리 설치 (이미 했다면 생략)
+# !pip install pygame gymnasium stable-baselines3[extra] xvfbwrapper
+
+# 2. import 및 가상 화면 설정
+import os
+import pygame
+from google.colab import drive
+from sokoban_env import SokobanEnv # 소코반 환경 코드
+from stable_baselines3 import PPO
+from stable_baselines3.common.callbacks import CheckpointCallback
+
+os.environ['SDL_VIDEODRIVER']='dummy'
+pygame.display.set_mode((1,1))
+drive.mount('/content/drive')
+
+# 3. 경로 설정
+log_path = "/content/drive/MyDrive/RL/Sokoban/logs/"
+save_path = "/content/drive/MyDrive/RL/Sokoban/models/"
+os.makedirs(log_path, exist_ok=True)
+os.makedirs(save_path, exist_ok=True)
+
+# 4. 환경 및 콜백 생성
+env = SokobanEnv(render_mode=None) # 렌더링 없이 실행
+checkpoint_callback = CheckpointCallback(save_freq=10000, save_path=save_path, name_prefix="sokoban_model")
+
+# 5. 모델 생성 및 학습
+model = PPO("MlpPolicy", env, verbose=1, tensorboard_log=log_path)
+# model.learn()에 callback을 전달
+model.learn(total_timesteps=200000, callback=checkpoint_callback)
+                `
+            },
+            {
+                title: "8. TensorBoard로 그래프 확인하기",
+                explanation: `
+                    <p>학습이 진행되는 동안 (또는 끝난 후) 별도의 코드 셀에 아래 '매직 명령어'를 실행하면 Colab 노트북 안에 TensorBoard 대시보드가 나타납니다.</p>
+                `,
+                code: `
+# TensorBoard 확장 프로그램 로드
+<span class="code-highlight">%load_ext tensorboard</span>
+
+# logs 폴더를 지정하여 TensorBoard 실행
+<span class="code-highlight">%tensorboard --logdir /content/drive/MyDrive/RL/Sokoban/logs/</span>
+                `
+            },
+            {
+                title: "9. 그래프 해석하기",
+                explanation: `
+                    <p>TensorBoard에서 가장 중요하게 볼 그래프는 <strong>'rollout/ep_rew_mean'</strong> 입니다.</p>
+                     <div class="explanation-box">
+                        <p>
+                        <strong>rollout/ep_rew_mean</strong><br>
+                        '에피소드(게임 한 판)당 평균 보상'을 의미합니다. 이 그래프가 꾸준히 <strong>우상향</strong>한다면, AI가 게임을 점점 더 잘 클리어하는 방법을 배우고 있다는 긍정적인 신호입니다!
+                        </p>
+                    </div>
+                `,
+                code: ``
+            },
+            {
+                title: "10. 중단된 학습 이어하기",
+                explanation: `
+                    <p>Colab 연결이 끊겼거나 학습을 잠시 멈췄을 때, 체크포인트 덕분에 처음부터 다시 시작할 필요가 없습니다.</p>
+                    <p class="mt-2">가장 마지막에 저장된 모델 파일(.zip)을 <code class="bg-gray-700 p-1 rounded">PPO.load()</code>로 불러온 뒤, <code class="bg-gray-700 p-1 rounded">model.learn()</code>을 다시 실행하면 정확히 멈췄던 지점부터 학습을 이어갑니다.</p>
+                `,
+                code: `
+# ... (import, 드라이브 마운트 등은 동일) ...
+
+env = SokobanEnv()
+log_path = "/content/drive/MyDrive/RL/Sokoban/logs/"
+save_path = "/content/drive/MyDrive/RL/Sokoban/models/"
+
+# 가장 마지막에 저장된 모델 경로
+<span class="code-highlight">model_path = "/content/drive/MyDrive/RL/Sokoban/models/sokoban_model_150000.zip"</span>
+
+# 모델을 불러올 때, env와 tensorboard_log 경로를 다시 지정해줘야 합니다.
+<span class="code-highlight">model = PPO.load(model_path, env=env, tensorboard_log=log_path)</span>
+
+# 콜백도 그대로 사용
+checkpoint_callback = CheckpointCallback(save_freq=10000, save_path=save_path, name_prefix="sokoban_model")
+
+# 학습 재시작 (reset_num_timesteps=False가 핵심!)
+<span class="code-highlight">model.learn(total_timesteps=500000, callback=checkpoint_callback, reset_num_timesteps=False)</span>
+                `
+            }
+        ];
+
+        let currentSlide = 0;
+        const sliderContainer = document.getElementById('slider-container');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const slideCounter = document.getElementById('slide-counter');
+
+        function createSlide(slideData, index) {
+            const slideElement = document.createElement('div');
+            slideElement.className = 'slide p-4';
+            slideElement.dataset.index = index;
+
+            let codeHtml = '';
+            if (slideData.code) {
+                const tempDiv = document.createElement('div');
+                const codeWithPlaceholders = slideData.code.trim()
+                    .replace(/<span class="code-highlight">/g, '[[HIGHLIGHT_START]]')
+                    .replace(/<\/span>/g, '[[HIGHLIGHT_END]]');
+
+                tempDiv.textContent = codeWithPlaceholders;
+                
+                const finalCode = tempDiv.innerHTML
+                    .replace(/\[\[HIGHLIGHT_START\]\]/g, '<span class="code-highlight">')
+                    .replace(/\[\[HIGHLIGHT_END\]\]/g, '</span>');
+
+                codeHtml = `
+                    <div class="mt-6 bg-[#282c34] rounded-lg overflow-hidden border border-gray-700">
+                        <pre class="language-python !text-sm !leading-relaxed"><code>${finalCode}</code></pre>
+                    </div>
+                `;
+            }
+
+            slideElement.innerHTML = `
+                <div class="grid grid-cols-1 ${slideData.code ? 'md:grid-cols-2' : ''} gap-8 items-start">
+                    <div class="prose prose-invert max-w-none">
+                        <h2 class="text-2xl font-bold text-indigo-400 mb-4">${slideData.title}</h2>
+                        <div class="text-gray-300 leading-relaxed space-y-2">${slideData.explanation}</div>
+                    </div>
+                    ${slideData.code ? `<div>${codeHtml}</div>` : ''}
+                </div>
+            `;
+            return slideElement;
+        }
+
+        function updateSlider() {
+            document.querySelectorAll('.slide').forEach((slide, index) => {
+                slide.classList.toggle('active', index === currentSlide);
+            });
+            slideCounter.textContent = `${currentSlide + 1} / ${slides.length}`;
+            prevBtn.disabled = currentSlide === 0;
+            nextBtn.disabled = currentSlide === slides.length - 1;
+            Prism.highlightAll();
+        }
+
+        prevBtn.addEventListener('click', () => {
+            if (currentSlide > 0) {
+                currentSlide--;
+                updateSlider();
+            }
+        });
+
+        nextBtn.addEventListener('click', () => {
+            if (currentSlide < slides.length - 1) {
+                currentSlide++;
+                updateSlider();
+            }
+        });
+        
+        // Initialize slider
+        slides.forEach((slideData, index) => {
+            sliderContainer.appendChild(createSlide(slideData, index));
+        });
+        updateSlider();
+    </script>
+</body>
+</html>
