@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>강화학습(RL) 학습 허브</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: #f0f2f5; /* A slightly different, softer background */
+        }
+        .hero-gradient {
+            background: linear-gradient(135deg, #1e3a8a 0%, #3730a3 50%, #5b21b6 100%);
+        }
+        .card-gradient-border {
+            position: relative;
+            background: white;
+            border-radius: 1rem;
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .card-gradient-border:before {
+            content: '';
+            position: absolute;
+            top: 0; right: 0; bottom: 0; left: 0;
+            z-index: -1;
+            margin: -2px;
+            border-radius: inherit;
+            background: linear-gradient(to right, #3b82f6, #a855f7);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .card-gradient-border:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        .card-gradient-border:hover:before {
+            opacity: 1;
+        }
+        .content-inner {
+            background: white;
+            width: 100%;
+            height: 100%;
+            border-radius: calc(1rem - 2px);
+        }
+        .coming-soon-card {
+            background: #e5e7eb; /* Gray background for disabled look */
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body class="text-gray-800">
+
+    <!-- Hero Section -->
+    <div class="hero-gradient text-white">
+        <div class="max-w-7xl mx-auto px-6 py-20 md:py-28 text-center">
+            <h1 class="text-4xl md:text-6xl font-black tracking-tight">강화학습의 모든 것</h1>
+            <p class="mt-4 text-lg md:text-xl text-indigo-200 max-w-3xl mx-auto">
+                기초 개념부터 최신 트렌드까지, 강화학습의 세계를 탐험하는 당신을 위한 학습 허브입니다.
+            </p>
+        </div>
+    </div>
+
+    <!-- Content Grid Section -->
+    <main class="max-w-7xl mx-auto px-6 py-16">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+
+            <!-- Card 1: RL Core Concepts -->
+            <a href="abstract.html" class="card-gradient-border block">
+                <div class="content-inner p-8 flex flex-col h-full">
+                    <div class="mb-4">
+                        <svg class="w-12 h-12 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path></svg>
+                    </div>
+                    <h2 class="text-2xl font-bold mb-2">강화학습 핵심 개념</h2>
+                    <p class="text-gray-600 flex-grow">
+                        에이전트, 환경, 보상부터 벨만 방정식까지. RL의 기본기를 다지는 핵심 정리 인포그래픽입니다.
+                    </p>
+                    <div class="mt-6 font-bold text-blue-600 hover:text-blue-800 transition-colors">
+                        학습 시작하기 &rarr;
+                    </div>
+                </div>
+            </a>
+
+            <!-- Card 2: RL History Timeline -->
+            <a href="history.html" class="card-gradient-border block">
+                <div class="content-inner p-8 flex flex-col h-full">
+                    <div class="mb-4">
+                         <svg class="w-12 h-12 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    </div>
+                    <h2 class="text-2xl font-bold mb-2">강화학습 발전사 타임라인</h2>
+                    <p class="text-gray-600 flex-grow">
+                        Q-러닝부터 ChatGPT까지, 강화학습의 위대한 여정을 한눈에 살펴보는 발전사 타임라인입니다.
+                    </p>
+                    <div class="mt-6 font-bold text-purple-600 hover:text-purple-800 transition-colors">
+                        역사 살펴보기 &rarr;
+                    </div>
+                </div>
+            </a>
+
+            <!-- Card 3: Coming Soon (Example for scalability) -->
+            <div class="rounded-2xl p-8 flex flex-col h-full coming-soon-card">
+                <div class="mb-4">
+                    <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
+                </div>
+                <h2 class="text-2xl font-bold text-gray-500 mb-2">심화 알고리즘 분석</h2>
+                <p class="text-gray-500 flex-grow">
+                    PPO, SAC 등 주요 알고리즘의 원리와 코드를 깊이 있게 분석하는 콘텐츠가 준비 중입니다.
+                </p>
+                <div class="mt-6 font-bold text-gray-500">
+                    업데이트 예정
+                </div>
+            </div>
+
+            <!-- You can add more cards here in the future -->
+
+        </div>
+    </main>
+
+    <footer class="text-center py-8">
+        <p class="text-gray-500">Reinforcement Learning Hub</p>
+    </footer>
+
+</body>
+</html>
