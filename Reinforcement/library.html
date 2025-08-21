@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>강화학습(RL) 알고리즘 라이브러리</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: #f8fafc;
+        }
+        .gradient-text {
+            background-image: linear-gradient(to right, #1d4ed8, #7c3aed);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        .algo-card {
+            background-color: white;
+            border-radius: 0.75rem;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            display: flex;
+            flex-direction: column;
+        }
+        .algo-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .tag {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+    <div class="max-w-7xl mx-auto">
+        <header class="text-center mb-16">
+            <h1 class="text-4xl md:text-6xl font-bold gradient-text">강화학습 알고리즘 라이브러리</h1>
+            <p class="text-lg text-gray-600 mt-4">주요 강화학습 알고리즘의 핵심 개념과 특징을 한눈에 살펴보세요.</p>
+        </header>
+
+        <!-- 가치 기반 -->
+        <section class="mb-16">
+            <h2 class="text-3xl font-bold border-l-4 border-blue-600 pl-4 mb-8">I. 가치 기반 방법 (Value-Based)</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="algo-card"><div class="p-6 flex-grow"><h3 class="text-xl font-bold mb-2">Q-Learning</h3><p class="text-gray-600 text-sm">다음 상태의 최대 가치를 이용해 현재 행동의 가치를 학습하는 대표적인 오프-정책 알고리즘.</p></div><div class="p-6 pt-0"><span class="tag bg-red-100 text-red-800">Off-Policy</span> <span class="tag bg-gray-100 text-gray-800">Model-Free</span></div></div>
+                <div class="algo-card"><div class="p-6 flex-grow"><h3 class="text-xl font-bold mb-2">SARSA</h3><p class="text-gray-600 text-sm">실제로 다음 행동을 선택한 후, 그 행동의 가치를 이용해 학습하는 대표적인 온-정책 알고리즘.</p></div><div class="p-6 pt-0"><span class="tag bg-green-100 text-green-800">On-Policy</span> <span class="tag bg-gray-100 text-gray-800">Model-Free</span></div></div>
+                <div class="algo-card"><div class="p-6 flex-grow"><h3 class="text-xl font-bold mb-2">DQN</h3><p class="text-gray-600 text-sm">Q-러닝에 심층 신경망을 결합. 경험 리플레이와 타겟 네트워크로 학습 안정성을 확보한 DRL의 시초.</p></div><div class="p-6 pt-0"><span class="tag bg-red-100 text-red-800">Off-Policy</span> <span class="tag bg-gray-100 text-gray-800">Model-Free</span></div></div>
+                <div class="algo-card"><div class="p-6 flex-grow"><h3 class="text-xl font-bold mb-2">Double DQN (DDQN)</h3><p class="text-gray-600 text-sm">Q-러닝의 가치 과대평가 문제를 완화하기 위해 행동 선택과 가치 평가에 다른 네트워크를 사용.</p></div><div class="p-6 pt-0"><span class="tag bg-red-100 text-red-800">Off-Policy</span> <span class="tag bg-gray-100 text-gray-800">Model-Free</span></div></div>
+                <div class="algo-card"><div class="p-6 flex-grow"><h3 class="text-xl font-bold mb-2">Dueling DQN</h3><p class="text-gray-600 text-sm">Q-값을 상태 가치(V)와 행동 이점(A)으로 분리하여 학습 효율을 높인 신경망 구조.</p></div><div class="p-6 pt-0"><span class="tag bg-red-100 text-red-800">Off-Policy</span> <span class="tag bg-gray-100 text-gray-800">Model-Free</span></div></div>
+                <div class="algo-card"><div class="p-6 flex-grow"><h3 class="text-xl font-bold mb-2">PER</h3><p class="text-gray-600 text-sm">TD 에러가 큰 '중요한' 경험을 우선적으로 샘플링하여 학습 효율을 극대화하는 기법.</p></div><div class="p-6 pt-0"><span class="tag bg-yellow-100 text-yellow-800">기법</span> <span class="tag bg-gray-100 text-gray-800">Model-Free</span></div></div>
+            </div>
+        </section>
+
+        <!-- 정책 기반 -->
+        <section class="mb-16">
+            <h2 class="text-3xl font-bold border-l-4 border-green-600 pl-4 mb-8">II. 정책 기반 방법 (Policy-Based)</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="algo-card"><div class="p-6 flex-grow"><h3 class="text-xl font-bold mb-2">REINFORCE (VPG)</h3><p class="text-gray-600 text-sm">정책 경사 정리(Policy Gradient Theorem)에 기반한 가장 기초적인 정책 기반 알고리즘.</p></div><div class="p-6 pt-0"><span class="tag bg-green-100 text-green-800">On-Policy</span> <span class="tag bg-gray-100 text-gray-800">Model-Free</span></div></div>
+            </div>
+        </section>
+
+        <!-- 액터-크리틱 -->
+        <section class="mb-16">
+            <h2 class="text-3xl font-bold border-l-4 border-purple-600 pl-4 mb-8">III. 액터-크리틱 (Actor-Critic)</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="algo-card"><div class="p-6 flex-grow"><h3 class="text-xl font-bold mb-2">A2C / A3C</h3><p class="text-gray-600 text-sm">정책(액터)과 가치(크리틱)를 동시에 학습. A3C는 병렬 비동기 방식으로 학습 속도를 크게 향상.</p></div><div class="p-6 pt-0"><span class="tag bg-green-100 text-green-800">On-Policy</span> <span class="tag bg-gray-100 text-gray-800">Model-Free</span></div></div>
+                <div class="algo-card"><div class="p-6 flex-grow"><h3 class="text-xl font-bold mb-2">PPO</h3><p class="text-gray-600 text-sm">정책 업데이트가 이전 정책에서 크게 벗어나지 않도록 클리핑하여 학습 안정성을 확보. 현재도 널리 쓰임.</p></div><div class="p-6 pt-0"><span class="tag bg-green-100 text-green-800">On-Policy</span> <span class="tag bg-gray-100 text-gray-800">Model-Free</span></div></div>
+                <div class="algo-card"><div class="p-6 flex-grow"><h3 class="text-xl font-bold mb-2">DDPG</h3><p class="text-gray-600 text-sm">연속적인 행동 공간을 다루기 위한 결정론적 정책 기반의 오프-정책 액터-크리틱 알고리즘.</p></div><div class="p-6 pt-0"><span class="tag bg-red-100 text-red-800">Off-Policy</span> <span class="tag bg-gray-100 text-gray-800">Model-Free</span></div></div>
+                <div class="algo-card"><div class="p-6 flex-grow"><h3 class="text-xl font-bold mb-2">TD3</h3><p class="text-gray-600 text-sm">DDPG의 가치 과대평가 문제를 쌍둥이 Q-네트워크, 타겟 정책 평활화 등으로 개선하여 안정성을 높임.</p></div><div class="p-6 pt-0"><span class="tag bg-red-100 text-red-800">Off-Policy</span> <span class="tag bg-gray-100 text-gray-800">Model-Free</span></div></div>
+                <div class="algo-card"><div class="p-6 flex-grow"><h3 class="text-xl font-bold mb-2">SAC</h3><p class="text-gray-600 text-sm">보상과 함께 정책의 엔트로피를 최대화하여 탐색을 장려하고, 높은 샘플 효율성과 성능을 달성.</p></div><div class="p-6 pt-0"><span class="tag bg-red-100 text-red-800">Off-Policy</span> <span class="tag bg-gray-100 text-gray-800">Model-Free</span></div></div>
+            </div>
+        </section>
+
+        <!-- 모델 기반 -->
+        <section class="mb-16">
+            <h2 class="text-3xl font-bold border-l-4 border-yellow-500 pl-4 mb-8">IV. 모델 기반 방법 (Model-Based)</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                 <div class="algo-card"><div class="p-6 flex-grow"><h3 class="text-xl font-bold mb-2">Policy / Value Iteration</h3><p class="text-gray-600 text-sm">환경의 모델(전이 확률 등)을 알 때, 정책 평가와 개선을 반복하거나 가치 함수를 직접 계산하여 최적해를 찾음.</p></div><div class="p-6 pt-0"><span class="tag bg-yellow-100 text-yellow-800">Planning</span> <span class="tag bg-gray-200 text-gray-800">Model-Based</span></div></div>
+                 <div class="algo-card"><div class="p-6 flex-grow"><h3 class="text-xl font-bold mb-2">Dyna-Q</h3><p class="text-gray-600 text-sm">실제 경험으로 모델을 학습하고, 학습된 모델이 생성한 가상 경험을 이용해 학습을 가속하는 하이브리드 방식.</p></div><div class="p-6 pt-0"><span class="tag bg-gray-200 text-gray-800">Model-Based</span></div></div>
+                 <div class="algo-card"><div class="p-6 flex-grow"><h3 class="text-xl font-bold mb-2">AlphaZero / MuZero</h3><p class="text-gray-600 text-sm">몬테카를로 트리 탐색(MCTS)과 딥러닝을 결합. MuZero는 규칙 없이 스스로 모델을 학습하여 계획함.</p></div><div class="p-6 pt-0"><span class="tag bg-gray-200 text-gray-800">Model-Based</span></div></div>
+            </div>
+        </section>
+
+        <!-- 모방 학습 -->
+        <section class="mb-16">
+            <h2 class="text-3xl font-bold border-l-4 border-pink-500 pl-4 mb-8">V. 모방 학습 및 인간 피드백 (Imitation & Feedback)</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="algo-card"><div class="p-6 flex-grow"><h3 class="text-xl font-bold mb-2">Behavior Cloning (BC)</h3><p class="text-gray-600 text-sm">전문가의 (상태, 행동) 데이터를 지도학습처럼 모방하여 정책을 학습하는 가장 간단한 모방 학습.</p></div><div class="p-6 pt-0"><span class="tag bg-pink-100 text-pink-800">Imitation</span></div></div>
+                <div class="algo-card"><div class="p-6 flex-grow"><h3 class="text-xl font-bold mb-2">GAIL</h3><p class="text-gray-600 text-sm">GAN을 이용, 판별자가 전문가와 에이전트를 구분하며 생성하는 보상 신호로 정책을 학습하는 모방 학습.</p></div><div class="p-6 pt-0"><span class="tag bg-pink-100 text-pink-800">Imitation</span></div></div>
+                <div class="algo-card"><div class="p-6 flex-grow"><h3 class="text-xl font-bold mb-2">RLHF</h3><p class="text-gray-600 text-sm">인간의 선호도 피드백으로 보상 모델을 학습시킨 후, 이 모델을 이용해 정책을 강화. ChatGPT의 핵심 기술.</p></div><div class="p-6 pt-0"><span class="tag bg-pink-100 text-pink-800">Human Feedback</span></div></div>
+                <div class="algo-card"><div class="p-6 flex-grow"><h3 class="text-xl font-bold mb-2">RLVR / GRPO</h3><p class="text-gray-600 text-sm">검증 가능한 보상(RLVR)을 직접 사용하거나 PPO를 극도로 최적화(GRPO)하여 효율적으로 정책을 미세 조정.</p></div><div class="p-6 pt-0"><span class="tag bg-pink-100 text-pink-800">Human Feedback</span></div></div>
+            </div>
+        </section>
+
+    </div>
+</body>
+</html>

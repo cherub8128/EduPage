@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>강화학습(RL) 핵심 정리 인포그래픽</title>
+    <title>강화학습(RL) 핵심 개념 (상세 버전)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" xintegrity="sha384-n8MVd4RsNIU07RLA8HuPOhrBIWEidUdaf65IBqz2tVRckQ9/VEOESTP1OF2dvGub" crossorigin="anonymous">
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" xintegrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzUOEleOLALmuqehneUG+vnGctmUbKyIyuh" crossorigin="anonymous"></script>
@@ -12,33 +12,30 @@
     <style>
         body {
             font-family: 'Noto Sans KR', sans-serif;
-            background-color: #f0f4f8;
+            background-color: #f7fafc;
         }
-        .katex-display {
-            display: block;
-            margin: 0.5em 0;
-            text-align: center;
-        }
-        .katex {
-            font-size: 1.1em;
-        }
-        .info-card {
+        .katex-display { display: block; margin: 0.5em 0; text-align: center; }
+        .katex { font-size: 1.1em; }
+        .section-card {
             background-color: white;
             border-radius: 1rem;
-            padding: 1.5rem;
+            padding: 2rem;
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            border: 1px solid #e5e7eb;
-        }
-        .info-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            margin-bottom: 2rem;
         }
         .gradient-text {
-            background-image: linear-gradient(to right, #4f46e5, #ec4899);
+            background-image: linear-gradient(to right, #4c51bf, #b794f4);
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
+        }
+        .eq-box {
+            background-color: #f7fafc;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            border-left: 4px solid #667eea;
+            margin-top: 1rem;
+            overflow-x: auto;
         }
     </style>
 </head>
@@ -46,163 +43,151 @@
     <div class="max-w-7xl mx-auto">
         <!-- Header -->
         <header class="text-center mb-12">
-            <h1 class="text-4xl md:text-6xl font-bold gradient-text">강화학습(RL) 완전 정복</h1>
-            <p class="text-lg text-gray-600 mt-4">에이전트가 스스로 학습하는 법: 기초부터 최신 트렌드까지</p>
+            <h1 class="text-4xl md:text-6xl font-bold gradient-text">강화학습(RL) 핵심 완전 정복</h1>
+            <p class="text-lg text-gray-600 mt-4">수학적 기초부터 최신 알고리즘까지, 강화학습의 모든 것을 파헤쳐봅니다.</p>
         </header>
 
-        <!-- Main Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            
-            <!-- 1. 강화학습이란? -->
-            <div class="info-card md:col-span-2 lg:col-span-3 bg-indigo-50">
-                <h2 class="text-2xl font-bold text-indigo-800 mb-4">1. 강화학습(RL)이란?</h2>
-                <div class="flex flex-col md:flex-row items-center justify-between">
-                    <div class="md:w-2/3">
-                        <p class="text-gray-700 mb-4">
-                            <strong>에이전트(Agent)</strong>가 <strong>환경(Environment)</strong>과 상호작용하며 '보상'을 통해 학습하는 방식입니다. 정답이 주어진 지도학습과 달리, 더 큰 보상을 얻기 위한 최적의 <strong>행동(Action)</strong> 전략, 즉 <strong>정책(Policy)</strong>을 스스로 찾아 나갑니다.
-                        </p>
-                        <ul class="list-disc list-inside text-gray-600 space-y-2">
-                            <li><strong>상태 (State, $S$)</strong>: 현재 상황에 대한 정보</li>
-                            <li><strong>행동 (Action, $A$)</strong>: 에이전트의 선택</li>
-                            <li><strong>보상 (Reward, $R$)</strong>: 행동에 대한 환경의 피드백 (점수)</li>
-                        </ul>
-                    </div>
-                    <div class="mt-6 md:mt-0">
-                        <svg class="w-48 h-48" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <circle cx="100" cy="100" r="90" stroke="#a5b4fc" stroke-width="4"/>
-                            <path d="M100 10C100 10 170 40 170 100C170 160 100 190 100 190" stroke="#c7d2fe" stroke-width="2" stroke-dasharray="4 4"/>
-                            <path d="M100 190C100 190 30 160 30 100C30 40 100 10 100 10" stroke="#c7d2fe" stroke-width="2" stroke-dasharray="4 4"/>
-                            <text x="100" y="90" font-size="16" fill="#4338ca" text-anchor="middle" font-weight="bold">에이전트</text>
-                            <text x="100" y="115" font-size="16" fill="#4338ca" text-anchor="middle" font-weight="bold">(Agent)</text>
-                            <text x="100" y="30" font-size="12" fill="#6366f1" text-anchor="middle">상태(S), 보상(R)</text>
-                            <text x="100" y="175" font-size="12" fill="#6366f1" text-anchor="middle">행동(A)</text>
-                            <text x="25" y="105" font-size="14" fill="#1e40af" text-anchor="middle" transform="rotate(-90 25 105)">환경 (Environment)</text>
-                        </svg>
-                    </div>
+        <!-- 1. MDP: 강화학습의 뼈대 -->
+        <section class="section-card">
+            <h2 class="text-3xl font-bold text-gray-800 mb-4">1. MDP: 강화학습의 수학적 뼈대</h2>
+            <p class="text-gray-700 mb-6">
+                강화학습은 <strong>마르코프 의사결정 과정(Markov Decision Process, MDP)</strong>이라는 수학적 틀 안에서 문제를 정의하고 해결책을 찾습니다. MDP는 에이전트와 환경의 상호작용을 모델링하며, 다음과 같은 요소로 구성됩니다.
+            </p>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 text-center">
+                <div class="bg-indigo-50 p-4 rounded-lg">
+                    <p class="font-bold text-indigo-800 text-lg">상태 ($S$)</p>
+                    <p class="text-sm text-indigo-700">에이전트가 관찰하는 현재 상황</p>
+                </div>
+                <div class="bg-indigo-50 p-4 rounded-lg">
+                    <p class="font-bold text-indigo-800 text-lg">행동 ($A$)</p>
+                    <p class="text-sm text-indigo-700">상태 $S$에서 할 수 있는 선택지</p>
+                </div>
+                <div class="bg-indigo-50 p-4 rounded-lg">
+                    <p class="font-bold text-indigo-800 text-lg">보상 ($R$)</p>
+                    <p class="text-sm text-indigo-700">행동에 대한 환경의 즉각적인 피드백</p>
+                </div>
+                <div class="bg-indigo-50 p-4 rounded-lg">
+                    <p class="font-bold text-indigo-800 text-lg">정책 ($\pi$)</p>
+                    <p class="text-sm text-indigo-700">상태에 따른 행동 지침 (전략)</p>
                 </div>
             </div>
+        </section>
 
-            <!-- 2. 수학적 기초: MDP -->
-            <div class="info-card bg-emerald-50">
-                <h2 class="text-2xl font-bold text-emerald-800 mb-4">2. 수학적 기초: MDP</h2>
-                <p class="text-gray-700 mb-4">강화학습은 <strong>마르코프 의사결정 과정(Markov Decision Process)</strong>으로 문제를 정의합니다. '현재 상태'가 주어지면 과거 정보 없이도 미래를 예측할 수 있다는 가정을 기반으로 합니다.</p>
-                <div class="bg-emerald-100 p-3 rounded-lg text-emerald-900">
-                    <p class="font-semibold">전이 확률 $p(s', r | s, a)$</p>
-                    <p class="text-sm">상태 $s$에서 행동 $a$를 했을 때, 다음 상태 $s'$가 되고 보상 $r$을 받을 확률</p>
+        <!-- 2. 가치 함수와 벨만 방정식 -->
+        <section class="section-card">
+            <h2 class="text-3xl font-bold text-gray-800 mb-4">2. 가치 함수와 벨만 방정식: 최적의 길 찾기</h2>
+            <p class="text-gray-700 mb-6">
+                "현재 상태가 미래에 얼마나 좋은가?"를 알려주는 <strong>가치 함수</strong>는 최적의 정책을 찾는 핵심 열쇠입니다. <strong>벨만 방정식</strong>은 현재 상태의 가치와 다음 상태의 가치 사이의 관계를 정의하여, 이 문제를 풀 수 있는 실마리를 제공합니다.
+            </p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div>
+                    <h3 class="text-xl font-semibold mb-2">가치 함수 (Value Functions)</h3>
+                    <p><strong>상태 가치 함수 $V^\pi(s)$</strong>: 현재 상태 $s$에서 시작하여 정책 $\pi$를 따랐을 때 기대되는 미래 보상의 총합.</p>
+                    <div class="eq-box">$V^\pi(s) = \mathbb{E}_\pi [G_t | S_t = s] \quad \text{where } G_t = \sum_{k=0}^{\infty} \gamma^k R_{t+k+1}$</div>
+                    <p class="mt-4"><strong>행동 가치 함수 $Q^\pi(s,a)$</strong>: 상태 $s$에서 행동 $a$를 한 후, 정책 $\pi$를 따랐을 때의 기대 보상 총합.</p>
+                    <div class="eq-box">$Q^\pi(s,a) = \mathbb{E}_\pi [G_t | S_t = s, A_t = a]$</div>
+                </div>
+                <div>
+                    <h3 class="text-xl font-semibold mb-2">벨만 최적 방정식 (Bellman Optimality Eq.)</h3>
+                    <p>모든 정책 중에서 가장 높은 가치를 주는 최적 가치 함수 $V^*$와 $Q^*$는 이 방정식을 만족합니다. 이 방정식을 푸는 것이 RL의 목표입니다.</p>
+                    <div class="eq-box">$Q^*(s,a) = \mathbb{E}[R_{t+1} + \gamma \max_{a'} Q^*(S_{t+1}, a') | S_t=s, A_t=a]$</div>
                 </div>
             </div>
+        </section>
 
-            <!-- 3. 핵심 개념: 가치 함수 -->
-            <div class="info-card bg-amber-50 md:col-span-2">
-                <h2 class="text-2xl font-bold text-amber-800 mb-4">3. 핵심 개념: 가치 함수 & 벨만 방정식</h2>
-                <p class="text-gray-700 mb-2">"현재 상태 또는 행동이 미래에 얼마나 좋은가?"를 나타내는 기댓값입니다.</p>
-                <div class="space-y-4">
-                    <div>
-                        <p class="font-semibold text-amber-900">상태 가치 함수 $V^\pi(s)$</p>
-                        <p class="text-sm text-gray-600 mb-2">정책 $\pi$를 따를 때, 상태 $s$에서 출발해 얻을 미래 보상의 총합</p>
-                        <div class="eq-container">$V^\pi(s) = \mathbb{E}_\pi [G_t | S_t = s]$</div>
-                    </div>
-                    <div>
-                        <p class="font-semibold text-amber-900">행동 가치 함수 $Q^\pi(s,a)$</p>
-                        <p class="text-sm text-gray-600 mb-2">상태 $s$에서 행동 $a$를 한 후, 정책 $\pi$를 따를 때 얻을 미래 보상의 총합</p>
-                        <div class="eq-container">$Q^\pi(s,a) = \mathbb{E}_\pi [G_t | S_t = s, A_t = a]$</div>
-                    </div>
-                    <p class="text-gray-700 pt-2">최적의 가치를 찾기 위해 <strong>벨만 최적 방정식</strong>을 사용합니다.</p>
-                    <div class="eq-container">$Q^*(s,a) = r(s,a) + \gamma \sum_{s' \in \mathcal{S}} p(s'|s,a) \max_{a' \in \mathcal{A}} Q^*(s',a')$</div>
+        <!-- 3. 모델-프리 학습: 경험으로 배우기 -->
+        <section class="section-card">
+            <h2 class="text-3xl font-bold text-gray-800 mb-4">3. 모델-프리(Model-Free) 학습: 경험으로 배우기</h2>
+            <p class="text-gray-700 mb-6">
+                환경의 모든 규칙(모델)을 알지 못할 때, 에이전트는 직접 부딪히며 얻은 경험(샘플)을 통해 학습해야 합니다.
+            </p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="bg-gray-50 p-6 rounded-lg">
+                    <h3 class="text-xl font-semibold mb-2">몬테카를로 (MC) 학습</h3>
+                    <p>하나의 에피소드가 끝날 때까지 기다린 후, 실제로 얻은 보상의 총합($G_t$)으로 가치를 업데이트합니다. 분산이 크지만 편향이 없는 특징이 있습니다.</p>
+                    <div class="eq-box">$V(S_t) \leftarrow V(S_t) + \alpha(G_t - V(S_t))$</div>
+                </div>
+                <div class="bg-gray-50 p-6 rounded-lg">
+                    <h3 class="text-xl font-semibold mb-2">시간차 (TD) 학습</h3>
+                    <p>한 스텝마다 다음 상태의 추정 가치를 이용해 현재 가치를 업데이트(부트스트래핑)합니다. MC보다 효율적이며, <strong>SARSA</strong>와 <strong>Q-Learning</strong>이 대표적입니다.</p>
+                    <div class="eq-box">$Q(S,A) \leftarrow Q(S,A) + \alpha[R + \gamma Q(S',A') - Q(S,A)]$</div>
                 </div>
             </div>
-
-            <!-- 4. 모델-프리 학습 -->
-            <div class="info-card bg-sky-50 md:col-span-2">
-                <h2 class="text-2xl font-bold text-sky-800 mb-4">4. 어떻게 학습할까? (Model-Free)</h2>
-                <p class="text-gray-700 mb-4">환경의 모델(전이 확률)을 모를 때, 경험을 통해 직접 학습합니다.</p>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="border-l-4 border-sky-300 pl-4">
-                        <h3 class="font-bold text-lg text-sky-900">몬테카를로 (MC) 학습</h3>
-                        <p class="text-sm text-gray-600">에피소드가 끝난 후, 실제 얻은 총 보상($G_t$)으로 가치를 업데이트합니다. (끝나고 정산!)</p>
-                        <div class="eq-container mt-2">$V(s) \leftarrow V(s) + \alpha(G_t - V(s))$</div>
-                    </div>
-                    <div class="border-l-4 border-sky-300 pl-4">
-                        <h3 class="font-bold text-lg text-sky-900">시간차 (TD) 학습</h3>
-                        <p class="text-sm text-gray-600">한 스텝마다 다음 상태의 추정 가치로 현재 가치를 업데이트합니다. (바로바로 학습!)</p>
-                        <div class="eq-container mt-2">$Q(S_t, A_t) \leftarrow Q(S_t, A_t) + \alpha [R_{t+1} + \gamma \max_a Q(S_{t+1}, a) - Q(S_t, A_t)]$</div>
-                        <p class="text-xs text-right text-sky-700 mt-1">(Q-러닝의 업데이트 식)</p>
-                    </div>
+        </section>
+        
+        <!-- 4. 딥 강화학습: 심층 신경망과의 만남 -->
+        <section class="section-card">
+            <h2 class="text-3xl font-bold text-gray-800 mb-4">4. 딥 강화학습(DRL): 신경망과의 만남</h2>
+            <p class="text-gray-700 mb-6">
+                바둑판의 모든 경우의 수나 게임 화면의 모든 픽셀처럼 상태 공간이 거대할 때, <strong>심층 신경망(DNN)</strong>을 이용해 가치 함수나 정책을 근사합니다. <strong>DQN</strong>은 DRL의 혁신적인 시작을 알렸습니다.
+            </p>
+            <h3 class="text-xl font-semibold mb-2">DQN (Deep Q-Network)의 핵심 혁신</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-4">
+                <div class="bg-blue-50 p-6 rounded-lg">
+                    <h4 class="font-bold text-lg text-blue-800">경험 리플레이 (Experience Replay)</h4>
+                    <p class="text-blue-700">경험 $(s, a, r, s')$을 버퍼에 저장하고 무작위로 샘플링하여 학습합니다. 데이터 간의 상관관계를 깨고 학습 안정성을 높입니다.</p>
+                </div>
+                <div class="bg-blue-50 p-6 rounded-lg">
+                    <h4 class="font-bold text-lg text-blue-800">타겟 네트워크 (Target Networks)</h4>
+                    <p class="text-blue-700">업데이트 목표(TD Target)를 계산하는 별도의 네트워크를 두어, 목표값이 흔들리지 않게 고정합니다. 이를 통해 학습을 안정화합니다.</p>
                 </div>
             </div>
-
-            <!-- 5. 딥 강화학습 (DRL) -->
-            <div class="info-card bg-rose-50">
-                <h2 class="text-2xl font-bold text-rose-800 mb-4">5. 딥러닝과의 만남 (DRL)</h2>
-                <p class="text-gray-700 mb-4">상태 공간이 매우 클 때 (ex. 바둑, 게임 화면), 심층 신경망(DNN)으로 가치 함수나 정책을 근사합니다.</p>
-                <p class="font-semibold text-rose-900">DQN (Deep Q-Network)</p>
-                <p class="text-sm text-gray-600 mb-2">Q-러닝에 신경망을 적용한 DRL의 시초. Atari 게임 정복!</p>
-                <ul class="list-decimal list-inside text-sm text-gray-600 space-y-1">
-                    <li><strong>경험 리플레이</strong>: 경험 데이터를 저장 후 무작위로 샘플링하여 학습.</li>
-                    <li><strong>타겟 네트워크</strong>: 학습 목표값을 고정하여 안정성 확보.</li>
-                </ul>
+            <div class="eq-box">
+                $\mathcal{L}(\theta) = \mathbb{E}_{(s,a,r,s') \sim D} [(r + \gamma \max_{a'} Q(s',a'; \theta_{target}) - Q(s,a; \theta))^2]$
             </div>
-            
-            <!-- 6. 정책 경사 & 액터-크리틱 -->
-            <div class="info-card bg-violet-50 md:col-span-2">
-                <h2 class="text-2xl font-bold text-violet-800 mb-4">6. 또 다른 흐름: 정책 경사 & 액터-크리틱</h2>
-                <p class="text-gray-700 mb-4">가치 함수 대신, 보상을 최대로 하는 정책 $\pi_\theta(a|s)$를 직접 찾는 방법입니다.</p>
-                <div class="space-y-4">
-                    <div>
-                        <p class="font-semibold text-violet-900">정책 경사 (Policy Gradient)</p>
-                        <p class="text-sm text-gray-600 mb-2">정책의 성능 $J(\theta)$를 높이는 방향($\nabla_\theta J(\theta)$)으로 파라미터 $\theta$를 업데이트합니다.</p>
-                        <div class="eq-container">$\nabla_\theta J(\theta) = \mathbb{E}_{\pi_\theta} [A(S_t, A_t) \nabla_\theta \log \pi_\theta(A_t|S_t)]$</div>
-                        <p class="text-xs text-right text-violet-700 mt-1">($A$는 Advantage, 행동의 유리함)</p>
-                    </div>
-                    <div>
-                        <p class="font-semibold text-violet-900">액터-크리틱 (Actor-Critic)</p>
-                        <p class="text-sm text-gray-600">정책을 학습하는 <strong>액터</strong>와, 그 정책을 평가하는 <strong>크리틱</strong>으로 구성되어 효율적으로 학습합니다. (A3C, PPO, SAC 등)</p>
-                    </div>
+        </section>
+        
+        <!-- 5. 정책 경사와 액터-크리틱 -->
+        <section class="section-card">
+            <h2 class="text-3xl font-bold text-gray-800 mb-4">5. 정책 경사와 액터-크리틱: 직접 정책을 찾아서</h2>
+             <p class="text-gray-700 mb-6">
+                가치 함수를 거치지 않고, 보상을 최대로 하는 정책 $\pi(a|s; \theta)$의 파라미터 $\theta$를 직접 최적화하는 방법론입니다.
+            </p>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div>
+                    <h3 class="text-xl font-semibold mb-2">정책 경사 (Policy Gradient, PG)</h3>
+                    <p>정책이 좋은 행동을 할 확률은 높이고(log-probability 증가), 나쁜 행동을 할 확률은 낮추는 방향으로 업데이트합니다. <strong>REINFORCE</strong>가 대표적입니다.</p>
+                    <div class="eq-box">$\nabla_\theta J(\theta) = \mathbb{E}_{\pi_\theta} [A(S_t, A_t) \nabla_\theta \log \pi_\theta(A_t|S_t)]$</div>
+                </div>
+                <div>
+                    <h3 class="text-xl font-semibold mb-2">액터-크리틱 (Actor-Critic, AC)</h3>
+                    <p>정책을 학습하는 <strong>액터(Actor)</strong>와, 그 정책의 가치를 평가하는 <strong>크리틱(Critic)</strong>으로 역할을 분담하여 안정적이고 효율적으로 학습합니다.</p>
+                    <ul class="list-disc list-inside mt-2 text-gray-600">
+                        <li><strong>PPO</strong>: 정책이 급격히 변하지 않도록 제한하여 안정성 확보</li>
+                        <li><strong>SAC</strong>: 엔트로피를 최대화하여 탐색을 장려하고 성능 향상</li>
+                    </ul>
                 </div>
             </div>
+        </section>
 
-            <!-- 7. 최신 연구 동향 -->
-            <div class="info-card bg-teal-50">
-                <h2 class="text-2xl font-bold text-teal-800 mb-4">7. 최신 연구 동향</h2>
-                <ul class="space-y-3">
-                    <li class="flex items-start">
-                        <svg class="w-5 h-5 text-teal-500 mr-2 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7.C14 5 16.09 5.777 17.657 7.343A8 8 0 0118.657 17.657c-1.577 1.577-2.343 3-4.657 2.986C9.5 20.5 10 18 10 16c1 2 2.657 2.657 4.657 1.657z"></path></svg>
-                        <div>
-                            <p class="font-semibold text-teal-900">모델 기반 RL</p>
-                            <p class="text-sm text-gray-600">환경 모델을 학습하여 '상상' 속에서 계획. (AlphaZero, MuZero)</p>
-                        </div>
-                    </li>
-                    <li class="flex items-start">
-                        <svg class="w-5 h-5 text-teal-500 mr-2 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
-                        <div>
-                            <p class="font-semibold text-teal-900">모방 학습 (IL)</p>
-                            <p class="text-sm text-gray-600">전문가의 행동을 모방하여 학습.</p>
-                        </div>
-                    </li>
-                    <li class="flex items-start">
-                        <svg class="w-5 h-5 text-teal-500 mr-2 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 18.734V6a2 2 0 012-2h4a2 2 0 012 2v4z"></path></svg>
-                        <div>
-                            <p class="font-semibold text-teal-900">인간 피드백 기반 RL (RLHF)</p>
-                            <p class="text-sm text-gray-600">인간의 선호도를 보상으로 활용. (ChatGPT의 핵심 기술)</p>
-                        </div>
-                    </li>
-                </ul>
+        <!-- 6. 최신 연구 동향 -->
+        <section class="section-card">
+            <h2 class="text-3xl font-bold text-gray-800 mb-4">6. 최신 연구 동향</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-green-50 p-6 rounded-lg">
+                    <h4 class="font-bold text-lg text-green-800">모델 기반 RL</h4>
+                    <p class="text-sm text-green-700">환경의 모델을 학습하여 가상 세계에서 계획(planning)을 수행합니다. 데이터 효율성이 높으며 <strong>AlphaZero, MuZero</strong>가 대표적입니다.</p>
+                </div>
+                <div class="bg-green-50 p-6 rounded-lg">
+                    <h4 class="font-bold text-lg text-green-800">모방 학습 (IL)</h4>
+                    <p class="text-sm text-green-700">전문가의 행동 데이터를 모방하여 정책을 학습합니다. 보상 설계가 어려운 문제에 효과적이며 <strong>GAIL</strong> 등이 있습니다.</p>
+                </div>
+                <div class="bg-green-50 p-6 rounded-lg">
+                    <h4 class="font-bold text-lg text-green-800">인간 피드백 기반 RL (RLHF)</h4>
+                    <p class="text-sm text-green-700">인간의 선호도를 보상 모델로 학습하여 정책을 미세 조정합니다. <strong>ChatGPT</strong>와 같은 대규모 언어 모델의 핵심 기술입니다.</p>
+                </div>
             </div>
+        </section>
 
-        </div>
     </div>
 
     <script>
-        // KaTeX 렌더링 스크립트
         document.addEventListener("DOMContentLoaded", function() {
             renderMathInElement(document.body, {
                 delimiters: [
                     {left: "$$", right: "$$", display: true},
-                    {left: "$", right: "$", display: false},
-                    {left: "\\(", right: "\\)", display: false},
-                    {left: "\\[", right: "\\]", display: true}
+                    {left: "$", right: "$", display: false}
                 ],
-                // KaTeX가 렌더링하지 못하는 경우에 대한 처리
                 throwOnError : false
             });
         });

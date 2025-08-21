@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>강화학습(RL) 발전사 타임라인</title>
+    <title>강화학습(RL) 발전사 타임라인 (GRPO 추가)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
     <style>
@@ -17,13 +17,11 @@
             background-clip: text;
             color: transparent;
         }
-        /* Timeline container */
         .timeline {
             position: relative;
             max-width: 1200px;
             margin: 0 auto;
         }
-        /* Timeline vertical line */
         .timeline::after {
             content: '';
             position: absolute;
@@ -35,14 +33,12 @@
             margin-left: -3px;
             border-radius: 3px;
         }
-        /* Timeline item container */
         .timeline-container {
             padding: 10px 40px;
             position: relative;
             background-color: inherit;
             width: 50%;
         }
-        /* The circles on the timeline */
         .timeline-container::after {
             content: '';
             position: absolute;
@@ -55,79 +51,30 @@
             border-radius: 50%;
             z-index: 1;
         }
-        /* Left container */
-        .left {
-            left: 0;
-        }
-        /* Right container */
-        .right {
-            left: 50%;
-        }
-        /* Add arrows to the left container (pointing right) */
+        .left { left: 0; }
+        .right { left: 50%; }
         .left::before {
-            content: " ";
-            height: 0;
-            position: absolute;
-            top: 32px;
-            width: 0;
-            z-index: 1;
-            right: 30px;
-            border: medium solid white;
-            border-width: 10px 0 10px 10px;
-            border-color: transparent transparent transparent white;
+            content: " "; height: 0; position: absolute; top: 32px; width: 0; z-index: 1; right: 30px; border: medium solid white; border-width: 10px 0 10px 10px; border-color: transparent transparent transparent white;
         }
-        /* Add arrows to the right container (pointing left) */
         .right::before {
-            content: " ";
-            height: 0;
-            position: absolute;
-            top: 32px;
-            width: 0;
-            z-index: 1;
-            left: 30px;
-            border: medium solid white;
-            border-width: 10px 10px 10px 0;
-            border-color: transparent white transparent transparent;
+            content: " "; height: 0; position: absolute; top: 32px; width: 0; z-index: 1; left: 30px; border: medium solid white; border-width: 10px 10px 10px 0; border-color: transparent white transparent transparent;
         }
-        /* Fix the circle for containers on the right side */
-        .right::after {
-            left: -12.5px;
-        }
-        /* The actual content */
+        .right::after { left: -12.5px; }
         .content {
-            padding: 20px 30px;
-            background-color: white;
-            position: relative;
-            border-radius: 0.5rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            border-left: 5px solid #3b82f6;
+            padding: 20px 30px; background-color: white; position: relative; border-radius: 0.5rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); border-left: 5px solid #3b82f6;
         }
         .right .content {
-             border-left: none;
-             border-right: 5px solid #8b5cf6;
+             border-left: none; border-right: 5px solid #8b5cf6;
         }
-        /* Media queries - Responsive layout */
+        .year-tag {
+            font-size: 1.25rem; font-weight: bold; color: #4f46e5;
+        }
         @media screen and (max-width: 768px) {
-            .timeline::after {
-                left: 31px;
-            }
-            .timeline-container {
-                width: 100%;
-                padding-left: 70px;
-                padding-right: 25px;
-            }
-            .timeline-container::before {
-                left: 60px;
-                border: medium solid white;
-                border-width: 10px 10px 10px 0;
-                border-color: transparent white transparent transparent;
-            }
-            .left::after, .right::after {
-                left: 18px;
-            }
-            .right {
-                left: 0%;
-            }
+            .timeline::after { left: 31px; }
+            .timeline-container { width: 100%; padding-left: 70px; padding-right: 25px; }
+            .timeline-container::before { left: 60px; border: medium solid white; border-width: 10px 10px 10px 0; border-color: transparent white transparent transparent; }
+            .left::after, .right::after { left: 18px; }
+            .right { left: 0%; }
         }
     </style>
 </head>
@@ -139,105 +86,13 @@
         </header>
 
         <div class="timeline">
-            <!-- Q-Learning -->
-            <div class="timeline-container left">
-                <div class="content">
-                    <h2 class="text-xl font-bold text-gray-800">Q-Learning (1989)</h2>
-                    <p class="text-sm text-gray-500 mb-2">Chris Watkins</p>
-                    <p class="text-gray-700">모델 없이 가치(Q-value)를 학습하는 <strong>오프-정책(Off-policy)</strong> 알고리즘의 시초. 현대 강화학습의 근간을 마련했습니다.</p>
-                    <div class="mt-3 text-yellow-500 flex items-center">
-                        <span class="font-bold mr-2">영향력:</span> ★★★★★
-                    </div>
-                </div>
-            </div>
-            <!-- SARSA -->
-            <div class="timeline-container right">
-                <div class="content">
-                    <h2 class="text-xl font-bold text-gray-800">SARSA (1996)</h2>
-                    <p class="text-sm text-gray-500 mb-2">Rummery & Niranjan</p>
-                    <p class="text-gray-700">실제 자신이 따르는 정책을 평가하고 개선하는 <strong>온-정책(On-policy)</strong> 알고리즘. Q-러닝과 비교되며 TD 학습의 양대 산맥을 이룹니다.</p>
-                    <div class="mt-3 text-yellow-500 flex items-center">
-                        <span class="font-bold mr-2">영향력:</span> ★★★☆☆
-                    </div>
-                </div>
-            </div>
-            <!-- DQN -->
-            <div class="timeline-container left">
-                <div class="content">
-                    <h2 class="text-xl font-bold text-gray-800">DQN (2013, 2015)</h2>
-                    <p class="text-sm text-gray-500 mb-2">DeepMind</p>
-                    <p class="text-gray-700">Q-러닝에 <strong>심층 신경망(DNN)</strong>을 결합하여 <strong>딥 강화학습(DRL)</strong> 시대를 열었습니다. 픽셀 입력만으로 아타리 게임을 정복하며 세상을 놀라게 했습니다.</p>
-                    <div class="mt-3 text-yellow-500 flex items-center">
-                        <span class="font-bold mr-2">영향력:</span> ★★★★★
-                    </div>
-                </div>
-            </div>
-            <!-- DDPG -->
-            <div class="timeline-container right">
-                <div class="content">
-                    <h2 class="text-xl font-bold text-gray-800">DDPG (2015)</h2>
-                     <p class="text-sm text-gray-500 mb-2">DeepMind</p>
-                    <p class="text-gray-700"><strong>연속적인 행동 공간(Continuous Action Space)</strong> 문제를 해결하기 위해 DQN과 액터-크리틱을 결합한 알고리즘. 로봇 제어 분야에서 큰 주목을 받았습니다.</p>
-                    <div class="mt-3 text-yellow-500 flex items-center">
-                        <span class="font-bold mr-2">영향력:</span> ★★★★☆
-                    </div>
-                </div>
-            </div>
-             <!-- AlphaGo -->
-            <div class="timeline-container left">
-                <div class="content">
-                    <h2 class="text-xl font-bold text-gray-800">AlphaGo (2016)</h2>
-                    <p class="text-sm text-gray-500 mb-2">DeepMind</p>
-                    <p class="text-gray-700">몬테카를로 트리 탐색(MCTS)과 딥러닝을 결합하여 세계 최강의 바둑 기사 이세돌 9단을 꺾었습니다. AI의 가능성을 전 세계에 알린 역사적 사건입니다.</p>
-                    <div class="mt-3 text-yellow-500 flex items-center">
-                        <span class="font-bold mr-2">영향력:</span> ★★★★★
-                    </div>
-                </div>
-            </div>
-            <!-- PPO -->
-            <div class="timeline-container right">
-                <div class="content">
-                    <h2 class="text-xl font-bold text-gray-800">PPO (2017)</h2>
-                    <p class="text-sm text-gray-500 mb-2">OpenAI</p>
-                    <p class="text-gray-700">정책 업데이트 폭을 제한하여 <strong>안정성</strong>과 <strong>성능</strong>을 모두 잡은 정책 경사 알고리즘. 복잡하지 않으면서도 뛰어난 성능으로 현재까지도 널리 사용됩니다.</p>
-                    <div class="mt-3 text-yellow-500 flex items-center">
-                        <span class="font-bold mr-2">영향력:</span> ★★★★★
-                    </div>
-                </div>
-            </div>
-            <!-- SAC -->
-            <div class="timeline-container left">
-                <div class="content">
-                    <h2 class="text-xl font-bold text-gray-800">SAC (2018)</h2>
-                    <p class="text-sm text-gray-500 mb-2">UC Berkeley</p>
-                    <p class="text-gray-700"><strong>최대 엔트로피(Maximum Entropy)</strong> 개념을 도입하여 탐색(Exploration) 능력을 극대화한 오프-정책 액터-크리틱 알고리즘. 샘플 효율성이 매우 높습니다.</p>
-                    <div class="mt-3 text-yellow-500 flex items-center">
-                        <span class="font-bold mr-2">영향력:</span> ★★★★☆
-                    </div>
-                </div>
-            </div>
-            <!-- MuZero -->
-            <div class="timeline-container right">
-                <div class="content">
-                    <h2 class="text-xl font-bold text-gray-800">MuZero (2019)</h2>
-                    <p class="text-sm text-gray-500 mb-2">DeepMind</p>
-                    <p class="text-gray-700">게임 규칙을 알려주지 않아도 스스로 환경 모델을 학습하여 계획하는 <strong>모델 기반(Model-based)</strong> RL의 정점. 바둑, 체스, 아타리 게임 모두를 정복했습니다.</p>
-                    <div class="mt-3 text-yellow-500 flex items-center">
-                        <span class="font-bold mr-2">영향력:</span> ★★★★★
-                    </div>
-                </div>
-            </div>
-             <!-- RLHF -->
-            <div class="timeline-container left">
-                <div class="content">
-                    <h2 class="text-xl font-bold text-gray-800">RLHF (~2022)</h2>
-                    <p class="text-sm text-gray-500 mb-2">OpenAI, DeepMind 등</p>
-                    <p class="text-gray-700"><strong>인간의 피드백</strong>을 보상 신호로 사용하여 언어 모델을 인간의 가치에 맞게 정렬(Align)하는 기술. <strong>ChatGPT</strong>의 핵심 동력으로 작용하며 AI 패러다임을 바꾸었습니다.</p>
-                    <div class="mt-3 text-yellow-500 flex items-center">
-                        <span class="font-bold mr-2">영향력:</span> ★★★★★
-                    </div>
-                </div>
-            </div>
+            <div class="timeline-container left"><div class="content"><p class="year-tag">1989 - 1996</p><h2 class="text-xl font-bold text-gray-800">모델-프리 학습의 여명</h2><p class="text-gray-700"><strong>Q-Learning (1989)</strong>, <strong>REINFORCE (1992)</strong>, <strong>SARSA (1996)</strong> 등 현대 RL의 근간이 되는 알고리즘들이 등장했습니다.</p></div></div>
+            <div class="timeline-container right"><div class="content"><p class="year-tag">2013</p><h2 class="text-xl font-bold text-gray-800">DQN: 딥러닝과의 만남</h2><p class="text-gray-700">Q-러닝에 심층 신경망을 결합하여 <strong>딥 강화학습(DRL)</strong> 시대를 열었습니다. 경험 리플레이와 타겟 네트워크로 학습 안정성을 확보했습니다.</p></div></div>
+            <div class="timeline-container left"><div class="content"><p class="year-tag">2015 - 2016</p><h2 class="text-xl font-bold text-gray-800">DRL의 폭발적 성장</h2><p class="text-gray-700"><strong>DQN 개선 알고리즘들</strong>, 연속 행동 공간을 위한 <strong>DDPG</strong>, 병렬 학습 방식의 <strong>A3C</strong>, 그리고 세상을 놀라게 한 <strong>AlphaGo</strong>가 등장했습니다.</p></div></div>
+            <div class="timeline-container right"><div class="content"><p class="year-tag">2017</p><h2 class="text-xl font-bold text-gray-800">안정성의 시대</h2><p class="text-gray-700"><strong>PPO</strong>가 정책 업데이트를 안정화시키며 현재까지 널리 쓰이는 표준 알고리즘으로 자리 잡았고, <strong>AlphaZero</strong>는 더 범용적인 성능을 보여주었습니다.</p></div></div>
+            <div class="timeline-container left"><div class="content"><p class="year-tag">2018 - 2019</p><h2 class="text-xl font-bold text-gray-800">성능과 모델 기반의 도약</h2><p class="text-gray-700"><strong>TD3</strong>와 <strong>SAC</strong>가 연속 제어에서 최고의 성능을 갱신했고, <strong>MuZero</strong>는 규칙 없이 스스로 모델을 학습하며 모델 기반 RL의 정점을 찍었습니다.</p></div></div>
+            <div class="timeline-container right"><div class="content"><p class="year-tag">2020 ~</p><h2 class="text-xl font-bold text-gray-800">인간과의 상호작용</h2><p class="text-gray-700"><strong>RLHF</strong>가 인간의 피드백을 통해 언어 모델을 정렬하는 핵심 기술로 부상하며 ChatGPT와 같은 AI의 패러다임을 바꾸었습니다.</p></div></div>
+            <div class="timeline-container left"><div class="content"><p class="year-tag">2024 ~</p><h2 class="text-xl font-bold text-gray-800">GRPO: 효율성의 혁신</h2><p class="text-gray-700">PPO를 극도로 최적화하여 가치 및 보상 모델을 제거. RLVR(검증 가능한 보상)을 활용해 메모리 사용량과 속도를 혁신적으로 개선하며, 대규모 추론 모델 훈련의 새로운 방향을 제시합니다.</p></div></div>
         </div>
     </div>
 </body>

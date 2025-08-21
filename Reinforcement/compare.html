@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>강화학습(RL) 알고리즘 비교 분석 (GRPO 추가)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: #f8fafc;
+        }
+        .gradient-text {
+            background-image: linear-gradient(to right, #2563eb, #9333ea);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        .section-card {
+            background-color: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.07), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            margin-bottom: 2rem;
+        }
+        th {
+            background-color: #f1f5f9;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+    <div class="max-w-7xl mx-auto">
+        <!-- Header -->
+        <header class="text-center mb-12">
+            <h1 class="text-4xl md:text-6xl font-bold gradient-text">강화학습 알고리즘 비교 분석</h1>
+            <p class="text-lg text-gray-600 mt-4">어떤 알고리즘을 선택해야 할까? 표와 그래프로 한눈에 비교해 보세요.</p>
+        </header>
+
+        <!-- 1. 알고리즘 비교표 -->
+        <section class="section-card">
+            <h2 class="text-3xl font-bold text-gray-800 mb-6">주요 알고리즘 비교표</h2>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr>
+                            <th class="p-4 font-bold uppercase text-gray-600 border border-gray-200">알고리즘</th>
+                            <th class="p-4 font-bold uppercase text-gray-600 border border-gray-200">분류</th>
+                            <th class="p-4 font-bold uppercase text-gray-600 border border-gray-200">정책 유형</th>
+                            <th class="p-4 font-bold uppercase text-gray-600 border border-gray-200">행동 공간</th>
+                            <th class="p-4 font-bold uppercase text-gray-600 border border-gray-200">핵심 아이디어</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr>
+                            <td class="p-4 font-semibold border border-gray-200">DQN</td>
+                            <td class="p-4 border border-gray-200">가치 기반</td>
+                            <td class="p-4 border border-gray-200">Off-Policy</td>
+                            <td class="p-4 border border-gray-200">이산(Discrete)</td>
+                            <td class="p-4 border border-gray-200">Q-러닝 + 딥러닝, 경험 리플레이, 타겟 네트워크</td>
+                        </tr>
+                        <tr>
+                            <td class="p-4 font-semibold border border-gray-200">PPO</td>
+                            <td class="p-4 border border-gray-200">액터-크리틱</td>
+                            <td class="p-4 border border-gray-200">On-Policy</td>
+                            <td class="p-4 border border-gray-200">이산/연속</td>
+                            <td class="p-4 border border-gray-200">정책 업데이트 비율을 클리핑하여 학습 안정성 확보</td>
+                        </tr>
+                        <tr>
+                            <td class="p-4 font-semibold border border-gray-200">SAC</td>
+                            <td class="p-4 border border-gray-200">액터-크리틱</td>
+                            <td class="p-4 border border-gray-200">Off-Policy</td>
+                            <td class="p-4 border border-gray-200">연속(Continuous)</td>
+                            <td class="p-4 border border-gray-200">최대 엔트로피 원리, 탐색과 안정성 동시 강화</td>
+                        </tr>
+                        <tr>
+                            <td class="p-4 font-semibold border border-gray-200">RLHF</td>
+                            <td class="p-4 border border-gray-200">인간 피드백</td>
+                            <td class="p-4 border border-gray-200">Off-Policy</td>
+                            <td class="p-4 border border-gray-200">주로 텍스트(이산)</td>
+                            <td class="p-4 border border-gray-200">인간 선호도로 보상 모델을 학습 후 정책 강화</td>
+                        </tr>
+                        <tr>
+                            <td class="p-4 font-semibold border border-gray-200 bg-blue-50">GRPO</td>
+                            <td class="p-4 border border-gray-200 bg-blue-50">정책 기반</td>
+                            <td class="p-4 border border-gray-200 bg-blue-50">On-Policy</td>
+                            <td class="p-4 border border-gray-200 bg-blue-50">주로 텍스트(이산)</td>
+                            <td class="p-4 border border-gray-200 bg-blue-50">PPO에서 가치/보상 모델 제거, RLVR 활용으로 극대화된 효율</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- 2. 성능 특성 비교 차트 -->
+        <section class="section-card">
+            <h2 class="text-3xl font-bold text-gray-800 mb-6">성능 특성 비교 (레이더 차트)</h2>
+            <p class="text-gray-600 mb-8">주요 알고리즘들의 상대적인 특성을 시각적으로 비교합니다. (5점 만점, 높을수록 좋음)</p>
+            <div class="w-full max-w-3xl mx-auto">
+                <canvas id="rlRadarChart"></canvas>
+            </div>
+        </section>
+
+        <!-- 3. 방법론별 장단점 -->
+        <section class="section-card">
+            <h2 class="text-3xl font-bold text-gray-800 mb-6">방법론별 장단점 요약</h2>
+            <div class="space-y-8">
+                <div>
+                    <h3 class="text-2xl font-semibold mb-3 text-blue-700">가치 기반 (DQN 계열)</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="bg-green-50 border-l-4 border-green-500 p-4 rounded-r-lg"><h4 class="font-bold text-green-800">장점</h4><ul class="list-disc list-inside text-green-700 mt-2"><li>샘플 효율성이 높음 (Off-Policy)</li><li>개념적으로 비교적 단순함</li><li>이산 행동 공간 문제에서 강력한 성능</li></ul></div>
+                        <div class="bg-red-50 border-l-4 border-red-500 p-4 rounded-r-lg"><h4 class="font-bold text-red-800">단점</h4><ul class="list-disc list-inside text-red-700 mt-2"><li>연속 행동 공간에 직접 적용 불가</li><li>결정론적 정책만 학습 가능</li><li>Q-값 과대평가 문제 발생 가능</li></ul></div>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="text-2xl font-semibold mb-3 text-purple-700">액터-크리틱 (PPO, SAC 등)</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="bg-green-50 border-l-4 border-green-500 p-4 rounded-r-lg"><h4 class="font-bold text-green-800">장점</h4><ul class="list-disc list-inside text-green-700 mt-2"><li>연속 행동 공간에 효과적</li><li>확률적 정책을 직접 학습하여 수렴성이 좋음</li><li>On-Policy, Off-Policy 모두 존재</li></ul></div>
+                        <div class="bg-red-50 border-l-4 border-red-500 p-4 rounded-r-lg"><h4 class="font-bold text-red-800">단점</h4><ul class="list-disc list-inside text-red-700 mt-2"><li>On-Policy 계열(PPO)은 샘플 효율성이 낮음</li><li>두 개의 네트워크를 학습시켜야 하므로 복잡함</li><li>하이퍼파라미터에 민감할 수 있음</li></ul></div>
+                    </div>
+                </div>
+                 <div>
+                    <h3 class="text-2xl font-semibold mb-3 text-pink-700">모방 및 피드백 (RLHF 등)</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="bg-green-50 border-l-4 border-green-500 p-4 rounded-r-lg"><h4 class="font-bold text-green-800">장점</h4><ul class="list-disc list-inside text-green-700 mt-2"><li>보상 함수 설계가 어려운 문제에 적용 가능</li><li>인간의 의도나 가치를 반영하기 용이함</li><li>초기 학습을 빠르게 유도할 수 있음</li></ul></div>
+                        <div class="bg-red-50 border-l-4 border-red-500 p-4 rounded-r-lg"><h4 class="font-bold text-red-800">단점</h4><ul class="list-disc list-inside text-red-700 mt-2"><li>전문가 데이터나 인간 피드백 비용이 높음</li><li>전문가보다 뛰어난 성능을 내기 어려움 (모방)</li><li>복합 오류(Compounding Error) 문제 발생 가능</li></ul></div>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="text-2xl font-semibold mb-3 text-teal-700">효율 최적화 (GRPO)</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="bg-green-50 border-l-4 border-green-500 p-4 rounded-r-lg"><h4 class="font-bold text-green-800">장점</h4><ul class="list-disc list-inside text-green-700 mt-2"><li>극도로 높은 메모리 효율성 (가치/보상 모델 제거)</li><li>빠른 훈련 속도 및 높은 확장성</li><li>검증 가능한 보상(RLVR)으로 정확도 향상 가능</li></ul></div>
+                        <div class="bg-red-50 border-l-4 border-red-500 p-4 rounded-r-lg"><h4 class="font-bold text-red-800">단점</h4><ul class="list-disc list-inside text-red-700 mt-2"><li>범용적이지 않고 추론 모델 훈련에 특화</li><li>효과적인 보상 함수/검증자 설계가 필수적</li><li>Unsloth 등 특정 환경/라이브러리 의존성</li></ul></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <script>
+        const ctx = document.getElementById('rlRadarChart').getContext('2d');
+        const rlRadarChart = new Chart(ctx, {
+            type: 'radar',
+            data: {
+                labels: ['샘플 효율성', '학습 안정성', '구현 용이성', '확장성/효율성'],
+                datasets: [{
+                    label: 'DQN',
+                    data: [4, 3, 4, 3],
+                    backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                    borderColor: 'rgba(59, 130, 246, 1)',
+                    borderWidth: 2
+                }, {
+                    label: 'PPO',
+                    data: [2, 5, 5, 4],
+                    backgroundColor: 'rgba(16, 185, 129, 0.2)',
+                    borderColor: 'rgba(16, 185, 129, 1)',
+                    borderWidth: 2
+                }, {
+                    label: 'SAC',
+                    data: [5, 4, 2, 4],
+                    backgroundColor: 'rgba(168, 85, 247, 0.2)',
+                    borderColor: 'rgba(168, 85, 247, 1)',
+                    borderWidth: 2
+                }, {
+                    label: 'GRPO',
+                    data: [5, 4, 2, 5],
+                    backgroundColor: 'rgba(249, 115, 22, 0.2)',
+                    borderColor: 'rgba(249, 115, 22, 1)',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                scales: {
+                    r: {
+                        angleLines: { display: true },
+                        suggestedMin: 0,
+                        suggestedMax: 5,
+                        ticks: { stepSize: 1 }
+                    }
+                },
+                plugins: {
+                    legend: { position: 'top' }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
