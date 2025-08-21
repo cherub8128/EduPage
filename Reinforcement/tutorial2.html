@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pygame 게임으로 강화학습 시작하기 (슬라이드 ver.)</title>
+    <title>기존 Pygame 게임으로 RL 환경 만들기 (소코반 ver.)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-okaidia.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
@@ -30,17 +30,24 @@
             font-size: 0.9rem;
             line-height: 1.6;
         }
+        .explanation-box {
+            background-color: #21252b;
+            border-left: 4px solid #61afef;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+        }
     </style>
 </head>
 <body class="p-4 md:p-8">
 
-    <div class="max-w-6xl mx-auto bg-[#21252b] rounded-xl shadow-2xl overflow-hidden">
+    <div class="max-w-7xl mx-auto bg-[#21252b] rounded-xl shadow-2xl overflow-hidden">
         <div class="p-8">
-            <h1 class="text-3xl md:text-4xl font-bold text-white text-center">Pygame 게임으로 나만의 강화학습 환경 만들기</h1>
-            <p class="text-center text-gray-400 mt-2">슬라이드를 넘기며 한 단계씩 따라 해보세요!</p>
+            <h1 class="text-3xl md:text-4xl font-bold text-white text-center">기존 Pygame 게임으로 RL 환경 만들기 (소코반편)</h1>
+            <p class="text-center text-gray-400 mt-2">주어진 `sokoban.py` 파일을 AI의 놀이터로 개조해봅시다!</p>
         </div>
 
-        <div id="slider-container" class="p-4 md:p-8 border-t border-gray-700">
+        <div id="slider-container" class="p-4 md:p-8 border-t border-gray-700 min-h-[500px]">
             <!-- Slides will be injected here by JS -->
         </div>
 
@@ -56,298 +63,478 @@
     <script>
         const slides = [
             {
-                title: "1. 우리의 목표는 무엇일까요?",
+                title: "1. 우리의 목표: 게임과 환경의 분리",
                 explanation: `
-                    <p>이미 만들어진 Pygame 게임이 있습니다. 이 게임을 '강화학습 AI'가 플레이할 수 있도록 '게임팩'처럼 만들어주는 것이 목표입니다.</p>
-                    <div class="mt-4 p-4 bg-gray-800 rounded-lg flex items-center space-x-4">
-                        <span class="text-4xl">🕹️</span>
-                        <div><p class="font-bold text-white">Pygame 게임</p><p class="text-sm">우리가 가진 것</p></div>
-                        <span class="text-2xl text-gray-400">+</span>
-                        <span class="text-4xl">🔌</span>
-                        <div><p class="font-bold text-white">Gymnasium 래퍼 (어댑터)</p><p class="text-sm">우리가 만들 것</p></div>
-                        <span class="text-2xl text-gray-400">=</span>
-                        <span class="text-4xl">팩맨</span>
-                        <div><p class="font-bold text-white">강화학습 환경</p><p class="text-sm">최종 결과물</p></div>
+                    <p>먼저, 튜토리얼의 기반이 되는 원본 Pygame 소코반 파일을 다운로드하세요. 이 파일을 세 개의 파일로 분리하여 역할을 명확하게 나눌 것입니다.</p>
+                    <div class="my-4">
+                        <a id="download-link" href="#" download="sokoban.py" class="inline-block bg-teal-500 hover:bg-teal-400 text-white font-bold py-2 px-4 rounded-lg transition duration-300">
+                            sokoban.py 원본 파일 다운로드
+                        </a>
                     </div>
-                    <p class="mt-4">AI는 'Gymnasium'이라는 표준 규격으로 만들어진 게임팩만 인식할 수 있습니다. 그래서 우리 게임을 이 규격에 맞게 포장(Wrapping)해야 합니다.</p>
+                    <div class="grid grid-cols-3 gap-4 mt-4 text-center">
+                        <div class="bg-gray-800 p-4 rounded-lg">
+                            <p class="text-2xl">🕹️</p>
+                            <p class="font-bold text-white">sokoban_game.py</p>
+                            <p class="text-sm text-gray-400">순수 게임 로직</p>
+                        </div>
+                        <div class="bg-gray-800 p-4 rounded-lg">
+                            <p class="text-2xl">🔌</p>
+                            <p class="font-bold text-white">sokoban_env.py</p>
+                            <p class="text-sm text-gray-400">AI와의 통역사</p>
+                        </div>
+                        <div class="bg-gray-800 p-4 rounded-lg">
+                            <p class="text-2xl">🧠</p>
+                            <p class="font-bold text-white">train.py</p>
+                            <p class="text-sm text-gray-400">AI 학습 실행</p>
+                        </div>
+                    </div>
+                    <p class="mt-4">이 슬라이드에서는 먼저 다운로드한 <code class="bg-gray-700 p-1 rounded">sokoban.py</code>를 AI가 제어할 수 있는 <code class="bg-gray-700 p-1 rounded">sokoban_game.py</code>로 수정하는 과정에 집중합니다.</p>
                 `,
                 code: ``
             },
             {
-                title: "2. 기본 뼈대 만들기",
+                title: "2. `sokoban.py` 수정 (1): 클래스 이름 변경",
                 explanation: `
-                    <p>먼저, Gymnasium 라이브러리의 기본 환경 틀인 <code class="bg-gray-700 p-1 rounded">gym.Env</code>를 상속받는 우리만의 클래스를 만듭니다. 이것이 우리 게임팩의 기본 케이스가 됩니다.</p>
-                    <p class="mt-2">모든 강화학습 환경은 이 <code class="bg-gray-700 p-1 rounded">gym.Env</code> 라는 약속된 틀을 따라야 합니다.</p>
+                    <p>먼저, 기존 <code class="bg-gray-700 p-1 rounded">Game</code> 클래스의 이름을 <code class="bg-gray-700 p-1 rounded">SokobanGame</code>으로 변경하여 역할을 더 명확하게 만듭니다.</p>
+                    <p class="mt-2">그리고 AI가 게임을 제어할 것이므로, 사람의 플레이를 위한 메인 루프(<code class="bg-gray-700 p-1 rounded">run</code> 함수)는 나중에 따로 분리할 것입니다.</p>
                 `,
                 code: `
-<span class="code-highlight">import gymnasium as gym</span>
-import pygame
-import numpy as np
-from gymnasium import spaces
+# 기존 sokoban.py 파일의 일부...
 
-<span class="code-highlight">class PygameEnv(gym.Env):</span>
-    # 앞으로 이 안에 모든 코드를 작성할 거예요.
-    pass
-                `
-            },
-            {
-                title: "3. `__init__` : 환경 설계도 (1)",
-                explanation: `
-                    <p><code class="bg-gray-700 p-1 rounded">__init__</code> 함수는 우리 환경이 처음 만들어질 때 딱 한 번 실행되는 '설계도'입니다. 여기서 게임의 기본 설정을 정합니다.</p>
-                    <p class="mt-2">게임 창의 크기 같은 기본적인 것들을 설정해줍니다.</p>
-                `,
-                code: `
-import gymnasium as gym
-import pygame
-import numpy as np
-from gymnasium import spaces
-
-class PygameEnv(gym.Env):
-<span class="code-highlight">    def __init__(self):</span>
-<span class="code-highlight">        super().__init__() # gym.Env의 초기 설정도 가져옵니다.</span>
-<span class="code-highlight">        </span>
-<span class="code-highlight">        # Pygame 창 크기 설정</span>
-<span class="code-highlight">        self.width = 600</span>
-<span class="code-highlight">        self.height = 400</span>
-                `
-            },
-            {
-                title: "4. `__init__` : 행동 공간 정의",
-                explanation: `
-                    <p>설계도에 이어서, AI가 할 수 있는 <strong>행동의 종류</strong>를 알려줘야 합니다. 이것을 '행동 공간(Action Space)'이라고 합니다.</p>
-                    <p class="mt-2">TV 리모컨의 버튼을 정해주는 것과 같아요. 우리 게임에서는 '왼쪽', '가만히 있기', '오른쪽' 세 가지 버튼만 만들겠습니다.</p>
-                    <p class="mt-2"><code class="bg-gray-700 p-1 rounded">spaces.Discrete(3)</code>는 0, 1, 2 세 개의 정수 중 하나를 행동으로 선택할 수 있다는 의미입니다.</p>
-                `,
-                code: `
-class PygameEnv(gym.Env):
+# --- 메인 게임 클래스 ---
+<span class="code-highlight">class SokobanGame: # 'Game' -> 'SokobanGame'</span>
     def __init__(self):
-        super().__init__()
-        
-        self.width = 600
-        self.height = 400
+        pygame.init()
+        self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+        pygame.display.set_caption("Minimalist Sokoban (5x5)")
+        self.clock = pygame.time.Clock()
+        self.font_big = pygame.font.Font(None, 72)
+        self.font_small = pygame.font.Font(None, 36)
+        self.game_state = "playing"
+        self.new_game()
 
-<span class="code-highlight">        # 0: 왼쪽, 1: 가만히 있기, 2: 오른쪽</span>
-<span class="code-highlight">        self.action_space = spaces.Discrete(3)</span>
+    # ... (이하 생략) ...
                 `
             },
             {
-                title: "5. `__init__` : 관찰 공간 정의",
+                title: "3. `sokoban.py` 수정 (2): AI용 step 함수 추가",
                 explanation: `
-                    <p>AI가 '보는' 것, 즉 <strong>상태 정보</strong>의 형태도 알려줘야 합니다. 이것을 '관찰 공간(Observation Space)'이라고 합니다.</p>
-                    <p class="mt-2">AI에게 어떤 TV 화면을 보여줄지 정하는 것과 같아요. 우리는 게임 화면 전체를 컬러(RGB) 이미지로 보여줄 겁니다.</p>
-                    <p class="mt-2"><code class="bg-gray-700 p-1 rounded">spaces.Box(...)</code>는 숫자들의 네모난 배열(이미지 픽셀)을 의미합니다. 각 픽셀은 0~255 사이의 RGB 값을 가집니다.</p>
+                    <p>AI는 '위로 가' 같은 명령을 내립니다. 이 명령을 받아 게임을 한 프레임 진행시키고, 그 결과를(다음 화면, 보상, 종료 여부) 알려주는 함수가 필요합니다. 이 함수를 <code class="bg-gray-700 p-1 rounded">step(action)</code>이라고 부릅니다.</p>
+                    <p class="mt-2">이 함수는 AI와의 핵심 소통 창구입니다.</p>
                 `,
                 code: `
-class PygameEnv(gym.Env):
-    def __init__(self):
-        # ... 이전 코드 생략 ...
-        self.action_space = spaces.Discrete(3)
-
-<span class="code-highlight">        # 게임 화면 픽셀을 관찰 공간으로 사용</span>
-<span class="code-highlight">        self.observation_space = spaces.Box(</span>
-<span class="code-highlight">            low=0, high=255, </span>
-<span class="code-highlight">            shape=(self.width, self.height, 3), </span>
-<span class="code-highlight">            dtype=np.uint8</span>
-<span class="code-highlight">        )</span>
-                `
-            },
-            {
-                title: "6. `reset` : 새 게임 시작하기",
-                explanation: `
-                    <p><code class="bg-gray-700 p-1 rounded">reset</code> 함수는 게임 한 판이 끝나거나 처음 시작할 때 호출됩니다. 모든 것을 초기 상태로 되돌리는 역할을 합니다.</p>
-                    <p class="mt-2">마치 게임기의 '리셋 버튼'과 같아요. 플레이어와 장애물을 처음 위치로 돌려놓고, AI에게 초기 화면(<code class="bg-gray-700 p-1 rounded">observation</code>)을 보여줍니다.</p>
-                `,
-                code: `
-class PygameEnv(gym.Env):
-    # ... __init__ 생략 ...
-
-<span class="code-highlight">    def reset(self, seed=None, options=None):</span>
-<span class="code-highlight">        super().reset(seed=seed)</span>
-<span class="code-highlight">        </span>
-<span class="code-highlight">        # 플레이어와 장애물 위치를 처음으로 되돌림</span>
-<span class="code-highlight">        self.player_pos = [self.width // 2, self.height - 50]</span>
-<span class="code-highlight">        self.obstacle_pos = [np.random.randint(0, self.width), 0]</span>
-<span class="code-highlight">        </span>
-<span class="code-highlight">        # _get_obs()는 현재 화면을 Numpy 배열로 바꿔주는 함수 (나중에 구현)</span>
-<span class="code-highlight">        observation = self._get_obs() </span>
-<span class="code-highlight">        info = {} # 추가 정보 (지금은 비워둠)</span>
-<span class="code-highlight">        </span>
-<span class="code-highlight">        return observation, info</span>
-                `
-            },
-            {
-                title: "7. `step` : 한 걸음 나아가기",
-                explanation: `
-                    <p><code class="bg-gray-700 p-1 rounded">step</code> 함수는 AI가 행동을 하나 결정했을 때 호출됩니다. 이 함수 안에서 게임 세상의 시간이 한 프레임 흐릅니다.</p>
-                    <p class="mt-2">가장 중요한 함수로, AI의 행동을 게임에 반영하고 그 결과를 AI에게 알려줍니다.</p>
-                `,
-                code: `
-class PygameEnv(gym.Env):
-    # ... 이전 코드 생략 ...
+class SokobanGame:
+    # ... (이전 코드) ...
 
 <span class="code-highlight">    def step(self, action):</span>
-<span class="code-highlight">        # 1. AI가 선택한 행동(action)을 게임에 반영</span>
-<span class="code-highlight">        if action == 0: self.player_pos[0] -= 10 # 왼쪽</span>
-<span class="code-highlight">        elif action == 2: self.player_pos[0] += 10 # 오른쪽</span>
-<span class="code-highlight">        </span>
-<span class="code-highlight">        # 2. 게임 환경의 변화 (장애물 이동 등)</span>
-<span class="code-highlight">        self.obstacle_pos[1] += 7</span>
-<span class="code-highlight">        </span>
-<span class="code-highlight">        # 3. 행동의 결과 계산 (보상, 게임 종료 여부)</span>
-<span class="code-highlight">        # ... 다음 슬라이드에서 계속 ...</span>
+<span class="code-highlight">        """AI의 행동(action)을 받아 게임을 한 단계 진행시키고 결과를 반환합니다."""</span>
+<span class="code-highlight">        move_map = {0: (0, -1), 1: (0, 1), 2: (-1, 0), 3: (1, 0)} # 상, 하, 좌, 우</span>
+<span class="code-highlight">        dx, dy = move_map[action]</span>
+<span class="code-highlight"></span>
+<span class="code-highlight">        boxes_on_target_before = len(self.box_positions.intersection(self.target_positions))</span>
+<span class="code-highlight">        self._move_player(dx, dy) # 기존 이동 함수 재사용</span>
+<span class="code-highlight">        boxes_on_target_after = len(self.box_positions.intersection(self.target_positions))</span>
+<span class="code-highlight"></span>
+<span class="code-highlight">        # 보상 계산 (다음 슬라이드에서 상세 설명)</span>
+<span class="code-highlight">        reward = self._calculate_reward(boxes_on_target_before, boxes_on_target_after)</span>
+<span class="code-highlight">        done = self._check_win_condition()</span>
+<span class="code-highlight"></span>
+<span class="code-highlight">        return self.get_observation(), reward, done</span>
                 `
             },
             {
-                title: "8. `step` : 결과 계산 (보상과 종료)",
+                title: "4. `sokoban.py` 수정 (3): 보상 로직 설계",
                 explanation: `
-                    <p>AI의 행동이 어떤 결과를 낳았는지 계산합니다.</p>
-                    <ul class="list-disc list-inside space-y-2 mt-2">
-                        <li><strong>보상(reward)</strong>: 행동이 얼마나 좋았는지 알려주는 점수입니다. (피하면 +, 부딪히면 -)</li>
-                        <li><strong>종료(terminated)</strong>: 게임이 끝났는지 알려주는 신호입니다. (부딪히면 True)</li>
-                    </ul>
-                    <p class="mt-2">이 보상과 종료 신호가 AI를 똑똑하게 만드는 핵심 재료입니다.</p>
+                    <p>AI를 똑똑하게 만드는 가장 중요한 부분, 바로 '보상'입니다. 어떤 행동에 점수를 줄지 정하는 규칙을 만듭니다.</p>
+                    <div class="explanation-box">
+                        <p><strong>보상 규칙:</strong><br>
+                        - 박스를 목표에 올리면: <strong>+10점</strong><br>
+                        - 박스를 목표에서 빼면: <strong>-10점</strong><br>
+                        - 게임을 클리어하면: <strong>+100점</strong><br>
+                        - 그냥 움직이면: <strong>-0.01점</strong> (최단 경로를 찾도록 유도)
+                        </p>
+                    </div>
                 `,
                 code: `
-    def step(self, action):
-        # ... 이전 코드 생략 ...
-
-<span class="code-highlight">        terminated = False</span>
-<span class="code-highlight">        reward = 0.1  # 살아있으면 기본 점수</span>
-
-<span class="code-highlight">        # 플레이어와 장애물이 부딪혔나?</span>
-<span class="code-highlight">        player_rect = pygame.Rect(self.player_pos[0], self.player_pos[1], 30, 30)</span>
-<span class="code-highlight">        obstacle_rect = pygame.Rect(self.obstacle_pos[0], self.obstacle_pos[1], 30, 30)</span>
-<span class="code-highlight">        if player_rect.colliderect(obstacle_rect):</span>
-<span class="code-highlight">            terminated = True # 게임 종료!</span>
-<span class="code-highlight">            reward = -10.0 # 큰 벌점</span>
+class SokobanGame:
+    # ... (이전 코드) ...
+<span class="code-highlight">    def _calculate_reward(self, before, after):</span>
+<span class="code-highlight">        reward = -0.01 # 움직임 페널티</span>
+<span class="code-highlight">        if after > before:</span>
+<span class="code-highlight">            reward += 10</span>
+<span class="code-highlight">        elif after < before:</span>
+<span class="code-highlight">            reward -= 10</span>
 <span class="code-highlight">        </span>
-<span class="code-highlight">        # 장애물을 성공적으로 피했나?</span>
-<span class="code-highlight">        if self.obstacle_pos[1] > self.height:</span>
-<span class="code-highlight">            self.obstacle_pos = [np.random.randint(0, self.width), 0] # 새 장애물</span>
-<span class="code-highlight">            reward = 1.0 # 상점</span>
+<span class="code-highlight">        if self._check_win_condition():</span>
+<span class="code-highlight">            reward += 100</span>
+<span class="code-highlight">        return reward</span>
                 `
             },
             {
-                title: "9. `step` : 결과 보고하기",
+                title: "5. `sokoban.py` 수정 (4): 관찰(Observation) 생성",
                 explanation: `
-                    <p>마지막으로, <code class="bg-gray-700 p-1 rounded">step</code> 함수는 계산된 모든 결과를 AI에게 '보고'해야 합니다. 이 보고서에는 정해진 5가지 항목이 포함되어야 합니다.</p>
-                    <ol class="list-decimal list-inside space-y-1 mt-2">
-                        <li><strong>observation</strong>: 행동 후의 게임 화면</li>
-                        <li><strong>reward</strong>: 행동에 대한 점수</li>
-                        <li><strong>terminated</strong>: 게임이 끝났는지 여부</li>
-                        <li><strong>truncated</strong>: (시간 초과 등) 게임이 중단되었는지 여부 (지금은 False)</li>
-                        <li><strong>info</strong>: 추가 정보 (지금은 빈 딕셔너리)</li>
-                    </ol>
+                    <p>AI는 사람처럼 화면 픽셀을 보고 이해하기 어렵습니다. 대신, 게임 상황을 숫자로 된 지도(그리드)로 변환해서 보여주는 것이 훨씬 효율적입니다.</p>
+                    <div class="explanation-box">
+                     <p><strong>숫자 지도 규칙:</strong><br>
+                        - 1: 플레이어, 2: 박스, 3: 목표, 4: 목표 위의 박스
+                     </p>
+                    </div>
                 `,
                 code: `
-    def step(self, action):
-        # ... 이전 코드 생략 ...
-
-<span class="code-highlight">        observation = self._get_obs()</span>
-<span class="code-highlight">        info = {}</span>
+class SokobanGame:
+    # ... (이전 코드) ...
+<span class="code-highlight">    def get_observation(self):</span>
+<span class="code-highlight">        """AI를 위한 숫자 그리드 관찰(observation)을 생성합니다."""</span>
+<span class="code-highlight">        grid = np.zeros((self.map_height, self.map_width), dtype=np.uint8)</span>
+<span class="code-highlight">        for r in range(self.map_height):</span>
+<span class="code-highlight">            for c in range(self.map_width):</span>
+<span class="code-highlight">                pos = (c, r)</span>
+<span class="code-highlight">                if pos in self.target_positions: grid[r, c] = 3</span>
+<span class="code-highlight">                if pos in self.box_positions: grid[r, c] = 2</span>
+<span class="code-highlight">                if pos in self.target_positions and pos in self.box_positions: grid[r, c] = 4</span>
 <span class="code-highlight">        </span>
-<span class="code-highlight">        return observation, reward, terminated, False, info</span>
+<span class="code-highlight">        player_r, player_c = self.player_pos[1], self.player_pos[0]</span>
+<span class="code-highlight">        grid[player_r, player_c] = 1</span>
+<span class="code-highlight">        return grid</span>
                 `
             },
             {
-                title: "10. `render` 와 `close` : 뒷정리",
+                title: "6. `sokoban.py` 수정 (5): 사람 플레이용 코드 분리",
                 explanation: `
-                    <p>마지막으로 두 개의 보조 함수를 만듭니다.</p>
-                    <ul class="list-disc list-inside space-y-2 mt-2">
-                        <li><strong>render()</strong>: 우리가 직접 게임 화면을 보고 싶을 때 호출하는 함수입니다.</li>
-                        <li><strong>close()</strong>: 학습이 모두 끝났을 때 Pygame 창을 안전하게 닫는 함수입니다.</li>
-                    </ul>
-                    <p class="mt-2">이것으로 모든 필수 함수 구현이 끝났습니다!</p>
+                    <p>기존의 <code class="bg-gray-700 p-1 rounded">run</code>, <code class="bg-gray-700 p-1 rounded">events</code>, <code class="bg-gray-700 p-1 rounded">draw</code> 함수 등은 사람이 직접 플레이할 때만 필요합니다. 이들을 <code class="bg-gray-700 p-1 rounded">run_for_human()</code>이라는 함수로 묶어줍니다.</p>
+                    <p class="mt-2">이렇게 하면 <code class="bg-gray-700 p-1 rounded">sokoban_game.py</code> 파일을 직접 실행하면 사람이 게임을 할 수 있고, 다른 파일에서 import하면 순수 게임 로직만 가져다 쓸 수 있습니다.</p>
                 `,
                 code: `
-class PygameEnv(gym.Env):
-    # ... 이전 코드 생략 ...
+class SokobanGame:
+    # ... (이전 코드) ...
 
-<span class="code-highlight">    def render(self):</span>
-<span class="code-highlight">        # Pygame 화면을 그리는 로직</span>
-<span class="code-highlight">        # (전체 코드에서 확인)</span>
-<span class="code-highlight">        pass</span>
+<span class="code-highlight">def run_for_human(self):</span>
+<span class="code-highlight">    # 기존의 run(), events(), draw() 로직을 이곳으로 옮깁니다.</span>
+<span class="code-highlight">    # ...</span>
 
-<span class="code-highlight">    def close(self):</span>
-<span class="code-highlight">        pygame.quit()</span>
+<span class="code-highlight"># 이 파일을 직접 실행하면 사람이 플레이할 수 있습니다.</span>
+<span class="code-highlight">if __name__ == '__main__':</span>
+<span class="code-highlight">    game = SokobanGame()</span>
+<span class="code-highlight">    game.run_for_human()</span>
                 `
             },
             {
-                title: "11. 완성된 코드",
+                title: "7. `sokoban_env.py` 만들기",
                 explanation: `
-                    <p>지금까지 우리가 만든 조각들을 모두 합치면 완전한 Gymnasium 환경 코드가 됩니다.</p>
-                    <p class="mt-2">이제 이 <code class="bg-gray-700 p-1 rounded">PygameEnv</code> 클래스는 어떤 강화학습 라이브러리(예: Stable-Baselines3)와도 호환되는 완벽한 '게임팩'이 되었습니다.</p>
+                    <p>이제 AI와의 통역사, <code class="bg-gray-700 p-1 rounded">sokoban_env.py</code> 파일을 만들 차례입니다. 이 파일은 우리가 수정한 <code class="bg-gray-700 p-1 rounded">SokobanGame</code>을 불러와 Gymnasium 규칙에 맞게 포장합니다.</p>
+                    <p class="mt-2">이전 튜토리얼에서 배운 내용과 거의 동일합니다. 내부적으로 <code class="bg-gray-700 p-1 rounded">SokobanGame</code> 객체를 가지고, AI의 요청을 게임 객체에 전달하는 역할만 합니다.</p>
                 `,
                 code: `
-import pygame
-import numpy as np
+# sokoban_env.py
 import gymnasium as gym
 from gymnasium import spaces
+<span class="code-highlight">from sokoban_game import SokobanGame # 수정한 게임 클래스 import</span>
 
-class PygameEnv(gym.Env):
-    metadata = {"render_modes": ["human"], "render_fps": 30}
-
+class SokobanEnv(gym.Env):
     def __init__(self, render_mode=None):
         super().__init__()
-        self.width, self.height = 600, 400
-        self.action_space = spaces.Discrete(3)
-        self.observation_space = spaces.Box(low=0, high=255, shape=(self.width, self.height, 3), dtype=np.uint8)
-        self.render_mode = render_mode
-        self.screen = None
-        self.clock = None
-
-    def _get_obs(self):
-        return pygame.surfarray.array3d(self.screen).transpose([1, 0, 2])
-
-    def reset(self, seed=None, options=None):
-        super().reset(seed=seed)
-        self.player_pos = [self.width // 2, self.height - 50]
-        self.obstacle_pos = [np.random.randint(0, self.width), 0]
-        if self.render_mode == "human": self._render_frame()
-        return self._get_obs(), {}
+<span class="code-highlight">        self.game = SokobanGame() # 게임 객체를 내부에 생성</span>
+        
+        self.action_space = spaces.Discrete(4)
+        self.observation_space = spaces.Box(low=0, high=4, 
+            shape=(self.game.map_height, self.game.map_width), dtype=np.uint8)
+        # ...
 
     def step(self, action):
-        if action == 0: self.player_pos[0] -= 10
-        elif action == 2: self.player_pos[0] += 10
-        self.player_pos[0] = np.clip(self.player_pos[0], 0, self.width - 30)
-        self.obstacle_pos[1] += 7
-        
-        terminated = False
-        reward = 0.1
-        player_rect = pygame.Rect(self.player_pos[0], self.player_pos[1], 30, 30)
-        obstacle_rect = pygame.Rect(self.obstacle_pos[0], self.obstacle_pos[1], 30, 30)
-        
-        if player_rect.colliderect(obstacle_rect):
-            terminated = True
-            reward = -10.0
-        
-        if self.obstacle_pos[1] > self.height:
-            self.obstacle_pos = [np.random.randint(0, self.width), 0]
-            reward = 1.0
+<span class="code-highlight">        obs, reward, terminated = self.game.step(action) # 게임 객체에 명령 전달</span>
+        truncated = self.steps_taken >= 200 # 타임스텝 제한
+        # ...
+        return obs, reward, terminated, truncated, self._get_info()
 
-        if self.render_mode == "human": self._render_frame()
-        return self._get_obs(), reward, terminated, False, {}
-
-    def render(self):
-        self._render_frame()
-
-    def _render_frame(self):
-        if self.screen is None:
-            pygame.init()
-            self.screen = pygame.display.set_mode((self.width, self.height))
-        if self.clock is None: self.clock = pygame.time.Clock()
-        self.screen.fill((255, 255, 255))
-        pygame.draw.rect(self.screen, (0, 0, 255), (*self.player_pos, 30, 30))
-        pygame.draw.rect(self.screen, (255, 0, 0), (*self.obstacle_pos, 30, 30))
-        pygame.event.pump()
-        pygame.display.update()
-        self.clock.tick(self.metadata["render_fps"])
-
-    def close(self):
-        if self.screen is not None: pygame.quit()
+    # ... (reset, render, close 함수는 게임 객체의 함수를 호출) ...
                 `
+            },
+            {
+                title: "8. `train.py`로 학습 실행하기",
+                explanation: `
+                    <p>마지막으로, AI 학습을 시작하는 <code class="bg-gray-700 p-1 rounded">train.py</code> 파일을 만듭니다.</p>
+                    <p class="mt-2">이 파일은 우리가 만든 <code class="bg-gray-700 p-1 rounded">SokobanEnv</code>를 불러와 Stable-Baselines3 라이브러리의 PPO 알고리즘으로 학습을 진행합니다.</p>
+                `,
+                code: `
+# train.py
+<span class="code-highlight">from sokoban_env import SokobanEnv # 우리가 만든 환경 import</span>
+from stable_baselines3 import PPO
+from stable_baselines3.common.env_checker import check_env
+
+# 1. 환경 유효성 검사
+env = SokobanEnv()
+check_env(env)
+
+# 2. 모델 생성 및 학습
+env = SokobanEnv()
+<span class="code-highlight">model = PPO("MlpPolicy", env, verbose=1)</span>
+<span class="code-highlight">model.learn(total_timesteps=100000)</span>
+model.save("ppo_sokoban")
+
+# 3. 학습된 모델 테스트
+model = PPO.load("ppo_sokoban")
+obs, info = env.reset()
+for _ in range(500):
+    action, _ = model.predict(obs, deterministic=True)
+    obs, reward, terminated, truncated, info = env.step(action)
+    env.render()
+    if terminated or truncated:
+        obs, info = env.reset()
+                `
+            },
+            {
+                title: "9. 최종 정리",
+                explanation: `
+                    <p>축하합니다! 이제 여러분은 기존 Pygame 게임을 수정하여 AI를 학습시킬 수 있는 완전한 RL 프로젝트 구조를 갖게 되었습니다.</p>
+                     <div class="explanation-box">
+                        <p><strong>핵심 요약:</strong><br>
+                        1. <strong>게임 로직 수정:</strong> 기존 게임 코드에 AI가 제어할 수 있는 <code class="bg-gray-700 p-1 rounded">step</code>, <code class="bg-gray-700 p-1 rounded">reset</code>, <code class="bg-gray-700 p-1 rounded">get_observation</code> 함수를 추가했습니다.<br>
+                        2. <strong>환경 래퍼 생성:</strong> 수정된 게임을 Gymnasium 규칙에 맞게 감싸는 <code class="bg-gray-700 p-1 rounded">SokobanEnv</code>를 만들었습니다.<br>
+                        3. <strong>학습 스크립트 작성:</strong> 만들어진 환경을 이용해 실제 AI 모델을 학습시키는 코드를 작성했습니다.
+                        </p>
+                    </div>
+                `,
+                code: ``
             }
         ];
+
+        const sokobanFileContent = `
+import pygame
+import sys
+import random
+
+# --- 상수 정의 ---
+SCREEN_WIDTH = 800
+SCREEN_HEIGHT = 600
+TILE_SIZE = 60
+WALL_THICKNESS = 10 # 벽 굵기를 상수로 정의
+
+# 색상 팔레트
+COLOR_BACKGROUND = (240, 235, 220)
+COLOR_GRID = (220, 210, 190)
+COLOR_WALL = (60, 70, 80)
+COLOR_PLAYER = (230, 80, 80)
+COLOR_BOX = (20, 140, 200)
+COLOR_TARGET = (220, 170, 20)
+COLOR_BOX_ON_TARGET = (60, 200, 100)
+COLOR_TEXT = (50, 50, 50)
+
+# --- 게임 객체 클래스 (변경 없음) ---
+class GameObject(pygame.sprite.Sprite):
+    def __init__(self, x, y, color):
+        super().__init__()
+        self.image = pygame.Surface([TILE_SIZE, TILE_SIZE])
+        self.rect = self.image.get_rect(topleft=(x, y))
+        self.draw_shape(color)
+
+    def draw_shape(self, color):
+        self.image.fill(COLOR_BACKGROUND)
+        pygame.draw.rect(self.image, color, self.image.get_rect().inflate(-8, -8), border_radius=8)
+
+class Player(GameObject):
+    def __init__(self, x, y):
+        super().__init__(x, y, COLOR_PLAYER)
+    def draw_shape(self, color):
+        self.image.fill(COLOR_BACKGROUND)
+        pygame.draw.circle(self.image, color, (TILE_SIZE // 2, TILE_SIZE // 2), TILE_SIZE // 2 - 5)
+
+class Box(GameObject):
+    def __init__(self, x, y):
+        super().__init__(x, y, COLOR_BOX)
+        self.on_target = False
+    def update(self, on_target):
+        if self.on_target != on_target:
+            self.on_target = on_target
+            color = COLOR_BOX_ON_TARGET if self.on_target else COLOR_BOX
+            self.draw_shape(color)
+
+class Target(GameObject):
+    def __init__(self, x, y):
+        super().__init__(x, y, COLOR_TARGET)
+    def draw_shape(self, color):
+        self.image.fill(COLOR_BACKGROUND)
+        pygame.draw.rect(self.image, color, self.image.get_rect().inflate(-18, -18))
+
+
+# --- 메인 게임 클래스 ---
+class Game:
+    def __init__(self):
+        pygame.init()
+        self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+        pygame.display.set_caption("Minimalist Sokoban (5x5)")
+        self.clock = pygame.time.Clock()
+        self.font_big = pygame.font.Font(None, 72)
+        self.font_small = pygame.font.Font(None, 36)
+        self.game_state = "playing"
+        self.new_game()
+
+    def new_game(self):
+        self.map_width = 5
+        self.map_height = 5
+        self.num_boxes = 2
+        
+        level_data = self.generate_random_level_data()
+        self.load_level_from_data(level_data)
+        self.game_state = "playing"
+
+    def generate_random_level_data(self):
+        all_coords = [(c, r) for c in range(self.map_width) for r in range(self.map_height)]
+        random.shuffle(all_coords)
+
+        player_pos = all_coords.pop()
+        target_positions = {all_coords.pop() for _ in range(self.num_boxes)}
+        box_positions = {all_coords.pop() for _ in range(self.num_boxes)}
+
+        return {
+            "player": player_pos,
+            "boxes": box_positions,
+            "targets": target_positions
+        }
+
+    def load_level_from_data(self, level_data):
+        self.all_sprites = pygame.sprite.Group()
+        self.boxes = pygame.sprite.Group()
+        self.targets = pygame.sprite.Group()
+
+        map_w_px = self.map_width * TILE_SIZE
+        map_h_px = self.map_height * TILE_SIZE
+        self.offset_x = (SCREEN_WIDTH - map_w_px) // 2
+        self.offset_y = (SCREEN_HEIGHT - map_h_px) // 2
+        
+        self.playable_area = pygame.Rect(self.offset_x, self.offset_y, map_w_px, map_h_px)
+
+        self.wall_frame_rect = self.playable_area.inflate(WALL_THICKNESS+10, WALL_THICKNESS+10)
+
+        def to_pixel_coords(grid_pos):
+            return (self.offset_x + grid_pos[0] * TILE_SIZE, 
+                    self.offset_y + grid_pos[1] * TILE_SIZE)
+
+        px, py = to_pixel_coords(level_data["player"])
+        self.player = Player(px, py)
+
+        for pos in level_data["boxes"]:
+            bx, by = to_pixel_coords(pos)
+            self.boxes.add(Box(bx, by))
+
+        for pos in level_data["targets"]:
+            tx, ty = to_pixel_coords(pos)
+            self.targets.add(Target(tx, ty))
+        
+        self.all_sprites.add(self.targets, self.boxes, self.player)
+        self.current_level_data = level_data
+
+    def run(self):
+        while True:
+            self.events()
+            if self.game_state == "playing":
+                self.update()
+            self.draw()
+            self.clock.tick(60)
+
+    def events(self):
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.KEYDOWN:
+                if self.game_state == "playing":
+                    dx, dy = 0, 0
+                    if event.key == pygame.K_LEFT: dx = -TILE_SIZE
+                    elif event.key == pygame.K_RIGHT: dx = TILE_SIZE
+                    elif event.key == pygame.K_UP: dy = -TILE_SIZE
+                    elif event.key == pygame.K_DOWN: dy = TILE_SIZE
+                    
+                    if dx != 0 or dy != 0:
+                        self.move_player(dx, dy)
+                
+                if event.key == pygame.K_r:
+                    self.load_level_from_data(self.current_level_data)
+                    self.game_state = "playing"
+                if event.key == pygame.K_n:
+                    self.new_game()
+
+    def move_player(self, dx, dy):
+        player_target_rect = self.player.rect.move(dx, dy)
+
+        if not self.playable_area.contains(player_target_rect):
+            return
+
+        box_to_move = next((box for box in self.boxes if box.rect.colliderect(player_target_rect)), None)
+
+        if box_to_move:
+            box_target_rect = box_to_move.rect.move(dx, dy)
+            if not self.playable_area.contains(box_target_rect):
+                return
+            if any(b != box_to_move and b.rect.colliderect(box_target_rect) for b in self.boxes):
+                return
+            
+            box_to_move.rect.move_ip(dx, dy)
+
+        self.player.rect.move_ip(dx, dy)
+
+    def update(self):
+        if self.check_win_condition():
+            self.game_state = "level_clear"
+
+    def check_win_condition(self):
+        if not self.boxes: return False
+        target_coords = {t.rect.topleft for t in self.targets}
+        box_coords = {b.rect.topleft for b in self.boxes}
+        return target_coords == box_coords
+
+    def draw(self):
+        self.screen.fill(COLOR_BACKGROUND)
+        self.draw_grid_and_wall()
+        self.all_sprites.draw(self.screen)
+        self.draw_ui()
+        pygame.display.flip()
+
+    def draw_grid_and_wall(self):
+        for x in range(self.playable_area.left, self.playable_area.right, TILE_SIZE):
+            pygame.draw.line(self.screen, COLOR_GRID, (x, self.playable_area.top), (x, self.playable_area.bottom))
+        for y in range(self.playable_area.top, self.playable_area.bottom, TILE_SIZE):
+            pygame.draw.line(self.screen, COLOR_GRID, (self.playable_area.left, y), (self.playable_area.right, y))
+
+        pygame.draw.rect(
+            self.screen,
+            COLOR_WALL,
+            self.wall_frame_rect,
+            width=WALL_THICKNESS,
+            border_radius=15
+        )
+            
+    def draw_ui(self):
+        instructions = "'R' Restart | 'N' New Level"
+        inst_text = self.font_small.render(instructions, True, COLOR_TEXT)
+        text_rect = inst_text.get_rect(centerx=SCREEN_WIDTH / 2, y=20)
+        self.screen.blit(inst_text, text_rect)
+        
+        target_coords = {t.rect.topleft for t in self.targets}
+        for box in self.boxes:
+            is_on_target = box.rect.topleft in target_coords
+            box.update(is_on_target)
+
+        if self.game_state == "level_clear":
+            self.draw_overlay("LEVEL CLEAR!", "Press 'N' for a New Level")
+
+    def draw_overlay(self, title, subtitle):
+        overlay = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
+        overlay.fill((255, 255, 255, 180))
+        self.screen.blit(overlay, (0, 0))
+        
+        title_surf = self.font_big.render(title, True, COLOR_TEXT)
+        title_rect = title_surf.get_rect(center=(SCREEN_WIDTH/2, SCREEN_HEIGHT/2 - 30))
+        self.screen.blit(title_surf, title_rect)
+        
+        sub_surf = self.font_small.render(subtitle, True, COLOR_TEXT)
+        sub_rect = sub_surf.get_rect(center=(SCREEN_WIDTH/2, SCREEN_HEIGHT/2 + 30))
+        self.screen.blit(sub_surf, sub_rect)
+
+
+if __name__ == '__main__':
+    game = Game()
+    game.run()
+`;
 
         let currentSlide = 0;
         const sliderContainer = document.getElementById('slider-container');
@@ -362,25 +549,42 @@ class PygameEnv(gym.Env):
 
             let codeHtml = '';
             if (slideData.code) {
+                const tempDiv = document.createElement('div');
+                const codeWithPlaceholders = slideData.code.trim()
+                    .replace(/<span class="code-highlight">/g, '[[HIGHLIGHT_START]]')
+                    .replace(/<\/span>/g, '[[HIGHLIGHT_END]]');
+
+                tempDiv.textContent = codeWithPlaceholders;
+                
+                const finalCode = tempDiv.innerHTML
+                    .replace(/\[\[HIGHLIGHT_START\]\]/g, '<span class="code-highlight">')
+                    .replace(/\[\[HIGHLIGHT_END\]\]/g, '</span>');
+
                 codeHtml = `
                     <div class="mt-6 bg-[#282c34] rounded-lg overflow-hidden border border-gray-700">
-                        <pre class="language-python"><code>${slideData.code.trim()}</code></pre>
+                        <pre class="language-python !text-sm !leading-relaxed"><code>${finalCode}</code></pre>
                     </div>
                 `;
             }
 
             slideElement.innerHTML = `
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
-                    <div>
+                <div class="grid grid-cols-1 ${slideData.code ? 'md:grid-cols-2' : ''} gap-8 items-start">
+                    <div class="prose prose-invert max-w-none">
                         <h2 class="text-2xl font-bold text-indigo-400 mb-4">${slideData.title}</h2>
                         <div class="text-gray-300 leading-relaxed space-y-2">${slideData.explanation}</div>
                     </div>
-                    <div>
-                        ${codeHtml}
-                    </div>
+                    ${slideData.code ? `<div>${codeHtml}</div>` : ''}
                 </div>
             `;
             return slideElement;
+        }
+        
+        function setupDownloadLink() {
+            const link = document.getElementById('download-link');
+            if (link) {
+                const encodedContent = encodeURIComponent(sokobanFileContent.trim());
+                link.href = 'data:text/plain;charset=utf-8,' + encodedContent;
+            }
         }
 
         function updateSlider() {
@@ -390,6 +594,11 @@ class PygameEnv(gym.Env):
             slideCounter.textContent = `${currentSlide + 1} / ${slides.length}`;
             prevBtn.disabled = currentSlide === 0;
             nextBtn.disabled = currentSlide === slides.length - 1;
+            
+            if (currentSlide === 0) {
+                setupDownloadLink();
+            }
+            
             Prism.highlightAll();
         }
 
@@ -406,7 +615,7 @@ class PygameEnv(gym.Env):
                 updateSlider();
             }
         });
-
+        
         // Initialize slider
         slides.forEach((slideData, index) => {
             sliderContainer.appendChild(createSlide(slideData, index));

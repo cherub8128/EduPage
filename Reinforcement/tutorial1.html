@@ -3,384 +3,603 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pygame과 Stable Baselines3 연동 실습 (상세 버전)</title>
+    <title>Pygame 게임으로 강화학습 시작하기 (Full ver.)</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" xintegrity="sha384-n8MVd4RsNIU07RLA8HuPOhrBIWEidUdaf65IBqz2tVRckQ9/VEOESTP1OF2dvGub" crossorigin="anonymous">
-    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" xintegrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzUOEleOLALmuqehneUG+vnGctmUbKyIyuh" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" xintegrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-okaidia.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Noto Sans KR', sans-serif; background-color: #f1f5f9; }
-        .tab-button { transition: all 0.3s; }
-        .tab-button.active { border-color: #4f46e5; color: #4f46e5; background-color: white; }
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
-        .katex { font-size: 1.1em !important; }
-        pre { background-color: #1e293b; color: #e2e8f0; padding: 1.5rem; border-radius: 0.5rem; overflow-x: auto; position: relative; margin-top: 1rem; margin-bottom: 1rem; }
-        .copy-button { position: absolute; top: 1rem; right: 1rem; background-color: #475569; color: white; padding: 0.25rem 0.5rem; border-radius: 0.25rem; cursor: pointer; transition: background-color 0.2s; }
-        .copy-button:hover { background-color: #64748b; }
-        .step-heading { font-size: 1.25rem; font-weight: 700; color: #1e3a8a; margin-top: 2rem; margin-bottom: 1rem; border-bottom: 2px solid #e0e7ff; padding-bottom: 0.5rem; }
-        code.inline-code { background-color: #eef2ff; color: #4338ca; padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: #282c34;
+            color: #abb2bf;
+        }
+        .slide {
+            display: none;
+        }
+        .slide.active {
+            display: block;
+        }
+        .code-highlight {
+            background-color: rgba(255, 255, 0, 0.15);
+            display: block;
+            margin: -0.25rem -0.5rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+        }
+        pre[class*="language-"] {
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+        .explanation-box {
+            background-color: #21252b;
+            border-left: 4px solid #61afef;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+        }
     </style>
 </head>
 <body class="p-4 md:p-8">
-    <div class="max-w-7xl mx-auto bg-white rounded-2xl shadow-2xl overflow-hidden">
-        <header class="p-8 bg-gray-800 text-white text-center">
-            <h1 class="text-3xl md:text-4xl font-bold">인터랙티브 RL 실습: Pygame + Stable Baselines3</h1>
-            <p class="mt-2 text-gray-300">이론부터 코드 실행, 시뮬레이션까지 한 페이지에서 경험해보세요.</p>
-        </header>
 
+    <div class="max-w-7xl mx-auto bg-[#21252b] rounded-xl shadow-2xl overflow-hidden">
         <div class="p-8">
-            <!-- Tabs Navigation -->
-            <div class="flex border-b border-gray-200 mb-8 overflow-x-auto">
-                <button class="tab-button active text-lg font-semibold py-4 px-6 border-b-2 border-transparent flex-shrink-0" onclick="openTab(event, 'theory')">1. 이론적 배경</button>
-                <button class="tab-button text-lg font-semibold py-4 px-6 border-b-2 border-transparent flex-shrink-0" onclick="openTab(event, 'env-code')">2. Pygame 환경 코드</button>
-                <button class="tab-button text-lg font-semibold py-4 px-6 border-b-2 border-transparent flex-shrink-0" onclick="openTab(event, 'sb3-code')">3. SB3 학습 코드</button>
-                <button class="tab-button text-lg font-semibold py-4 px-6 border-b-2 border-transparent flex-shrink-0" onclick="openTab(event, 'simulation')">4. 학습 결과 시뮬레이션</button>
-                <button class="tab-button text-lg font-semibold py-4 px-6 border-b-2 border-transparent flex-shrink-0" onclick="openTab(event, 'env-guide')">5. 환경 코드 변경 가이드</button>
-            </div>
+            <h1 class="text-3xl md:text-4xl font-bold text-white text-center">Pygame 게임으로 나만의 강화학습 환경 만들기</h1>
+            <p class="text-center text-gray-400 mt-2">슬라이드를 넘기며 한 단계씩 따라 해보세요!</p>
+        </div>
 
-            <!-- Tab Content -->
-            <div id="theory" class="tab-content active">
-                <h2 class="text-2xl font-bold mb-4 text-gray-800">MDP와 Gymnasium API</h2>
-                <p class="text-gray-700 mb-4">강화학습은 <strong>마르코프 결정 과정(MDP)</strong>으로 문제를 모델링합니다. MDP는 $(\mathcal{S}, \mathcal{A}, \mathcal{P}, \mathcal{R}, \gamma)$ 튜플로 정의됩니다.</p>
-                <ul class="list-disc list-inside space-y-2 text-gray-600 mb-6">
-                    <li>$\mathcal{S}$: 모든 가능한 <strong>상태(State)</strong>의 집합 (e.g., 플레이어와 공의 위치)</li>
-                    <li>$\mathcal{A}$: 모든 가능한 <strong>행동(Action)</strong>의 집합 (e.g., 좌, 우, 정지)</li>
-                    <li>$\mathcal{P}(s'|s,a)$: 상태 $s$에서 행동 $a$를 했을 때 다음 상태 $s'$로 전이할 <strong>확률</strong></li>
-                    <li>$\mathcal{R}(s,a,s')$: 행동의 결과로 받는 즉각적인 <strong>보상(Reward)</strong></li>
-                    <li>$\gamma$: 미래 보상의 현재 가치를 결정하는 <strong>할인율(Discount Factor)</strong></li>
-                </ul>
-                <p class="text-gray-700 mb-4">에이전트의 목표는 누적 보상 $G_t = \sum_{k=0}^{T} \gamma^k R_{t+k+1}$를 최대화하는 정책 $\pi(a|s)$를 학습하는 것입니다.</p>
-                <p class="text-gray-700"><strong>Gymnasium</strong>은 이러한 상호작용을 표준화된 API로 제공하여 알고리즘 개발을 돕습니다. 핵심 메서드는 다음과 같습니다.</p>
-                 <ul class="list-disc list-inside space-y-2 text-gray-600 mt-4">
-                    <li><b>env.reset()</b>: 환경을 초기화하고 첫 관측값을 반환합니다.</li>
-                    <li><b>env.step(action)</b>: 행동을 실행하고 `(관측값, 보상, 종료여부, 정보)`를 반환합니다.</li>
-                    <li><b>env.render()</b>: 환경을 시각화합니다.</li>
-                </ul>
-            </div>
+        <div id="slider-container" class="p-4 md:p-8 border-t border-gray-700 min-h-[500px]">
+            <!-- Slides will be injected here by JS -->
+        </div>
 
-            <div id="env-code" class="tab-content">
-                <h2 class="text-2xl font-bold mb-4 text-gray-800">Pygame 환경 구현 (`my_pygame_env.py`)</h2>
-                <p class="text-gray-700 mb-4">Pygame으로 만든 게임을 `gym.Env` 클래스를 상속받아 강화학습 환경으로 만듭니다. 각 단계를 따라 코드를 완성해 보세요.</p>
-                <h3 class="step-heading">Step 1: 기본 구조 및 초기화 (`__init__`)</h3>
-                <p>먼저, 필요한 라이브러리를 가져오고 `gym.Env`를 상속받는 클래스를 정의합니다. `__init__` 메서드에서는 에이전트가 상호작용할 <strong>행동 공간(Action Space)</strong>과 <strong>관측 공간(Observation Space)</strong>을 정의해야 합니다.</p>
-                <ul>
-                    <li><code class="inline-code">spaces.Discrete(2)</code>: '왼쪽으로 이동', '오른쪽으로 이동'의 2가지 이산적인 행동을 정의합니다.</li>
-                    <li><code class="inline-code">spaces.Box</code>: [플레이어 x, 공 x, 공 y, 공 vx, 공 vy] 5개의 연속적인 값으로 상태를 정의합니다. 각 값의 최솟값(low)과 최댓값(high)을 지정합니다.</li>
-                </ul>
-                <pre><button class="copy-button" onclick="copyCode(this)">Copy</button><code class="language-python">
-import gymnasium as gym
-from gymnasium import spaces
-import numpy as np
-import pygame
-
-class PygameEnv(gym.Env):
-    metadata = {"render_modes": ["human", "rgb_array"], "render_fps": 30}
-
-    def __init__(self, render_mode=None):
-        super().__init__()
-        self.screen_width = 400
-        self.screen_height = 600
-        self.action_space = spaces.Discrete(2)
-        low = np.array([0, 0, 0, -10, -10], dtype=np.float32)
-        high = np.array([self.screen_width, self.screen_width, self.screen_height, 10, 10], dtype=np.float32)
-        self.observation_space = spaces.Box(low, high, dtype=np.float32)
-        assert render_mode is None or render_mode in self.metadata["render_modes"]
-        self.render_mode = render_mode
-        self.window = None
-        self.clock = None
-                </code></pre>
-                <h3 class="step-heading">Step 2: 환경 초기화 (`reset`)</h3>
-                <p>에피소드가 시작되거나 끝날 때마다 환경을 초기 상태로 되돌립니다. 플레이어와 공의 위치, 공의 속도를 무작위로 설정하여 에이전트가 다양한 상황에서 학습하도록 합니다. 마지막으로 초기 <strong>관측값</strong>과 <strong>정보</strong>를 반환해야 합니다.</p>
-                <pre><button class="copy-button" onclick="copyCode(this)">Copy</button><code class="language-python">
-# (PygameEnv 클래스 내부에 추가)
-    def reset(self, seed=None, options=None):
-        super().reset(seed=seed)
-        self.player = pygame.Rect(self.screen_width / 2 - 30, self.screen_height - 30, 60, 10)
-        self.ball = pygame.Rect(self.screen_width / 2 - 5, self.screen_height / 2 - 5, 10, 10)
-        self.ball_vx = self.np_random.choice([-4, 4])
-        self.ball_vy = -4
-        if self.render_mode == "human": self._render_frame()
-        return self._get_obs(), self._get_info()
-
-    def _get_obs(self):
-        return np.array([self.player.x, self.ball.x, self.ball.y, self.ball_vx, self.ball_vy], dtype=np.float32)
-
-    def _get_info(self):
-        return {"distance": np.linalg.norm(np.array([self.player.x, self.player.y]) - np.array([self.ball.x, self.ball.y]))}
-                </code></pre>
-                <h3 class="step-heading">Step 3: 시간 흐름 구현 (`step`)</h3>
-                <p>`step` 메서드는 환경의 핵심 로직입니다. 에이전트로부터 `action`을 받아 다음 상태로 전환하고, 그에 따른 보상을 계산합니다.</p>
-                <pre><button class="copy-button" onclick="copyCode(this)">Copy</button><code class="language-python">
-# (PygameEnv 클래스 내부에 추가)
-    def step(self, action):
-        if action == 0: self.player.x -= 8
-        elif action == 1: self.player.x += 8
-        self.player.x = np.clip(self.player.x, 0, self.screen_width - self.player.width)
-        self.ball.x += self.ball_vx
-        self.ball.y += self.ball_vy
-        if self.ball.left <= 0 or self.ball.right >= self.screen_width: self.ball_vx *= -1
-        if self.ball.top <= 0: self.ball_vy *= -1
-        terminated = self.ball.bottom >= self.screen_height
-        reward = 0
-        if self.player.colliderect(self.ball):
-            reward = 10.0
-            self.ball_vy *= -1
-            self.ball.bottom = self.player.top
-        elif terminated:
-            reward = -10.0
-        if self.render_mode == "human": self._render_frame()
-        return self._get_obs(), reward, terminated, False, self._get_info()
-                </code></pre>
-                <h3 class="step-heading">Step 4: 시각화 및 종료 (`render`, `close`)</h3>
-                <p>`render` 메서드는 Pygame을 이용해 현재 게임 상태를 화면에 그려줍니다. `close` 메서드는 게임 창을 닫아 리소스를 정리합니다.</p>
-                <pre><button class="copy-button" onclick="copyCode(this)">Copy</button><code class="language-python">
-# (PygameEnv 클래스 내부에 추가)
-    def render(self):
-        if self.render_mode == "rgb_array": return self._render_frame()
-    def _render_frame(self):
-        if self.window is None and self.render_mode == "human":
-            pygame.init()
-            pygame.display.init()
-            self.window = pygame.display.set_mode((self.screen_width, self.screen_height))
-        if self.clock is None and self.render_mode == "human": self.clock = pygame.time.Clock()
-        canvas = pygame.Surface((self.screen_width, self.screen_height))
-        canvas.fill((20, 20, 20))
-        pygame.draw.rect(canvas, (200, 200, 200), self.player)
-        pygame.draw.circle(canvas, (200, 50, 50), self.ball.center, self.ball.width / 2)
-        if self.render_mode == "human":
-            self.window.blit(canvas, canvas.get_rect())
-            pygame.event.pump()
-            pygame.display.update()
-            self.clock.tick(self.metadata["render_fps"])
-        else: return np.transpose(pygame.surfarray.array3d(canvas), axes=(1, 0, 2))
-    def close(self):
-        if self.window is not None: pygame.display.quit(); pygame.quit()
-                </code></pre>
-                <h3 class="step-heading">Step 5: 환경 등록</h3>
-                <p>마지막으로, `gymnasium.envs.registration.register`를 사용하여 우리가 만든 환경을 Gymnasium에 등록합니다.</p>
-                <pre><button class="copy-button" onclick="copyCode(this)">Copy</button><code class="language-python">
-# (파일 최하단에 추가)
-from gymnasium.envs.registration import register
-register(
-    id='PygameBreakout-v0',
-    entry_point='my_pygame_env:PygameEnv',
-    max_episode_steps=1000,
-)
-                </code></pre>
-            </div>
-
-            <div id="sb3-code" class="tab-content">
-                <h2 class="text-2xl font-bold mb-4 text-gray-800">SB3로 에이전트 학습 (`train.py`)</h2>
-                <p class="text-gray-700 mb-4">이제 Stable Baselines3를 사용하여 에이전트를 학습시킬 차례입니다. 각 단계별 코드의 의미를 자세히 살펴보세요.</p>
-                <h3 class="step-heading">Step 1: 라이브러리 가져오기 및 환경 생성</h3>
-                <p>필요한 라이브러리를 `import` 합니다. 특히 `import my_pygame_env`는 우리가 만든 환경을 Gymnasium에 등록하는 역할을 하므로 매우 중요합니다.</p>
-                 <pre><button class="copy-button" onclick="copyCode(this)">Copy</button><code class="language-python">
-import gymnasium as gym
-from stable_baselines3 import PPO
-import my_pygame_env # 중요: 이 라인이 환경을 등록합니다!
-env = gym.make('PygameBreakout-v0', render_mode='rgb_array')
-                </code></pre>
-                <h3 class="step-heading">Step 2: 에이전트(모델) 생성</h3>
-                <p>SB3가 제공하는 알고리즘 중 하나를 선택하여 모델을 생성합니다. 여기서는 PPO를 사용합니다.</p>
-                <pre><button class="copy-button" onclick="copyCode(this)">Copy</button><code class="language-python">
-model = PPO('MlpPolicy', env, verbose=1, tensorboard_log="./ppo_breakout_tensorboard/")
-                </code></pre>
-                <h3 class="step-heading">Step 3: 모델 학습 및 저장</h3>
-                <p>`model.learn()` 함수를 호출하여 학습을 시작합니다. `total_timesteps`는 에이전트가 환경과 상호작용할 총 횟수를 의미합니다.</p>
-                <pre><button class="copy-button" onclick="copyCode(this)">Copy</button><code class="language-python">
-print("Starting training...")
-model.learn(total_timesteps=50000)
-print("Training finished!")
-model.save("ppo_breakout")
-print("Model saved.")
-                </code></pre>
-                <h3 class="step-heading">Step 4: 학습된 모델 평가</h3>
-                <p>저장된 모델을 불러와 실제 게임 환경에서 어떻게 작동하는지 평가합니다. 평가 시에는 `render_mode='human'`으로 설정하여 게임 화면을 직접 볼 수 있습니다.</p>
-                <pre><button class="copy-button" onclick="copyCode(this)">Copy</button><code class="language-python">
-print("Starting evaluation...")
-eval_env = gym.make('PygameBreakout-v0', render_mode='human')
-obs, info = eval_env.reset()
-for _ in range(1000):
-    action, _states = model.predict(obs, deterministic=True)
-    obs, reward, terminated, truncated, info = eval_env.step(action)
-    if terminated or truncated:
-        obs, info = eval_env.reset()
-eval_env.close()
-print("Evaluation finished.")
-                </code></pre>
-            </div>
-
-            <div id="simulation" class="tab-content">
-                <h2 class="text-2xl font-bold mb-4 text-gray-800">학습 결과 시뮬레이션</h2>
-                <p class="text-gray-700 mb-4">학습된 에이전트가 어떻게 행동하는지 관찰해 보세요. 아래 시뮬레이션은 실제 학습 결과와 유사하게 제작되었습니다.</p>
-                <div class="w-full max-w-sm mx-auto bg-gray-800 rounded-lg relative" style="height: 500px;">
-                    <div id="paddle" class="absolute bg-white rounded" style="width: 60px; height: 10px; bottom: 30px; left: 170px;"></div>
-                    <div id="ball" class="absolute bg-red-500 rounded-full" style="width: 10px; height: 10px; top: 250px; left: 195px;"></div>
-                </div>
-                <div class="mt-6 text-center"><button id="start-sim-btn" class="bg-indigo-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-indigo-700 transition" onclick="startSimulation()">시뮬레이션 시작</button></div>
-                <div class="mt-4 bg-gray-100 p-4 rounded-lg"><h3 class="font-semibold mb-2">시뮬레이션 로그:</h3><div id="sim-log" class="text-sm text-gray-600 font-mono h-24 overflow-y-auto"></div></div>
-            </div>
-
-            <div id="env-guide" class="tab-content">
-                <h2 class="text-2xl font-bold mb-4 text-gray-800">환경 코드 변경 시 학습 코드 수정 가이드</h2>
-                <p class="text-gray-700 mb-4">Pygame 환경(<code class="inline-code">my_pygame_env.py</code>)을 수정하면, 에이전트를 학습시키는 코드(<code class="inline-code">train.py</code>)도 일부 변경해야 합니다. 주요 변경 사항에 따라 어떤 부분을 수정해야 하는지 알아봅시다.</p>
-
-                <h3 class="step-heading">시나리오 1: 행동 공간 (Action Space) 변경</h3>
-                <p>게임에 '정지' 행동을 추가하여 행동의 가짓수를 2개에서 3개로 늘리는 경우입니다.</p>
-                <b>`my_pygame_env.py` 변경점:</b>
-                <pre><code class="language-python">
-# 기존: '좌', '우' 2가지 행동
-self.action_space = spaces.Discrete(2)
-
-# 변경: '좌', '우', '정지' 3가지 행동
-self.action_space = spaces.Discrete(3)
-
-# step 메서드에도 action == 2 (정지)에 대한 로직 추가 필요
-...
-def step(self, action):
-    if action == 0: self.player.x -= 8
-    elif action == 1: self.player.x += 8
-    # action == 2 일 때는 아무것도 하지 않음 (정지)
-...
-                </code></pre>
-                <b>`train.py` 변경점:</b>
-                <p class="mt-2"><b>없음.</b> Stable Baselines3 모델은 환경을 생성할 때 <code class="inline-code">env.action_space</code>를 자동으로 읽어와 모델의 출력 크기를 결정하므로 코드를 수정할 필요가 없습니다.</p>
-
-                <h3 class="step-heading">시나리오 2: 관측 공간 (Observation Space) 변경</h3>
-                <p>상태 정보에 '플레이어와 공의 x좌표 거리'를 추가하여 관측값의 개수를 5개에서 6개로 늘리는 경우입니다.</p>
-                <b>`my_pygame_env.py` 변경점:</b>
-                <pre><code class="language-python">
-# 관측 공간의 차원과 범위를 6개로 늘림
-low = np.array([0, 0, 0, -10, -10, -self.screen_width], dtype=np.float32)
-high = np.array([self.screen_width, self.screen_width, self.screen_height, 10, 10, self.screen_width], dtype=np.float32)
-self.observation_space = spaces.Box(low, high, dtype=np.float32)
-
-# _get_obs() 함수에서 새로운 관측값 추가
-def _get_obs(self):
-    dist_x = self.player.x - self.ball.x
-    return np.array([self.player.x, self.ball.x, self.ball.y, self.ball_vx, self.ball_vy, dist_x], dtype=np.float32)
-                </code></pre>
-                <b>`train.py` 변경점:</b>
-                <p class="mt-2"><b>없음.</b> 행동 공간과 마찬가지로, SB3는 <code class="inline-code">env.observation_space</code>를 자동으로 읽어 <code class="inline-code">MlpPolicy</code>의 입력 크기를 조정합니다.</p>
-                <p class="mt-2 text-red-600 bg-red-50 p-3 rounded-lg"><b>※ 중요:</b> 만약 관측 공간을 숫자 벡터가 아닌 <b>이미지(픽셀)</b>로 바꾼다면, 정책 네트워크를 <code class="inline-code">MlpPolicy</code>에서 이미지 처리에 특화된 <code class="inline-code">CnnPolicy</code>로 변경해야 합니다.</p>
-                <pre><code class="language-python"># train.py에서 정책 변경 예시
-# model = PPO('MlpPolicy', env, ...)
-model = PPO('CnnPolicy', env, ...)
-                </code></pre>
-
-                <h3 class="step-heading">시나리오 3: 환경 ID 변경</h3>
-                <p>환경 등록 시 사용하는 ID를 변경하는 경우입니다. 이는 가장 흔하게 발생하는 실수 중 하나입니다.</p>
-                <b>`my_pygame_env.py` 변경점:</b>
-                <pre><code class="language-python">
-register(
-    id='MyAwesomeGame-v1', # ID 변경
-    entry_point='my_pygame_env:PygameEnv',
-    max_episode_steps=1000,
-)
-                </code></pre>
-                <b>`train.py` 변경점:</b>
-                <p class="mt-2">학습 코드의 <code class="inline-code">gym.make()</code> 함수에서 사용하는 ID를 <b>반드시 동일하게</b> 맞춰주어야 합니다. 그렇지 않으면 <code class="inline-code">EnvNotFound</code> 오류가 발생합니다.</p>
-                 <pre><code class="language-python">
-# 기존
-# env = gym.make('PygameBreakout-v0', ...)
-
-# 변경
-env = gym.make('MyAwesomeGame-v1', ...)
-                </code></pre>
-            </div>
+        <div class="bg-[#282c34] p-4 flex justify-between items-center">
+            <button id="prevBtn" class="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed">이전</button>
+            <div id="slide-counter" class="text-white text-lg font-semibold"></div>
+            <button id="nextBtn" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 px-4 rounded-lg transition duration-300">다음</button>
         </div>
     </div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
     <script>
-        function openTab(evt, tabName) {
-            let i, tabcontent, tablinks;
-            tabcontent = document.getElementsByClassName("tab-content");
-            for (i = 0; i < tabcontent.length; i++) { tabcontent[i].style.display = "none"; }
-            tablinks = document.getElementsByClassName("tab-button");
-            for (i = 0; i < tablinks.length; i++) { tablinks[i].className = tablinks[i].className.replace(" active", ""); }
-            document.getElementById(tabName).style.display = "block";
-            evt.currentTarget.className += " active";
-        }
+        const slides = [
+            {
+                title: "1. 목표: Pygame 게임을 AI 놀이터로 만들기",
+                explanation: `
+                    <p>우리의 목표는 Pygame으로 만든 게임을 강화학습 AI가 이해하고 플레이할 수 있는 표준화된 '놀이터(환경)'로 만드는 것입니다.</p>
+                    <p class="mt-2">AI 에이전트는 <strong>'Gymnasium'</strong>이라는 표준 API(규칙)를 따르는 환경하고만 상호작용할 수 있습니다. 마치 표준 USB 포트에만 장치를 연결할 수 있는 것과 같죠.</p>
+                    <div class="explanation-box">
+                        <p><strong>핵심 작업:</strong><br>
+                        Pygame 게임 로직을 <code class="bg-gray-700 p-1 rounded">gymnasium.Env</code> 클래스로 감싸서(Wrapping), AI와 소통할 수 있는 표준 함수(<code class="bg-gray-700 p-1 rounded">reset</code>, <code class="bg-gray-700 p-1 rounded">step</code>)를 가진 객체로 변환합니다.</p>
+                    </div>
+                `,
+                code: ``
+            },
+            {
+                title: "2. 기본 뼈대 만들기",
+                explanation: `
+                    <p>먼저, Gymnasium 라이브러리의 기본 환경 틀인 <code class="bg-gray-700 p-1 rounded">gym.Env</code>를 상속받는 우리만의 클래스를 만듭니다. 이것이 우리 환경의 기본 뼈대가 됩니다.</p>
+                    <p class="mt-2">모든 강화학습 환경은 이 <code class="bg-gray-700 p-1 rounded">gym.Env</code> 라는 약속된 틀을 따라야 합니다.</p>
+                `,
+                code: `
+<span class="code-highlight">import gymnasium as gym</span>
+import pygame
+import numpy as np
+from gymnasium import spaces
 
-        function copyCode(button) {
-            const pre = button.parentElement;
-            const code = pre.querySelector('code');
-            const text = code.innerText;
-            const textarea = document.createElement('textarea');
-            textarea.value = text;
-            document.body.appendChild(textarea);
-            textarea.select();
-            try {
-                document.execCommand('copy');
-                button.innerText = 'Copied!';
-            } catch (err) {
-                console.error('Failed to copy text: ', err);
-                button.innerText = 'Failed!';
+<span class="code-highlight">class PygameEnv(gym.Env):</span>
+    # 앞으로 이 안에 모든 코드를 작성할 거예요.
+    pass
+                `
+            },
+            {
+                title: "3. `__init__` : 환경 설계도 (기본 설정)",
+                explanation: `
+                    <p><code class="bg-gray-700 p-1 rounded">__init__</code> 함수는 우리 환경이 처음 만들어질 때 딱 한 번 실행되는 '설계도'입니다. 여기서 게임의 기본 설정을 정합니다.</p>
+                    <p class="mt-2">게임 창의 크기 같은 기본적인 것들을 설정해줍니다.</p>
+                `,
+                code: `
+import gymnasium as gym
+import pygame
+import numpy as np
+from gymnasium import spaces
+
+class PygameEnv(gym.Env):
+<span class="code-highlight">    def __init__(self):</span>
+<span class="code-highlight">        super().__init__() # gym.Env의 초기 설정도 가져옵니다.</span>
+<span class="code-highlight">        </span>
+<span class="code-highlight">        # Pygame 창 크기 설정</span>
+<span class="code-highlight">        self.width = 600</span>
+<span class="code-highlight">        self.height = 400</span>
+                `
+            },
+            {
+                title: "4. `__init__` : 행동 공간 정의",
+                explanation: `
+                    <p>설계도에 이어서, AI가 할 수 있는 <strong>행동의 종류</strong>를 알려줘야 합니다. 이것을 '행동 공간(Action Space)'이라고 합니다.</p>
+                    <p class="mt-2">TV 리모컨의 버튼을 정해주는 것과 같아요. 우리 게임에서는 '왼쪽', '가만히 있기', '오른쪽' 세 가지 버튼만 만들겠습니다.</p>
+                    <p class="mt-2"><code class="bg-gray-700 p-1 rounded">spaces.Discrete(3)</code>는 0, 1, 2 세 개의 정수 중 하나를 행동으로 선택할 수 있다는 의미입니다.</p>
+                `,
+                code: `
+class PygameEnv(gym.Env):
+    def __init__(self):
+        super().__init__()
+        
+        self.width = 600
+        self.height = 400
+
+<span class="code-highlight">        # 0: 왼쪽, 1: 가만히 있기, 2: 오른쪽</span>
+<span class="code-highlight">        self.action_space = spaces.Discrete(3)</span>
+                `
+            },
+            {
+                title: "5. `__init__` : 관찰 공간 정의",
+                explanation: `
+                    <p>AI가 '보는' 것, 즉 <strong>상태 정보</strong>의 형태도 알려줘야 합니다. 이것을 '관찰 공간(Observation Space)'이라고 합니다.</p>
+                    <p class="mt-2">AI에게 어떤 TV 화면을 보여줄지 정하는 것과 같아요. 우리는 게임 화면 전체를 컬러(RGB) 이미지로 보여줄 겁니다.</p>
+                    <p class="mt-2"><code class="bg-gray-700 p-1 rounded">spaces.Box(...)</code>는 숫자들의 네모난 배열(이미지 픽셀)을 의미합니다. 각 픽셀은 0~255 사이의 RGB 값을 가집니다.</p>
+                `,
+                code: `
+class PygameEnv(gym.Env):
+    def __init__(self):
+        # ... 이전 코드 생략 ...
+        self.action_space = spaces.Discrete(3)
+
+<span class="code-highlight">        # 게임 화면 픽셀을 관찰 공간으로 사용</span>
+<span class="code-highlight">        self.observation_space = spaces.Box(</span>
+<span class="code-highlight">            low=0, high=255, </span>
+<span class="code-highlight">            shape=(self.width, self.height, 3), </span>
+<span class="code-highlight">            dtype=np.uint8</span>
+<span class="code-highlight">        )</span>
+                `
+            },
+            {
+                title: "6. `reset` : 새 게임 시작하기",
+                explanation: `
+                    <p><code class="bg-gray-700 p-1 rounded">reset</code> 함수는 게임 한 판이 끝나거나 처음 시작할 때 호출됩니다. 모든 것을 초기 상태로 되돌리는 역할을 합니다.</p>
+                    <p class="mt-2">마치 게임기의 '리셋 버튼'과 같아요. 플레이어와 장애물을 처음 위치로 돌려놓고, AI에게 초기 화면(<code class="bg-gray-700 p-1 rounded">observation</code>)을 보여줍니다.</p>
+                `,
+                code: `
+class PygameEnv(gym.Env):
+    # ... __init__ 생략 ...
+
+<span class="code-highlight">    def reset(self, seed=None, options=None):</span>
+<span class="code-highlight">        super().reset(seed=seed)</span>
+<span class="code-highlight">        </span>
+<span class="code-highlight">        # 플레이어와 장애물 위치를 처음으로 되돌림</span>
+<span class="code-highlight">        self.player_pos = [self.width // 2, self.height - 50]</span>
+<span class="code-highlight">        self.obstacle_pos = [np.random.randint(0, self.width), 0]</span>
+<span class="code-highlight">        </span>
+<span class="code-highlight">        # _get_obs()는 현재 화면을 Numpy 배열로 바꿔주는 함수 (나중에 구현)</span>
+<span class="code-highlight">        observation = self._get_obs() </span>
+<span class="code-highlight">        info = {} # 추가 정보 (지금은 비워둠)</span>
+<span class="code-highlight">        </span>
+<span class="code-highlight">        return observation, info</span>
+                `
+            },
+            {
+                title: "7. `step` : 한 걸음 나아가기 (Action)",
+                explanation: `
+                    <p><code class="bg-gray-700 p-1 rounded">step</code> 함수는 AI가 행동을 하나 결정했을 때 호출됩니다. 이 함수 안에서 게임 세상의 시간이 한 프레임 흐릅니다.</p>
+                    <p class="mt-2">가장 중요한 함수로, AI의 행동을 게임에 반영하고 그 결과를 AI에게 알려줍니다.</p>
+                `,
+                code: `
+class PygameEnv(gym.Env):
+    # ... 이전 코드 생략 ...
+
+<span class="code-highlight">    def step(self, action):</span>
+<span class="code-highlight">        # 1. AI가 선택한 행동(action)을 게임에 반영</span>
+<span class="code-highlight">        if action == 0: self.player_pos[0] -= 10 # 왼쪽</span>
+<span class="code-highlight">        elif action == 2: self.player_pos[0] += 10 # 오른쪽</span>
+<span class="code-highlight">        </span>
+<span class="code-highlight">        # 2. 게임 환경의 변화 (장애물 이동 등)</span>
+<span class="code-highlight">        self.obstacle_pos[1] += 7</span>
+<span class="code-highlight">        </span>
+<span class="code-highlight">        # 3. 행동의 결과 계산 (보상, 게임 종료 여부)</span>
+<span class="code-highlight">        # ... 다음 슬라이드에서 계속 ...</span>
+                `
+            },
+            {
+                title: "8. `step` : 결과 계산 (보상과 종료)",
+                explanation: `
+                    <p>AI의 행동이 어떤 결과를 낳았는지 계산합니다.</p>
+                    <ul class="list-disc list-inside space-y-2 mt-2">
+                        <li><strong>보상(reward)</strong>: 행동이 얼마나 좋았는지 알려주는 점수입니다. (피하면 +, 부딪히면 -)</li>
+                        <li><strong>종료(terminated)</strong>: 게임이 끝났는지 알려주는 신호입니다. (부딪히면 True)</li>
+                    </ul>
+                    <p class="mt-2">이 보상과 종료 신호가 AI를 똑똑하게 만드는 핵심 재료입니다.</p>
+                `,
+                code: `
+    def step(self, action):
+        # ... 이전 코드 생략 ...
+
+<span class="code-highlight">        terminated = False</span>
+<span class="code-highlight">        reward = 0.1  # 살아있으면 기본 점수</span>
+
+<span class="code-highlight">        # 플레이어와 장애물이 부딪혔나?</span>
+<span class="code-highlight">        player_rect = pygame.Rect(self.player_pos[0], self.player_pos[1], 30, 30)</span>
+<span class="code-highlight">        obstacle_rect = pygame.Rect(self.obstacle_pos[0], self.obstacle_pos[1], 30, 30)</span>
+<span class="code-highlight">        if player_rect.colliderect(obstacle_rect):</span>
+<span class="code-highlight">            terminated = True # 게임 종료!</span>
+<span class="code-highlight">            reward = -10.0 # 큰 벌점</span>
+<span class="code-highlight">        </span>
+<span class="code-highlight">        # 장애물을 성공적으로 피했나?</span>
+<span class="code-highlight">        if self.obstacle_pos[1] > self.height:</span>
+<span class="code-highlight">            self.obstacle_pos = [np.random.randint(0, self.width), 0] # 새 장애물</span>
+<span class="code-highlight">            reward = 1.0 # 상점</span>
+                `
+            },
+            {
+                title: "9. `step` : 결과 보고하기",
+                explanation: `
+                    <p>마지막으로, <code class="bg-gray-700 p-1 rounded">step</code> 함수는 계산된 모든 결과를 AI에게 '보고'해야 합니다. 이 보고서에는 정해진 5가지 항목이 포함되어야 합니다.</p>
+                    <ol class="list-decimal list-inside space-y-1 mt-2">
+                        <li><strong>observation</strong>: 행동 후의 게임 화면</li>
+                        <li><strong>reward</strong>: 행동에 대한 점수</li>
+                        <li><strong>terminated</strong>: 게임이 끝났는지 여부</li>
+                        <li><strong>truncated</strong>: (시간 초과 등) 게임이 중단되었는지 여부 (지금은 False)</li>
+                        <li><strong>info</strong>: 추가 정보 (지금은 빈 딕셔너리)</li>
+                    </ol>
+                `,
+                code: `
+    def step(self, action):
+        # ... 이전 코드 생략 ...
+
+<span class="code-highlight">        observation = self._get_obs()</span>
+<span class="code-highlight">        info = {}</span>
+<span class="code-highlight">        </span>
+<span class="code-highlight">        return observation, reward, terminated, False, info</span>
+                `
+            },
+            {
+                title: "10. 보조 함수들: `render`, `_get_obs`, `close`",
+                explanation: `
+                    <p>마지막으로 환경을 원활하게 운영하기 위한 보조 함수들을 만듭니다.</p>
+                    <ul class="list-disc list-inside space-y-2 mt-2">
+                        <li><strong>_get_obs()</strong>: 현재 Pygame 화면을 AI가 이해할 수 있는 Numpy 배열로 변환합니다.</li>
+                        <li><strong>render()</strong>: 우리가 직접 게임 화면을 보고 싶을 때 화면을 그려줍니다.</li>
+                        <li><strong>close()</strong>: 학습이 모두 끝났을 때 Pygame 창을 안전하게 닫습니다.</li>
+                    </ul>
+                `,
+                code: `
+class PygameEnv(gym.Env):
+    # ... 이전 코드 생략 ...
+<span class="code-highlight">    def _get_obs(self):</span>
+<span class="code-highlight">        # Pygame surface를 numpy array로 변환</span>
+<span class="code-highlight">        return pygame.surfarray.array3d(self.screen).transpose([1, 0, 2])</span>
+
+<span class="code-highlight">    def render(self):</span>
+<span class="code-highlight">        # Pygame 화면을 그리는 로직 (전체 코드에서 확인)</span>
+<span class="code-highlight">        pass</span>
+
+<span class="code-highlight">    def close(self):</span>
+<span class="code-highlight">        if self.screen is not None: pygame.quit()</span>
+                `
+            },
+            {
+                title: "11. 완성된 환경 코드 (PygameEnv)",
+                explanation: `
+                    <p>지금까지 우리가 만든 조각들을 모두 합치면 완전한 Gymnasium 환경 코드가 됩니다.</p>
+                    <p class="mt-2">이제 이 <code class="bg-gray-700 p-1 rounded">PygameEnv</code> 클래스는 어떤 강화학습 라이브러리(예: Stable-Baselines3)와도 호환되는 완벽한 '게임팩'이 되었습니다.</p>
+                    <div class="explanation-box">
+                        <p><strong>핵심 기능 요약:</strong><br>
+                        - <code class="bg-gray-700 p-1 rounded">__init__</code>: 행동/관찰 공간 정의<br>
+                        - <code class="bg-gray-700 p-1 rounded">reset</code>: 게임 초기화<br>
+                        - <code class="bg-gray-700 p-1 rounded">step</code>: 게임 진행 및 결과 반환
+                        </p>
+                    </div>
+                `,
+                code: `
+import pygame
+import numpy as np
+import gymnasium as gym
+from gymnasium import spaces
+
+class PygameEnv(gym.Env):
+    metadata = {"render_modes": ["human"], "render_fps": 30}
+
+    def __init__(self, render_mode=None):
+        # ... (전체 코드는 너무 길어 생략, 핵심 구조만 확인)
+        pass
+
+    def _get_obs(self):
+        # ...
+        pass
+
+    def reset(self, seed=None, options=None):
+        # ...
+        return self._get_obs(), {}
+
+    def step(self, action):
+        # ...
+        return self._get_obs(), reward, terminated, False, {}
+
+    def render(self):
+        # ...
+        pass
+
+    def _render_frame(self):
+        # ...
+        pass
+
+    def close(self):
+        # ...
+        pass
+                `
+            },
+            {
+                title: "12. AI 에이전트 훈련시키기 (Stable-Baselines3)",
+                explanation: `
+                    <p>이제 완성된 환경을 가지고 실제 AI 에이전트를 훈련시켜 봅시다. <strong>Stable-Baselines3</strong>는 PPO, DQN 등 유명한 알고리즘들을 미리 구현해 놓은 강력한 라이브러리입니다.</p>
+                    <div class="explanation-box">
+                        <p>단 몇 줄의 코드로 훈련을 시작할 수 있습니다. 아래 코드는 별도의 파이썬 파일(<code class="bg-gray-700 p-1 rounded">train.py</code>)로 저장하여 실행합니다.</p>
+                        <p class="text-sm mt-2">(라이브러리 설치: <code class="bg-gray-700 p-1 rounded">pip install stable-baselines3[extra]</code>)</p>
+                    </div>
+                `,
+                code: `
+# train.py
+# from pygame_env import PygameEnv # 우리가 만든 환경 클래스 import
+from stable_baselines3 import PPO
+
+# 1. 환경 생성
+env = PygameEnv(render_mode="human")
+env.reset()
+
+# 2. 모델 생성 (PPO 알고리즘 사용)
+model = PPO("CnnPolicy", env, verbose=1)
+
+# 3. 모델 학습 시작 (총 20,000 타임스텝)
+model.learn(total_timesteps=20000)
+
+# 4. 학습된 모델 저장
+model.save("ppo_pygame")
+
+env.close()
+                `
+            },
+            {
+                title: "13. 참고: 다양한 행동 공간(Action Space)",
+                explanation: `
+                    <p>AI의 행동은 게임에 따라 다양합니다. Gymnasium은 여러 종류의 행동 공간을 미리 정의해 두었습니다.</p>
+                `,
+                code: `
+# --- 이산 공간 (정해진 개수 중 하나 선택) ---
+# 예: 상, 하, 좌, 우 (4가지 행동)
+<span class="code-highlight">action_space = spaces.Discrete(4)</span>
+# action -> 0, 1, 2, 3 중 하나
+
+# --- 연속 공간 (특정 범위 내의 실수 값) ---
+# 예: 자동차 핸들 각도 (-1.0 ~ 1.0)
+<span class="code-highlight">action_space = spaces.Box(low=-1.0, high=1.0, shape=(1,), dtype=np.float32)</span>
+# action -> [-0.5], [0.8] 등
+
+# --- 다중 이산 공간 (여러 개의 독립적인 이산 행동) ---
+# 예: (이동: 상/하/좌/우) 와 (공격: A/B 버튼)을 동시에 선택
+<span class="code-highlight">action_space = spaces.MultiDiscrete([4, 2])</span>
+# action -> [2, 0] (좌로 이동하며 A버튼 누르기)
+
+# --- 다중 바이너리 공간 (여러 개의 독립적인 On/Off 행동) ---
+# 예: 키보드의 W, A, S, D 키를 동시에 누르거나 떼기
+<span class="code-highlight">action_space = spaces.MultiBinary(4)</span>
+# action -> [1, 0, 1, 0] (W와 S키를 누름)
+                `
+            },
+            {
+                title: "14. 참고: 다양한 관찰 공간(Observation Space)",
+                explanation: `
+                    <p>AI가 보는 세상(상태)도 여러 방식으로 표현할 수 있습니다. 게임 화면 전체를 줄 수도 있고, 핵심적인 숫자 데이터만 줄 수도 있습니다.</p>
+                `,
+                code: `
+# --- 이미지 관찰 (Box) ---
+# 예: 2D 게임 화면 (600x400 RGB)
+<span class="code-highlight">observation_space = spaces.Box(low=0, high=255, shape=(600, 400, 3), dtype=np.uint8)</span>
+# self._get_obs() -> return pygame.surfarray.array3d(self.screen) ...
+
+# --- 벡터 관찰 (Box) ---
+# 예: 플레이어 위치(x,y), 장애물 위치(x,y) 등 핵심 정보만 제공
+<span class="code-highlight">observation_space = spaces.Box(low=-np.inf, high=np.inf, shape=(4,), dtype=np.float32)</span>
+# self._get_obs() -> return np.array([self.player_pos_x, self.player_pos_y, ...])
+
+# --- 사전 관찰 (Dict) ---
+# 예: 이미지와 벡터 정보를 모두 제공
+<span class="code-highlight">observation_space = spaces.Dict({</span>
+<span class="code-highlight">    "image": spaces.Box(low=0, high=255, shape=(64, 64, 3), dtype=np.uint8),</span>
+<span class="code-highlight">    "vector": spaces.Box(low=-np.inf, high=np.inf, shape=(4,), dtype=np.float32)</span>
+<span class="code-highlight">})</span>
+# self._get_obs() -> return { "image": ..., "vector": ... }
+                `
+            },
+            {
+                title: "15. 학습된 AI 시뮬레이션 (Pong)",
+                explanation: `
+                    <p>학습이 완료된 AI 에이전트가 어떻게 행동하는지 관찰해 보세요.</p>
+                    <p class="mt-2">아래 시뮬레이션은 AI 패들이 공을 놓치지 않기 위해 공의 위치를 따라 좌우로 움직이는 모습을 보여줍니다.</p>
+                    <div id="simulation-container" class="mt-4">
+                         <div class="w-full max-w-sm mx-auto bg-gray-900 rounded-lg relative" style="height: 300px; border: 2px solid #4a5568;">
+                             <div id="paddle" class="absolute bg-blue-400 rounded" style="width: 80px; height: 10px; bottom: 20px; left: calc(50% - 40px);"></div>
+                             <div id="ball" class="absolute bg-yellow-300 rounded-full" style="width: 15px; height: 15px; top: 50px; left: 50%;"></div>
+                         </div>
+                         <div class="mt-4 text-center">
+                            <button id="start-sim-btn" class="bg-indigo-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-indigo-700 transition" onclick="startSimulation()">시뮬레이션 시작</button>
+                         </div>
+                         <div class="mt-4 bg-gray-900 p-3 rounded-lg">
+                            <h3 class="font-semibold mb-2 text-gray-400">시뮬레이션 로그:</h3>
+                            <div id="sim-log" class="text-sm text-gray-400 font-mono h-20 overflow-y-auto"></div>
+                         </div>
+                    </div>
+                `,
+                code: ``
             }
-            document.body.removeChild(textarea);
-            setTimeout(() => { button.innerText = 'Copy'; }, 2000);
+        ];
+
+        let currentSlide = 0;
+        const sliderContainer = document.getElementById('slider-container');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const slideCounter = document.getElementById('slide-counter');
+
+        function createSlide(slideData, index) {
+            const slideElement = document.createElement('div');
+            slideElement.className = 'slide p-4';
+            slideElement.dataset.index = index;
+
+            let codeHtml = '';
+            if (slideData.code) {
+                const tempDiv = document.createElement('div');
+                const codeWithPlaceholders = slideData.code.trim()
+                    .replace(/<span class="code-highlight">/g, '[[HIGHLIGHT_START]]')
+                    .replace(/<\/span>/g, '[[HIGHLIGHT_END]]');
+
+                tempDiv.textContent = codeWithPlaceholders;
+                
+                const finalCode = tempDiv.innerHTML
+                    .replace(/\[\[HIGHLIGHT_START\]\]/g, '<span class="code-highlight">')
+                    .replace(/\[\[HIGHLIGHT_END\]\]/g, '</span>');
+
+                codeHtml = `
+                    <div class="mt-6 bg-[#282c34] rounded-lg overflow-hidden border border-gray-700">
+                        <pre class="language-python !text-sm !leading-relaxed"><code>${finalCode}</code></pre>
+                    </div>
+                `;
+            }
+
+            slideElement.innerHTML = `
+                <div class="grid grid-cols-1 ${slideData.code ? 'md:grid-cols-2' : ''} gap-8 items-start">
+                    <div class="prose prose-invert max-w-none">
+                        <h2 class="text-2xl font-bold text-indigo-400 mb-4">${slideData.title}</h2>
+                        <div class="text-gray-300 leading-relaxed space-y-2">${slideData.explanation}</div>
+                    </div>
+                    ${slideData.code ? `<div>${codeHtml}</div>` : ''}
+                </div>
+            `;
+            return slideElement;
         }
 
-        document.addEventListener("DOMContentLoaded", function() {
-            try {
-                renderMathInElement(document.body, {
-                    delimiters: [ {left: "$$", right: "$$", display: true}, {left: "$", right: "$", display: false} ]
-                });
-            } catch (error) { console.error("KaTeX rendering failed:", error); }
+        function updateSlider() {
+            document.querySelectorAll('.slide').forEach((slide, index) => {
+                slide.classList.toggle('active', index === currentSlide);
+            });
+            slideCounter.textContent = `${currentSlide + 1} / ${slides.length}`;
+            prevBtn.disabled = currentSlide === 0;
+            nextBtn.disabled = currentSlide === slides.length - 1;
+            Prism.highlightAll();
+        }
+
+        prevBtn.addEventListener('click', () => {
+            if (currentSlide > 0) {
+                currentSlide--;
+                updateSlider();
+            }
+        });
+
+        nextBtn.addEventListener('click', () => {
+            if (currentSlide < slides.length - 1) {
+                currentSlide++;
+                updateSlider();
+            }
         });
         
-        const paddle = document.getElementById('paddle');
-        const ball = document.getElementById('ball');
-        const log = document.getElementById('sim-log');
-        const startBtn = document.getElementById('start-sim-btn');
+        // --- Simulation Logic ---
         let simInterval;
-        let ballX = 195, ballY = 250;
-        let ballVX = 2, ballVY = 2;
-        let paddleX = 170;
-        let score = 0;
-
-        function logMessage(msg) {
-            if(log) { log.innerHTML += msg + '<br>'; log.scrollTop = log.scrollHeight; }
-        }
-
-        function gameLoop() {
-            const paddleCenter = paddleX + 30;
-            const ballCenter = ballX + 5;
-            let action = -1; 
-            if (paddleCenter < ballCenter - 5) { paddleX += 3; action = 1; } 
-            else if (paddleCenter > ballCenter + 5) { paddleX -= 3; action = 0; }
-            paddleX = Math.max(0, Math.min(340, paddleX));
-            if(paddle) paddle.style.left = paddleX + 'px';
-            ballX += ballVX; ballY += ballVY;
-            if (ballX <= 0 || ballX >= 390) ballVX *= -1;
-            if (ballY <= 0) ballVY *= -1;
-            let reward = 0;
-            if (ballY >= 460 && ballY <= 470 && ballX > paddleX && ballX < paddleX + 60) {
-                ballVY *= -1; ballY = 459; reward = 10; score += reward;
-                logMessage(`[HIT] Action: ${action === 0 ? 'Left' : 'Right'}, Reward: ${reward}, Score: ${score}`);
-            } else if (ballY >= 500) {
-                reward = -10; score += reward;
-                logMessage(`[MISS] Action: ${action === 0 ? 'Left' : 'Right'}, Reward: ${reward}, Score: ${score}. GAME OVER.`);
-                clearInterval(simInterval);
-                if(startBtn) { startBtn.disabled = false; startBtn.innerText = "다시 시작"; }
+        let paddleElem, ballElem, logElem, startBtn;
+        let paddleX, ballX, ballY, ballVX, ballVY, score;
+        const simWidth = 384; // max-w-sm
+        const simHeight = 300;
+        const paddleWidth = 80;
+        const ballSize = 15;
+        
+        function logMessage(message) {
+            if(logElem) {
+                logElem.innerHTML += `<div>${message}</div>`;
+                logElem.scrollTop = logElem.scrollHeight;
             }
-            if(ball) { ball.style.left = ballX + 'px'; ball.style.top = ballY + 'px'; }
         }
 
         function startSimulation() {
             clearInterval(simInterval);
-            if(log) log.innerHTML = '';
+            paddleElem = document.getElementById('paddle');
+            ballElem = document.getElementById('ball');
+            logElem = document.getElementById('sim-log');
+            startBtn = document.getElementById('start-sim-btn');
+            
+            if(logElem) logElem.innerHTML = '';
             score = 0;
-            ballX = 195; ballY = 250;
-            ballVX = (Math.random() > 0.5 ? 1 : -1) * 2;
-            ballVY = 2;
-            paddleX = 170;
+            
+            ballX = simWidth / 2;
+            ballY = 50;
+            ballVX = (Math.random() > 0.5 ? 1 : -1) * 3;
+            ballVY = 3;
+            paddleX = (simWidth - paddleWidth) / 2;
+
             logMessage("Simulation Started...");
             if(startBtn) { startBtn.disabled = true; startBtn.innerText = "진행 중..."; }
             simInterval = setInterval(gameLoop, 1000 / 60);
         }
+
+        function gameLoop() {
+            // AI Agent Logic to move paddle
+            const paddleCenterX = paddleX + paddleWidth / 2;
+            const ballCenterX = ballX + ballSize / 2;
+            let action = "Stay";
+            
+            if (paddleCenterX < ballCenterX - 5) {
+                paddleX += 4; 
+                action = "Right";
+            } else if (paddleCenterX > ballCenterX + 5) {
+                paddleX -= 4;
+                action = "Left";
+            }
+            paddleX = Math.max(0, Math.min(simWidth - paddleWidth, paddleX));
+            if(paddleElem) paddleElem.style.left = paddleX + 'px';
+
+            // Update ball position
+            ballX += ballVX;
+            ballY += ballVY;
+
+            // Wall collision
+            if (ballX <= 0 || ballX >= simWidth - ballSize) {
+                ballVX *= -1;
+            }
+            if (ballY <= 0) {
+                ballVY *= -1;
+            }
+
+            // Paddle collision
+            let reward = 0;
+            if (ballY >= simHeight - 20 - 10 - ballSize && // paddle height + bottom offset
+                ballY <= simHeight - 20 - 10 &&
+                ballX > paddleX - ballSize && 
+                ballX < paddleX + paddleWidth) 
+            {
+                ballVY *= -1;
+                ballY = simHeight - 20 - 10 - ballSize - 1; // prevent sticking
+                reward = 10;
+                score += reward;
+                logMessage(`[HIT] Action: ${action}, Reward: +${reward}, Score: ${score}`);
+            } 
+            // Miss
+            else if (ballY >= simHeight) {
+                reward = -100;
+                score += reward;
+                logMessage(`[MISS] Reward: ${reward}, Score: ${score}. GAME OVER.`);
+                clearInterval(simInterval);
+                if(startBtn) {
+                    startBtn.disabled = false;
+                    startBtn.innerText = "다시 시작";
+                }
+            }
+
+            if(ballElem) { 
+                ballElem.style.left = ballX + 'px'; 
+                ballElem.style.top = ballY + 'px'; 
+            }
+        }
+
+
+        // Initialize slider
+        slides.forEach((slideData, index) => {
+            sliderContainer.appendChild(createSlide(slideData, index));
+        });
+        updateSlider();
     </script>
 </body>
 </html>
