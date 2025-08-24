@@ -151,21 +151,26 @@ function onPinClick(i) {
 
 // ----------------- ONNX I/O -----------------
 
-function makeFeedsFromObs(obs1D) {
-  if (INPUT_LAYOUT === "BL") {
+function makeFeedsFromObs(obs1D, layout = INPUT_LAYOUT) {
+  if (layout === "BL") {
     return { [INPUT_NAME]: new ort.Tensor("float32", obs1D, [1, obs1D.length]) };
-  } else if (INPUT_LAYOUT === "BCL") {
-    const data = new Float32Array(OBS_C * obs1D.length);
-    for (let i=0;i<obs1D.length;i++) data[i] = obs1D[i];
-    return { [INPUT_NAME]: new ort.Tensor("float32", data, [1, OBS_C, obs1D.length]) };
-  } else if (INPUT_LAYOUT === "BCHW") {
-    const H = OBS_H, W = OBS_W;
-    const data = new Float32Array(OBS_C * H * W);
+  } else if (layout === "BCL") {
+    const C = OBS_C || 1;
+    const data = new Float32Array(C * obs1D.length);
+    for (let i=0;i<obs1D.length;i++) data[i] = obs1D[i]; // 첫 채널에만 채움
+    return { [INPUT_NAME]: new ort.Tensor("float32", data, [1, C, obs1D.length]) };
+  } else if (layout === "BCHW") {
+    const C = OBS_C || 1;
+    const H = OBS_H || 1;
+    const W = OBS_W || obs1D.length;
+    const data = new Float32Array(C * H * W);
+    // 첫 채널/첫 행에 obs를 채워넣음 (나머지는 0)
     for (let i=0;i<Math.min(W, obs1D.length); i++) data[i] = obs1D[i];
-    return { [INPUT_NAME]: new ort.Tensor("float32", data, [1, OBS_C, H, W]) };
-  } else if (INPUT_LAYOUT === "L") {
+    return { [INPUT_NAME]: new ort.Tensor("float32", data, [1, C, H, W]) };
+  } else if (layout === "L") {
     return { [INPUT_NAME]: new ort.Tensor("float32", obs1D, [obs1D.length]) };
   }
+  // 기본 BL
   return { [INPUT_NAME]: new ort.Tensor("float32", obs1D, [1, obs1D.length]) };
 }
 
@@ -212,7 +217,7 @@ async function evalPolicyValue(pinsArr, currentPlayer){
   if (_pvCache.has(k)) return _pvCache.get(k);
 
   const obs1D = buildObs1D(pinsArr, currentPlayer);
-  const out = await runModel(makeFeedsFromObs(obs1D));
+  const out = await runModelSmart(obs1D);
   const polName = pickPolicyOutput(out);
   const logits = out[polName].data;
   const value  = out["value"]?.data ? Number(out["value"].data[0]) : 0.0;
@@ -224,6 +229,41 @@ async function evalPolicyValue(pinsArr, currentPlayer){
   const res = { probs, value };
   _pvCache.set(k, res);
   return res;
+}
+
+async function runModelSmart(obs1D) {
+  // 현재 추정 레이아웃을 우선, 이후 BCHW/BCL/BL/L 순으로 시도
+  const order = [INPUT_LAYOUT, "BCHW", "BCL", "BL", "L"]
+    .filter((v, i, a) => v && a.indexOf(v) === i);
+
+  let lastErr = null;
+  for (const layout of order) {
+    try {
+      // BCHW가 필요한 모델을 위해 가변 파라미터 보정
+      if (layout === "BCHW") {
+        // 메타가 없으면 (C,H,W) = (1,1,len)로 가정
+        OBS_C = OBS_C || 1;
+        OBS_H = OBS_H || 1;
+        OBS_W = OBS_W || obs1D.length;
+      }
+      const feeds = makeFeedsFromObs(obs1D, layout);
+      const out = await session.run(feeds);
+      // 성공하면 고정
+      INPUT_LAYOUT = layout;
+      return out;
+    } catch (e) {
+      const msg = (e && e.message) ? e.message : String(e);
+      // 랭크/차원 오류는 다음 레이아웃으로 폴백
+      if (msg.includes("Invalid rank") || msg.includes("Invalid shape") || msg.includes("dimensions")) {
+        lastErr = e;
+        continue;
+      }
+      // 그 외 오류는 즉시 보고
+      throw e;
+    }
+  }
+  // 전부 실패하면 마지막 오류를 그대로 던짐
+  throw lastErr || new Error("모든 입력 레이아웃 시도 실패");
 }
 
 // ----------------- 정식 PUCT MCTS -----------------
@@ -538,7 +578,7 @@ async function aiTurn() {
   // 그리디 폴백
   try {
     const obs1D = buildObs1D(pins, player);
-    const out = await runModel(makeFeedsFromObs(obs1D));
+    const out = await runModelSmart(obs1D);
     const polName = pickPolicyOutput(out);
     const logits = out[polName]?.data;
     if (!logits) throw new Error("ONNX 출력에 policy/policy_logits/action_logits가 없습니다.");
