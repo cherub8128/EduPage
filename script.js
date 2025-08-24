@@ -1,27 +1,35 @@
-// Misère Dawson's Kayles (인접 2핀 제거만 허용) - 알파제로 PUCT MCTS + ONNX 웹 추론
-// - 입력: 'obs' (BL/BCL/BCHW 자동 대응)
-// - 출력: 'policy' 또는 'policy_logits' 또는 'action_logits', 'value' (자동 탐색)
-// - URL 파라미터로 하이퍼파라미터 조절 가능 (맨 위 설명 참고)
+// ===============================
+// Misère Dawson's Kayles (인접 2핀 제거만 허용)
+// ONNX(Web) + 정식 PUCT MCTS (BCHW 고정 입력)
+// -------------------------------
+// - 모델 입력: [B, C, H, W]  (4D, 고정)
+//   * C=1, H=1, W=OBS_W 로 가정 (필요 시 메타에서 숫자면 반영)
+// - 모델 출력: 'policy' (또는 'policy_logits'/'action_logits'), 'value'
+// - URL 파라미터:
+//   ?model=export/dawsons_best.onnx
+//   &sims=400&cpuct=1.4&temp=0&noise_eps=0.25&noise_alpha=0.3
+// ===============================
 
-let N_PINS = 60;
-let MAX_BOARD_SIZE = 128;   // 상한(메타로 갱신)
-let MAX_OBS_LEN   = 130;    // 관측 길이(런 히스토그램 + player), 메타로 갱신
+/* -------------------- 기본 파라미터 -------------------- */
+let N_PINS = 60;              // 시작 핀 개수
+let OBS_W  = 130;             // 관측 벡터 길이(런 히스토그램 + 현재 턴)
+const OBS_C = 1;              // 채널 수(1 고정)
+const OBS_H = 1;              // 높이(1 고정)
 
 function _getParam(name, def) {
   const q = new URLSearchParams(location.search);
   return q.has(name) ? q.get(name) : def;
 }
-const urlModel = _getParam("model", null);
-const DEFAULT_MODEL_PATH = urlModel || "model.onnx";
+const DEFAULT_MODEL_PATH = _getParam("model", "model.onnx");
 
-const USE_MCTS   = _getParam('mcts', '1') !== '0';
-const MCTS_SIMS  = parseInt(_getParam('sims', '400'), 10);
-const MCTS_CPUCT = parseFloat(_getParam('cpuct', '1.4'));
-const TEMP_FINAL = parseFloat(_getParam('temp', '0'));
-const NOISE_EPS  = parseFloat(_getParam('noise_eps', '0.25'));
-const NOISE_ALPHA= parseFloat(_getParam('noise_alpha', '0.30'));
+// MCTS 하이퍼파라미터
+const MCTS_SIMS   = parseInt(_getParam("sims", "400"), 10);
+const MCTS_CPUCT  = parseFloat(_getParam("cpuct", "1.4"));
+const TEMP_FINAL  = parseFloat(_getParam("temp", "0"));    // 0이면 argmax(N)
+const NOISE_EPS   = parseFloat(_getParam("noise_eps", "0.25"));
+const NOISE_ALPHA = parseFloat(_getParam("noise_alpha", "0.3"));
 
-// DOM
+/* -------------------- DOM -------------------- */
 const modelBadgeEl = document.getElementById("modelBadge");
 const nPinsEl = document.getElementById("nPins");
 const whoFirstEl = document.getElementById("whoFirst");
@@ -31,22 +39,16 @@ const pinsEl = document.getElementById("pins");
 const gameMsgEl = document.getElementById("gameMsg");
 const turnWhoEl = document.getElementById("turnWho");
 
-// 상태
-let pins = [];
-let selected = [];
-let player = +1;  // +1: 사람, -1: AI
-let session = null;
+/* -------------------- 상태 -------------------- */
+let pins = [];            // 보드: 1=살아있음, 0=제거
+let selected = [];        // 사용자가 선택한 핀 인덱스들(최대 2)
+let player = +1;          // +1: 사람, -1: AI (현재 둘 차례)
+let session = null;       // ONNX InferenceSession
+let POLICY_NAME = "policy";  // 출력 정책 텐서 이름
 
-// ONNX 입력 메타
-let INPUT_NAME = "obs";
-let INPUT_RANK = 2;          // 1:L / 2:BL / 3:BCL / 4:BCHW
-let INPUT_LAYOUT = "BL";     // BL | BCL | BCHW | L
-let OBS_C = 1, OBS_H = 1, OBS_W = MAX_OBS_LEN;
-let POLICY_NAME = "policy";
-let ACTION_SIZE_HINT = MAX_BOARD_SIZE - 1;
+/* ==================== 게임 규칙 ==================== */
 
-// ----------------- 게임 규칙 -----------------
-
+// 인접 2핀 제거 가능한 합법 수 존재 여부
 function hasValidMoves(board) {
   for (let i = 0; i < board.length - 1; i++) {
     if (board[i] === 1 && board[i + 1] === 1) return true;
@@ -54,10 +56,11 @@ function hasValidMoves(board) {
   return false;
 }
 
-function _getRunLengths(pinsArr) {
+// 1이 연속된 덩어리(런) 길이 리스트
+function getRunLengths(arr) {
   const runs = [];
   let cur = 0;
-  for (const v of pinsArr) {
+  for (const v of arr) {
     if (v === 1) cur += 1;
     else { if (cur > 0) runs.push(cur); cur = 0; }
   }
@@ -65,34 +68,33 @@ function _getRunLengths(pinsArr) {
   return runs;
 }
 
-// 관측(런 길이 히스토그램 + 현재 턴)
-function buildObs1D(pinsArr, currentPlayer) {
-  const L = MAX_OBS_LEN;
-  const obs = new Float32Array(L).fill(0);
-  const runs = _getRunLengths(pinsArr);
+// 관측 벡터(길이 OBS_W): [런 길이 히스토그램(1..), ..., 현재턴(+1/-1)]
+function buildObs1D(board, who) {
+  const x = new Float32Array(OBS_W).fill(0);
+  const runs = getRunLengths(board);
+  // obs[r-1] += count
   for (const r of runs) {
-    if (r >= 1 && r <= MAX_BOARD_SIZE) {
-      const idx = r - 1;
-      if (idx < L - 1) obs[idx] += 1.0;
-    }
+    const idx = r - 1;
+    if (idx >= 0 && idx < OBS_W - 1) x[idx] += 1.0;
   }
-  obs[L - 1] = (currentPlayer === +1) ? 1.0 : -1.0;
-  return obs;
+  // 마지막 원소에 현재 턴(+1/-1)
+  x[OBS_W - 1] = (who === +1) ? 1.0 : -1.0;
+  return x;
 }
 
-// 인접쌍 합법 수 마스크
-function buildMask(pinsArr, desiredLength = ACTION_SIZE_HINT) {
-  const len = Math.min(desiredLength, Math.max(0, pinsArr.length - 1));
-  const mask = new Uint8Array(desiredLength);
-  for (let i = 0; i < len; i++) {
-    if (pinsArr[i] === 1 && pinsArr[i + 1] === 1) mask[i] = 1;
+// 인접쌍 합법 행동 마스크 (길이는 정책 길이에 맞춰 나중에 슬라이스)
+function buildMask(board, desiredLen) {
+  const m = new Uint8Array(desiredLen);
+  const lim = Math.min(desiredLen, Math.max(0, board.length - 1));
+  for (let i = 0; i < lim; i++) {
+    if (board[i] === 1 && board[i + 1] === 1) m[i] = 1;
   }
-  return mask;
+  return m;
 }
 
-function declareWinner(currentPlayer) {
-  // Misère: 둘 수 없으면 '현재 둘 차례'가 승자
-  const winner = currentPlayer === +1 ? "Human" : "AI";
+// 게임 종료 처리: Misère — 둘 수 없으면 '현재 둘 차례'가 승자
+function declareWinner(currentWho) {
+  const winner = currentWho === +1 ? "Human" : "AI";
   gameMsgEl.textContent = `게임 종료! 승자: ${winner}`;
   turnWhoEl.textContent = "종료";
   aiMoveBtn.disabled = true;
@@ -103,7 +105,7 @@ function checkAndMaybeEnd() {
   return false;
 }
 
-// ----------------- 렌더링 -----------------
+/* ==================== 렌더링/UI ==================== */
 
 function render() {
   pinsEl.innerHTML = "";
@@ -124,18 +126,20 @@ function render() {
 function onPinClick(i) {
   if (player !== +1 || !session) return;
   if (!pins[i]) return;
+
   if (selected.includes(i)) {
     selected = selected.filter(x => x !== i);
   } else {
     if (selected.length < 2) selected.push(i);
   }
+
   if (selected.length === 2) {
     selected.sort((a,b)=>a-b);
     const [p1, p2] = selected;
     if (p2 - p1 === 1 && pins[p1] && pins[p2]) {
-      // 사람 수
+      // 사람 수 적용
       pins[p1] = 0; pins[p2] = 0; selected = [];
-      // 턴 교대 → 미제르 종료 판정은 '둘 차례' 기준
+      // 턴 교대(미제르 판정은 '둘 차례' 기준)
       player = -player;
       render();
       if (checkAndMaybeEnd()) return;
@@ -149,375 +153,83 @@ function onPinClick(i) {
   }
 }
 
-// ----------------- ONNX I/O -----------------
+/* ==================== ONNX I/O (BCHW 고정) ==================== */
 
-function makeFeedsFromObs(obs1D, layout = INPUT_LAYOUT) {
-  if (layout === "BL") {
-    return { [INPUT_NAME]: new ort.Tensor("float32", obs1D, [1, obs1D.length]) };
-  } else if (layout === "BCL") {
-    const C = OBS_C || 1;
-    const data = new Float32Array(C * obs1D.length);
-    for (let i=0;i<obs1D.length;i++) data[i] = obs1D[i]; // 첫 채널에만 채움
-    return { [INPUT_NAME]: new ort.Tensor("float32", data, [1, C, obs1D.length]) };
-  } else if (layout === "BCHW") {
-    const C = OBS_C || 1;
-    const H = OBS_H || 1;
-    const W = OBS_W || obs1D.length;
-    const data = new Float32Array(C * H * W);
-    // 첫 채널/첫 행에 obs를 채워넣음 (나머지는 0)
-    for (let i=0;i<Math.min(W, obs1D.length); i++) data[i] = obs1D[i];
-    return { [INPUT_NAME]: new ort.Tensor("float32", data, [1, C, H, W]) };
-  } else if (layout === "L") {
-    return { [INPUT_NAME]: new ort.Tensor("float32", obs1D, [obs1D.length]) };
-  }
-  // 기본 BL
-  return { [INPUT_NAME]: new ort.Tensor("float32", obs1D, [1, obs1D.length]) };
+// BCHW 입력 텐서 생성: [1, OBS_C(=1), OBS_H(=1), OBS_W]
+// 첫 채널/첫 행에 obs1D를 채운다.
+function makeBCHW(obs1D, inputName) {
+  const W = OBS_W;
+  const data = new Float32Array(OBS_C * OBS_H * W);
+  for (let i=0;i<Math.min(W, obs1D.length); i++) data[i] = obs1D[i];
+  return { [inputName]: new ort.Tensor("float32", data, [1, OBS_C, OBS_H, W]) };
 }
 
-function pickPolicyOutput(outputs) {
+// (정책이 log-softmax든 logits든) 마스크드 소프트맥스
+function softmaxMasked(logits, mask) {
+  let maxv = -Infinity;
+  for (let i=0;i<logits.length;i++) if(mask[i] && logits[i] > maxv) maxv = logits[i];
+  const exps = new Float32Array(logits.length);
+  let sum = 0.0;
+  for (let i=0;i<logits.length;i++) {
+    if (mask[i]) { const v = Math.exp(logits[i] - maxv); exps[i]=v; sum+=v; }
+  }
+  const probs = new Float32Array(logits.length);
+  if (sum <= 0) {
+    // 합법 수가 모두 0이면 균등분배 폴백
+    let cnt=0; for (let i=0;i<mask.length;i++) if(mask[i]) cnt++;
+    if (cnt>0) { const u=1/cnt; for (let i=0;i<mask.length;i++) probs[i]=mask[i]?u:0; }
+    return probs;
+  }
+  for (let i=0;i<logits.length;i++) probs[i] = mask[i] ? (exps[i]/sum) : 0;
+  return probs;
+}
+
+// 정책 출력 텐서 이름 선택(기본 'policy')
+function pickPolicyName(outputs) {
   if ("policy" in outputs) return "policy";
   if ("policy_logits" in outputs) return "policy_logits";
   if ("action_logits" in outputs) return "action_logits";
+  // value가 아닌 첫 텐서
   const names = Object.keys(outputs);
   return names.find(n => n !== "value") || names[0];
 }
 
-async function runModel(feeds) {
-  return await session.run(feeds);
+/* ==================== PV 평가(캐시 포함) ==================== */
+
+const pvCache = new Map(); // key: boardStr|whoStr
+
+function boardKey(board, who) {
+  return board.join("") + "|" + (who===+1?"H":"A");
 }
 
-function _softmaxMasked(logits, mask){
-  let maxv = -Infinity;
-  for (let i=0;i<logits.length;i++){ if(mask[i] && logits[i] > maxv) maxv = logits[i]; }
-  const exps = new Float32Array(logits.length);
-  let sum = 0.0;
-  for (let i=0;i<logits.length;i++){
-    if(mask[i]){ const v = Math.exp(logits[i]-maxv); exps[i]=v; sum+=v; } else exps[i]=0;
-  }
-  const probs = new Float32Array(logits.length);
-  if(sum<=0){
-    // 합법 수가 전부 0로 마스킹되었을 때: 균등 분배 폴백
-    let cnt=0; for(let i=0;i<mask.length;i++) if(mask[i]) cnt++;
-    if (cnt>0){ const u=1/cnt; for(let i=0;i<mask.length;i++) probs[i]=mask[i]?u:0; }
-    return probs;
-  }
-  for (let i=0;i<logits.length;i++) probs[i] = exps[i]/sum;
-  return probs;
-}
+async function evalPolicyValue(board, who) {
+  const k = boardKey(board, who);
+  if (pvCache.has(k)) return pvCache.get(k);
 
-// 네트워크 캐시(전이표)
-const _pvCache = new Map(); // key: "board|player" -> {probs(Float32Array), value(number)}
+  const obs1D = buildObs1D(board, who);
+  const feeds = makeBCHW(obs1D, session.inputNames[0] || "obs");
+  const out   = await session.run(feeds);
 
-function boardKey(pinsArr, who){ // 누가 둘 차례인지 포함(중요)
-  return pinsArr.join("") + "|" + (who===+1? "H":"A");
-}
+  const polName = POLICY_NAME in out ? POLICY_NAME : pickPolicyName(out);
+  const raw     = out[polName].data;    // log-softmax 혹은 logits
+  const val     = out["value"]?.data ? Number(out["value"].data[0]) : 0.0;
 
-async function evalPolicyValue(pinsArr, currentPlayer){
-  const k = boardKey(pinsArr, currentPlayer);
-  if (_pvCache.has(k)) return _pvCache.get(k);
+  // 합법 마스크 & 정규화
+  const mask = buildMask(board, raw.length);
+  const probs = softmaxMasked(raw, Array.from(mask, x=>!!x));
 
-  const obs1D = buildObs1D(pinsArr, currentPlayer);
-  const out = await runModelSmart(obs1D);
-  const polName = pickPolicyOutput(out);
-  const logits = out[polName].data;
-  const value  = out["value"]?.data ? Number(out["value"].data[0]) : 0.0;
-
-  // 합법 마스크로 정책 정규화
-  const mask = buildMask(pinsArr, logits.length);
-  const probs = _softmaxMasked(logits, Array.from(mask, x=>!!x));
-
-  const res = { probs, value };
-  _pvCache.set(k, res);
+  const res = { probs, value: val };
+  pvCache.set(k, res);
   return res;
 }
 
-async function runModelSmart(obs1D) {
-  // 현재 추정 레이아웃을 우선, 이후 BCHW/BCL/BL/L 순으로 시도
-  const order = [INPUT_LAYOUT, "BCHW", "BCL", "BL", "L"]
-    .filter((v, i, a) => v && a.indexOf(v) === i);
+/* ==================== 정식 PUCT MCTS ==================== */
 
-  let lastErr = null;
-  for (const layout of order) {
-    try {
-      // BCHW가 필요한 모델을 위해 가변 파라미터 보정
-      if (layout === "BCHW") {
-        // 메타가 없으면 (C,H,W) = (1,1,len)로 가정
-        OBS_C = OBS_C || 1;
-        OBS_H = OBS_H || 1;
-        OBS_W = OBS_W || obs1D.length;
-      }
-      const feeds = makeFeedsFromObs(obs1D, layout);
-      const out = await session.run(feeds);
-      // 성공하면 고정
-      INPUT_LAYOUT = layout;
-      return out;
-    } catch (e) {
-      const msg = (e && e.message) ? e.message : String(e);
-      // 랭크/차원 오류는 다음 레이아웃으로 폴백
-      if (msg.includes("Invalid rank") || msg.includes("Invalid shape") || msg.includes("dimensions")) {
-        lastErr = e;
-        continue;
-      }
-      // 그 외 오류는 즉시 보고
-      throw e;
-    }
-  }
-  // 전부 실패하면 마지막 오류를 그대로 던짐
-  throw lastErr || new Error("모든 입력 레이아웃 시도 실패");
-}
-
-// ----------------- 정식 PUCT MCTS -----------------
-
-class MCTSNode {
-  constructor(pins, player) {
-    this.pins = pins;                   // 현재 보드
-    this.player = player;               // 현재 둘 차례(+1 사람 / -1 AI)
-    this.N = 0;                         // 노드 방문 수
-    this.P = null;                      // prior 확률 분포(Float32Array)
-    this.Nsa = null;                    // 액션별 방문수(Uint32Array)
-    this.Wsa = null;                    // 액션별 누적 가치(Float32Array)
-    this.valid = null;                  // 합법 마스크(Uint8Array)
-    this.children = new Map();          // a -> childKey
-    this.expanded = false;              // 확장 여부
-    this.terminal = false;              // 터미널 여부(둘 수 없음 → 미제르 승리)
-  }
-}
-
-class PUCT_MCTS {
-  constructor(rootPins, rootPlayer, sims, cpuct, temp, noise_eps, noise_alpha) {
-    this.sims  = sims;
-    this.cpuct = cpuct;
-    this.temp  = temp;
-    this.noise_eps = noise_eps;
-    this.noise_alpha = noise_alpha;
-
-    this.nodes = new Map();
-    this.rootKey = boardKey(rootPins, rootPlayer);
-    const root = this._getOrCreate(rootPins.slice(), rootPlayer);
-    // 루트가 비었으면 즉시 터미널
-  }
-
-  _getOrCreate(pinsArr, who){
-    const k = boardKey(pinsArr, who);
-    if (this.nodes.has(k)) return this.nodes.get(k);
-    const node = new MCTSNode(pinsArr.slice(), who);
-    // 터미널 판정: 합법 수가 없으면 현재 둘 차례가 승리(미제르)
-    if (!hasValidMoves(node.pins)) {
-      node.terminal = true;
-      // 여기서 value는 +1(현재 둘 차례 관점)로 해석 → 백업 시 그대로 사용
-    }
-    this.nodes.set(k, node);
-    return node;
-  }
-
-  async _expand(node, isRoot=false){
-    if (node.expanded || node.terminal) return 0.0;
-
-    const { probs, value } = await evalPolicyValue(node.pins, node.player);
-    // 합법 마스크/정규화는 evalPolicyValue에서 이미 처리됨
-
-    // 루트 Dirichlet 노이즈 주입
-    let P = probs.slice();
-    if (isRoot && this.noise_eps > 0){
-      // 유효 액션만 추출하여 Dirichlet 적용
-      const legalIdx = [];
-      for (let i=0;i<P.length;i++) if (P[i] > 0) legalIdx.push(i);
-      if (legalIdx.length > 0){
-        const noise = _sampleDirichlet(legalIdx.length, this.noise_alpha);
-        let j=0; for (const idx of legalIdx) P[idx] = (1 - this.noise_eps)*P[idx] + this.noise_eps*noise[j++];
-        // 다시 정규화
-        let s = 0; for (const idx of legalIdx) s += P[idx];
-        if (s > 0){ for (const idx of legalIdx) P[idx] /= s; }
-      }
-    }
-
-    node.P = P;
-    node.valid = buildMask(node.pins, P.length);
-    node.Nsa = new Uint32Array(P.length);
-    node.Wsa = new Float32Array(P.length);
-    node.expanded = true;
-    return value; // 이 노드(현재 둘 차례) 관점의 v
-  }
-
-  // 선택: Q + U 최대인 액션 선택
-  _selectAction(node){
-    const Nsum = Math.max(1, node.N);
-    let bestA = -1, bestScore = -1e9;
-
-    for (let a=0; a<node.P.length; a++){
-      if (!node.valid[a]) continue;
-      const nsa = node.Nsa[a];
-      const qsa = (nsa === 0) ? 0.0 : (node.Wsa[a] / nsa);
-      const u   = this.cpuct * node.P[a] * Math.sqrt(Nsum) / (1 + nsa);
-      const s   = qsa + u;
-      if (s > bestScore){ bestScore = s; bestA = a; }
-    }
-    return bestA;
-  }
-
-  // 한 번의 시뮬레이션
-  async _simulate(){
-    // Selection
-    let path = [];
-    let key = this.rootKey;
-    let node = this.nodes.get(key);
-
-    // 루트가 미확장/터미널이면 확장(또는 터미널 처리)
-    if (!node.expanded && !node.terminal){
-      const v0 = await this._expand(node, true);
-      // Backup
-      let v = v0;
-      for (let i=path.length-1;i>=0;i--){
-        const ent = path[i]; const n = ent.node; const a = ent.action;
-        n.N += 1; n.Nsa[a] += 1; n.Wsa[a] += v; v = -v;
-      }
-      return;
-    }
-    if (node.terminal){
-      // 현재 둘 차례가 승리 → v=+1
-      let v = 1.0;
-      for (let i=path.length-1;i>=0;i--){
-        const ent = path[i]; const n = ent.node; const a = ent.action;
-        n.N += 1; n.Nsa[a] += 1; n.Wsa[a] += v; v = -v;
-      }
-      return;
-    }
-
-    // 아래로 내려가며 leaf 찾기
-    while (node.expanded && !node.terminal){
-      const a = this._selectAction(node);
-      if (a < 0){
-        // 이론상 없어야 하지만, 수치 이슈 시 균등 샘플
-        const candidates = [];
-        for (let i=0;i<node.P.length;i++) if (node.valid[i]) candidates.push(i);
-        if (candidates.length === 0) {
-          // 합법 수 없음 → 터미널
-          let v = 1.0;
-          for (let i=path.length-1;i>=0;i--){
-            const ent = path[i]; const n = ent.node; const aa = ent.action;
-            n.N += 1; n.Nsa[aa] += 1; n.Wsa[aa] += v; v = -v;
-          }
-          return;
-        }
-        const randA = candidates[Math.floor(Math.random()*candidates.length)];
-        path.push({ node, action: randA });
-        // 전이
-        const next = node.pins.slice(); next[randA]=0; next[randA+1]=0;
-        const nextKey = boardKey(next, -node.player);
-        node.children.set(randA, nextKey);
-        node = this._getOrCreate(next, -node.player);
-        break;
-      } else {
-        path.push({ node, action: a });
-        let nextKey = node.children.get(a);
-        if (!nextKey){
-          const next = node.pins.slice(); next[a]=0; next[a+1]=0;
-          nextKey = boardKey(next, -node.player);
-          node.children.set(a, nextKey);
-        }
-        node = this._getOrCreateFromKey(nextKey);
-        break; // 한 단계 확장 후 leaf로 이동
-      }
-    }
-
-    // leaf 처리
-    if (!node.expanded && !node.terminal){
-      const v0 = await this._expand(node, false);
-      // backup
-      let v = v0;
-      for (let i=path.length-1;i>=0;i--){
-        const ent = path[i]; const n = ent.node; const a = ent.action;
-        n.N += 1; n.Nsa[a] += 1; n.Wsa[a] += v; v = -v;
-      }
-      return;
-    }
-    if (node.terminal){
-      // 현재 둘 차례 승리
-      let v = 1.0;
-      for (let i=path.length-1;i>=0;i--){
-        const ent = path[i]; const n = ent.node; const a = ent.action;
-        n.N += 1; n.Nsa[a] += 1; n.Wsa[a] += v; v = -v;
-      }
-    }
-  }
-
-  _getOrCreateFromKey(k){
-    if (this.nodes.has(k)) return this.nodes.get(k);
-    const [boardStr, whoStr] = k.split("|");
-    const pinsArr = Array.from(boardStr, ch => (ch === "1" ? 1 : 0));
-    const who = (whoStr === "H") ? +1 : -1;
-    return this._getOrCreate(pinsArr, who);
-  }
-
-  async run(){
-    // 시뮬레이션 반복
-    for (let i=0;i<this.sims;i++){
-      await this._simulate();
-    }
-    // 최종 선택: 방문수 기반
-    const root = this.nodes.get(this.rootKey);
-    if (!root || !root.expanded){
-      // 평가 실패 시 폴백(그리디)
-      return -1;
-    }
-    const Ns = root.Nsa;
-    const mask = root.valid;
-    let action = -1;
-
-    if (this.temp > 0){
-      // Ns^(1/temp)로 확률화
-      let maxLen = Ns.length;
-      const probs = new Float32Array(maxLen);
-      let sum = 0;
-      const invT = 1.0 / this.temp;
-      for (let a=0;a<maxLen;a++){
-        if (mask[a]){
-          const v = Math.pow(Math.max(1, Ns[a]), invT);
-          probs[a]=v; sum+=v;
-        }
-      }
-      if (sum > 0){
-        let r = Math.random()*sum;
-        for (let a=0;a<maxLen;a++){
-          if (!mask[a]) continue;
-          if (r < probs[a]){ action = a; break; }
-          r -= probs[a];
-        }
-      }
-      if (action < 0){
-        // 폴백: argmax Ns
-        let best=-1,bv=-1;
-        for (let a=0;a<Ns.length;a++){ if (mask[a] && Ns[a]>bv){ bv=Ns[a]; best=a; } }
-        action = best;
-      }
-    } else {
-      // temp=0 → argmax Ns
-      let best=-1,bv=-1;
-      for (let a=0;a<Ns.length;a++){ if (mask[a] && Ns[a]>bv){ bv=Ns[a]; best=a; } }
-      action = best;
-    }
-    return action;
-  }
-}
-
-// 간단 Dirichlet 샘플러(알파 동일)
-function _sampleDirichlet(k, alpha){
-  // 감마(alpha, 1) k개 샘플 → 정규화
-  const arr = new Float32Array(k);
-  let s = 0.0;
-  for (let i=0;i<k;i++){
-    const g = _gammaSample(alpha);
-    arr[i] = g; s += g;
-  }
-  if (s > 0){ for (let i=0;i<k;i++) arr[i] /= s; }
-  return arr;
-}
-
-// 매우 간단한 감마 샘플러(알파>0, 베타=1) - Marsaglia-Tsang의 근사(α>=1) + 폴백
-function _gammaSample(alpha){
-  if (alpha < 1){
+// 간단 감마/디리클레 샘플러 (루트 노이즈용)
+function gammaSample(alpha) {
+  if (alpha < 1) {
     // Johnk’s generator
-    while (true){
+    while (true) {
       const u = Math.random();
       const b = (Math.E + alpha)/Math.E;
       const p = b * u;
@@ -525,20 +237,16 @@ function _gammaSample(alpha){
       if (p <= 1) x = Math.pow(p, 1/alpha);
       else x = -Math.log((b - p)/alpha);
       const u2 = Math.random();
-      if (p <= 1){
-        if (u2 <= Math.exp(-x)) return x;
-      } else {
-        if (u2 <= Math.pow(x, alpha - 1)) return x;
-      }
+      if (p <= 1) { if (u2 <= Math.exp(-x)) return x; }
+      else { if (u2 <= Math.pow(x, alpha - 1)) return x; }
     }
   } else {
     // Marsaglia-Tsang
     const d = alpha - 1/3;
     const c = 1/Math.sqrt(9*d);
-    while (true){
+    while (true) {
       let x, v;
       do {
-        // 표준정규 근사: Box-Muller
         const u1 = Math.random(), u2 = Math.random();
         x = Math.sqrt(-2*Math.log(u1)) * Math.cos(2*Math.PI*u2);
         v = 1 + c*x;
@@ -550,50 +258,207 @@ function _gammaSample(alpha){
     }
   }
 }
+function sampleDirichlet(k, alpha) {
+  const arr = new Float32Array(k);
+  let s=0; for (let i=0;i<k;i++){ const g=gammaSample(alpha); arr[i]=g; s+=g; }
+  if (s>0) for (let i=0;i<k;i++) arr[i]/=s;
+  return arr;
+}
 
-// ----------------- AI 턴 -----------------
+// 노드
+class MNode {
+  constructor(board, who) {
+    this.board = board.slice();
+    this.who   = who;                 // 현재 둘 차례
+    this.N     = 0;                   // 방문수
+    this.P     = null;                // prior 확률 분포(Float32Array)
+    this.Nsa   = null;                // 액션별 방문수
+    this.Wsa   = null;                // 액션별 누적가치
+    this.valid = null;                // 합법 마스크
+    this.children = new Map();        // a -> childKey
+    this.expanded = false;
+    this.terminal = !hasValidMoves(board); // 미제르: 둘 수 없으면 현재가 승리
+  }
+}
+
+class PUCT {
+  constructor(rootBoard, rootWho, sims, cpuct, temp, noise_eps, noise_alpha) {
+    this.sims = sims;
+    this.cpuct= cpuct;
+    this.temp = temp;
+    this.noise_eps = noise_eps;
+    this.noise_alpha= noise_alpha;
+
+    this.nodes = new Map();
+    this.rootKey = boardKey(rootBoard, rootWho);
+    this.nodes.set(this.rootKey, new MNode(rootBoard, rootWho));
+  }
+
+  _getOrCreate(board, who) {
+    const k = boardKey(board, who);
+    if (this.nodes.has(k)) return this.nodes.get(k);
+    const n = new MNode(board, who);
+    this.nodes.set(k, n);
+    return n;
+  }
+
+  async _expand(node, isRoot=false) {
+    if (node.expanded || node.terminal) return 0.0;
+
+    const { probs, value } = await evalPolicyValue(node.board, node.who);
+    let P = probs.slice();
+
+    // 루트 Dirichlet 노이즈
+    if (isRoot && this.noise_eps > 0) {
+      const legalIdx = [];
+      for (let i=0;i<P.length;i++) if (P[i] > 0) legalIdx.push(i);
+      if (legalIdx.length > 0) {
+        const noise = sampleDirichlet(legalIdx.length, this.noise_alpha);
+        let j=0; for (const idx of legalIdx) P[idx] = (1 - this.noise_eps)*P[idx] + this.noise_eps*noise[j++];
+        // 재정규화
+        let s=0; for (const idx of legalIdx) s += P[idx];
+        if (s>0) for (const idx of legalIdx) P[idx] /= s;
+      }
+    }
+
+    node.P = P;
+    node.valid = buildMask(node.board, P.length);
+    node.Nsa = new Uint32Array(P.length);
+    node.Wsa = new Float32Array(P.length);
+    node.expanded = true;
+    return value;  // 현재 둘 차례 관점의 v
+  }
+
+  _select(node) {
+    const Nsum = Math.max(1, node.N);
+    let bestA=-1, bestS=-1e9;
+    for (let a=0;a<node.P.length;a++) {
+      if (!node.valid[a]) continue;
+      const nsa = node.Nsa[a];
+      const qsa = (nsa===0) ? 0.0 : (node.Wsa[a]/nsa);
+      const u   = this.cpuct * node.P[a] * Math.sqrt(Nsum) / (1 + nsa);
+      const s   = qsa + u;
+      if (s > bestS) { bestS=s; bestA=a; }
+    }
+    return bestA;
+  }
+
+  async _simulateOnce() {
+    let path = [];
+    let node = this.nodes.get(this.rootKey);
+
+    // 루트가 미확장/터미널 처리
+    if (!node.expanded && !node.terminal) {
+      const v0 = await this._expand(node, true);
+      // 백업
+      let v = v0;
+      for (let i=path.length-1;i>=0;i--) {
+        const { n, a } = path[i]; n.N+=1; n.Nsa[a]+=1; n.Wsa[a]+=v; v=-v;
+      }
+      return;
+    }
+    if (node.terminal) {
+      // 미제르: 현재가 승리 → v=+1
+      let v = 1.0;
+      for (let i=path.length-1;i>=0;i--) {
+        const { n, a } = path[i]; n.N+=1; n.Nsa[a]+=1; n.Wsa[a]+=v; v=-v;
+      }
+      return;
+    }
+
+    // 아래로 한 단계 진행(한 번의 액션 확장)
+    const a = this._select(node);
+    if (a < 0) {
+      // 수치 이슈 시 균등 랜덤
+      const cand = [];
+      for (let i=0;i<node.P.length;i++) if (node.valid[i]) cand.push(i);
+      if (cand.length === 0) {
+        // 터미널 취급
+        let v = 1.0;
+        for (let i=path.length-1;i>=0;i--) {
+          const { n, a:a0 } = path[i]; n.N+=1; n.Nsa[a0]+=1; n.Wsa[a0]+=v; v=-v;
+        }
+        return;
+      }
+      const ra = cand[Math.floor(Math.random()*cand.length)];
+      path.push({ n: node, a: ra });
+      const next = node.board.slice(); next[ra]=0; next[ra+1]=0;
+      node = this._getOrCreate(next, -node.who);
+    } else {
+      path.push({ n: node, a });
+      const next = node.board.slice(); next[a]=0; next[a+1]=0;
+      node = this._getOrCreate(next, -node.who);
+    }
+
+    if (!node.expanded && !node.terminal) {
+      const v0 = await this._expand(node, false);
+      // 백업
+      let v = v0;
+      for (let i=path.length-1;i>=0;i--) {
+        const { n, a:a0 } = path[i]; n.N+=1; n.Nsa[a0]+=1; n.Wsa[a0]+=v; v=-v;
+      }
+      return;
+    }
+    if (node.terminal) {
+      // 현재가 승리
+      let v = 1.0;
+      for (let i=path.length-1;i>=0;i--) {
+        const { n, a:a0 } = path[i]; n.N+=1; n.Nsa[a0]+=1; n.Wsa[a0]+=v; v=-v;
+      }
+    }
+  }
+
+  async run() {
+    for (let i=0;i<this.sims;i++) {
+      await this._simulateOnce();
+    }
+    const root = this.nodes.get(this.rootKey);
+    if (!root || !root.expanded) return -1;
+
+    const Ns = root.Nsa, mask = root.valid;
+    let action = -1;
+
+    if (this.temp > 0) {
+      // Ns^(1/temp)로 확률화 후 샘플
+      const probs = new Float32Array(Ns.length);
+      let sum = 0, invT = 1/this.temp;
+      for (let a=0;a<Ns.length;a++) {
+        if (mask[a]) { const v = Math.pow(Math.max(1, Ns[a]), invT); probs[a]=v; sum+=v; }
+      }
+      if (sum > 0) {
+        let r = Math.random()*sum;
+        for (let a=0;a<Ns.length;a++) {
+          if (!mask[a]) continue;
+          if (r < probs[a]) { action = a; break; }
+          r -= probs[a];
+        }
+      }
+      if (action < 0) {
+        // 폴백: argmax Ns
+        let best=-1,bv=-1; for (let a=0;a<Ns.length;a++) if (mask[a] && Ns[a]>bv){bv=Ns[a];best=a;}
+        action = best;
+      }
+    } else {
+      // temp=0 → argmax Ns
+      let best=-1,bv=-1; for (let a=0;a<Ns.length;a++) if (mask[a] && Ns[a]>bv){bv=Ns[a];best=a;}
+      action = best;
+    }
+    return action;
+  }
+}
+
+/* ==================== AI 턴 ==================== */
 
 async function aiTurn() {
   if (!session || player !== -1) return;
   if (checkAndMaybeEnd()) return;
 
-  gameMsgEl.textContent = `AI(MCTS ${MCTS_SIMS}) 생각 중...`;
-
-  if (USE_MCTS) {
-    try {
-      const mcts = new PUCT_MCTS(pins, -1, MCTS_SIMS, MCTS_CPUCT, TEMP_FINAL, NOISE_EPS, NOISE_ALPHA);
-      const a = await mcts.run();
-      if (a < 0) throw new Error("MCTS가 수를 찾지 못했습니다.");
-      pins[a] = 0; pins[a+1] = 0;
-      player = -player;
-      render();
-      if (checkAndMaybeEnd()) return;
-      gameMsgEl.textContent = "당신의 차례입니다. 인접한 핀 2개를 제거하세요.";
-      return;
-    } catch (e) {
-      console.warn("MCTS 실패, 그리디로 폴백:", e);
-    }
-  }
-
-  // 그리디 폴백
   try {
-    const obs1D = buildObs1D(pins, player);
-    const out = await runModelSmart(obs1D);
-    const polName = pickPolicyOutput(out);
-    const logits = out[polName]?.data;
-    if (!logits) throw new Error("ONNX 출력에 policy/policy_logits/action_logits가 없습니다.");
-
-    const mask = buildMask(pins, logits.length);
-    let best = -1, bestVal = -Infinity;
-    for (let i = 0; i < mask.length; i++) {
-      if (mask[i] && logits[i] > bestVal) { bestVal = logits[i]; best = i; }
-    }
-    if (best < 0) {
-      if (hasValidMoves(pins)) gameMsgEl.textContent = "AI 오류: 합법적인 수가 없습니다.";
-      return;
-    }
-
-    pins[best] = 0; pins[best + 1] = 0;
+    gameMsgEl.textContent = `AI(MCTS ${MCTS_SIMS}) 생각 중...`;
+    const mcts = new PUCT(pins, -1, MCTS_SIMS, MCTS_CPUCT, TEMP_FINAL, NOISE_EPS, NOISE_ALPHA);
+    const a = await mcts.run();
+    if (a < 0) throw new Error("MCTS가 수를 찾지 못했습니다.");
+    pins[a] = 0; pins[a+1] = 0;
     player = -player;
     render();
     if (checkAndMaybeEnd()) return;
@@ -604,49 +469,25 @@ async function aiTurn() {
   }
 }
 
-// ----------------- 초기화 -----------------
+/* ==================== 모델 로드/초기화 ==================== */
 
-async function loadModelFrom(path) {
+async function loadModel(path) {
   modelBadgeEl.textContent = `Model: loading… (${path})`;
   try {
     session = await ort.InferenceSession.create(path, { executionProviders: ["wasm"] });
 
-    INPUT_NAME = session.inputNames[0] || "obs";
-    const inMeta = session.inputMetadata?.[INPUT_NAME];
-    if (inMeta && Array.isArray(inMeta.dimensions)) {
+    // 입력 이름/메타 확인 (4D 강제 사용)
+    const inName = session.inputNames[0] || "obs";
+    const inMeta = session.inputMetadata?.[inName];
+    if (inMeta && Array.isArray(inMeta.dimensions) && inMeta.dimensions.length === 4) {
+      // [B, C, H, W]에서 W가 숫자면 OBS_W에 반영
       const dims = inMeta.dimensions;
-      const rank = dims.length;
-      INPUT_RANK = rank;
-
-      if (rank === 1) { INPUT_LAYOUT = "L"; }
-      else if (rank === 2) { INPUT_LAYOUT = "BL"; }
-      else if (rank === 3) { INPUT_LAYOUT = "BCL"; }
-      else if (rank === 4) { INPUT_LAYOUT = "BCHW"; }
-      else { INPUT_LAYOUT = "BL"; }
-
-      const posDims = dims.filter(d => typeof d === "number" && d > 0);
-      if (posDims.length >= 1) {
-        const last = posDims[posDims.length - 1];
-        MAX_OBS_LEN = Number(last);
-        OBS_W = MAX_OBS_LEN;
-      }
-      if (INPUT_LAYOUT === "BCL" && typeof dims[1] === "number") OBS_C = dims[1];
-      if (INPUT_LAYOUT === "BCHW") {
-        if (typeof dims[1] === "number") OBS_C = dims[1];
-        if (typeof dims[2] === "number") OBS_H = dims[2];
-        if (typeof dims[3] === "number") OBS_W = dims[3];
-      }
+      if (typeof dims[3] === "number" && dims[3] > 0) OBS_W = dims[3];
     }
-
-    const outNames = session.outputNames;
-    const meta = session.outputMetadata || {};
-    const candidatePol = ["policy", "policy_logits", "action_logits"].find(n => outNames.includes(n)) || outNames[0];
-    POLICY_NAME = candidatePol;
-    const polDims = meta[candidatePol]?.dimensions;
-    if (Array.isArray(polDims)) {
-      const posDims = polDims.filter(d => typeof d === "number" && d > 0);
-      if (posDims.length >= 1) ACTION_SIZE_HINT = posDims[posDims.length - 1];
-    }
+    POLICY_NAME = session.outputNames.includes("policy") ? "policy"
+                 : (session.outputNames.includes("policy_logits") ? "policy_logits"
+                 : (session.outputNames.includes("action_logits") ? "action_logits"
+                 : session.outputNames[0]));
 
     modelBadgeEl.textContent = `Model: loaded ✔ (${path})`;
   } catch (e) {
@@ -655,8 +496,10 @@ async function loadModelFrom(path) {
   }
 }
 
+/* ==================== 이벤트 바인딩/시작 ==================== */
+
 newGameBtn.addEventListener("click", () => {
-  N_PINS = Math.max(2, Math.min(MAX_BOARD_SIZE, Number(nPinsEl.value) || 60));
+  N_PINS = Math.max(2, Math.min(2000, Number(nPinsEl.value) || 60));
   pins = Array(N_PINS).fill(1);
   selected = [];
   const who = whoFirstEl.value;
@@ -672,7 +515,7 @@ aiMoveBtn.addEventListener("click", () => {
 });
 
 (async function init(){
-  await loadModelFrom(DEFAULT_MODEL_PATH);
+  await loadModel(DEFAULT_MODEL_PATH);
   pins = Array(N_PINS).fill(1);
   render();
   gameMsgEl.textContent = session ? "모델이 로드되었습니다. 새 게임을 시작하세요." : "모델 로드 실패. model.onnx 경로를 확인하세요.";
