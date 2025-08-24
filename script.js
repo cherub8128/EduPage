@@ -15,11 +15,6 @@ let N_PINS = 60;              // 시작 핀 개수
 let OBS_W  = 60;             // 관측 벡터 길이(런 히스토그램 + 현재 턴)
 const OBS_C = 3;              // 채널 수(3 고정)
 const OBS_H = 1;              // 높이(1 고정)
-const MCTS_SIMS   = 800;     // 400→800
-const MCTS_CPUCT  = 1.4;
-const TEMP_FINAL  = 0;       // ← 반드시 0
-const NOISE_EPS   = 0;       // ← 반드시 0 (루트 Dirichlet 노이즈 끔)
-const NOISE_ALPHA = 0.3;
 
 function _getParam(name, def) {
   const q = new URLSearchParams(location.search);
@@ -28,7 +23,7 @@ function _getParam(name, def) {
 const DEFAULT_MODEL_PATH = _getParam("model", "model.onnx");
 
 // MCTS 하이퍼파라미터
-const MCTS_SIMS   = parseInt(_getParam("sims", "800"), 10);
+const MCTS_SIMS   = parseInt(_getParam("sims", "1200"), 10);
 const MCTS_CPUCT  = parseFloat(_getParam("cpuct", "1.4"));
 const TEMP_FINAL  = parseFloat(_getParam("temp", "0"));    // 0이면 argmax(N)
 const NOISE_EPS   = parseFloat(_getParam("noise_eps", "0"));
