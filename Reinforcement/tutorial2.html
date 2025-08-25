@@ -103,17 +103,7 @@
 
 # --- 메인 게임 클래스 ---
 <span class="code-highlight">class SokobanGame: # 'Game' -> 'SokobanGame'</span>
-    def __init__(self):
-        pygame.init()
-        self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-        pygame.display.set_caption("Minimalist Sokoban (5x5)")
-        self.clock = pygame.time.Clock()
-        self.font_big = pygame.font.Font(None, 72)
-        self.font_small = pygame.font.Font(None, 36)
-        self.game_state = "playing"
-        self.new_game()
-
-    # ... (이하 생략) ...
+    pass  # 세부 초기화는 run_for_human()에서 pygame 디스플레이를 열 때 처리
                 `
             },
             {
@@ -135,7 +125,6 @@ class SokobanGame:
 <span class="code-highlight">        self._move_player(dx, dy) # 기존 이동 함수 재사용</span>
 <span class="code-highlight">        boxes_on_target_after = len(self.box_positions.intersection(self.target_positions))</span>
 <span class="code-highlight"></span>
-<span class="code-highlight">        # 보상 계산 (다음 슬라이드에서 상세 설명)</span>
 <span class="code-highlight">        reward = self._calculate_reward(boxes_on_target_before, boxes_on_target_after)</span>
 <span class="code-highlight">        done = self._check_win_condition()</span>
 <span class="code-highlight"></span>
@@ -164,7 +153,7 @@ class SokobanGame:
 <span class="code-highlight">            reward += 10</span>
 <span class="code-highlight">        elif after < before:</span>
 <span class="code-highlight">            reward -= 10</span>
-<span class="code-highlight">        </span>
+<span class="code-highlight"></span>
 <span class="code-highlight">        if self._check_win_condition():</span>
 <span class="code-highlight">            reward += 100</span>
 <span class="code-highlight">        return reward</span>
@@ -192,7 +181,6 @@ class SokobanGame:
 <span class="code-highlight">                if pos in self.target_positions: grid[r, c] = 3</span>
 <span class="code-highlight">                if pos in self.box_positions: grid[r, c] = 2</span>
 <span class="code-highlight">                if pos in self.target_positions and pos in self.box_positions: grid[r, c] = 4</span>
-<span class="code-highlight">        </span>
 <span class="code-highlight">        player_r, player_c = self.player_pos[1], self.player_pos[0]</span>
 <span class="code-highlight">        grid[player_r, player_c] = 1</span>
 <span class="code-highlight">        return grid</span>
@@ -228,25 +216,50 @@ class SokobanGame:
 # sokoban_env.py
 import gymnasium as gym
 from gymnasium import spaces
+import numpy as np
 <span class="code-highlight">from sokoban_game import SokobanGame # 수정한 게임 클래스 import</span>
 
 class SokobanEnv(gym.Env):
     def __init__(self, render_mode=None):
         super().__init__()
 <span class="code-highlight">        self.game = SokobanGame() # 게임 객체를 내부에 생성</span>
-        
+        self.render_mode = render_mode
+        self.steps_taken = 0
+
         self.action_space = spaces.Discrete(4)
-        self.observation_space = spaces.Box(low=0, high=4, 
-            shape=(self.game.map_height, self.game.map_width), dtype=np.uint8)
-        # ...
+        self.observation_space = spaces.Box(
+            low=0, high=4,
+            shape=(self.game.map_height, self.game.map_width), dtype=np.uint8
+        )
 
     def step(self, action):
 <span class="code-highlight">        obs, reward, terminated = self.game.step(action) # 게임 객체에 명령 전달</span>
+        self.steps_taken += 1
         truncated = self.steps_taken >= 200 # 타임스텝 제한
-        # ...
-        return obs, reward, terminated, truncated, self._get_info()
+        if self.render_mode == "human":
+            self.game.render(self._surface) if hasattr(self, "_surface") else None
+        return obs, reward, terminated, truncated, {}
 
-    # ... (reset, render, close 함수는 게임 객체의 함수를 호출) ...
+    def reset(self, *, seed=None, options=None):
+        super().reset(seed=seed)
+        self.steps_taken = 0
+        obs = self.game.reset()
+        return obs, {}
+
+    def render(self):
+        if self.render_mode == "human":
+            if not hasattr(self, "_surface"):
+                import pygame
+                pygame.init()
+                self._surface = pygame.display.set_mode((800, 600))
+            self.game.render(self._surface)
+
+    def close(self):
+        try:
+            import pygame
+            pygame.quit()
+        except:
+            pass
                 `
             },
             {
@@ -302,16 +315,18 @@ for _ in range(500):
 import pygame
 import sys
 import random
+import numpy as np
+from pygame import gfxdraw  # 안티앨리어싱 원 그리기용
 
 # --- 상수 정의 ---
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
 TILE_SIZE = 60
-WALL_THICKNESS = 10 # 벽 굵기를 상수로 정의
+WALL_THICKNESS = 10
+AA_SCALE = 4  # 슈퍼샘플링 배율
 
 # 색상 팔레트
 COLOR_BACKGROUND = (240, 235, 220)
-COLOR_GRID = (220, 210, 190)
 COLOR_WALL = (60, 70, 80)
 COLOR_PLAYER = (230, 80, 80)
 COLOR_BOX = (20, 140, 200)
@@ -319,221 +334,251 @@ COLOR_TARGET = (220, 170, 20)
 COLOR_BOX_ON_TARGET = (60, 200, 100)
 COLOR_TEXT = (50, 50, 50)
 
-# --- 게임 객체 클래스 (변경 없음) ---
-class GameObject(pygame.sprite.Sprite):
-    def __init__(self, x, y, color):
-        super().__init__()
-        self.image = pygame.Surface([TILE_SIZE, TILE_SIZE])
-        self.rect = self.image.get_rect(topleft=(x, y))
-        self.draw_shape(color)
+# --- 커스텀 이벤트 ---
+SUBSCRIBE_EVENT = pygame.USEREVENT + 1
+NEXT_LEVEL_EVENT = pygame.USEREVENT + 2
+NEXT_LEVEL_DELAY_MS = 1500
 
-    def draw_shape(self, color):
-        self.image.fill(COLOR_BACKGROUND)
-        pygame.draw.rect(self.image, color, self.image.get_rect().inflate(-8, -8), border_radius=8)
+def make_aa_rounded_rect(size, color, radius, aa_scale=AA_SCALE):
+    \"\"\"슈퍼샘플링으로 가장자리가 매끈한 둥근 사각형 Surface 생성\"\"\"
+    w, h = size
+    big = pygame.Surface((w * aa_scale, h * aa_scale), pygame.SRCALPHA)
+    pygame.draw.rect(
+        big, color, pygame.Rect(0, 0, w * aa_scale, h * aa_scale),
+        border_radius=radius * aa_scale
+    )
+    small = pygame.transform.smoothscale(big, (w, h))
+    return small
 
-class Player(GameObject):
-    def __init__(self, x, y):
-        super().__init__(x, y, COLOR_PLAYER)
-    def draw_shape(self, color):
-        self.image.fill(COLOR_BACKGROUND)
-        pygame.draw.circle(self.image, color, (TILE_SIZE // 2, TILE_SIZE // 2), TILE_SIZE // 2 - 5)
+def draw_aa_circle(surface, x, y, r, color):
+    \"\"\"안티앨리어싱 원(플레이어)\"\"\"
+    gfxdraw.filled_circle(surface, x, y, r, color)
+    gfxdraw.aacircle(surface, x, y, r, color)
 
-class Box(GameObject):
-    def __init__(self, x, y):
-        super().__init__(x, y, COLOR_BOX)
-        self.on_target = False
-    def update(self, on_target):
-        if self.on_target != on_target:
-            self.on_target = on_target
-            color = COLOR_BOX_ON_TARGET if self.on_target else COLOR_BOX
-            self.draw_shape(color)
-
-class Target(GameObject):
-    def __init__(self, x, y):
-        super().__init__(x, y, COLOR_TARGET)
-    def draw_shape(self, color):
-        self.image.fill(COLOR_BACKGROUND)
-        pygame.draw.rect(self.image, color, self.image.get_rect().inflate(-18, -18))
-
-
-# --- 메인 게임 클래스 ---
-class Game:
+class SokobanGame:
     def __init__(self):
-        pygame.init()
-        self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-        pygame.display.set_caption("Minimalist Sokoban (5x5)")
-        self.clock = pygame.time.Clock()
-        self.font_big = pygame.font.Font(None, 72)
-        self.font_small = pygame.font.Font(None, 36)
-        self.game_state = "playing"
-        self.new_game()
-
-    def new_game(self):
-        self.map_width = 5
-        self.map_height = 5
+        # 맵/상태
+        self.map_width = 6
+        self.map_height = 6
         self.num_boxes = 2
-        
-        level_data = self.generate_random_level_data()
-        self.load_level_from_data(level_data)
+        self.box_spawn_margin = 1  # 가장자리 스폰 방지
+
+        # 렌더 리소스
+        self.screen = None
+        self.clock = None
+        self.font_small = None
+
+        # 상태 플래그
+        self._surface_cache = {}
         self.game_state = "playing"
+        self.win_event_fired = False
+        self.show_subscribe_prompt = False
 
-    def generate_random_level_data(self):
+        self.reset()
+
+    def on_subscribe(self):
+        \"\"\"구독 버튼/키 입력 시 호출되는 콜백\"\"\"
+        print("[Sokoban] User subscribed!")
+
+    # --------- RL API ---------
+    def reset(self):
+        \"\"\"게임을 초기 상태로 리셋하고 관찰을 반환\"\"\"
+        level_data = self._generate_random_level_data()
+        self._load_level_from_data(level_data)
+        self.game_state = "playing"
+        self.win_event_fired = False
+        self.show_subscribe_prompt = False
+        self._surface_cache.clear()
+        return self.get_observation()
+
+    def step(self, action):
+        \"\"\"AI 행동을 적용하고 (obs, reward, done) 반환\"\"\"
+        move_map = {0: (0, -1), 1: (0, 1), 2: (-1, 0), 3: (1, 0)}  # 상하좌우
+        dx, dy = move_map[action]
+
+        before = len(self.box_positions.intersection(self.target_positions))
+        self._move_player(dx, dy)
+        after = len(self.box_positions.intersection(self.target_positions))
+
+        reward = self._calculate_reward(before, after)
+        done = self._check_win_condition()
+
+        return self.get_observation(), reward, done
+
+    def get_observation(self):
+        \"\"\"격자 기반 관찰 행렬 반환\"\"\"
+        grid = np.zeros((self.map_height, self.map_width), dtype=np.uint8)
+        for r in range(self.map_height):
+            for c in range(self.map_width):
+                pos = (c, r)
+                if pos in self.target_positions:
+                    grid[r, c] = 3
+                if pos in self.box_positions:
+                    grid[r, c] = 2
+                if pos in self.target_positions and pos in self.box_positions:
+                    grid[r, c] = 4
+        pr, pc = self.player_pos[1], self.player_pos[0]
+        grid[pr, pc] = 1
+        return grid
+
+    # --------- 내부 로직 ---------
+    def _generate_random_level_data(self):
+        # 박스는 가장자리 한 칸 링을 피해서 생성
         all_coords = [(c, r) for c in range(self.map_width) for r in range(self.map_height)]
-        random.shuffle(all_coords)
+        inner_coords = [
+            (c, r)
+            for c in range(self.box_spawn_margin, self.map_width - self.box_spawn_margin)
+            for r in range(self.box_spawn_margin, self.map_height - self.box_spawn_margin)
+        ]
+        random.shuffle(inner_coords)
+        box_positions = set(inner_coords[:self.num_boxes])
 
-        player_pos = all_coords.pop()
-        target_positions = {all_coords.pop() for _ in range(self.num_boxes)}
-        box_positions = {all_coords.pop() for _ in range(self.num_boxes)}
+        remaining = [p for p in all_coords if p not in box_positions]
+        random.shuffle(remaining)
+        player_pos = remaining.pop()
+        target_positions = set(remaining[:self.num_boxes])
 
-        return {
-            "player": player_pos,
-            "boxes": box_positions,
-            "targets": target_positions
-        }
+        return {"player": player_pos, "boxes": box_positions, "targets": target_positions}
 
-    def load_level_from_data(self, level_data):
-        self.all_sprites = pygame.sprite.Group()
-        self.boxes = pygame.sprite.Group()
-        self.targets = pygame.sprite.Group()
+    def _load_level_from_data(self, level_data):
+        self.player_pos = level_data["player"]
+        self.box_positions = set(level_data["boxes"])
+        self.target_positions = set(level_data["targets"])
 
-        map_w_px = self.map_width * TILE_SIZE
-        map_h_px = self.map_height * TILE_SIZE
-        self.offset_x = (SCREEN_WIDTH - map_w_px) // 2
-        self.offset_y = (SCREEN_HEIGHT - map_h_px) // 2
-        
-        self.playable_area = pygame.Rect(self.offset_x, self.offset_y, map_w_px, map_h_px)
+    def _move_player(self, dx, dy):
+        px, py = self.player_pos
+        npos = (px + dx, py + dy)
 
-        self.wall_frame_rect = self.playable_area.inflate(WALL_THICKNESS+10, WALL_THICKNESS+10)
-
-        def to_pixel_coords(grid_pos):
-            return (self.offset_x + grid_pos[0] * TILE_SIZE, 
-                    self.offset_y + grid_pos[1] * TILE_SIZE)
-
-        px, py = to_pixel_coords(level_data["player"])
-        self.player = Player(px, py)
-
-        for pos in level_data["boxes"]:
-            bx, by = to_pixel_coords(pos)
-            self.boxes.add(Box(bx, by))
-
-        for pos in level_data["targets"]:
-            tx, ty = to_pixel_coords(pos)
-            self.targets.add(Target(tx, ty))
-        
-        self.all_sprites.add(self.targets, self.boxes, self.player)
-        self.current_level_data = level_data
-
-    def run(self):
-        while True:
-            self.events()
-            if self.game_state == "playing":
-                self.update()
-            self.draw()
-            self.clock.tick(60)
-
-    def events(self):
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
-            if event.type == pygame.KEYDOWN:
-                if self.game_state == "playing":
-                    dx, dy = 0, 0
-                    if event.key == pygame.K_LEFT: dx = -TILE_SIZE
-                    elif event.key == pygame.K_RIGHT: dx = TILE_SIZE
-                    elif event.key == pygame.K_UP: dy = -TILE_SIZE
-                    elif event.key == pygame.K_DOWN: dy = TILE_SIZE
-                    
-                    if dx != 0 or dy != 0:
-                        self.move_player(dx, dy)
-                
-                if event.key == pygame.K_r:
-                    self.load_level_from_data(self.current_level_data)
-                    self.game_state = "playing"
-                if event.key == pygame.K_n:
-                    self.new_game()
-
-    def move_player(self, dx, dy):
-        player_target_rect = self.player.rect.move(dx, dy)
-
-        if not self.playable_area.contains(player_target_rect):
+        if not (0 <= npos[0] < self.map_width and 0 <= npos[1] < self.map_height):
             return
 
-        box_to_move = next((box for box in self.boxes if box.rect.colliderect(player_target_rect)), None)
-
-        if box_to_move:
-            box_target_rect = box_to_move.rect.move(dx, dy)
-            if not self.playable_area.contains(box_target_rect):
+        if npos in self.box_positions:
+            nb = (npos[0] + dx, npos[1] + dy)
+            if not (0 <= nb[0] < self.map_width and 0 <= nb[1] < self.map_height) or nb in self.box_positions:
                 return
-            if any(b != box_to_move and b.rect.colliderect(box_target_rect) for b in self.boxes):
-                return
-            
-            box_to_move.rect.move_ip(dx, dy)
+            self.box_positions.remove(npos)
+            self.box_positions.add(nb)
 
-        self.player.rect.move_ip(dx, dy)
+        self.player_pos = npos
 
-    def update(self):
-        if self.check_win_condition():
-            self.game_state = "level_clear"
+    def _check_win_condition(self):
+        return self.box_positions == self.target_positions
 
-    def check_win_condition(self):
-        if not self.boxes: return False
-        target_coords = {t.rect.topleft for t in self.targets}
-        box_coords = {b.rect.topleft for b in self.boxes}
-        return target_coords == box_coords
+    def _calculate_reward(self, before, after):
+        reward = -0.01
+        if after > before:
+            reward += 10
+        elif after < before:
+            reward -= 10
+        if self._check_win_condition():
+            reward += 100
+        return reward
 
-    def draw(self):
-        self.screen.fill(COLOR_BACKGROUND)
-        self.draw_grid_and_wall()
-        self.all_sprites.draw(self.screen)
-        self.draw_ui()
-        pygame.display.flip()
+    # --------- 렌더링 ---------
+    def _cached_tile(self, key, color, radius):
+        if key not in self._surface_cache:
+            surf = make_aa_rounded_rect((TILE_SIZE, TILE_SIZE), color, radius)
+            if pygame.get_init() and pygame.display.get_init():
+                surf = surf.convert_alpha()
+            self._surface_cache[key] = surf
+        return self._surface_cache[key]
 
-    def draw_grid_and_wall(self):
-        for x in range(self.playable_area.left, self.playable_area.right, TILE_SIZE):
-            pygame.draw.line(self.screen, COLOR_GRID, (x, self.playable_area.top), (x, self.playable_area.bottom))
-        for y in range(self.playable_area.top, self.playable_area.bottom, TILE_SIZE):
-            pygame.draw.line(self.screen, COLOR_GRID, (self.playable_area.left, y), (self.playable_area.right, y))
+    def render(self, surface):
+        surface.fill(COLOR_BACKGROUND)
+        map_w_px = self.map_width * TILE_SIZE
+        map_h_px = self.map_height * TILE_SIZE
+        offset_x = (SCREEN_WIDTH - map_w_px) // 2
+        offset_y = (SCREEN_HEIGHT - map_h_px) // 2
 
-        pygame.draw.rect(
-            self.screen,
-            COLOR_WALL,
-            self.wall_frame_rect,
-            width=WALL_THICKNESS,
-            border_radius=15
-        )
-            
-    def draw_ui(self):
-        instructions = "'R' Restart | 'N' New Level"
-        inst_text = self.font_small.render(instructions, True, COLOR_TEXT)
-        text_rect = inst_text.get_rect(centerx=SCREEN_WIDTH / 2, y=20)
-        self.screen.blit(inst_text, text_rect)
-        
-        target_coords = {t.rect.topleft for t in self.targets}
-        for box in self.boxes:
-            is_on_target = box.rect.topleft in target_coords
-            box.update(is_on_target)
+        # 외곽 벽 프레임
+        wall_frame_rect = pygame.Rect(offset_x, offset_y, map_w_px, map_h_px).inflate(WALL_THICKNESS + 10, WALL_THICKNESS + 10)
+        pygame.draw.rect(surface, COLOR_WALL, wall_frame_rect, width=WALL_THICKNESS, border_radius=15)
 
-        if self.game_state == "level_clear":
-            self.draw_overlay("LEVEL CLEAR!", "Press 'N' for a New Level")
+        def to_px(pos):
+            return (offset_x + pos[0] * TILE_SIZE, offset_y + pos[1] * TILE_SIZE)
 
-    def draw_overlay(self, title, subtitle):
-        overlay = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
-        overlay.fill((255, 255, 255, 180))
-        self.screen.blit(overlay, (0, 0))
-        
-        title_surf = self.font_big.render(title, True, COLOR_TEXT)
-        title_rect = title_surf.get_rect(center=(SCREEN_WIDTH/2, SCREEN_HEIGHT/2 - 30))
-        self.screen.blit(title_surf, title_rect)
-        
-        sub_surf = self.font_small.render(subtitle, True, COLOR_TEXT)
-        sub_rect = sub_surf.get_rect(center=(SCREEN_WIDTH/2, SCREEN_HEIGHT/2 + 30))
-        self.screen.blit(sub_surf, sub_rect)
+        rr = max(8, TILE_SIZE // 6)
+        target_tile = self._cached_tile(("target", TILE_SIZE), COLOR_TARGET, rr)
+        box_tile = self._cached_tile(("box", TILE_SIZE), COLOR_BOX, rr)
+        box_on_target_tile = self._cached_tile(("box_on_target", TILE_SIZE), COLOR_BOX_ON_TARGET, rr)
 
+        # 타겟 → 박스
+        for pos in self.target_positions:
+            px, py = to_px(pos)
+            surface.blit(target_tile, (px, py))
 
+        for pos in self.box_positions:
+            px, py = to_px(pos)
+            tile = box_on_target_tile if pos in self.target_positions else box_tile
+            surface.blit(tile, (px, py))
+
+        # 플레이어 (AA 원)
+        px, py = to_px(self.player_pos)
+        cx = px + TILE_SIZE // 2
+        cy = py + TILE_SIZE // 2
+        pr = TILE_SIZE // 2 - 5
+        draw_aa_circle(surface, cx, cy, pr, COLOR_PLAYER)
+
+        # 오버레이
+        if self.show_subscribe_prompt and self.font_small:
+            msg1 = self.font_small.render("LEVEL CLEAR!", True, (0, 150, 0))
+            msg2 = self.font_small.render("Press S to Subscribe", True, COLOR_TEXT)
+            surface.blit(msg1, (SCREEN_WIDTH // 2 - msg1.get_width() // 2, 20))
+            surface.blit(msg2, (SCREEN_WIDTH // 2 - msg2.get_width() // 2, 60))
+        elif self._check_win_condition() and self.font_small:
+            msg = self.font_small.render("LEVEL CLEAR!", True, (0, 150, 0))
+            surface.blit(msg, (SCREEN_WIDTH // 2 - msg.get_width() // 2, 20))
+
+    # --------- 사람 플레이 루프 ---------
+    def run_for_human(self):
+        pygame.init()
+        self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+        pygame.display.set_caption("Sokoban (Rounded + AA + Subscribe)")
+        self.clock = pygame.time.Clock()
+        self.font_small = pygame.font.Font(None, 36)
+
+        while True:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+
+                if event.type == SUBSCRIBE_EVENT:
+                    self.show_subscribe_prompt = True
+                    pygame.time.set_timer(NEXT_LEVEL_EVENT, NEXT_LEVEL_DELAY_MS, True)
+
+                if event.type == NEXT_LEVEL_EVENT:
+                    self.reset()
+                    pygame.time.set_timer(NEXT_LEVEL_EVENT, 0)
+
+                if event.type == pygame.KEYDOWN:
+                    dx, dy = 0, 0
+                    if event.key == pygame.K_UP: dx, dy = 0, -1
+                    elif event.key == pygame.K_DOWN: dx, dy = 0, 1
+                    elif event.key == pygame.K_LEFT: dx, dy = -1, 0
+                    elif event.key == pygame.K_RIGHT: dx, dy = 1, 0
+                    elif event.key == pygame.K_r: self.reset()
+                    elif event.key == pygame.K_s and self.show_subscribe_prompt:
+                        self.on_subscribe()
+
+                    if dx != 0 or dy != 0:
+                        self._move_player(dx, dy)
+
+            # 렌더
+            self.render(self.screen)
+
+            # 승리 감지 → 구독 이벤트 1회 발행
+            if self._check_win_condition() and not self.win_event_fired:
+                self.win_event_fired = True
+                pygame.event.post(pygame.event.Event(SUBSCRIBE_EVENT))
+
+            pygame.display.flip()
+            self.clock.tick(30)
+
+# 단독 실행 시
 if __name__ == '__main__':
-    game = Game()
-    game.run()
+    game = SokobanGame()
+    game.run_for_human()
 `;
 
         let currentSlide = 0;
