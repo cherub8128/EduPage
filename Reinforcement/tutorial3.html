@@ -106,19 +106,38 @@ from google.colab import drive
                 `
             },
             {
-                title: "4. Pygame을 위한 '가상 화면' 설정",
+                title: "4. Colab에 소코반 게임 파일 알려주기",
+                explanation: `
+                    <p>구글 드라이브에 <code class="bg-gray-700 p-1 rounded">sokoban_env.py</code> 파일을 업로드해도, Colab은 그 파일이 어디 있는지 모릅니다. 파이썬에게 '이 폴더도 한번 찾아봐'라고 알려줘야 합니다.</p>
+                    <p class="mt-2">이를 위해 <code class="bg-gray-700 p-1 rounded">sys.path.append()</code>를 사용하여 파일이 있는 폴더 경로를 시스템 경로에 추가합니다.</p>
+                `,
+                code: `
+import sys
+
+# 'sokoban_env.py' 파일이 저장된 구글 드라이브 내 폴더 경로
+# 예: /content/drive/MyDrive/MyRLProject
+<span class="code-highlight">sokoban_project_path = "/content/drive/MyDrive/RL/Sokoban"</span>
+
+# 이 경로를 파이썬이 모듈을 찾는 경로 리스트에 추가합니다.
+<span class="code-highlight">sys.path.append(sokoban_project_path)</span>
+                `
+            },
+            {
+                title: "5. Pygame을 위한 '가상 화면' 설정",
                 explanation: `
                     <p>Colab은 눈에 보이는 모니터가 없는 서버 컴퓨터입니다. Pygame은 화면이 없으면 오류를 일으키기 때문에, '가상 화면'이 있는 것처럼 속여줘야 합니다.</p>
                     <p class="mt-2">학습 코드 맨 위에 아래 두 줄을 추가하면 Pygame이 이 가상 화면을 사용하게 되어 오류 없이 실행됩니다.</p>
                 `,
                 code: `
 import os
+import pygame
+
 <span class="code-highlight">os.environ['SDL_VIDEODRIVER']='dummy'</span>
 <span class="code-highlight">pygame.display.set_mode((1,1)) # 더미 화면 초기화</span>
                 `
             },
             {
-                title: "5. 안전한 저장을 위한 '체크포인트'",
+                title: "6. 안전한 저장을 위한 '체크포인트'",
                 explanation: `
                     <p>수십 시간 걸리는 학습이 중간에 멈추면 너무 슬프겠죠? Stable-Baselines3의 <code class="bg-gray-700 p-1 rounded">CheckpointCallback</code>은 '자동 저장' 기능과 같습니다.</p>
                     <p class="mt-2">아래 코드는 <strong>10,000 스텝마다</strong> 학습된 모델을 구글 드라이브의 지정된 폴더에 <code class="bg-gray-700 p-1 rounded">sokoban_model_10000.zip</code>과 같은 이름으로 자동 저장해줍니다.</p>
@@ -136,7 +155,7 @@ from stable_baselines3.common.callbacks import CheckpointCallback
                 `
             },
             {
-                title: "6. 학습 과정 시각화 'TensorBoard'",
+                title: "7. 학습 과정 시각화 'TensorBoard'",
                 explanation: `
                     <p>AI가 잘 학습되고 있는지, 보상은 오르고 있는지 궁금할 때 사용하는 도구가 바로 TensorBoard입니다.</p>
                     <p class="mt-2">PPO 모델을 만들 때 <code class="bg-gray-700 p-1 rounded">tensorboard_log</code> 옵션에 구글 드라이브 경로를 지정해주기만 하면, 학습 로그가 자동으로 기록됩니다.</p>
@@ -155,7 +174,7 @@ model = PPO(
                 `
             },
             {
-                title: "7. 전체 학습 스크립트 (Colab ver.)",
+                title: "8. 전체 학습 스크립트 (Colab ver.)",
                 explanation: `
                     <p>이제 모든 조각을 합쳐 Colab에서 실행할 최종 스크립트를 만듭니다.</p>
                     <p class="mt-2">하나의 코드 셀에 이 모든 코드를 복사해서 실행하면, 구글 드라이브에 로그와 모델이 저장되면서 학습이 시작됩니다.</p>
@@ -164,36 +183,40 @@ model = PPO(
 # 1. 라이브러리 설치 (이미 했다면 생략)
 # !pip install pygame gymnasium stable-baselines3[extra] xvfbwrapper
 
-# 2. import 및 가상 화면 설정
+# 2. 구글 드라이브 마운트 및 경로 설정
+import sys
+from google.colab import drive
+drive.mount('/content/drive')
+# 'sokoban_env.py'가 있는 폴더 경로를 추가해야 import 가능
+sys.path.append('/content/drive/MyDrive/RL/Sokoban')
+
+# 3. import 및 가상 화면 설정
 import os
 import pygame
-from google.colab import drive
-from sokoban_env import SokobanEnv # 소코반 환경 코드
+from sokoban_env import SokobanEnv # 이제 import가 잘 됩니다!
 from stable_baselines3 import PPO
 from stable_baselines3.common.callbacks import CheckpointCallback
 
 os.environ['SDL_VIDEODRIVER']='dummy'
 pygame.display.set_mode((1,1))
-drive.mount('/content/drive')
 
-# 3. 경로 설정
+# 4. 경로 설정
 log_path = "/content/drive/MyDrive/RL/Sokoban/logs/"
 save_path = "/content/drive/MyDrive/RL/Sokoban/models/"
 os.makedirs(log_path, exist_ok=True)
 os.makedirs(save_path, exist_ok=True)
 
-# 4. 환경 및 콜백 생성
+# 5. 환경 및 콜백 생성
 env = SokobanEnv(render_mode=None) # 렌더링 없이 실행
 checkpoint_callback = CheckpointCallback(save_freq=10000, save_path=save_path, name_prefix="sokoban_model")
 
-# 5. 모델 생성 및 학습
+# 6. 모델 생성 및 학습
 model = PPO("MlpPolicy", env, verbose=1, tensorboard_log=log_path)
-# model.learn()에 callback을 전달
 model.learn(total_timesteps=200000, callback=checkpoint_callback)
                 `
             },
             {
-                title: "8. TensorBoard로 그래프 확인하기",
+                title: "9. TensorBoard로 그래프 확인하기",
                 explanation: `
                     <p>학습이 진행되는 동안 (또는 끝난 후) 별도의 코드 셀에 아래 '매직 명령어'를 실행하면 Colab 노트북 안에 TensorBoard 대시보드가 나타납니다.</p>
                 `,
@@ -206,7 +229,7 @@ model.learn(total_timesteps=200000, callback=checkpoint_callback)
                 `
             },
             {
-                title: "9. 그래프 해석하기",
+                title: "10. 그래프 해석하기",
                 explanation: `
                     <p>TensorBoard에서 가장 중요하게 볼 그래프는 <strong>'rollout/ep_rew_mean'</strong> 입니다.</p>
                      <div class="explanation-box">
@@ -219,13 +242,13 @@ model.learn(total_timesteps=200000, callback=checkpoint_callback)
                 code: ``
             },
             {
-                title: "10. 중단된 학습 이어하기",
+                title: "11. 중단된 학습 이어하기",
                 explanation: `
                     <p>Colab 연결이 끊겼거나 학습을 잠시 멈췄을 때, 체크포인트 덕분에 처음부터 다시 시작할 필요가 없습니다.</p>
                     <p class="mt-2">가장 마지막에 저장된 모델 파일(.zip)을 <code class="bg-gray-700 p-1 rounded">PPO.load()</code>로 불러온 뒤, <code class="bg-gray-700 p-1 rounded">model.learn()</code>을 다시 실행하면 정확히 멈췄던 지점부터 학습을 이어갑니다.</p>
                 `,
                 code: `
-# ... (import, 드라이브 마운트 등은 동일) ...
+# ... (import, 드라이브 마운트, 경로 추가 등은 동일) ...
 
 env = SokobanEnv()
 log_path = "/content/drive/MyDrive/RL/Sokoban/logs/"
