@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gemma 3 270M 로컬 PC에서 실행하기</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-okaidia.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: #282c34;
+            color: #abb2bf;
+        }
+        .slide {
+            display: none;
+        }
+        .slide.active {
+            display: block;
+        }
+        .code-highlight {
+            background-color: rgba(255, 255, 0, 0.15);
+            display: block;
+            margin: -0.25rem -0.5rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+        }
+        pre[class*="language-"] {
+            font-size: 0.9rem;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        .explanation-box {
+            background-color: #21252b;
+            border-left: 4px solid #98c379;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+        }
+        .terminal {
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            font-family: monospace;
+        }
+        .terminal .prompt {
+            color: #569cd6;
+        }
+        .terminal .user-input {
+            color: #9cdcfe;
+        }
+        .terminal .output {
+            color: #ce9178;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <div class="max-w-7xl mx-auto bg-[#21252b] rounded-xl shadow-2xl overflow-hidden">
+        <div class="p-8">
+            <h1 class="text-3xl md:text-4xl font-bold text-white text-center">Gemma 3 270M 로컬 PC에서 실행하기</h1>
+            <p class="text-center text-gray-400 mt-2">내 컴퓨터에서 직접 최신 AI 모델을 움직여봅시다!</p>
+        </div>
+
+        <div id="slider-container" class="p-4 md:p-8 border-t border-gray-700 min-h-[500px]">
+            <!-- Slides will be injected here by JS -->
+        </div>
+
+        <div class="bg-[#282c34] p-4 flex justify-between items-center">
+            <button id="prevBtn" class="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed">이전</button>
+            <div id="slide-counter" class="text-white text-lg font-semibold"></div>
+            <button id="nextBtn" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 px-4 rounded-lg transition duration-300">다음</button>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script>
+        const slides = [
+            {
+                title: "1. 시작하기 전에: 로컬 환경 준비",
+                explanation: `
+                    <p>Google Colab 대신, 이제 여러분의 PC에서 직접 Gemma 3를 실행해볼 겁니다. 이를 위해 몇 가지 준비가 필요합니다.</p>
+                    <div class="explanation-box">
+                        <p><strong>필요한 것:</strong><br>
+                        1. <strong>Python 3.8 이상:</strong> PC에 파이썬이 설치되어 있어야 합니다.<br>
+                        2. <strong>터미널 (명령 프롬프트, PowerShell, Terminal 등):</strong> 코드를 실행할 창이 필요합니다.<br>
+                        3. <strong>인터넷 연결:</strong> AI 모델 파일을 처음 다운로드할 때 필요합니다.
+                        </p>
+                    </div>
+                    <p class="mt-4">이 튜토리얼은 파이썬이 설치되어 있다고 가정하고 진행됩니다!</p>
+                `,
+                code: ``
+            },
+            {
+                title: "2. 필요한 라이브러리 설치하기",
+                explanation: `
+                    <p>먼저, 여러분의 PC 터미널을 열고 아래 명령어를 입력하여 Gemma 3를 사용하는 데 필요한 도구(라이브러리)들을 설치해주세요.</p>
+                `,
+                code: `
+# 터미널(명령 프롬프트 등)에 아래 명령어를 입력하고 엔터를 누르세요.
+<span class="code-highlight">pip install transformers torch</span>
+                `
+            },
+            {
+                title: "3. AI 모델 불러오기 (GPU/CPU 자동 감지)",
+                explanation: `
+                    <p>이제 파이썬 코드를 작성할 시간입니다. Colab과 달리 로컬 환경에서는 PC에 NVIDIA GPU가 있는지 자동으로 확인하고, 없으면 CPU를 사용하도록 코드를 짜는 것이 좋습니다.</p>
+                    <p class="mt-2"><code class="bg-gray-700 p-1 rounded">torch.cuda.is_available()</code> 코드가 바로 그 역할을 합니다.</p>
+                `,
+                code: `
+import torch
+from transformers import pipeline
+
+# GPU가 사용 가능하면 'cuda', 아니면 'cpu'를 자동으로 선택
+<span class="code-highlight">device = "cuda" if torch.cuda.is_available() else "cpu"</span>
+print(f"사용할 장치: {device}")
+
+# 'text-generation' 파이프라인을 준비합니다.
+pipe = pipeline(
+    "text-generation",
+    model="google/gemma-3-270m-it",
+    model_kwargs={"torch_dtype": torch.bfloat16},
+<span class="code-highlight">    device=device,</span>
+)
+                `
+            },
+            {
+                title: "4. AI와 대화하기",
+                explanation: `
+                    <p>AI에게 질문하는 방식은 Colab과 동일합니다. '사용자(user)'의 질문을 담은 메시지를 만들고, 파이프라인에 전달하여 답변을 생성합니다.</p>
+                `,
+                code: `
+# AI와 대화할 메시지를 리스트 형태로 만듭니다.
+messages = [
+    {"role": "user", "content": "강화학습에 대해 초등학생도 이해할 수 있게 설명해줘."},
+]
+
+# 파이프라인에 메시지를 전달하고, 답변 길이 등을 조절합니다.
+outputs = pipe(
+    messages,
+    max_new_tokens=256,
+    do_sample=True,
+)
+
+# AI가 생성한 답변 텍스트만 깔끔하게 출력합니다.
+print(outputs[0][-1]["content"])
+                `
+            },
+            {
+                title: "5. 완성된 로컬 파이썬 스크립트",
+                explanation: `
+                    <p>지금까지의 내용을 모두 합쳐, 터미널에서 사용자와 계속 대화할 수 있는 완전한 파이썬 스크립트를 만들어 봅시다.</p>
+                    <p class="mt-2">아래 코드를 <code class="bg-gray-700 p-1 rounded">run_gemma.py</code> 라는 이름으로 저장하세요.</p>
+                `,
+                code: `
+# run_gemma.py
+import torch
+from transformers import pipeline
+
+def main():
+    print("Gemma 3 270M 모델을 로딩합니다...")
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    print(f"사용 장치: {device}")
+
+    pipe = pipeline(
+        "text-generation",
+        model="google/gemma-3-270m-it",
+        model_kwargs={"torch_dtype": torch.bfloat16},
+        device=device,
+    )
+    print("모델 로딩 완료! 대화를 시작합니다. (종료하려면 'exit' 입력)")
+    
+    # 대화 기록을 저장할 리스트
+    chat_history = []
+
+    while True:
+        user_input = input("You: ")
+        if user_input.lower() == 'exit':
+            print("대화를 종료합니다.")
+            break
+        
+        # 이전 대화 내용과 함께 새로운 질문을 전달
+        messages = chat_history + [{"role": "user", "content": user_input}]
+        
+        outputs = pipe(messages, max_new_tokens=512, do_sample=True)
+        
+        assistant_response = outputs[0][-1]["content"]
+        print(f"Gemma: {assistant_response}")
+        
+        # 대화 기록 업데이트
+        chat_history.append({"role": "user", "content": user_input})
+        chat_history.append({"role": "assistant", "content": assistant_response})
+
+if __name__ == "__main__":
+    main()
+                `
+            },
+            {
+                title: "6. 스크립트 실행 및 체험하기",
+                explanation: `
+                    <p>이제 터미널에서 직접 만든 파이썬 스크립트를 실행해볼 시간입니다.</p>
+                    <p class="mt-2">1. 터미널을 열고, <code class="bg-gray-700 p-1 rounded">run_gemma.py</code> 파일을 저장한 폴더로 이동합니다.<br>
+                       (예: <code class="bg-gray-700 p-1 rounded">cd Documents/GemmaProject</code>)<br>
+                    2. 아래 명령어를 입력하여 스크립트를 실행합니다.</p>
+                    <div class="terminal mt-4">
+                        <span class="prompt">$</span> <span class="user-input">python run_gemma.py</span>
+                    </div>
+                    <div class="explanation-box">
+                        <p><strong>실행 예시:</strong><br>
+                        아래는 스크립트를 실행했을 때 터미널에 나타나는 화면 예시입니다. 'You:' 프롬프트가 나타나면 자유롭게 질문을 입력하고 엔터를 누르세요.</p>
+                    </div>
+                    <div class="terminal mt-4">
+                        <div>Gemma 3 270M 모델을 로딩합니다...</div>
+                        <div>사용 장치: cuda</div>
+                        <div>모델 로딩 완료! 대화를 시작합니다. (종료하려면 'exit' 입력)</div>
+                        <div><span class="prompt">You:</span> <span class="user-input">안녕! 넌 누구야?</span></div>
+                        <div><span class="output">Gemma: 안녕하세요! 저는 Google에서 훈련한 대규모 언어 모델입니다.</span></div>
+                        <div><span class="prompt">You:</span> <span class="user-input">exit</span></div>
+                        <div>대화를 종료합니다.</div>
+                    </div>
+                `,
+                code: ``
+            }
+        ];
+
+        let currentSlide = 0;
+        const sliderContainer = document.getElementById('slider-container');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const slideCounter = document.getElementById('slide-counter');
+
+        function createSlide(slideData, index) {
+            const slideElement = document.createElement('div');
+            slideElement.className = 'slide p-4';
+            slideElement.dataset.index = index;
+
+            let codeHtml = '';
+            if (slideData.code) {
+                const tempDiv = document.createElement('div');
+                const codeWithPlaceholders = slideData.code.trim()
+                    .replace(/<span class="code-highlight">/g, '[[HIGHLIGHT_START]]')
+                    .replace(/<\/span>/g, '[[HIGHLIGHT_END]]');
+
+                tempDiv.textContent = codeWithPlaceholders;
+                
+                const finalCode = tempDiv.innerHTML
+                    .replace(/\[\[HIGHLIGHT_START\]\]/g, '<span class="code-highlight">')
+                    .replace(/\[\[HIGHLIGHT_END\]\]/g, '</span>');
+
+                codeHtml = `
+                    <div class="mt-6 bg-[#282c34] rounded-lg overflow-hidden border border-gray-700">
+                        <pre class="language-python !text-sm !leading-relaxed"><code>${finalCode}</code></pre>
+                    </div>
+                `;
+            }
+
+            slideElement.innerHTML = `
+                <div class="grid grid-cols-1 ${slideData.code ? 'md:grid-cols-2' : ''} gap-8 items-start">
+                    <div class="prose prose-invert max-w-none">
+                        <h2 class="text-2xl font-bold text-indigo-400 mb-4">${slideData.title}</h2>
+                        <div class="text-gray-300 leading-relaxed space-y-2">${slideData.explanation}</div>
+                    </div>
+                    ${slideData.code ? `<div>${codeHtml}</div>` : ''}
+                </div>
+            `;
+            return slideElement;
+        }
+
+        function updateSlider() {
+            document.querySelectorAll('.slide').forEach((slide, index) => {
+                slide.classList.toggle('active', index === currentSlide);
+            });
+            slideCounter.textContent = `${currentSlide + 1} / ${slides.length}`;
+            prevBtn.disabled = currentSlide === 0;
+            nextBtn.disabled = currentSlide === slides.length - 1;
+            Prism.highlightAll();
+        }
+
+        prevBtn.addEventListener('click', () => {
+            if (currentSlide > 0) {
+                currentSlide--;
+                updateSlider();
+            }
+        });
+
+        nextBtn.addEventListener('click', () => {
+            if (currentSlide < slides.length - 1) {
+                currentSlide++;
+                updateSlider();
+            }
+        });
+        
+        // Initialize slider
+        slides.forEach((slideData, index) => {
+            sliderContainer.appendChild(createSlide(slideData, index));
+        });
+        updateSlider();
+    </script>
+</body>
+</html>
