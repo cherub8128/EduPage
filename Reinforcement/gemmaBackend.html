@@ -38,22 +38,27 @@
     <script>
         const slides = [
             {
-                title: "1. 새로운 아키텍처: 프론트엔드와 백엔드",
+                title: "1. 아키텍처 이해 및 프론트엔드 준비",
                 explanation: `
-                    <p>우리는 이제 두 개의 독립적인 프로그램을 만들 겁니다.</p>
-                    <div class="grid grid-cols-2 gap-4 mt-4 text-center">
+                    <p>우리는 두 개의 독립적인 프로그램을 만들어 서로 통신하게 할 것입니다.</p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 text-center">
                         <div class="bg-gray-800 p-4 rounded-lg">
                             <p class="text-2xl">🖥️</p>
                             <p class="font-bold text-white">프론트엔드 (chat.html)</p>
-                            <p class="text-sm text-gray-400">사용자에게 보여지는 채팅 UI. (이미 제공됨)</p>
+                            <p class="text-sm text-gray-400">사용자에게 보여지는 채팅 UI.</p>
                         </div>
                         <div class="bg-gray-800 p-4 rounded-lg">
                             <p class="text-2xl">🐍</p>
                             <p class="font-bold text-white">백엔드 (app.py)</p>
-                            <p class="text-sm text-gray-400">AI 모델을 실행하고 계산을 처리하는 파이썬 서버. (우리가 만들 것)</p>
+                            <p class="text-sm text-gray-400">AI 모델을 실행하고 계산을 처리하는 파이썬 서버.</p>
                         </div>
                     </div>
-                    <p class="mt-4">프론트엔드는 사용자의 메시지를 백엔드로 보내고, 백엔드는 AI의 답변을 프론트엔드로 보내주는 방식으로 동작합니다.</p>
+                    <p class="mt-4">먼저, 아래 버튼을 클릭하여 웹 브라우저에 표시될 채팅 UI 파일(<code class="bg-gray-700 p-1 rounded">chat.html</code>)을 다운로드하세요. 이 파일은 우리가 만들 백엔드 서버와 통신하도록 미리 설정되어 있습니다.</p>
+                     <div class="mt-4">
+                        <a href="chat.html" download="chat.html" class="inline-block bg-teal-500 hover:bg-teal-400 text-white font-bold py-2 px-4 rounded-lg transition duration-300">
+                            chat.html 다운로드
+                        </a>
+                    </div>
                 `,
                 code: ``
             },
@@ -89,7 +94,7 @@ pipe = pipeline(
     model_kwargs={"torch_dtype": torch.bfloat16},
     device=device,
 )
-print("Model loaded successfully!")
+print(f"Model loaded on {device}!")
 
 <span class="code-highlight">app = Flask(__name__)</span>
 <span class="code-highlight">CORS(app) # 모든 외부 요청을 허용</span>
@@ -195,9 +200,9 @@ if __name__ == '__main__':
                     <p>이제 모든 준비가 끝났습니다. 아래 순서대로 실행하여 나만의 AI 채팅 앱을 즐겨보세요!</p>
                     <div class="explanation-box">
                         <p><strong>실행 순서:</strong><br>
-                        1. 터미널을 열고 <code class="bg-gray-700 p-1 rounded">app.py</code>가 있는 폴더로 이동합니다.<br>
-                        2. 터미널에 <code class="bg-gray-700 p-1 rounded">python app.py</code>를 입력하여 <strong>백엔드 서버를 먼저 실행</strong>합니다.<br>
-                        3. 서버가 실행되면, 다운로드한 <code class="bg-gray-700 p-1 rounded">chat.html</code> 파일을 웹 브라우저에서 엽니다.<br>
+                        1. 터미널을 열고 <code class="bg-gray-700 p-1 rounded">app.py</code>와 <code class="bg-gray-700 p-1 rounded">chat.html</code>을 같은 폴더에 저장합니다.<br>
+                        2. 터미널에서 <code class="bg-gray-700 p-1 rounded">python app.py</code>를 입력하여 <strong>백엔드 서버를 먼저 실행</strong>합니다.<br>
+                        3. 서버가 실행되면, <code class="bg-gray-700 p-1 rounded">chat.html</code> 파일을 웹 브라우저에서 엽니다.<br>
                         4. 이제 채팅창에 메시지를 입력하고 AI와 대화할 수 있습니다!
                         </p>
                     </div>
