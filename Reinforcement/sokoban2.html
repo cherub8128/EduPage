@@ -182,6 +182,40 @@
                 code: ``
             },
             {
+                title: "3. CNN의 적용을 위한 환경 코드 수정",
+                explanation: `
+                    <p>CNN은 '필터(커널)'라는 작은 돋보기를 사용해 이미지의 특징을 찾아냅니다. 이 돋보기를 이미지 전체에 훑으면서(Convolution), 선, 모서리, 질감 같은 간단한 특징부터 시작해 점점 더 복잡한 형태를 인식하게 됩니다.</p>
+                    <p class="mt-2">아래 애니메이션은 3x3 필터(노란색)가 5x5 입력 데이터(게임 맵)를 훑으며 3x3 특징 맵(오른쪽)을 만들어내는 과정을 시각화한 것입니다. 출력 그리드의 파란색 하이라이트는 현재 계산되고 있는 위치를 나타냅니다.</p>
+                    <div class="cnn-container">
+                        <div class="grid-container">
+                            <div class="cnn-grid input-grid">
+                                ${Array.from({length: 25}).map((_, i) => `<div class="cell">${Math.floor(Math.random()*5)}</div>`).join('')}
+                            </div>
+                            <div class="kernel"></div>
+                        </div>
+                        <div class="text-4xl text-indigo-400">&rarr;</div>
+                        <div class="grid-container">
+                             <div class="cnn-grid output-grid">
+                                ${Array.from({length: 9}).map(() => `<div class="cell">?</div>`).join('')}
+                            </div>
+                            <div class="output-marker"></div>
+                        </div>
+                    </div>
+                `,
+                code: `
+# __init__ 함수에 수정된 부분
+self.observation_space = spaces.Box(
+    low=0, high=4,
+    shape=(1, self.game.map_height, self.game.map_width), # shape 변경
+    dtype=np.uint8
+)
+
+# step 함수에 수정된 부분
+obs_with_channel = np.expand_dims(obs, axis=0)
+return obs_with_channel, reward, terminated, truncated, {}
+`
+            },
+            {
                 title: "3. Stable-Baselines3를 위한 Custom CNN 구현",
                 explanation: `
                     <p>Stable-Baselines3는 기본 CNN 구조를 제공하지만, 우리만의 맞춤형 CNN 구조를 만들어 사용할 수 있습니다. <code class="bg-gray-700 p-1 rounded">BaseFeaturesExtractor</code>를 상속받아 간단한 CNN 클래스를 정의합니다.</p>
