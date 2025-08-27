@@ -288,31 +288,24 @@ class CustomCNN(BaseFeaturesExtractor):
             {
                 title: "7. RND 구현하기 (sb3-contrib)",
                 explanation: `
-                    <p>RND는 Stable Baselines3의 공식 확장 라이브러리인 <code class="bg-gray-700 p-1 rounded">sb3-contrib</code>에 이미 구현되어 있어 쉽게 사용할 수 있습니다.</p>
-                    <p class="mt-2">먼저 라이브러리를 설치하고, 기존에 만들었던 PPO 모델을 <code class="bg-gray-700 p-1 rounded">RND</code> 클래스로 한번 감싸주기만 하면 됩니다.</p>
+                    <p>RND는 직접 구현이 필요합니다. 현재의 지식으로는 직접 구현이 어려우니, 이미 구현된 코드를 사용하겠습니다.</p>
+                    <p class="mt-2">링크의 파일을 다운로드하여 같은 폴더에 넣고 임포트하여, 기존에 만들었던 PPO 모델을 <code class="bg-gray-700 p-1 rounded">RND</code> 클래스로 한번 감싸주기만 하면 됩니다.</p>
+                    <div class="my-4">
+                        <a id="download-link" href="rnd_wrapper.py" download="rnd_wrapper.py" class="inline-block bg-teal-500 hover:bg-teal-400 text-white font-bold py-2 px-4 rounded-lg transition duration-300">
+                            rnd_wrapper.py 다운로드
+                        </a>
+                    </div>
                 `,
                 code: `
-# 1. 라이브러리 설치
-pip install sb3-contrib
-
-# 2. 코드에 적용
-from stable_baselines3 import PPO
-from sb3_contrib import RND
-
-# ... 환경(env)과 정책(policy_kwargs)은 이미 정의되어 있다고 가정 ...
-
-# 먼저, 기본 PPO 모델을 생성
-ppo_model = PPO(
-    "CnnPolicy",
-    env,
-    policy_kwargs=policy_kwargs,
-    # ... 기타 하이퍼파라미터 ...
-)
-
-# 생성된 PPO 모델을 RND 래퍼로 감싸줍니다.
-model = RND(ppo_model, feature_dim=128, lr=1e-4)
-
-# 이제 model.learn()을 실행하면 RND가 적용됩니다.
+# 환경 생성을 위한 헬퍼 함수
+def make_env(log_dir):
+    def _init():
+        env = SokobanEnv()
+        # RND 래퍼를 적용합니다.
+        env = RNDRewardWrapper(env, lr=1e-4, feature_dim=128)
+        env = Monitor(env, log_dir)
+        return env
+    return _init
                 `
             },
             {
@@ -334,36 +327,24 @@ model = RND(ppo_model, feature_dim=128, lr=1e-4)
                     </div>
                 `,
                 code: `
-# Colab에서 실행할 전체 코드
-# 1. 라이브러리 설치
-!pip install pygame gymnasium stable-baselines3[extra] sb3-contrib xvfbwrapper
-
-# 2. 드라이브 마운트 및 경로 설정 (sokoban_env.py가 있는 경로로 수정)
-import sys
-from google.colab import drive
-drive.mount('/content/drive')
-sys.path.append('/content/drive/MyDrive/RL/Sokoban') # 예시 경로
-
-# 3. import 및 가상 화면 설정
 import os
-import pygame
 import torch
 import torch.nn as nn
 from gymnasium import spaces
+
 from stable_baselines3 import PPO
+from stable_baselines3.common.monitor import Monitor
+from stable_baselines3.common.vec_env import DummyVecEnv
 from stable_baselines3.common.torch_layers import BaseFeaturesExtractor
 from stable_baselines3.common.callbacks import CheckpointCallback
-from sb3_contrib import RND
-from sokoban_env import SokobanEnv # 수정된 환경 파일
 
-os.environ['SDL_VIDEODRIVER']='dummy'
-pygame.display.set_mode((1,1))
+from rnd_wrapper import RNDRewardWrapper 
+from sokoban_env import SokobanEnv
 
-# 4. Custom CNN 정의
 class CustomCNN(BaseFeaturesExtractor):
     def __init__(self, observation_space: spaces.Box, features_dim: int = 128):
         super().__init__(observation_space, features_dim)
-        n_input_channels = observation_space.shape[2] 
+        n_input_channels = observation_space.shape[0]
         self.cnn = nn.Sequential(
             nn.Conv2d(n_input_channels, 32, kernel_size=3, stride=1, padding=1),
             nn.ReLU(),
@@ -372,33 +353,80 @@ class CustomCNN(BaseFeaturesExtractor):
             nn.Flatten(),
         )
         with torch.no_grad():
-            sample_input = torch.as_tensor(observation_space.sample()[None]).permute(0, 3, 1, 2).float()
-            n_flatten = self.cnn(sample_input).shape[1]
-        
+            n_flatten = self.cnn(
+                torch.as_tensor(observation_space.sample()[None]).float()
+            ).shape[1]
         self.linear = nn.Sequential(nn.Linear(n_flatten, features_dim), nn.ReLU())
 
     def forward(self, observations: torch.Tensor) -> torch.Tensor:
-        observations = observations.permute(0, 3, 1, 2)
         return self.linear(self.cnn(observations))
 
-# 5. 경로 설정
-log_path = "/content/drive/MyDrive/RL/Sokoban/logs_rnd/"
-save_path = "/content/drive/MyDrive/RL/Sokoban/models_rnd/"
-os.makedirs(log_path, exist_ok=True)
-os.makedirs(save_path, exist_ok=True)
 
-# 6. 환경 및 모델 설정
-env = SokobanEnv(render_mode="rgb_array") 
+# 환경 생성을 위한 헬퍼 함수
+def make_env(log_dir):
+    def _init():
+        env = SokobanEnv()
+        # RND 래퍼를 적용합니다.
+        env = RNDRewardWrapper(env, lr=1e-4, feature_dim=128)
+        env = Monitor(env, log_dir)
+        return env
+    return _init
 
-policy_kwargs = dict(features_extractor_class=CustomCNN, features_extractor_kwargs=dict(features_dim=128))
-checkpoint_callback = CheckpointCallback(save_freq=50000, save_path=save_path, name_prefix="sokoban_rnd_model")
+if __name__ == '__main__':
+    log_dir = "sokoban_logs_rnd_manual/"
+    tensorboard_log_dir = "sokoban_tensorboard_rnd_manual/"
+    model_save_path = "sokoban_models_rnd_manual/"
 
-# 7. RND로 PPO 모델 감싸기
-ppo_model = PPO("CnnPolicy", env, policy_kwargs=policy_kwargs, verbose=1, tensorboard_log=log_path)
-model = RND(ppo_model, feature_dim=128, lr=1e-4)
+    os.makedirs(log_dir, exist_ok=True)
+    os.makedirs(tensorboard_log_dir, exist_ok=True)
+    os.makedirs(model_save_path, exist_ok=True)
 
-# 8. 학습 시작
-model.learn(total_timesteps=1_000_000, callback=checkpoint_callback)
+    env = DummyVecEnv([make_env(log_dir)])
+
+    policy_kwargs = dict(
+        features_extractor_class=CustomCNN,
+        features_extractor_kwargs=dict(features_dim=128),
+    )
+
+    # RND 래퍼가 보상을 처리해주므로, 일반 PPO 모델을 사용합니다.
+    model = PPO(
+        "CnnPolicy",
+        env,
+        policy_kwargs=policy_kwargs,
+        verbose=1,
+        tensorboard_log=tensorboard_log_dir,
+        learning_rate=3e-4,
+        n_steps=2048,
+        batch_size=128, # RND 사용 시 배치 사이즈를 늘리면 안정적일 수 있습니다.
+        n_epochs=10,
+        gamma=0.99,
+        ent_coef=0.01,
+    )
+    
+    checkpoint_callback = CheckpointCallback(
+        save_freq=50000,
+        save_path=model_save_path,
+        name_prefix="sokoban_rnd_manual_model"
+    )
+
+    print("--- 직접 구현한 RND를 사용한 학습 시작 ---")
+    model.learn(
+        total_timesteps=1_000_000,
+        callback=checkpoint_callback,
+        progress_bar=True
+    )
+
+    final_model_path = os.path.join(model_save_path, "sokoban_rnd_manual_final")
+    model.save(final_model_path)
+    
+    env.close()
+
+    print("\n" + "="*50)
+    print("🎉 학습이 성공적으로 완료되었습니다!")
+    print(f"최종 모델은 '{final_model_path}.zip'에 저장되었습니다.")
+    print("학습 과정을 확인하려면 아래 명령어를 터미널에 입력하세요:")
+    print(f"tensorboard --logdir={tensorboard_log_dir}")
+    print("="*50)
                 `
             }
         ];
