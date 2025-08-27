@@ -216,7 +216,7 @@ return obs_with_channel, reward, terminated, truncated, {}
 `
             },
             {
-                title: "3. Stable-Baselines3를 위한 Custom CNN 구현",
+                title: "4. Stable-Baselines3를 위한 Custom CNN 구현",
                 explanation: `
                     <p>Stable-Baselines3는 기본 CNN 구조를 제공하지만, 우리만의 맞춤형 CNN 구조를 만들어 사용할 수 있습니다. <code class="bg-gray-700 p-1 rounded">BaseFeaturesExtractor</code>를 상속받아 간단한 CNN 클래스를 정의합니다.</p>
                     <p class="mt-2">이 코드는 2개의 합성곱 레이어(Conv2d)와 1개의 완전 연결 레이어(Linear)로 구성된 간단한 CNN입니다. 이 네트워크가 게임 그리드를 입력받아 핵심 특징을 추출하는 역할을 합니다.</p>
@@ -255,7 +255,7 @@ class CustomCNN(BaseFeaturesExtractor):
                 `
             },
             {
-                title: "4. 문제점: 희소한 보상 (Sparse Rewards)",
+                title: "5. 문제점: 희소한 보상 (Sparse Rewards)",
                 explanation: `
                     <p>소코반 게임은 '박스를 목표 지점에 정확히 밀어 넣었을 때'만 큰 보상을 받습니다. 그 외의 수많은 움직임은 보상이 거의 없거나 작은 페널티만 있죠. 이런 환경을 <strong>희소 보상 환경</strong>이라고 합니다.</p>
                     <p class="mt-2">AI는 우연히 박스를 목표에 밀기 전까지는 어떤 행동이 좋은지 전혀 알 수 없어, 학습 초기에 길을 잃고 헤매기 쉽습니다. 마치 어두운 방에서 출구를 찾는 것과 같습니다.</p>
@@ -267,7 +267,7 @@ class CustomCNN(BaseFeaturesExtractor):
                 code: ``
             },
             {
-                title: "5. RND: '새로움'을 보상으로",
+                title: "6. RND: '새로움'을 보상으로",
                 explanation: `
                     <p><strong>Random Network Distillation (RND)</strong>은 AI의 호기심을 구현하는 대표적인 방법입니다.</p>
                     <p class="mt-2">두 개의 신경망을 사용합니다:</p>
@@ -286,7 +286,7 @@ class CustomCNN(BaseFeaturesExtractor):
                 `
             },
             {
-                title: "6. RND 구현하기 (sb3-contrib)",
+                title: "7. RND 구현하기 (sb3-contrib)",
                 explanation: `
                     <p>RND는 Stable Baselines3의 공식 확장 라이브러리인 <code class="bg-gray-700 p-1 rounded">sb3-contrib</code>에 이미 구현되어 있어 쉽게 사용할 수 있습니다.</p>
                     <p class="mt-2">먼저 라이브러리를 설치하고, 기존에 만들었던 PPO 모델을 <code class="bg-gray-700 p-1 rounded">RND</code> 클래스로 한번 감싸주기만 하면 됩니다.</p>
@@ -316,7 +316,7 @@ model = RND(ppo_model, feature_dim=128, lr=1e-4)
                 `
             },
             {
-                title: "7. 최종 학습 코드 (sokoban_train_advanced.py)",
+                title: "8. 최종 학습 코드 (sokoban_train_advanced.py)",
                 explanation: `
                     <p>지금까지 배운 Custom CNN과 RND를 모두 적용한 최종 학습 스크립트입니다. 이 코드를 Colab에 붙여넣고 실행하면, 똑똑해진 소코반 AI의 학습이 시작됩니다.</p>
                     <div class="explanation-box">
@@ -326,6 +326,11 @@ model = RND(ppo_model, feature_dim=128, lr=1e-4)
                         - PPO 모델을 <code class="bg-gray-700 p-1 rounded">RND</code>로 감싸서 최종 모델을 만듭니다.<br>
                         - RND는 많은 탐험이 필요하므로 <code class="bg-gray-700 p-1 rounded">total_timesteps</code>를 크게 설정합니다.
                         </p>
+                    </div>
+                    <div class="my-4">
+                        <a id="download-link" href="sokoban_env.py" download="sokoban_env.py" class="inline-block bg-teal-500 hover:bg-teal-400 text-white font-bold py-2 px-4 rounded-lg transition duration-300">
+                            sokoban_env.py 완성 파일 다운로드
+                        </a>
                     </div>
                 `,
                 code: `
