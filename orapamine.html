@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orapa Mine</title>
+    <style>
+        /* --- 기본 및 레이아웃 --- */
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap');
+
+        :root {
+            --board-bg: #1a1a1a;
+            --grid-line-color: rgba(255, 255, 255, 0.1);
+            --text-color: #e0e0e0;
+            --accent-color: #00aaff;
+            --red-gem: #ff4757;
+            --yellow-gem: #feca57;
+            --blue-gem: #54a0ff;
+            --white-gem: #f1f2f6;
+            --cell-size: 40px;
+            --board-width: 10;
+            --board-height: 8;
+        }
+
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: #121212;
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 2rem;
+            gap: 2rem;
+            overflow: hidden;
+            height: 100vh;
+            box-sizing: border-box;
+        }
+
+        .game-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .main-container {
+            display: grid;
+            grid-template-columns: auto calc(var(--board-width) * var(--cell-size)) auto;
+            grid-template-rows: auto calc(var(--board-height) * var(--cell-size)) auto;
+            align-items: center;
+            justify-items: center;
+        }
+        
+        h1, h2 {
+            font-weight: 700;
+            color: #fff;
+            margin: 0;
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.2);
+        }
+
+        /* --- 게임 보드 --- */
+        .game-board {
+            grid-area: 2 / 2 / 3 / 3;
+            display: grid;
+            grid-template-columns: repeat(var(--board-width), var(--cell-size));
+            grid-template-rows: repeat(var(--board-height), var(--cell-size));
+            background-color: var(--board-bg);
+            border: 1px solid var(--grid-line-color);
+            position: relative;
+            background-image:
+                linear-gradient(var(--grid-line-color) 1px, transparent 1px),
+                linear-gradient(90deg, var(--grid-line-color) 1px, transparent 1px);
+            background-size: var(--cell-size) var(--cell-size);
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+        }
+
+        #solution-board {
+            cursor: grab;
+        }
+
+        /* --- 레이저 경로 캔버스 --- */
+        #path-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        /* --- 발사 지점 --- */
+        .entry-points {
+            display: flex;
+        }
+        .entry-points.top { grid-area: 1 / 2 / 2 / 3; }
+        .entry-points.bottom { grid-area: 3 / 2 / 4 / 3; }
+        .entry-points.left { grid-area: 2 / 1 / 3 / 2; flex-direction: column; }
+        .entry-points.right { grid-area: 2 / 3 / 3 / 4; flex-direction: column; }
+
+        .entry-point {
+            width: var(--cell-size);
+            height: var(--cell-size);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            font-weight: 700;
+            color: var(--text-color);
+            transition: background-color 0.2s, color 0.2s;
+        }
+        .entry-point:hover {
+            background-color: var(--accent-color);
+            color: #121212;
+        }
+
+        /* --- 보석 스타일 --- */
+        .gem-palette {
+            display: flex;
+            gap: 1rem;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            height: 80px;
+            align-items: center;
+        }
+        
+        .gem {
+            position: absolute;
+            width: fit-content;
+            height: fit-content;
+            cursor: grab;
+            z-index: 5;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.4));
+        }
+        .gem.dragging {
+            cursor: grabbing;
+            z-index: 100;
+            transition: none;
+        }
+        .gem svg {
+            display: block;
+            overflow: visible;
+        }
+        .gem-shape {
+            stroke: rgba(0,0,0,0.2);
+            stroke-width: 2;
+        }
+        .gem[data-color="red"] .gem-shape { fill: var(--red-gem); }
+        .gem[data-color="yellow"] .gem-shape { fill: var(--yellow-gem); }
+        .gem[data-color="blue"] .gem-shape { fill: var(--blue-gem); }
+        .gem[data-color="white"] .gem-shape { fill: var(--white-gem); }
+
+        /* --- UI 요소 --- */
+        .controls, .info-panel {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+            width: 100%;
+        }
+        
+        .status-display {
+            font-size: 1.2rem;
+            font-weight: 700;
+            background-color: rgba(255, 255, 255, 0.05);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+        }
+        
+        .submit-btn {
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            font-weight: 700;
+            background-color: var(--accent-color);
+            color: #121212;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+        }
+        .submit-btn:hover {
+            background-color: #33bbff;
+        }
+        .submit-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* --- 탐사 기록 --- */
+        .history-log {
+            width: 280px;
+            height: 300px;
+            background-color: var(--board-bg);
+            border-radius: 10px;
+            padding: 1rem;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column-reverse;
+            gap: 0.5rem;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+        }
+        .log-entry {
+            background-color: rgba(255, 255, 255, 0.05);
+            padding: 0.5rem;
+            border-radius: 5px;
+            font-size: 0.9rem;
+            animation: fadeIn 0.3s ease;
+        }
+        .log-entry .color-swatch {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 3px;
+            margin-left: 5px;
+            vertical-align: middle;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* --- 모달 --- */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0; top: 0;
+            width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.7);
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: #2a2a2a;
+            padding: 2rem 3rem;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            animation: zoomIn 0.3s ease;
+        }
+        .modal-content h2 { font-size: 2rem; margin-bottom: 1rem; }
+        .modal-content p { margin-bottom: 1.5rem; }
+        .modal-close-btn {
+            padding: 0.5rem 1rem;
+            background-color: var(--accent-color);
+            color: #121212;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        @keyframes zoomIn {
+            from { transform: scale(0.5); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="game-section">
+        <h1>풀이 보드</h1>
+        <div class="gem-palette" id="gem-palette"></div>
+        <div class="main-container">
+            <div class="game-board" id="solution-board"></div>
+        </div>
+        <div class="controls">
+            <div class="status-display">질문 횟수: <span id="question-count">0</span></div>
+            <button class="submit-btn" id="submit-answer">정답 도전</button>
+        </div>
+    </div>
+
+    <div class="game-section">
+        <h1>탐사 보드</h1>
+        <div class="main-container">
+            <div class="entry-points top" id="ep-top"></div>
+            <div class="entry-points left" id="ep-left"></div>
+            <div class="game-board" id="problem-board">
+                <canvas id="path-canvas"></canvas>
+            </div>
+            <div class="entry-points right" id="ep-right"></div>
+            <div class="entry-points bottom" id="ep-bottom"></div>
+        </div>
+        <div class="info-panel">
+             <h2>탐사 기록</h2>
+            <div class="history-log" id="history-log"></div>
+        </div>
+    </div>
+
+    <div id="result-modal" class="modal">
+        <div class="modal-content">
+            <h2 id="modal-title"></h2>
+            <p id="modal-text"></p>
+            <button id="modal-close" class="modal-close-btn">닫기</button>
+        </div>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const C = {
+            BOARD_WIDTH: 10,
+            BOARD_HEIGHT: 8,
+            CELL_SIZE: 40,
+            EPSILON: 1e-6, 
+        };
+
+        const state = {
+            questionCount: 0,
+            placedGems: {},
+            draggedGem: null,
+            dragState: {},
+        };
+
+        const solutionBoard = document.getElementById('solution-board');
+        const gemPalette = document.getElementById('gem-palette');
+        const questionCountEl = document.getElementById('question-count');
+        const historyLogEl = document.getElementById('history-log');
+        const submitBtn = document.getElementById('submit-answer');
+        const canvas = document.getElementById('path-canvas');
+        const ctx = canvas.getContext('2d');
+
+        const gemData = {
+            red_parallelogram: {
+                color: 'red',
+                svgPath: 'M 40,0 L 120,0 L 80,40 L 0,40 Z',
+                viewBox: '0 0 120 40',
+                shape: [{x:1,y:0},{x:2,y:0},{x:0,y:1},{x:1,y:1}],
+                surfaces: { '1,0': { N: 'H', E: 'D_NE' }, '2,0': { N: 'D_SW', E: 'V' }, '0,1': { W: 'V', S: 'D_SW' }, '1,1': { W: 'D_NE', S: 'H' } }
+            },
+            blue_rhombus: {
+                color: 'blue',
+                svgPath: 'M 40,0 L 80,40 L 40,80 L 0,40 Z',
+                viewBox: '0 0 80 80',
+                shape: [{x:1,y:0},{x:0,y:1},{x:2,y:1},{x:1,y:2}],
+                surfaces: { '1,0': { N: 'D_NE', W: 'D_NW' }, '0,1': { N: 'D_NW', W: 'D_SW' }, '2,1': { N: 'D_NE', E: 'D_SE' }, '1,2': { S: 'D_SE', W: 'D_SW' } }
+            },
+            yellow_triangle_2x2: {
+                color: 'yellow',
+                svgPath: 'M 0,0 L 80,0 L 0,80 Z',
+                viewBox: '0 0 80 80',
+                shape: [{x:0,y:0},{x:1,y:0},{x:0,y:1}],
+                surfaces: { '0,0': { N: 'H', W: 'V' }, '1,0': { N: 'H', E: 'D_SW' }, '0,1': { W: 'V', S: 'D_SW' } }
+            },
+            white_isosceles_triangle: {
+                color: 'white',
+                svgPath: 'M 80,0 L 160,80 L 0,80 Z',
+                viewBox: '0 0 160 80',
+                shape: [{x:2,y:0},{x:1,y:1},{x:2,y:1},{x:3,y:1},{x:0,y:2},{x:1,y:2},{x:2,y:2},{x:3,y:2}],
+                surfaces: { '2,0': {N: 'D_NW', E: 'D_NE'}, '1,1': {W: 'D_NW'}, '3,1': {E: 'D_NE'}, '0,2':{S:'H'}, '4,2':{S:'H'} }
+            },
+            white_isosceles_triangle_2: {
+                color: 'white',
+                svgPath: 'M 80,0 L 160,80 L 0,80 Z',
+                viewBox: '0 0 160 80',
+                shape: [{x:2,y:0},{x:1,y:1},{x:2,y:1},{x:3,y:1},{x:0,y:2},{x:1,y:2},{x:2,y:2},{x:3,y:2}],
+                surfaces: { '2,0': {N: 'D_NW', E: 'D_NE'}, '1,1': {W: 'D_NW'}, '3,1': {E: 'D_NE'}, '0,2':{S:'H'}, '4,2':{S:'H'} }
+            }
+        };
+
+        const solution = {
+            red_parallelogram: { x: 5, y: 4, rotation: 90, flipped: false },
+            blue_rhombus: { x: 1, y: 1, rotation: 0, flipped: false },
+            yellow_triangle_2x2: { x: 0, y: 1, rotation: 0, flipped: false },
+            white_isosceles_triangle: { x: 6, y: 0, rotation: 90, flipped: true },
+            white_isosceles_triangle_2: { x: 6, y: 4, rotation: 180, flipped: false },
+        };
+        
+        let solutionGrid = [];
+        function init() {
+            setupBoards();
+            createGemPalette();
+            setupEventListeners();
+            buildSolutionGrid();
+        }
+
+        function setupBoards() {
+            canvas.width = C.BOARD_WIDTH * C.CELL_SIZE;
+            canvas.height = C.BOARD_HEIGHT * C.CELL_SIZE;
+            
+            const epTop = document.getElementById('ep-top');
+            const epBottom = document.getElementById('ep-bottom');
+            const epLeft = document.getElementById('ep-left');
+            const epRight = document.getElementById('ep-right');
+
+            for (let i = 0; i < C.BOARD_WIDTH; i++) {
+                epTop.appendChild(createEntryPoint('top', i, i + 1));
+            }
+            const bottomLabels = ['I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R'];
+            for (let i = 0; i < C.BOARD_WIDTH; i++) {
+                epBottom.appendChild(createEntryPoint('bottom', i, bottomLabels[i]));
+            }
+
+            const leftLabels = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+            for (let i = 0; i < C.BOARD_HEIGHT; i++) {
+                epLeft.appendChild(createEntryPoint('left', i, leftLabels[i]));
+                epRight.appendChild(createEntryPoint('right', i, 11 + i));
+            }
+        }
+
+        function createEntryPoint(side, index, label) {
+            const el = document.createElement('div');
+            el.className = 'entry-point';
+            el.textContent = label;
+            el.addEventListener('click', () => fireLaser(side, index, label));
+            return el;
+        }
+
+        function createGemPalette() {
+            Object.keys(gemData).forEach(id => {
+                const gem = createGemElement(id, gemData[id]);
+                gem.style.position = 'relative';
+                gem.style.left = '0';
+                gem.style.top = '0';
+                gem.style.transform = 'scale(0.5)';
+                gem.dataset.paletteId = id;
+                gemPalette.appendChild(gem);
+            });
+        }
+        
+        let gemCounter = 0;
+        function createGemElement(id, data) {
+            const gem = document.createElement('div');
+            const uniqueId = `${id}_${gemCounter++}`;
+            gem.id = uniqueId;
+            gem.className = 'gem';
+            gem.dataset.id = id;
+            gem.dataset.color = data.color;
+            gem.dataset.rotation = 0;
+            gem.dataset.flipped = 'false';
+            gem.appendChild(createGemSVG(data));
+            addGemEventListeners(gem);
+            return gem;
+        }
+
+        function createGemSVG(data) {
+            const svgNS = "http://www.w3.org/2000/svg";
+            const svg = document.createElementNS(svgNS, "svg");
+            const path = document.createElementNS(svgNS, "path");
+            
+            svg.setAttribute('viewBox', data.viewBox);
+            const [,,w,h] = data.viewBox.split(' ');
+            svg.style.width = `${w}px`;
+            svg.style.height = `${h}px`;
+
+            path.setAttribute('d', data.svgPath);
+            path.classList.add('gem-shape');
+            svg.appendChild(path);
+            
+            return svg;
+        }
+
+        function setupEventListeners() {
+            submitBtn.addEventListener('click', checkAnswer);
+            document.addEventListener('mousemove', dragGem);
+            document.addEventListener('mouseup', endDrag);
+        }
+
+        function addGemEventListeners(gem) {
+            gem.addEventListener('mousedown', startDrag);
+            gem.addEventListener('click', rotateGem);
+            gem.addEventListener('dblclick', flipGem);
+        }
+        
+        function startDrag(e) {
+            e.preventDefault();
+            if (e.button !== 0) return;
+            
+            let target = e.target.closest('.gem');
+            if (!target) return;
+
+            if (target.parentElement.id === 'gem-palette') {
+                const newGem = createGemElement(target.dataset.id, gemData[target.dataset.id]);
+                solutionBoard.appendChild(newGem);
+                state.draggedGem = newGem;
+                
+                const boardRect = solutionBoard.getBoundingClientRect();
+                const svg = newGem.querySelector('svg');
+                const w = parseFloat(svg.style.width);
+                const h = parseFloat(svg.style.height);
+                newGem.style.left = `${e.clientX - boardRect.left - w/2}px`;
+                newGem.style.top = `${e.clientY - boardRect.top - h/2}px`;
+
+            } else {
+                state.draggedGem = target;
+            }
+
+            state.draggedGem.classList.add('dragging');
+            state.dragState = {
+                initialX: e.clientX,
+                initialY: e.clientY,
+                initialLeft: state.draggedGem.offsetLeft,
+                initialTop: state.draggedGem.offsetTop,
+            };
+
+            if (target.parentElement.id !== 'gem-palette') {
+                 delete state.placedGems[target.id];
+            }
+        }
+
+        function dragGem(e) {
+            if (!state.draggedGem) return;
+            const dx = e.clientX - state.dragState.initialX;
+            const dy = e.clientY - state.dragState.initialY;
+            state.draggedGem.style.left = `${state.dragState.initialLeft + dx}px`;
+            state.draggedGem.style.top = `${state.dragState.initialTop + dy}px`;
+        }
+
+        function endDrag(e) {
+            if (!state.draggedGem) return;
+            
+            const boardRect = solutionBoard.getBoundingClientRect();
+            const paletteGemId = state.draggedGem.dataset.id;
+            const paletteGem = gemPalette.querySelector(`[data-palette-id="${paletteGemId}"]`);
+            
+            if (e.clientX < boardRect.left || e.clientX > boardRect.right || e.clientY < boardRect.top || e.clientY > boardRect.bottom) {
+                 if (state.draggedGem.parentElement === solutionBoard) {
+                    if (paletteGem) paletteGem.style.visibility = 'visible';
+                    state.draggedGem.remove();
+                }
+            } else {
+                const gridX = Math.round(state.draggedGem.offsetLeft / C.CELL_SIZE);
+                const gridY = Math.round(state.draggedGem.offsetTop / C.CELL_SIZE);
+                
+                state.draggedGem.style.left = `${gridX * C.CELL_SIZE}px`;
+                state.draggedGem.style.top = `${gridY * C.CELL_SIZE}px`;
+                
+                state.placedGems[state.draggedGem.id] = {
+                    x: gridX, y: gridY,
+                    rotation: parseInt(state.draggedGem.dataset.rotation),
+                    flipped: state.draggedGem.dataset.flipped === 'true',
+                    id: state.draggedGem.dataset.id
+                };
+
+                if (paletteGem) paletteGem.style.visibility = 'hidden';
+            }
+            state.draggedGem.classList.remove('dragging');
+            state.draggedGem = null;
+        }
+        
+        function rotateGem(e) {
+            const gem = e.target.closest('.gem');
+            if (!gem || state.draggedGem) return;
+            
+            let currentRotation = parseInt(gem.dataset.rotation) || 0;
+            currentRotation = (currentRotation + 90) % 360;
+            gem.dataset.rotation = currentRotation;
+            applyTransform(gem);
+        }
+
+        function flipGem(e) {
+            e.preventDefault();
+            const gem = e.target.closest('.gem');
+            if (!gem || state.draggedGem) return;
+
+            let isFlipped = gem.dataset.flipped === 'true';
+            gem.dataset.flipped = !isFlipped;
+            applyTransform(gem);
+        }
+        
+        function applyTransform(gem) {
+            if (!gem) return;
+            const rot = gem.dataset.rotation;
+            const scaleX = gem.dataset.flipped === 'true' ? -1 : 1;
+            const svg = gem.querySelector('svg');
+            const w = parseFloat(svg.style.width);
+            const h = parseFloat(svg.style.height);
+            
+            gem.style.transformOrigin = `${w/2}px ${h/2}px`;
+            gem.style.transform = `rotate(${rot}deg) scaleX(${scaleX})`;
+            
+            if (state.placedGems[gem.id]) {
+                state.placedGems[gem.id].rotation = parseInt(rot);
+                state.placedGems[gem.id].flipped = gem.dataset.flipped === 'true';
+            }
+        }
+        
+        function buildSolutionGrid() {
+            solutionGrid = Array(C.BOARD_HEIGHT).fill(0).map(() => Array(C.BOARD_WIDTH).fill(null));
+            Object.keys(solution).forEach(id => {
+                const gemDef = solution[id];
+                const transformed = getTransformedGem(id, gemDef.rotation, gemDef.flipped);
+                
+                transformed.shape.forEach(part => {
+                    const x = gemDef.x + part.x;
+                    const y = gemDef.y + part.y;
+                    if (x >= 0 && x < C.BOARD_WIDTH && y >= 0 && y < C.BOARD_HEIGHT) {
+                        solutionGrid[y][x] = {
+                            color: gemData[id].color,
+                            surfaces: transformed.surfaces[`${part.x},${part.y}`] || {}
+                        };
+                    }
+                });
+            });
+        }
+
+        function getTransformedGem(id, rotation, flipped) {
+            const original = gemData[id];
+            let shape = JSON.parse(JSON.stringify(original.shape));
+            let surfaces = JSON.parse(JSON.stringify(original.surfaces));
+
+            let w = Math.max(...original.shape.map(p => p.x));
+            let h = Math.max(...original.shape.map(p => p.y));
+
+            if (flipped) {
+                shape.forEach(p => p.x = w - p.x);
+                // Flip surfaces...
+            }
+            
+            for (let i = 0; i < rotation / 90; i++) {
+                shape.forEach(p => { let temp = p.x; p.x = h - p.y; p.y = temp; });
+                let temp = w; w = h; h = temp;
+                // Rotate surfaces...
+            }
+            
+            const minX = Math.min(...shape.map(p => p.x));
+            const minY = Math.min(...shape.map(p => p.y));
+            shape.forEach(p => { p.x -= minX; p.y -= minY; });
+            
+            const newSurfaces = {};
+            Object.keys(surfaces).forEach(key => {
+                const [x,y] = key.split(',').map(Number);
+                const newKey = `${x-minX},${y-minY}`; // This is simplified
+                newSurfaces[newKey] = surfaces[key];
+            });
+
+            return { shape: shape, surfaces: surfaces };
+        }
+
+        function fireLaser(side, index, startLabel) {
+            state.questionCount++;
+            questionCountEl.textContent = state.questionCount;
+
+            let pos, dir;
+            switch(side) {
+                case 'top':    pos = { x: index + 0.5, y: 0 }; dir = { dx: 0, dy: 1 }; break;
+                case 'bottom': pos = { x: index + 0.5, y: C.BOARD_HEIGHT }; dir = { dx: 0, dy: -1 }; break;
+                case 'left':   pos = { x: 0, y: index + 0.5 }; dir = { dx: 1, dy: 0 }; break;
+                case 'right':  pos = { x: C.BOARD_WIDTH, y: index + 0.5 }; dir = { dx: -1, dy: 0 }; break;
+            }
+
+            const pathSegments = [];
+            let currentPath = [{...pos}];
+            let hitColors = new Set();
+            let safety = 0;
+
+            while (safety < 100) {
+                const nextHit = advanceRay(pos, dir);
+                currentPath.push(nextHit.pos);
+                pos = nextHit.pos;
+
+                if (nextHit.hit) {
+                    pathSegments.push({ path: currentPath, color: getMixedColor(Array.from(hitColors)).hex });
+                    hitColors.add(nextHit.color);
+                    currentPath = [{...pos}];
+                    dir = reflect(dir, nextHit.entryDir, nextHit.surfaces);
+                }
+                
+                if (pos.x < -C.EPSILON || pos.x > C.BOARD_WIDTH + C.EPSILON || pos.y < -C.EPSILON || pos.y > C.BOARD_HEIGHT + C.EPSILON) {
+                    break;
+                }
+                safety++;
+            }
+            pathSegments.push({ path: currentPath, color: getMixedColor(Array.from(hitColors)).hex });
+            
+            drawPath(pathSegments);
+            const finalResult = getMixedColor(Array.from(hitColors));
+            const endLabel = getExitLabel(pos);
+            logHistory(startLabel, endLabel, finalResult.name, finalResult.hex);
+        }
+        
+        function advanceRay(pos, dir) {
+            const tX = dir.dx === 0 ? Infinity : ((dir.dx > 0 ? Math.floor(pos.x) + 1 : Math.ceil(pos.x) - 1) - pos.x) / dir.dx;
+            const tY = dir.dy === 0 ? Infinity : ((dir.dy > 0 ? Math.floor(pos.y) + 1 : Math.ceil(pos.y) - 1) - pos.y) / dir.dy;
+
+            const t = Math.min(tX, tY);
+            const hitPos = {x: pos.x + dir.dx*t, y: pos.y + dir.dy*t};
+            const nextPos = { x: pos.x + dir.dx * (t + C.EPSILON), y: pos.y + dir.dy * (t + C.EPSILON) };
+            
+            let entryDir;
+            if (tX < tY) { entryDir = dir.dx > 0 ? 'W' : 'E'; } 
+            else { entryDir = dir.dy > 0 ? 'N' : 'S'; }
+
+            const checkX = Math.floor(nextPos.x - dir.dx * C.EPSILON);
+            const checkY = Math.floor(nextPos.y - dir.dy * C.EPSILON);
+
+            if (checkX >= 0 && checkX < C.BOARD_WIDTH && checkY >= 0 && checkY < C.BOARD_HEIGHT) {
+                const cell = solutionGrid[checkY][checkX];
+                if (cell) {
+                    return { pos: hitPos, hit: true, color: cell.color, entryDir: entryDir, surfaces: cell.surfaces };
+                }
+            }
+            return { pos: nextPos, hit: false };
+        }
+
+        function reflect(dir, entryDir, surfaces) {
+            const surfaceType = surfaces[entryDir];
+            if (surfaceType === 'H') return { dx: dir.dx, dy: -dir.dy };
+            if (surfaceType === 'V') return { dx: -dir.dx, dy: dir.dy };
+            if (surfaceType === 'D_NE' || surfaceType === 'D_SW') return { dx: -dir.dy, dy: -dir.dx };
+            if (surfaceType === 'D_NW' || surfaceType === 'D_SE') return { dx: dir.dy, dy: dir.dx };
+            
+            return dir;
+        }
+
+        function drawPath(segments) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            segments.forEach(seg => {
+                if (seg.path.length < 2) return;
+                ctx.beginPath();
+                ctx.moveTo(seg.path[0].x * C.CELL_SIZE, seg.path[0].y * C.CELL_SIZE);
+                for (let i = 1; i < seg.path.length; i++) {
+                    ctx.lineTo(seg.path[i].x * C.CELL_SIZE, seg.path[i].y * C.CELL_SIZE);
+                }
+                ctx.strokeStyle = seg.color;
+                ctx.lineWidth = 3;
+                ctx.shadowColor = seg.color;
+                ctx.shadowBlur = 10;
+                ctx.stroke();
+            });
+            
+            setTimeout(() => ctx.clearRect(0, 0, canvas.width, canvas.height), 3000);
+        }
+        
+        function getExitLabel(pos) {
+            const labels = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+            const bottomLabels = ['I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R'];
+            if (pos.y < 0.5) return Math.floor(pos.x) + 1;
+            if (pos.y > C.BOARD_HEIGHT - 0.5) return bottomLabels[Math.floor(pos.x)];
+            if (pos.x < 0.5) return labels[Math.floor(pos.y)];
+            if (pos.x > C.BOARD_WIDTH - 0.5) return 11 + Math.floor(pos.y);
+            return '소멸';
+        }
+
+        function getMixedColor(colors) {
+            const colorMap = {
+                '투명': { name: '투명', hex: '#00ffff' }, '빨강': { name: '빨강', hex: '#ff4757' },
+                '파랑': { name: '파랑', hex: '#54a0ff' }, '노랑': { name: '노랑', hex: '#feca57' },
+                '흰색': { name: '흰색', hex: '#f1f2f6' }, '주홍색': { name: '주홍색', hex: '#ff7f50' },
+                '보라색': { name: '보라색', hex: '#9b59b6' }, '녹색': { name: '녹색', hex: '#2ecc71' },
+                '분홍색': { name: '분홍색', hex: '#ff86c3' }, '레몬색': { name: '레몬색', hex: '#f9e79f' },
+                '하늘색': { name: '하늘색', hex: '#87ceeb' }, '검은색': { name: '검은색', hex: '#34495e' },
+                '회색': { name: '회색', hex: '#95a5a6' },
+            };
+
+            const c = new Set(colors);
+            if (c.size === 0) return colorMap['투명'];
+            
+            const has = (color) => c.has(color);
+            if (has('red') && has('yellow') && has('blue')) return colorMap['검은색'];
+            if (has('red') && has('yellow')) return colorMap['주홍색'];
+            if (has('red') && has('blue')) return colorMap['보라색'];
+            if (has('yellow') && has('blue')) return colorMap['녹색'];
+            if (has('red') && has('white')) return colorMap['분홍색'];
+            if (has('yellow') && has('white')) return colorMap['레몬색'];
+            if (has('blue') && has('white')) return colorMap['하늘색'];
+            if (c.size >= 3) return colorMap['회색'];
+            if (has('red')) return colorMap['빨강'];
+            if (has('blue')) return colorMap['파랑'];
+            if (has('yellow')) return colorMap['노랑'];
+            if (has('white')) return colorMap['흰색'];
+            
+            return {name: '혼합색', hex: '#ffffff'};
+        }
+
+        function logHistory(start, end, colorName, colorHex) {
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.innerHTML = `<strong>입력:</strong> ${start} &rarr; <strong>출력:</strong> ${end}, <strong>색상:</strong> ${colorName} <span class="color-swatch" style="background-color:${colorHex}"></span>`;
+            historyLogEl.prepend(entry);
+        }
+
+        function checkAnswer() {
+            const placedCount = Object.keys(state.placedGems).length;
+            const solutionCount = Object.keys(solution).length;
+            
+            if (placedCount !== solutionCount) {
+                showModal("실패!", `보석의 개수가 맞지 않습니다. (정답: ${solutionCount}개, 현재: ${placedCount}개)`);
+                return;
+            }
+
+            let isCorrect = true;
+            for (const id in solution) {
+                const placed = Object.values(state.placedGems).find(g => g.id === id);
+                if (!placed ||
+                    placed.x !== solution[id].x ||
+                    placed.y !== solution[id].y ||
+                    placed.rotation !== solution[id].rotation ||
+                    placed.flipped !== solution[id].flipped) {
+                    isCorrect = false;
+                    break;
+                }
+            }
+
+            if (isCorrect) {
+                showModal("성공!", `${state.questionCount}번의 질문으로 모든 보석을 찾아냈습니다!`);
+            } else {
+                showModal("실패!", "보석의 위치나 방향이 정확하지 않습니다.");
+            }
+        }
+
+        const modal = document.getElementById('result-modal');
+        const modalTitle = document.getElementById('modal-title');
+        const modalText = document.getElementById('modal-text');
+        const modalClose = document.getElementById('modal-close');
+
+        function showModal(title, text) {
+            modalTitle.textContent = title;
+            modalText.textContent = text;
+            modal.style.display = 'flex';
+        }
+
+        modalClose.addEventListener('click', () => {
+            modal.style.display = 'none';
+        });
+        window.addEventListener('click', (e) => {
+            if (e.target == modal) {
+                modal.style.display = 'none';
+            }
+        });
+
+        init();
+    });
+    </script>
+</body>
+</html>
