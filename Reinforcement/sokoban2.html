@@ -276,7 +276,7 @@ ppo_model = PPO(
 )
 
 # 생성된 PPO 모델을 RND 래퍼로 감싸줍니다.
-<span class="code-highlight">model = RND(ppo_model, feature_dim=128, lr=1e-4)</span>
+model = RND(ppo_model, feature_dim=128, lr=1e-4)
 
 # 이제 model.learn()을 실행하면 RND가 적용됩니다.
                 `
