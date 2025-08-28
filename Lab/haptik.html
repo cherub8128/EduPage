@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>대화형 공중 햅틱 장치 제작 가이드</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Warm Neutrals & Subtle Accents -->
+    <!-- Application Structure Plan: The application is structured into four logical, thematic sections to guide the user from theory to practice: 1) Core Principles (the 'Why'), 2) System Architecture (the 'How'), 3) Component Deep-Dive (the 'What'), and 4) Phased Roadmap (the 'Action Plan'). This task-oriented flow, supported by a sticky navigation bar, allows users to either follow a linear learning path or jump directly to the section most relevant to their current needs. This is more user-friendly than the report's linear structure, as it separates conceptual understanding from practical implementation details, preventing information overload and facilitating focused exploration. Key interactions include tabbed content for comparisons, interactive diagrams to visualize connections, and charts to summarize data, making complex information digestible. -->
+    <!-- Visualization & Content Choices: 
+        - Report Info: I/O Expansion Method Comparison (Table 1) -> Goal: Compare technical options -> Viz/Method: Interactive Bar Chart (Chart.js) -> Interaction: Hovering over bars shows detailed stats (speed, pin count). -> Justification: A bar chart provides a much faster, more intuitive comparison of quantitative data (speed, pins) than a dense table. It immediately highlights the superiority of SPI.
+        - Report Info: System Architecture (Section 2 & 3) -> Goal: Organize and show relationships -> Viz/Method: Interactive HTML/CSS Diagram -> Interaction: Clicking on a component in the diagram reveals a detailed description of its role. -> Justification: A static block diagram is informative, but an interactive one allows users to actively explore the system's data flow, improving comprehension and retention.
+        - Report Info: Required vs. Available Parts (Section 6) -> Goal: Inform and summarize status -> Viz/Method: Donut Chart (Chart.js) -> Interaction: Hovering reveals quantities. -> Justification: A donut chart instantly communicates the project's readiness and what's missing, providing a clear call to action.
+        - Report Info: Phased Prototyping (Section 6.3) -> Goal: Organize a process -> Viz/Method: Numbered, styled HTML sections with icons. -> Interaction: Clickable tabs for each phase. -> Justification: Breaking the complex process into clear, visually distinct steps with icons makes it less intimidating and easier to follow than a simple numbered list.
+        - Report Info: PCB Stackup (Section 5.3) -> Goal: Inform and visualize structure -> Viz/Method: HTML/CSS Diagram -> Interaction: Static visual aid. -> Justification: A clear, color-coded visual diagram built with HTML/CSS effectively explains the complex 4-layer PCB structure without external libraries or images, reinforcing the importance of proper PCB design.
+        - Report Info: 4x4 Prototype Schematic -> Goal: Organize and show relationships for a smaller prototype -> Viz/Method: Dynamic JavaScript Canvas Diagram -> Interaction: Static visual aid. -> Justification: A detailed, dynamically drawn schematic using the Canvas API provides a clear, scalable, and integrated visualization of the prototype's architecture, demonstrating the signal flow from MCU to transducers.
+        - Report Info: Carrier vs Modulation frequency explanation -> Goal: Explain a core concept -> Viz/Method: Analogical text in a styled card -> Interaction: Reading. -> Justification: A clear, non-technical analogy (AM radio, delivery truck) is the most effective way to explain the complex relationship between the two frequencies, preventing common misconceptions.
+        - Report Info: Waveform example -> Goal: Visualize the modulation concept -> Viz/Method: Dynamic line chart (Chart.js) -> Interaction: Hovering shows values, visual inspection. -> Justification: A graph visually confirms the abstract "delivery truck" analogy, showing how a high-frequency carrier is "packaged" by a low-frequency signal, solidifying user understanding of the core principle.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: #FDFBF8; /* Warm Neutral Background */
+            color: #4A4A4A;
+        }
+        .nav-button {
+            transition: all 0.3s ease;
+            border-bottom: 2px solid transparent;
+        }
+        .nav-button.active, .nav-button:hover {
+            color: #D97706; /* Subtle Accent */
+            border-bottom-color: #D97706;
+        }
+        .card {
+            background-color: #FFFFFF;
+            border: 1px solid #F3F4F6;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+        }
+        .tab-button {
+            transition: all 0.3s ease;
+        }
+        .tab-button.active {
+            background-color: #FBBF24;
+            color: #4A4A4A;
+        }
+        .tab-button:not(.active) {
+            background-color: #F3F4F6;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+        .diagram-box {
+            border: 2px solid #E5E7EB;
+            padding: 1rem;
+            text-align: center;
+            border-radius: 0.5rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .diagram-box:hover, .diagram-box.active {
+            border-color: #FBBF24;
+            background-color: #FEFCE8;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+        .arrow {
+            font-size: 2rem;
+            color: #9CA3AF;
+            line-height: 1;
+        }
+        .stackup-layer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.5rem 1rem;
+            font-weight: 500;
+        }
+        .stackup-copper { background-color: #F59E0B; color: white; }
+        .stackup-fr4 { background-color: #047857; color: white; }
+        #circuitCanvas {
+            background-color: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <header class="bg-white/80 backdrop-blur-md sticky top-0 z-50 shadow-sm">
+        <nav class="container mx-auto px-4">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex-shrink-0">
+                    <h1 class="text-xl font-bold text-gray-800">공중 햅틱 장치 제작 가이드</h1>
+                </div>
+                <div class="hidden md:block">
+                    <div class="ml-10 flex items-baseline space-x-4">
+                        <button onclick="scrollToSection('principles')" class="nav-button px-3 py-2 rounded-md text-sm font-medium text-gray-700">핵심 원리</button>
+                        <button onclick="scrollToSection('architecture')" class="nav-button px-3 py-2 rounded-md text-sm font-medium text-gray-700">시스템 설계</button>
+                        <button onclick="scrollToSection('components')" class="nav-button px-3 py-2 rounded-md text-sm font-medium text-gray-700">부품 분석</button>
+                        <button onclick="scrollToSection('roadmap')" class="nav-button px-3 py-2 rounded-md text-sm font-medium text-gray-700">구현 로드맵</button>
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container mx-auto p-4 md:p-8">
+
+        <section id="intro" class="text-center mb-16">
+            <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">공기 중에 만져지는 입체를 만들다</h2>
+            <p class="max-w-3xl mx-auto text-lg text-gray-600">이 가이드는 100개의 초음파 센서를 이용한 공중 햅틱 장치 제작 프로젝트를 위한 대화형 기술 요약서입니다. 복잡한 이론부터 실제 구현까지, 각 단계를 시각적이고 체계적으로 탐색하며 성공적인 프로젝트 완수를 위한 핵심 지식을 얻으세요.</p>
+        </section>
+
+        <!-- Section 1: Core Principles -->
+        <section id="principles" class="mb-16 scroll-mt-20">
+            <div class="text-center mb-8">
+                <span class="text-sm font-semibold text-amber-600 bg-amber-100 px-3 py-1 rounded-full">Part 1</span>
+                <h3 class="text-2xl md:text-3xl font-bold mt-2">핵심 원리: 어떻게 공기를 만질까?</h3>
+                <p class="mt-2 text-gray-600 max-w-2xl mx-auto">이 섹션에서는 초음파가 어떻게 물리적인 힘을 만들어내고, 인간이 이를 어떻게 촉감으로 인지하는지에 대한 과학적 원리를 알아봅니다.</p>
+            </div>
+            <div class="grid md:grid-cols-2 gap-8">
+                <div class="card p-6 rounded-lg">
+                    <h4 class="font-bold text-lg mb-2">🔊 음향 방사압과 빔포밍</h4>
+                    <p class="text-gray-600">다수의 초음파를 한 점에 집중시켜(보강 간섭) 공기 중에 국소적인 압력 지점을 만드는 기술입니다. 각 센서의 신호 출발 시간을 정밀하게 조절하여 원하는 위치에 '초점'을 형성합니다.</p>
+                </div>
+                <div class="card p-6 rounded-lg">
+                    <h4 class="font-bold text-lg mb-2">🎛️ 위상과 진폭 제어</h4>
+                    <p class="text-gray-600">위상(Phase) 제어는 초점의 3D 위치를 결정하고, 진폭(Amplitude) 제어는 초점의 세기를 조절합니다. 이 두 가지를 개별적으로 제어해야만 점, 선, 면과 같은 복잡한 입체 형태를 구현할 수 있습니다.</p>
+                </div>
+                <div class="card p-6 rounded-lg">
+                    <h4 class="font-bold text-lg mb-2">🖐️ 저주파 변조와 촉각 인지</h4>
+                    <p class="text-gray-600">인간의 피부는 40kHz의 고주파 압력을 직접 감지하지 못합니다. 따라서 초점의 세기를 200~300Hz의 저주파로 껐다 켰다 반복(변조)해야만, 우리 뇌가 '떨림'이나 '압력'으로 인지할 수 있는 유의미한 촉감이 생성됩니다.</p>
+                </div>
+                <div class="card p-6 rounded-lg bg-amber-50 border-amber-200">
+                    <h4 class="font-bold text-lg mb-2 text-amber-800">📡 반송파와 변조: 두 주파수의 비밀</h4>
+                    <p class="text-gray-700 mb-2">두 주파수가 동시에 나오는 걸까요? 정답은 '아니오'입니다. 이 시스템은 AM 라디오 방송과 같은 원리로 동작합니다.</p>
+                    <p class="text-gray-700 mb-2"><strong class="text-gray-900">40kHz 초음파 (반송파):</strong> 위치를 정밀하게 제어하는 '택배 트럭'입니다. 이 트럭 자체는 느낄 수 없습니다.</p>
+                    <p class="text-gray-700"><strong class="text-gray-900">200~300Hz 리듬 (변조 신호):</strong> 트럭에 실려 주기적으로 배달되는 '소포'입니다. 우리는 이 소포가 도착하는 리듬을 '촉감'으로 인지합니다.</p>
+                    <p class="text-gray-600 mt-3 text-sm">결론: 회로는 40kHz의 초음파를 200~300Hz의 리듬으로 껐다 켰다 반복할 뿐입니다. 하나의 신호로 위치 제어와 촉감 생성을 모두 해내는 효율적인 방식입니다.</p>
+                </div>
+            </div>
+            <!-- NEW WAVEFORM CHART -->
+            <div class="card p-6 md:p-8 rounded-lg mt-8">
+                <h4 class="font-bold text-lg mb-4 text-center">변조된 파형의 시각적 예시</h4>
+                <p class="text-center mb-4 text-gray-600 max-w-2xl mx-auto">아래 그래프는 실제 트랜스듀서에서 방사되는 파형을 보여줍니다. 파란색의 고주파(40kHz) 신호가 빨간색의 저주파(250Hz) 신호에 의해 주기적으로 켜지고 꺼지는 것을 볼 수 있습니다.</p>
+                <div class="chart-container" style="height: 300px; max-height: 350px;">
+                    <canvas id="waveformChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: System Architecture -->
+        <section id="architecture" class="mb-16 scroll-mt-20">
+            <div class="text-center mb-8">
+                <span class="text-sm font-semibold text-amber-600 bg-amber-100 px-3 py-1 rounded-full">Part 2</span>
+                <h3 class="text-2xl md:text-3xl font-bold mt-2">시스템 설계: 100개 채널 제어하기</h3>
+                 <p class="mt-2 text-gray-600 max-w-2xl mx-auto">ESP32 하나로 100개의 초음파 센서를 어떻게 개별적으로, 그리고 매우 빠르게 제어할 수 있을까요? 이 섹션에서는 제어 신호가 마이크로컨트롤러에서 센서까지 전달되는 전체 구조와 핵심 기술을 살펴봅니다.</p>
+            </div>
+            
+            <div class="card p-6 md:p-8 rounded-lg mb-8">
+                <h4 class="font-bold text-lg mb-4 text-center">I/O 확장 기술 비교</h4>
+                <div class="chart-container">
+                    <canvas id="ioExpansionChart"></canvas>
+                </div>
+                <p class="text-center mt-4 text-sm text-gray-500">차트의 막대에 마우스를 올리면 각 기술의 상세 정보를 확인할 수 있습니다. SPI 방식이 속도와 안정성 면에서 압도적으로 우수함을 보여줍니다.</p>
+            </div>
+
+            <div class="card p-6 md:p-8 rounded-lg">
+                <h4 class="font-bold text-lg mb-4 text-center">전체 시스템 구성도</h4>
+                <p class="text-center mb-6 text-gray-600">아래 다이어그램의 각 요소를 클릭하여 역할을 확인해보세요. 제어 신호 생성과 고전력 스위칭을 분리하는 계층적 구조가 시스템 안정성의 핵심입니다.</p>
+                <div class="flex flex-col md:flex-row items-center justify-center space-y-4 md:space-y-0 md:space-x-4">
+                    <div id="diag-esp32" class="diagram-box" onclick="showDiagramInfo('esp32')">🧠<br>ESP32</div>
+                    <div class="arrow">→</div>
+                    <div id="diag-spi" class="diagram-box" onclick="showDiagramInfo('spi')">📡<br>I/O 확장기<br>(MCP23S17)</div>
+                    <div class="arrow">→</div>
+                    <div id="diag-driver" class="diagram-box" onclick="showDiagramInfo('driver')">⚡<br>게이트 드라이버<br>(TC4427)</div>
+                    <div class="arrow">→</div>
+                    <div id="diag-mosfet" class="diagram-box" onclick="showDiagramInfo('mosfet')">💡<br>MOSFET<br>(IRLZ44N)</div>
+                    <div class="arrow">→</div>
+                    <div id="diag-transducer" class="diagram-box" onclick="showDiagramInfo('transducer')">🔊<br>초음파 센서</div>
+                </div>
+                <div id="diagram-info" class="mt-6 p-4 bg-gray-50 rounded-lg text-center min-h-[60px] flex items-center justify-center">
+                    <p class="text-gray-700">다이어그램의 구성 요소를 클릭하여 설명을 확인하세요.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 3: Component Deep-Dive -->
+        <section id="components" class="mb-16 scroll-mt-20">
+            <div class="text-center mb-8">
+                <span class="text-sm font-semibold text-amber-600 bg-amber-100 px-3 py-1 rounded-full">Part 3</span>
+                <h3 class="text-2xl md:text-3xl font-bold mt-2">부품 심층 분석</h3>
+                <p class="mt-2 text-gray-600 max-w-2xl mx-auto">이 프로젝트의 성패는 올바른 부품 선택과 사용에 달려있습니다. 왜 특정 부품은 부적합하고, 어떤 부품이 반드시 필요한지 그 이유를 알아봅니다.</p>
+            </div>
+            <div class="grid md:grid-cols-2 gap-8">
+                <div class="card p-6 rounded-lg">
+                    <h4 class="font-bold text-lg mb-2 text-red-600">🚨 고위험 부품: IRLZ44N MOSFET 단독 사용</h4>
+                    <p class="text-gray-600 mb-4">보유하신 IRLZ44N은 '로직 레벨' MOSFET이지만, 이는 저주파 환경에만 해당됩니다. 40kHz 고주파 스위칭 시에는 게이트를 켜는 데 필요한 전하량($Q_g$)이 커서 ESP32나 I/O 확장기의 약한 출력으로는 매우 느리게 켜집니다. 이로 인해 스위칭 과정에서 막대한 열이 발생하여 MOSFET이 순식간에 과열되고 파손됩니다.</p>
+                    <p class="font-semibold text-gray-800">결론: 게이트 드라이버 없이는 절대 사용 불가.</p>
+                </div>
+                <div class="card p-6 rounded-lg">
+                    <h4 class="font-bold text-lg mb-2 text-green-600">✅ 필수 부품: MOSFET 게이트 드라이버 (TC4427)</h4>
+                    <p class="text-gray-600 mb-4">게이트 드라이버는 MOSFET의 게이트를 나노초(ns) 단위로 매우 빠르게 켜고 끄기 위해 수 암페어(A)의 강력한 전류를 순간적으로 공급하는 특수 IC입니다. 스위칭 시간을 극적으로 단축시켜 MOSFET의 발열을 억제하고, 시스템 전체의 효율과 안정성을 보장하는 핵심 부품입니다.</p>
+                    <p class="font-semibold text-gray-800">결론: 프로젝트 성공을 위한 필수 부품.</p>
+                </div>
+            </div>
+             <div class="card p-6 md:p-8 rounded-lg mt-8">
+                <h4 class="font-bold text-lg mb-4 text-center">프로젝트 부품 현황</h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                    <div class="chart-container h-64 md:h-auto">
+                        <canvas id="componentChart"></canvas>
+                    </div>
+                    <div>
+                        <h5 class="font-semibold mb-2">필수 추가 부품 목록:</h5>
+                        <ul id="required-parts-list" class="list-disc list-inside text-gray-600 space-y-1">
+                           <li><span class="font-medium text-gray-800">I/O 확장기 (MCP23S17):</span> 7개</li>
+                           <li><span class="font-medium text-gray-800">MOSFET 게이트 드라이버 (TC4427):</span> 50개</li>
+                           <li><span class="font-medium text-gray-800">각종 커패시터 및 다이오드:</span> 다수</li>
+                           <li><span class="font-medium text-gray-800">맞춤형 인쇄 회로 기판 (PCB):</span> 1개</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 4: Roadmap -->
+        <section id="roadmap" class="scroll-mt-20">
+            <div class="text-center mb-8">
+                <span class="text-sm font-semibold text-amber-600 bg-amber-100 px-3 py-1 rounded-full">Part 4</span>
+                <h3 class="text-2xl md:text-3xl font-bold mt-2">구현 로드맵: 실패를 피하는 길</h3>
+                <p class="mt-2 text-gray-600 max-w-2xl mx-auto">복잡한 프로젝트는 체계적인 단계별 접근이 중요합니다. 한 번에 100채널을 제작하기보다, 작은 단위로 검증하며 위험을 줄여나가는 전략적 로드맵을 따르세요.</p>
+            </div>
+
+            <div class="card p-6 md:p-8 rounded-lg">
+                <div class="mb-8">
+                    <div class="flex items-center justify-center p-3 bg-red-100 border-l-4 border-red-500 rounded-r-lg">
+                        <p class="text-red-700 font-semibold">
+                            <span class="font-bold">중대 경고:</span> 브레드보드와 점퍼선만으로는 이 프로젝트를 완성할 수 없습니다. 고주파/고전류 환경에서 발생하는 노이즈와 신호 왜곡으로 인해 시스템은 거의 확실하게 오작동합니다. 최종 결과물은 반드시 맞춤형 PCB로 제작해야 합니다.
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="mb-8">
+                    <h4 class="font-bold text-lg mb-4 text-center">권장 4층 PCB 스택업 구조</h4>
+                    <p class="text-center mb-4 text-gray-600">안정적인 전원 공급과 신호 무결성을 위해 아래와 같은 4층 구조의 PCB를 강력히 권장합니다.</p>
+                    <div class="max-w-md mx-auto border-2 border-gray-300 rounded-lg overflow-hidden shadow-lg">
+                        <div class="stackup-layer stackup-copper">
+                            <span>L1: TOP</span>
+                            <span>COPPER (Signal)</span>
+                            <span>0.035mm</span>
+                        </div>
+                        <div class="stackup-layer stackup-fr4 h-12">
+                            <span></span>
+                            <span>FR-4 (Dielectric)</span>
+                            <span>0.38mm</span>
+                        </div>
+                        <div class="stackup-layer stackup-copper">
+                            <span>L2: GND_PLANE</span>
+                            <span>COPPER (Ground)</span>
+                            <span>0.035mm</span>
+                        </div>
+                        <div class="stackup-layer stackup-fr4 h-20">
+                            <span></span>
+                            <span>FR-4 (Dielectric)</span>
+                            <span>0.70mm</span>
+                        </div>
+                        <div class="stackup-layer stackup-copper">
+                            <span>L3: PWR_PLANE</span>
+                            <span>COPPER (Power)</span>
+                            <span>0.035mm</span>
+                        </div>
+                        <div class="stackup-layer stackup-fr4 h-12">
+                            <span></span>
+                            <span>FR-4 (Dielectric)</span>
+                            <span>0.38mm</span>
+                        </div>
+                        <div class="stackup-layer stackup-copper">
+                            <span>L4: BOTTOM</span>
+                            <span>COPPER (Signal)</span>
+                            <span>0.035mm</span>
+                        </div>
+                    </div>
+                    <p class="text-center mt-2 text-sm text-gray-500">전용 접지(GND) 및 전원(PWR) 평면은 노이즈를 최소화하는 핵심입니다.</p>
+                </div>
+
+                <div class="mb-8">
+                    <h4 class="font-bold text-lg mb-4 text-center">4x4 프로토타입 시스템 회로도</h4>
+                    <p class="text-center mb-4 text-gray-600">아래는 16채널 프로토타입의 전체 신호 흐름을 보여주는 블록 다이어그램입니다. 작은 화면에서는 좌우로 스크롤할 수 있습니다.</p>
+                    <div class="overflow-x-auto p-2 bg-gray-50 rounded-lg">
+                        <canvas id="circuitCanvas" width="1200" height="800"></canvas>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="flex mb-4 border-b">
+                        <button id="tab-btn-1" class="tab-button flex-1 py-2 px-4 rounded-t-lg font-medium" onclick="switchTab(1)">1단계: 단일 채널 검증</button>
+                        <button id="tab-btn-2" class="tab-button flex-1 py-2 px-4 rounded-t-lg font-medium" onclick="switchTab(2)">2단계: 제어 체인 통합</button>
+                        <button id="tab-btn-3" class="tab-button flex-1 py-2 px-4 rounded-t-lg font-medium" onclick="switchTab(3)">3단계: PCB 설계</button>
+                        <button id="tab-btn-4" class="tab-button flex-1 py-2 px-4 rounded-t-lg font-medium" onclick="switchTab(4)">4단계: 최종 조립</button>
+                    </div>
+                    <div id="tab-content" class="p-4 bg-gray-50 rounded-b-lg">
+                        <!-- Content will be injected by JS -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+    
+    <footer class="text-center p-6 mt-12 border-t border-gray-200">
+        <p class="text-sm text-gray-500">이 문서는 제공된 기술 보고서를 기반으로 생성된 대화형 요약본입니다.</p>
+    </footer>
+
+    <script>
+        const diagramInfoContent = {
+            esp32: '<strong>🧠 ESP32 (마스터 컨트롤러):</strong> 모든 계산과 제어 명령을 시작하는 두뇌 역할. 햅틱 형태에 맞는 위상 패턴 데이터를 I/O 확장기로 전송합니다.',
+            spi: '<strong>📡 I/O 확장기 (MCP23S17):</strong> ESP32의 적은 수의 핀으로 100개의 채널을 제어할 수 있도록 다리 역할을 합니다. SPI 통신으로 제어 데이터를 받습니다.',
+            driver: '<strong>⚡ 게이트 드라이버 (TC4427):</strong> 약한 제어 신호를 증폭하여 MOSFET을 매우 빠르게 켜고 끌 수 있는 강력한 전류를 공급합니다. MOSFET의 과열을 방지하는 핵심 부품입니다.',
+            mosfet: '<strong>💡 MOSFET (IRLZ44N):</strong> 게이트 드라이버의 신호를 받아 12V의 높은 전력을 초음파 센서로 전달하는 고속 스위치 역할을 합니다.',
+            transducer: '<strong>🔊 초음파 센서:</strong> 최종적으로 12V 전력을 받아 40kHz의 초음파를 공기 중으로 방사하는 부품입니다.',
+            default: '<p class="text-gray-700">다이어그램의 구성 요소를 클릭하여 설명을 확인하세요.</p>'
+        };
+
+        const roadmapTabsContent = {
+            1: {
+                title: '1단계: 단일 채널 검증',
+                content: '브레드보드에서 <strong>단 하나의 채널</strong>(ESP32 핀 1개 → 게이트 드라이버 1개 → MOSFET 1개 → 센서 1개)만 구성합니다. 오실로스코프로 40kHz 구동 파형이 깨끗한지, MOSFET이 과열되지 않는지 확인하여 핵심 구동 회로의 유효성을 검증합니다.'
+            },
+            2: {
+                title: '2단계: 제어 체인 통합',
+                content: '1단계 회로에 <strong>I/O 확장기(MCP23S17)</strong>를 추가합니다. ESP32가 SPI 통신을 통해 확장기를 제어하고, 확장기 출력이 다시 구동 회로를 제어하는지 확인하여 전체 제어 체인의 동작을 검증합니다.'
+            },
+            3: {
+                title: '3단계: PCB 설계 및 제작',
+                content: '단일 채널의 로직이 검증되면, 100채널 전체를 위한 <strong>맞춤형 인쇄 회로 기판(PCB)</strong>을 설계합니다. 안정적인 전력 공급을 위해 4층 기판을 사용하고, 모든 IC 옆에 디커플링 커패시터를 배치하는 등 보고서의 가이드라인을 철저히 따릅니다.'
+            },
+            4: {
+                title: '4단계: 최종 조립 및 테스트',
+                content: '제작된 PCB에 부품을 조립합니다. 처음부터 모든 부품을 납땜하지 말고, <strong>2x2 배열과 같이 작은 단위부터 테스트</strong>하며 기본적인 오류가 없는지 확인한 후, 점진적으로 전체 보드를 완성해 나갑니다.'
+            }
+        };
+
+        function scrollToSection(sectionId) {
+            document.getElementById(sectionId).scrollIntoView({ behavior: 'smooth' });
+            const buttons = document.querySelectorAll('.nav-button');
+            buttons.forEach(button => {
+                if (button.getAttribute('onclick').includes(sectionId)) {
+                    button.classList.add('active');
+                } else {
+                    button.classList.remove('active');
+                }
+            });
+        }
+        
+        function showDiagramInfo(componentId) {
+            const infoBox = document.getElementById('diagram-info');
+            infoBox.innerHTML = diagramInfoContent[componentId] || diagramInfoContent.default;
+            
+            const diagramBoxes = document.querySelectorAll('.diagram-box');
+            diagramBoxes.forEach(box => {
+                if (box.id === `diag-${componentId}`) {
+                    box.classList.add('active');
+                } else {
+                    box.classList.remove('active');
+                }
+            });
+        }
+
+        function switchTab(tabNumber) {
+            const contentBox = document.getElementById('tab-content');
+            contentBox.innerHTML = `
+                <h5 class="font-bold text-lg mb-2">${roadmapTabsContent[tabNumber].title}</h5>
+                <p class="text-gray-600">${roadmapTabsContent[tabNumber].content}</p>
+            `;
+
+            const tabButtons = document.querySelectorAll('.tab-button');
+            tabButtons.forEach(button => {
+                if (button.id === `tab-btn-${tabNumber}`) {
+                    button.classList.add('active');
+                } else {
+                    button.classList.remove('active');
+                }
+            });
+        }
+
+        window.addEventListener('DOMContentLoaded', (event) => {
+            // IO Expansion Chart
+            const ioCtx = document.getElementById('ioExpansionChart').getContext('2d');
+            new Chart(ioCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['74HC595 (시프트 레지스터)', 'MCP23017 (I2C)', 'MCP23S17 (SPI)'],
+                    datasets: [{
+                        label: '업데이트 속도 (빠를수록 좋음)',
+                        data: [1, 10, 200], // Relative speed score
+                        backgroundColor: ['#FECACA', '#FCD34D', '#A7F3D0'],
+                        borderColor: ['#F87171', '#FBBF24', '#6EE7B7'],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            title: { display: true, text: '상대적 성능 점수' }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const labels = {
+                                        0: '매우 느림, 신호 무결성 위험 높음',
+                                        1: '느림, 동적 햅틱 렌더링에 부적합',
+                                        2: '매우 빠름, 고속 제어에 최적'
+                                    };
+                                    return labels[context.dataIndex];
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Component Chart
+            const componentCtx = document.getElementById('componentChart').getContext('2d');
+            new Chart(componentCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['보유 부품', '필수 추가 부품'],
+                    datasets: [{
+                        data: [5, 4], // Categories of parts
+                        backgroundColor: ['#60A5FA', '#F87171'],
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        title: {
+                            display: false,
+                            text: '부품 현황'
+                        }
+                    }
+                }
+            });
+
+            // Waveform Chart
+            const waveformCtx = document.getElementById('waveformChart').getContext('2d');
+            const samples = 500;
+            const carrierFreq = 20; // Visual representation, not actual 40kHz
+            const modulationFreq = 1; // Visual representation
+            const labels = [];
+            const modulatedData = [];
+            const modulationEnvelope = [];
+
+            for (let i = 0; i < samples; i++) {
+                const t = i / samples * 2 * Math.PI;
+                labels.push(i);
+                const carrier = Math.sin(t * carrierFreq);
+                const modulator = (Math.sin(t * modulationFreq) + 1) / 2 > 0.5 ? 1 : 0; // Square wave
+                modulatedData.push(carrier * modulator);
+                modulationEnvelope.push(modulator * 1.1); // Slightly higher for visibility
+            }
+
+            new Chart(waveformCtx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: '변조된 40kHz 신호 (결과)',
+                            data: modulatedData,
+                            borderColor: 'rgb(59, 130, 246)',
+                            borderWidth: 2,
+                            pointRadius: 0,
+                            tension: 0.1
+                        },
+                        {
+                            label: '250Hz 변조 신호 (제어)',
+                            data: modulationEnvelope,
+                            borderColor: 'rgba(239, 68, 68, 0.5)',
+                            borderWidth: 2,
+                            pointRadius: 0,
+                            stepped: true,
+                            fill: true,
+                            backgroundColor: 'rgba(239, 68, 68, 0.1)'
+                        }
+                    ]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            min: -1.2,
+                            max: 1.2,
+                            title: { display: true, text: '진폭' }
+                        },
+                        x: {
+                            display: false, // Hide x-axis labels for clarity
+                            title: { display: true, text: '시간' }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                    },
+                    animation: {
+                        duration: 0
+                    }
+                }
+            });
+            
+            // Initialize first tab
+            switchTab(1);
+
+            // Activate nav button on scroll
+            const sections = document.querySelectorAll('section[id]');
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        document.querySelectorAll('.nav-button').forEach((button) => {
+                            button.classList.remove('active');
+                            if (button.getAttribute('onclick').includes(entry.target.id)) {
+                                button.classList.add('active');
+                            }
+                        });
+                    }
+                });
+            }, { rootMargin: "-50% 0px -50% 0px" });
+
+            sections.forEach(section => {
+                observer.observe(section);
+            });
+
+            // Draw 4x4 Circuit Diagram
+            const circuitCanvas = document.getElementById('circuitCanvas');
+            if (circuitCanvas) {
+                const ctx = circuitCanvas.getContext('2d');
+                ctx.font = '12px "Noto Sans KR"';
+                ctx.lineWidth = 1.5;
+
+                function drawBox(x, y, w, h, text, color = '#e5e7eb', textColor = '#1f2937') {
+                    ctx.fillStyle = '#ffffff';
+                    ctx.strokeStyle = color;
+                    ctx.strokeRect(x, y, w, h);
+                    ctx.fillStyle = textColor;
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    const lines = text.split('\n');
+                    const lineHeight = 14;
+                    const startY = y + h / 2 - (lines.length - 1) * lineHeight / 2;
+                    lines.forEach((line, i) => {
+                        ctx.fillText(line, x + w / 2, startY + i * lineHeight);
+                    });
+                }
+
+                function drawLine(x1, y1, x2, y2, color = '#6b7280', dashed = false) {
+                    ctx.beginPath();
+                    ctx.strokeStyle = color;
+                    if (dashed) {
+                        ctx.setLineDash([5, 5]);
+                    }
+                    ctx.moveTo(x1, y1);
+                    ctx.lineTo(x2, y2);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                }
+                
+                function drawArrow(x1, y1, x2, y2, color = '#6b7280') {
+                    drawLine(x1, y1, x2, y2, color);
+                    const headlen = 10;
+                    const angle = Math.atan2(y2 - y1, x2 - x1);
+                    ctx.beginPath();
+                    ctx.fillStyle = color;
+                    ctx.moveTo(x2, y2);
+                    ctx.lineTo(x2 - headlen * Math.cos(angle - Math.PI / 6), y2 - headlen * Math.sin(angle - Math.PI / 6));
+                    ctx.lineTo(x2 - headlen * Math.cos(angle + Math.PI / 6), y2 - headlen * Math.sin(angle + Math.PI / 6));
+                    ctx.closePath();
+                    ctx.fill();
+                }
+
+                const esp32 = { x: 50, y: 350, w: 120, h: 100 };
+                const ioExpander = { x: 250, y: 350, w: 120, h: 100 };
+                const driverArrayStart = { x: 450, y: 100 };
+                const mosfetArrayStart = { x: 650, y: 100 };
+                const transducerArrayStart = { x: 850, y: 100 };
+                const componentSize = { w: 120, h: 30 };
+                const vSpacing = 40;
+
+                drawBox(esp32.x, esp32.y, esp32.w, esp32.h, '🧠\nESP32\n(Master)', '#4f46e5');
+                drawBox(ioExpander.x, ioExpander.y, ioExpander.w, ioExpander.h, '📡\nMCP23S17\n(I/O Expander)', '#059669');
+                drawArrow(esp32.x + esp32.w, esp32.y + esp32.h / 2, ioExpander.x, ioExpander.y + ioExpander.h / 2, '#4f46e5');
+                ctx.fillStyle = '#4f46e5';
+                ctx.fillText('SPI Bus', (esp32.x + esp32.w + ioExpander.x) / 2, esp32.y + esp32.h / 2 - 15);
+
+                for (let i = 0; i < 16; i++) {
+                    const yPos = driverArrayStart.y + i * vSpacing;
+                    if (i % 2 === 0) {
+                        drawBox(driverArrayStart.x, yPos, componentSize.w, componentSize.h * 2 + (vSpacing - componentSize.h), `⚡\nTC4427\n(Driver IC ${i/2 + 1})`, '#d97706');
+                    }
+                    drawBox(mosfetArrayStart.x, yPos, componentSize.w, componentSize.h, `💡 MOSFET ${i+1}`, '#db2777');
+                    drawBox(transducerArrayStart.x, yPos, componentSize.w, componentSize.h, `🔊 Transducer ${i+1}`, '#0ea5e9');
+                    
+                    const driverY = driverArrayStart.y + Math.floor(i/2) * (componentSize.h*2 + (vSpacing-componentSize.h)) + (i%2 === 0 ? componentSize.h/2 : componentSize.h*1.5 + (vSpacing-componentSize.h)/2);
+                    drawLine(ioExpander.x + ioExpander.w, ioExpander.y + ioExpander.h/2, ioExpander.x + ioExpander.w + 30, ioExpander.y + ioExpander.h/2);
+                    drawLine(ioExpander.x + ioExpander.w + 30, ioExpander.y + ioExpander.h/2, driverArrayStart.x - 30, yPos + componentSize.h/2);
+                    drawArrow(driverArrayStart.x - 30, yPos + componentSize.h/2, driverArrayStart.x, yPos + componentSize.h/2);
+                    drawArrow(driverArrayStart.x + componentSize.w, yPos + componentSize.h/2, mosfetArrayStart.x, yPos + componentSize.h/2, '#d97706');
+                    drawArrow(mosfetArrayStart.x + componentSize.w, yPos + componentSize.h/2, transducerArrayStart.x, yPos + componentSize.h/2, '#db2777');
+                    
+                    drawLine(transducerArrayStart.x + componentSize.w, yPos + componentSize.h/2, transducerArrayStart.x + componentSize.w + 50, yPos + componentSize.h/2);
+                    drawLine(transducerArrayStart.x + componentSize.w + 50, yPos + componentSize.h/2, transducerArrayStart.x + componentSize.w + 50, 50);
+                    drawLine(mosfetArrayStart.x + componentSize.w/2, mosfetArrayStart.y + (i * vSpacing) + componentSize.h, mosfetArrayStart.x + componentSize.w/2, 750);
+                }
+                
+                ctx.strokeStyle = '#ef4444';
+                ctx.lineWidth = 4;
+                drawLine(transducerArrayStart.x + componentSize.w + 50, 50, 1150, 50);
+                drawBox(1080, 20, 80, 30, '+12V', '#ef4444', '#ef4444');
+
+                ctx.strokeStyle = '#1f2937';
+                ctx.lineWidth = 4;
+                drawLine(mosfetArrayStart.x - 50, 750, 1150, 750);
+                drawBox(1080, 720, 80, 30, 'GND', '#1f2937', '#1f2937');
+                
+                for (let i = 0; i < 16; i++) {
+                    const yPos = mosfetArrayStart.y + i * vSpacing;
+                    drawLine(mosfetArrayStart.x + componentSize.w/2, yPos + componentSize.h, mosfetArrayStart.x + componentSize.w/2, 750, '#1f2937');
+                }
+
+                ctx.fillStyle = '#1f2937';
+                ctx.textAlign = 'left';
+                ctx.font = 'bold 14px "Noto Sans KR"';
+                ctx.fillText('제어 영역', 50, 50);
+                ctx.fillText('드라이버 배열 (16채널)', 450, 50);
+                ctx.fillText('초음파 트랜스듀서 배열', 850, 50);
+                
+                ctx.font = '12px "Noto Sans KR"';
+                ctx.fillStyle = '#6b7280';
+                ctx.fillText('디지털 제어 신호', 280, 480);
+                ctx.fillText('증폭된 게이트 신호', 520, 760);
+                ctx.fillText('스위칭된 고전력 신호', 720, 760);
+            }
+        });
+    </script>
+</body>
+</html>
