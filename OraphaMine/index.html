@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orapa Mine</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <canvas id="laser-canvas"></canvas>
+
+    <div id="app-container">
+        <div class="left-panel">
+            <h1>Orapa Mine</h1>
+            <div class="gem-palette" id="gem-palette"></div>
+            <div class="board-area">
+                <div class="game-board" id="play-board"></div>
+                <div id="solution-board-container">
+                    <div class="game-board" id="solution-board"></div>
+                </div>
+                <div class="entry-points ep-top" id="ep-top"></div>
+                <div class="entry-points ep-bottom" id="ep-bottom"></div>
+                <div class="entry-points ep-left" id="ep-left"></div>
+                <div class="entry-points ep-right" id="ep-right"></div>
+            </div>
+        </div>
+
+        <div class="right-panel">
+            <div class="controls">
+                <h2>컨트롤 패널</h2>
+                <div class="status-display">질문 횟수: <span id="question-count">0</span></div>
+                <div class="button-group">
+                     <button class="game-btn secondary" id="reset-btn">새로운 문제</button>
+                     <button class="game-btn secondary" id="toggle-solution-btn">정답 보기</button>
+                </div>
+                <button class="game-btn" id="submit-answer-btn">정답 도전</button>
+            </div>
+            <div class="info-panel">
+                <h2>탐사 기록</h2>
+                <div class="history-log" id="history-log"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="result-modal" class="modal">
+        <div class="modal-content">
+            <h2 id="modal-title"></h2>
+            <p id="modal-text"></p>
+            <button id="modal-close-btn" class="game-btn">닫기</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
