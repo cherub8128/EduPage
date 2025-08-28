@@ -44,9 +44,11 @@ class RunningMeanStd:
         self.count = tot_count
 
 class RNDRewardWrapper(gym.Wrapper):
-    def __init__(self, env: gym.Env, feature_dim: int = 128, lr: float = 1e-4):
+    def __init__(self, env: gym.Env, feature_dim: int = 128, lr: float = 1e-4, intrinsic_reward_coef: float = 0.01):
         super().__init__(env)
         
+        self.intrinsic_reward_coef = intrinsic_reward_coef # 가중치 저장
+
         # 관찰 공간의 형태를 1차원으로 변환
         obs_shape = self.observation_space.shape
         self.obs_dim = np.prod(obs_shape)
@@ -121,7 +123,7 @@ class RNDRewardWrapper(gym.Wrapper):
         self._update_predictor(obs)
 
         # 외재적 보상 + 내재적 보상
-        total_reward = reward + intrinsic_reward
+        total_reward = reward + self.intrinsic_reward_coef * intrinsic_reward
         
         return obs, total_reward, terminated, truncated, info
 

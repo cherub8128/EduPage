@@ -127,7 +127,7 @@ class SokobanGame:
         self._move_player(dx, dy)
         after = len(self.box_positions.intersection(self.target_positions))
 
-        reward = -0.01
+        reward = -0.5
         if after > before:
             reward += 10
         elif after < before:
@@ -135,7 +135,7 @@ class SokobanGame:
 
         done = self._check_win_condition()
         if done:
-            reward += 100
+            reward += 80
 
         return self.get_observation(), reward, done
 
