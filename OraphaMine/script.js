@@ -1,9 +1,9 @@
 document.addEventListener('DOMContentLoaded', () => {
     'use strict';
 
-    // =_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=
+    // =================================================================================
     // CONSTANTS & CONFIG
-    // =_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=
+    // =================================================================================
     const C = {
         BOARD_W: 10,
         BOARD_H: 8,
@@ -12,26 +12,16 @@ document.addEventListener('DOMContentLoaded', () => {
         EPS: 1e-6,
     };
 
-    // [NEW] Enum-like object for logging cell shapes to the console
-    const CELL_SHAPE_SYMBOLS = {
-        SQUARE: '■',
-        TRIANGLE_NW: '◤',
-        TRIANGLE_NE: '◥',
-        TRIANGLE_SW: '◣',
-        TRIANGLE_SE: '◢',
-        null: '·'
-    };
-
     const GEMS = {
         red_parallelogram: {
             label: '빨강 평행사변형', color: 'red', viewBox: '0 0 120 40',
             svgPath: 'M 40,0 L 120,0 L 80,40 L 0,40 Z',
             shape: [{x:1,y:0},{x:2,y:0},{x:0,y:1},{x:1,y:1}],
             cellShapes: {
-                '1,0': 'SQUARE',
-                '2,0': 'TRIANGLE_SW',
-                '0,1': 'TRIANGLE_NE',
-                '1,1': 'SQUARE'
+                '1,0': '■',
+                '2,0': '◣',
+                '0,1': '◥',
+                '1,1': '■'
             }
         },
         white_rhombus: {
@@ -39,10 +29,10 @@ document.addEventListener('DOMContentLoaded', () => {
             svgPath: 'M 40,0 L 80,40 L 40,80 L 0,40 Z',
             shape: [{x:1,y:0},{x:0,y:1},{x:2,y:1},{x:1,y:2}],
             cellShapes: {
-                '1,0': 'TRIANGLE_SE',
-                '0,1': 'TRIANGLE_NE',
-                '2,1': 'TRIANGLE_SW',
-                '1,2': 'TRIANGLE_NW'
+                '1,0': '◢',
+                '0,1': '◥',
+                '2,1': '◣',
+                '1,2': '◤'
             }
         },
         yellow_triangle_2x2: {
@@ -50,9 +40,9 @@ document.addEventListener('DOMContentLoaded', () => {
             svgPath: 'M 0,0 L 80,0 L 0,80 Z',
             shape: [{x:0,y:0},{x:1,y:0},{x:0,y:1}],
             cellShapes: {
-                '0,0': 'TRIANGLE_NW',
-                '1,0': 'SQUARE',
-                '0,1': 'SQUARE'
+                '0,0': '◤',
+                '1,0': '■',
+                '0,1': '■'
             }
         },
         blue_isosceles_triangle: {
@@ -60,12 +50,12 @@ document.addEventListener('DOMContentLoaded', () => {
             svgPath: 'M 0,80 L 160,80 L 80,0 Z',
             shape: [{x:0,y:1},{x:1,y:1},{x:2,y:1},{x:3,y:1}, {x:1,y:0},{x:2,y:0}],
             cellShapes: {
-                '1,0': 'TRIANGLE_SE',
-                '2,0': 'TRIANGLE_SW',
-                '0,1': 'TRIANGLE_NE',
-                '1,1': 'SQUARE',
-                '2,1': 'SQUARE',
-                '3,1': 'TRIANGLE_NW'
+                '1,0': '◢',
+                '2,0': '◣',
+                '0,1': '◥',
+                '1,1': '■',
+                '2,1': '■',
+                '3,1': '◤'
             }
         },
          white_isosceles_triangle: {
@@ -73,12 +63,12 @@ document.addEventListener('DOMContentLoaded', () => {
             svgPath: 'M 0,80 L 160,80 L 80,0 Z',
             shape: [{x:0,y:1},{x:1,y:1},{x:2,y:1},{x:3,y:1}, {x:1,y:0},{x:2,y:0}],
             cellShapes: {
-                '1,0': 'TRIANGLE_SE',
-                '2,0': 'TRIANGLE_SW',
-                '0,1': 'TRIANGLE_NE',
-                '1,1': 'SQUARE',
-                '2,1': 'SQUARE',
-                '3,1': 'TRIANGLE_NW'
+                '1,0': '◢',
+                '2,0': '◣',
+                '0,1': '◥',
+                '1,1': '■',
+                '2,1': '■',
+                '3,1': '◤'
             }
         }
     };
@@ -538,13 +528,13 @@ document.addEventListener('DOMContentLoaded', () => {
     function xformCellShapes(cellShapes, mapXY, transformType) {
         const out = {};
         const transformRule = {
-            'H': { 'SQUARE': 'SQUARE', 'TRIANGLE_NW': 'TRIANGLE_NE', 'TRIANGLE_NE': 'TRIANGLE_NW', 'TRIANGLE_SW': 'TRIANGLE_SE', 'TRIANGLE_SE': 'TRIANGLE_SW' },
-            'R': { 'SQUARE': 'SQUARE', 'TRIANGLE_NW': 'TRIANGLE_NE', 'TRIANGLE_NE': 'TRIANGLE_SE', 'TRIANGLE_SE': 'TRIANGLE_SW', 'TRIANGLE_SW': 'TRIANGLE_NW' }
+            'H': { '■': '■', '◤': '◥', '◥': '◤', '◣': '◢', '◢': '◣' },
+            'R': { '■': '■', '◤': '◥', '◥': '◢', '◢': '◣', '◣': '◤' }
         };
         Object.entries(cellShapes).forEach(([k, v]) => {
             const [x, y] = k.split(',').map(Number);
             const { x: nx, y: ny } = mapXY(x, y);
-            out[`${nx},${ny}`] = transformRule[transformType][v];
+            out[`${nx},${ny}`] = transformRule[v];
         });
         return out;
     }
@@ -663,31 +653,31 @@ document.addEventListener('DOMContentLoaded', () => {
         const reflectDiag = (newDir) => ({ type: 'DIAGONAL', newDir });
 
         switch (cellShape) {
-            case 'SQUARE': 
+            case '■': 
                 if (entryDir === 'N') return reflect180({dx:0, dy:1});
                 if (entryDir === 'S') return reflect180({dx:0, dy:-1});
                 if (entryDir === 'E') return reflect180({dx:-1, dy:0});
                 if (entryDir === 'W') return reflect180({dx:1, dy:0});
                 break;
-            case 'TRIANGLE_NW': // 직각이 좌상단
+            case '◤': // 직각이 좌상단
                 if (entryDir === 'S') return reflectDiag({ dx: 1, dy: 0 });  // -> E
                 if (entryDir === 'E') return reflectDiag({ dx: 0, dy: 1 });  // -> S
                 if (entryDir === 'N') return reflect180({dx:0, dy:1});
                 if (entryDir === 'W') return reflect180({dx:1, dy:0});
                 break;
-            case 'TRIANGLE_NE': // 직각이 우상단
+            case '◥': // 직각이 우상단
                 if (entryDir === 'S') return reflectDiag({ dx: -1, dy: 0 }); // -> W
                 if (entryDir === 'W') return reflectDiag({ dx: 0, dy: 1 });  // -> S
                 if (entryDir === 'N') return reflect180({dx:0, dy:1});
                 if (entryDir === 'E') return reflect180({dx:-1, dy:0});
                 break;
-            case 'TRIANGLE_SW': // 직각이 좌하단
+            case '◣': // 직각이 좌하단
                 if (entryDir === 'N') return reflectDiag({ dx: 1, dy: 0 });  // -> E
                 if (entryDir === 'E') return reflectDiag({ dx: 0, dy: -1 }); // -> N
                 if (entryDir === 'S') return reflect180({dx:0, dy:-1});
                 if (entryDir === 'W') return reflect180({dx:1, dy:0});
                 break;
-            case 'TRIANGLE_SE': // 직각이 우하단
+            case '◢': // 직각이 우하단
                 if (entryDir === 'N') return reflectDiag({ dx: -1, dy: 0 }); // -> W
                 if (entryDir === 'W') return reflectDiag({ dx: 0, dy: -1 }); // -> N
                 if (entryDir === 'S') return reflect180({dx:0, dy:-1});
@@ -753,7 +743,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const output = grid.map(row => 
             row.map(cell => 
-                cell ? CELL_SHAPE_SYMBOLS[cell.cellShape] : CELL_SHAPE_SYMBOLS.null
+                cell ? cell.cellShape : '·'
             ).join(' ')
         ).join('\n');
 
