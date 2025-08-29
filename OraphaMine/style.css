@@ -1,0 +1,331 @@
+/* --- 기본 및 레이아웃 --- */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap');
+
+:root {
+    --board-bg: #2c3e50;
+    --grid-line-color: rgba(255, 255, 255, 0.1);
+    --text-color: #ecf0f1;
+    --accent-color: #3498db;
+    --red-gem: #e74c3c;
+    --yellow-gem: #f1c40f;
+    --blue-gem: #3498db;
+    --white-gem: #ecf0f1;
+    --cell-size: 40px;
+    --board-width: 10;
+    --board-height: 8;
+}
+
+body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background-color: #212f3d;
+    color: var(--text-color);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 1rem;
+    margin: 0;
+    min-height: 100vh;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+#app-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 2rem;
+    width: 100%;
+    max-width: 1200px;
+}
+
+.left-panel, .right-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.left-panel {
+    align-items: center;
+}
+
+.right-panel {
+    width: 300px;
+    flex-shrink: 0;
+}
+
+h1, h2 {
+    font-weight: 700;
+    color: #fff;
+    margin: 0;
+    text-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+    text-align: center;
+}
+
+h1 { font-size: 2rem; }
+h2 { font-size: 1.2rem; border-bottom: 2px solid var(--accent-color); padding-bottom: 0.5rem; }
+
+/* --- 게임 보드 --- */
+.board-area {
+    position: relative;
+}
+
+.game-board {
+    display: grid;
+    grid-template-columns: repeat(var(--board-width), var(--cell-size));
+    grid-template-rows: repeat(var(--board-height), var(--cell-size));
+    background-color: var(--board-bg);
+    border: 2px solid var(--grid-line-color);
+    position: relative;
+    background-image:
+        linear-gradient(var(--grid-line-color) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid-line-color) 1px, transparent 1px);
+    background-size: var(--cell-size) var(--cell-size);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    border-radius: 5px;
+}
+
+#play-board {
+    cursor: grab;
+}
+
+#solution-board-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    opacity: 0.7;
+    display: none; /* Initially hidden */
+}
+
+#solution-board-container .gem {
+    pointer-events: none;
+}
+
+/* --- 레이저 경로 캔버스 --- */
+#laser-canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+    z-index: 1000;
+}
+
+/* --- 발사 지점 --- */
+.entry-points {
+    position: absolute;
+    display: grid;
+    pointer-events: auto;
+}
+.ep-top {
+    grid-template-columns: repeat(var(--board-width), var(--cell-size));
+    top: calc(var(--cell-size) * -0.8);
+    left: 0;
+}
+.ep-bottom {
+    grid-template-columns: repeat(var(--board-width), var(--cell-size));
+    bottom: calc(var(--cell-size) * -0.8);
+    left: 0;
+}
+.ep-left {
+    grid-template-rows: repeat(var(--board-height), var(--cell-size));
+    left: calc(var(--cell-size) * -0.8);
+    top: 0;
+}
+.ep-right {
+    grid-template-rows: repeat(var(--board-height), var(--cell-size));
+    right: calc(var(--cell-size) * -0.8);
+    top: 0;
+}
+.entry-point {
+    width: var(--cell-size);
+    height: var(--cell-size);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    font-weight: 700;
+    color: var(--text-color);
+    transition: background-color 0.2s, color 0.2s;
+    border-radius: 50%;
+    font-size: 0.8em;
+}
+.entry-point:hover {
+    background-color: var(--accent-color);
+    color: #fff;
+}
+
+/* --- 보석 스타일 --- */
+.gem-palette {
+    display: flex;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.gem {
+    position: absolute;
+    width: fit-content;
+    height: fit-content;
+    cursor: grab;
+    z-index: 5;
+    filter: drop-shadow(0 4px 6px rgba(0,0,0,0.4));
+    transition: transform 0.1s ease-out, box-shadow 0.1s ease-out;
+}
+.gem.dragging {
+    cursor: grabbing;
+    z-index: 100;
+    transition: none;
+    transform: scale(1.1);
+}
+.gem svg {
+    display: block;
+    overflow: visible;
+}
+.gem-shape {
+    stroke: rgba(0,0,0,0.3);
+    stroke-width: 2.5;
+}
+.gem[data-color="red"] .gem-shape { fill: var(--red-gem); }
+.gem[data-color="yellow"] .gem-shape { fill: var(--yellow-gem); }
+.gem[data-color="blue"] .gem-shape { fill: var(--blue-gem); }
+.gem[data-color="white"] .gem-shape { fill: var(--white-gem); }
+
+/* --- UI 요소 --- */
+.controls, .info-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    width: 100%;
+    background-color: rgba(0,0,0,0.2);
+    padding: 1rem;
+    border-radius: 10px;
+}
+
+.button-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+}
+
+.status-display {
+    font-size: 1.1rem;
+    font-weight: 700;
+    background-color: rgba(0, 0, 0, 0.2);
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.game-btn {
+    padding: 0.75rem;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s;
+    background-color: var(--accent-color);
+}
+.game-btn.secondary {
+    background-color: #7f8c8d;
+}
+.game-btn:hover {
+    filter: brightness(1.2);
+}
+.game-btn:active {
+    transform: scale(0.95);
+}
+
+/* --- 탐사 기록 --- */
+.history-log {
+    width: 100%;
+    height: 250px;
+    background-color: var(--board-bg);
+    border-radius: 10px;
+    padding: 1rem;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 0.5rem;
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+    box-sizing: border-box;
+}
+.log-entry {
+    background-color: rgba(255, 255, 255, 0.05);
+    padding: 0.5rem;
+    border-radius: 5px;
+    font-size: 0.9rem;
+    animation: fadeIn 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.log-entry .color-swatch {
+    display: inline-block;
+    width: 15px;
+    height: 15px;
+    border-radius: 3px;
+    border: 1px solid rgba(255,255,255,0.2);
+    flex-shrink: 0;
+}
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* --- 모달 --- */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 2000;
+    left: 0; top: 0;
+    width: 100%; height: 100%;
+    background-color: rgba(0,0,0,0.7);
+    justify-content: center;
+    align-items: center;
+}
+.modal-content {
+    background-color: #34495e;
+    padding: 2rem 3rem;
+    border-radius: 15px;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    animation: zoomIn 0.3s ease;
+    border: 2px solid var(--accent-color);
+}
+.modal-content h2 { font-size: 2rem; margin-bottom: 1rem; }
+.modal-content p { margin-bottom: 1.5rem; font-size: 1.1rem;}
+
+@keyframes zoomIn {
+    from { transform: scale(0.5); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+/* --- 모바일 최적화 --- */
+@media (max-width: 1000px) {
+    body {
+        align-items: flex-start;
+        height: auto;
+        overflow-y: auto;
+    }
+    #app-container {
+        flex-direction: column;
+        align-items: center;
+    }
+    .right-panel {
+        width: 100%;
+        max-width: calc(var(--board-width) * var(--cell-size) + 4px);
+    }
+    :root {
+        --cell-size: 30px;
+    }
+    h1 { font-size: 1.5rem; }
+}
