@@ -136,7 +136,7 @@
       </div>
     </section>
 
-    <!-- 섹션 3.5: 미제르 규칙 전용 해법 개요 -->
+    <!-- 섹션 3.5: 미제르 규칙 개요 -->
     <section class="mb-12">
       <h2 class="text-2xl font-semibold text-gray-700 border-l-4 border-emerald-500 pl-4 mb-4">3.5 미제르 규칙에서는 무엇이 달라질까</h2>
       <ul class="list-disc list-inside space-y-2">
@@ -151,8 +151,8 @@
     </section>
 
     <!-- 섹션 4 -->
-    <section>
-      <h2 class="text-2xl font-semibold text-gray-700 border-l-4 border-gray-500 pl-4 mb-4">4. 최종 데모</h2>
+    <section class="mb-12">
+      <h2 class="text-2xl font-semibold text-gray-700 border-l-4 border-gray-500 pl-4 mb-4">4. 최종 데모 (정상규칙: 교육용)</h2>
       <p class="mb-4">
         아래 데모는 <b>교육 목적</b>으로 <u>일반 케일스의 정상규칙</u>에 대해 그런디 수를 계산합니다.
         <span class="text-gray-600">미제르 규칙의 정확 판정은 메인 보드에서 별도의 DP로 수행됩니다</span>
@@ -169,6 +169,43 @@
         팁: 메인 화면의 상단 배지에서 선택한 핀 수의 <b>초기 포지션(선수승/후수승)</b>을 즉시 확인할 수 있습니다
       </p>
     </section>
+
+    <!-- 섹션 5: 미제르 도슨스 케일스 빠른 판정기 -->
+    <section>
+      <h2 class="text-2xl font-semibold text-gray-700 border-l-4 border-rose-500 pl-4 mb-4">5. 미제르 도슨스 케일스: 선수승/후수승 판정</h2>
+      <p class="mb-3">
+        아래 입력으로 <b>도슨스 케일스(0.07)</b>의 <u>미제르 규칙</u>에서, 길이 \(n\)인 한 줄 시작형의
+        초기 포지션이 <b>선수승(N)</b>인지 <b>후수승(P)</b>인지 정확하게 판정합니다.
+        (브라우저 내 <b>재귀+메모</b> 알고리즘 · n ≤ 120 권장)
+      </p>
+
+      <div class="mt-4 p-6 bg-gray-50 rounded-lg shadow-inner">
+        <div class="flex flex-wrap items-center justify-center gap-4">
+          <label for="mdk-pins" class="font-medium">핀 개수 (2–120):</label>
+          <input type="number" id="mdk-pins" value="60" min="2" max="120" class="w-32 p-2 border rounded-md text-center">
+          <button id="mdk-solve-btn" class="px-6 py-2 bg-rose-500 text-white font-bold rounded-lg hover:bg-rose-600 transition text-lg">미제르 판정</button>
+        </div>
+        <div class="mt-3 text-center text-sm text-gray-500">규칙: <b>인접한 2핀</b>만 제거 가능 (도슨스), 둘 수 없으면 <b>현재 차례 승리</b> (미제르)</div>
+        <div id="mdk-result" class="mt-4 text-center text-2xl font-bold h-10"></div>
+        <div id="mdk-time" class="mt-1 text-center text-sm text-gray-500 h-5"></div>
+      </div>
+
+      <div class="mt-6 p-4 border rounded-lg">
+        <h3 class="font-semibold text-lg mb-2">시간 복잡도 요약</h3>
+        <ul class="list-disc list-inside space-y-2">
+          <li><b>정상규칙(일반 케일스, 0.77)</b>  
+            — <i>메모이제이션 적용 시</i> 길이 \(0..N\)에 대한 그런디 수 일괄 계산:  
+            <b>시간</b> \(O(N^2)\), <b>메모리</b> \(O(N)\)  
+            (각 \(n\)에서 가능한 분해가 \(O(n)\), mex 구성도 \(O(n)\) 내에서 처리)
+          </li>
+          <li><b>미제르 규칙(도슨스, 0.07)</b>  
+            — 한 줄 \(n\)에서 분해로 생기는 <b>세그먼트 멀티셋</b> 상태 수가 대략 <b>분할수</b>에 비례:  
+            <b>시간/메모리</b> \(\approx e^{\Theta(\sqrt{n})}\) (준지수, subexponential)  
+            (실전에서는 n ≤ 120 범위는 브라우저에서도 즉시 판정 가능)
+          </li>
+        </ul>
+      </div>
+    </section>
   </main>
 </div>
 
@@ -178,7 +215,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderMathInElement(document.body);
   }
 
-  // --- 섹션 1: 인터랙티브 핀 데모 (일반 케일스 예시) ---
+  /* ---------------- 섹션 1: 인터랙티브 핀 데모 (일반 케일스 예시) ---------------- */
   const interactivePinsContainer = document.getElementById('interactive-pins');
   let demoPins = 7;
 
@@ -204,13 +241,11 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('reset-demo-btn').addEventListener('click', createDemoPins);
   createDemoPins();
 
-  // --- 공통 계산 로직: 정상규칙 그런디(일반 케일스 예시) ---
+  /* ---------------- 공통 계산 로직: 정상규칙 그런디(일반 케일스 예시) ---------------- */
   let memo = {};
   let callCount = 0;
 
-  function mex(s) {
-    let i = 0; while (s.has(i)) i++; return i;
-  }
+  function mex(s) { let i = 0; while (s.has(i)) i++; return i; }
   function getGrundy(n, recursiveFunc) {
     callCount++;
     if (n <= 0) return 0;
@@ -221,16 +256,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     return mex(next);
   }
-  function getGrundyPureRecursive(n) {
-    return getGrundy(n, getGrundyPureRecursive);
-  }
+  function getGrundyPureRecursive(n) { return getGrundy(n, getGrundyPureRecursive); }
   function getGrundyMemoized(n) {
     if (n in memo) return memo[n];
     const r = getGrundy(n, getGrundyMemoized);
     memo[n] = r; return r;
   }
 
-  // --- 섹션 2: 재귀 트리 시각화(정상규칙 그런디) ---
+  /* ---------------- 섹션 2: 재귀 트리 시각화(정상규칙 그런디) ---------------- */
   const visualizeRecursionBtn = document.getElementById('visualize-recursion-btn');
   const recursionTreeContainer = document.getElementById('recursion-tree');
   visualizeRecursionBtn.addEventListener('click', () => {
@@ -260,7 +293,7 @@ document.addEventListener('DOMContentLoaded', () => {
     return node;
   }
 
-  // --- 섹션 3: 메모이제이션 비교(정상규칙 그런디) ---
+  /* ---------------- 섹션 3: 메모이제이션 비교(정상규칙 그런디) ---------------- */
   const runCompareBtn = document.getElementById('run-compare-btn');
   const recCallsEl = document.getElementById('rec-calls');
   const recTimeEl  = document.getElementById('rec-time');
@@ -306,13 +339,10 @@ document.addEventListener('DOMContentLoaded', () => {
     runCompareBtn.textContent = "계산 비교 시작 (n=14)";
   });
 
-  // --- 섹션 4: 최종 데모(정상규칙 그룬디 교육용) ---
+  /* ---------------- 섹션 4: 최종 데모(정상규칙 교육용) ---------------- */
   const solveBtn = document.getElementById('solve-btn');
   const finalResultEl = document.getElementById('final-result');
-
-  // 교육용: 정상규칙 기준 N/P 판정
   function isWinningNormal(n) { return getGrundyMemoized(n) !== 0; }
-
   solveBtn.addEventListener('click', () => {
     const n = parseInt(document.getElementById('final-pins').value);
     if (isNaN(n) || n < 1) {
@@ -323,15 +353,94 @@ document.addEventListener('DOMContentLoaded', () => {
     memo = {}; callCount = 0;
     const g = getGrundyMemoized(n);
     const win = isWinningNormal(n);
-
     if (win) {
       finalResultEl.innerHTML = `핀 ${n}개는 <span class="text-green-600">정상규칙 기준</span> 시작 플레이어의 승리입니다 (g(${n}) = ${g})`;
     } else {
       finalResultEl.innerHTML = `핀 ${n}개는 <span class="text-blue-600">정상규칙 기준</span> 시작 플레이어의 패배입니다 (g(${n}) = ${g})`;
     }
     finalResultEl.className = "mt-6 text-center text-2xl font-bold h-10 text-gray-800";
-
     if (window.renderMathInElement) renderMathInElement(finalResultEl);
+  });
+
+  /* ---------------- 섹션 5: 미제르 도슨스 케일스 판정기 ---------------- */
+  const mdkInput   = document.getElementById('mdk-pins');
+  const mdkBtn     = document.getElementById('mdk-solve-btn');
+  const mdkResult  = document.getElementById('mdk-result');
+  const mdkTimeEl  = document.getElementById('mdk-time');
+
+  // 미제르 도슨스 전용: 세그먼트 기반 정확 DP
+  // 규칙: 인접한 2핀만 제거, 둘 수 없으면 현재 차례 승리(=터미널은 N)
+  function getRunLengths(arr) {
+    const runs = [];
+    let cur = 0;
+    for (const v of arr) {
+      if (v === 1) cur++;
+      else { if (cur > 0) runs.push(cur); cur = 0; }
+    }
+    if (cur > 0) runs.push(cur);
+    return runs;
+  }
+  function boardToStateMDK(board) {
+    // 길이 >=2 세그먼트만 남기고 내림차순 정렬
+    const segs = getRunLengths(board).filter(x => x >= 2).sort((a,b)=>b-a);
+    return segs; // Array<number>
+  }
+  const memoPN_MDK = new Map(); // key: "a,b,c" -> boolean (isP)
+  function stateKeyMDK(segs) { return segs.join(","); }
+
+  function isPFromStateMDK(segs) {
+    const key = stateKeyMDK(segs);
+    if (memoPN_MDK.has(key)) return memoPN_MDK.get(key);
+
+    if (segs.length === 0) { // 이동 불가 ⇒ 미제르에서 N
+      memoPN_MDK.set(key, false);
+      return false;
+    }
+    for (let i=0;i<segs.length;i++) {
+      const m = segs[i];
+      for (let k=0;k<=m-2;k++) { // 인접 2핀 제거의 왼쪽 인덱스
+        const L = k, R = m - k - 2;
+        const child = [];
+        for (let j=0;j<segs.length;j++) if (j!==i) child.push(segs[j]);
+        if (L >= 2) child.push(L);
+        if (R >= 2) child.push(R);
+        child.sort((a,b)=>b-a);
+        if (isPFromStateMDK(child)) { // 자식이 P면 현재는 N
+          memoPN_MDK.set(key, false);
+          return false;
+        }
+      }
+    }
+    memoPN_MDK.set(key, true); // 모든 자식이 N ⇒ 현재는 P
+    return true;
+  }
+
+  function isP_MDK_for_n(n) {
+    const board = Array(n).fill(1);
+    memoPN_MDK.clear();
+    const segs = boardToStateMDK(board);
+    return isPFromStateMDK(segs);
+  }
+
+  mdkBtn.addEventListener('click', () => {
+    let n = parseInt(mdkInput.value);
+    if (!Number.isFinite(n) || n < 2 || n > 120) {
+      mdkResult.textContent = `2–120 사이의 정수를 입력하세요`;
+      mdkResult.className = "mt-4 text-center text-2xl font-bold h-10 text-red-600";
+      mdkTimeEl.textContent = "";
+      return;
+    }
+    const t0 = performance.now();
+    const isP = isP_MDK_for_n(n);
+    const t1 = performance.now();
+
+    if (isP) {
+      mdkResult.innerHTML = `핀 ${n}개: <span class="text-blue-600">후수승 (P-position)</span>`;
+    } else {
+      mdkResult.innerHTML = `핀 ${n}개: <span class="text-green-600">선수승 (N-position)</span>`;
+    }
+    mdkResult.className = "mt-4 text-center text-2xl font-bold h-10 text-gray-800";
+    mdkTimeEl.textContent = `계산 시간: ${(t1 - t0).toFixed(2)} ms`;
   });
 });
 </script>
