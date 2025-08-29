@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>오라파 마인: 엔트로피와 최적의 질문</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+        }
+        .gem-board {
+            display: grid;
+            grid-template-columns: repeat(5, 30px);
+            grid-template-rows: repeat(4, 30px);
+            gap: 1px;
+        }
+        .gem-cell {
+            width: 30px;
+            height: 30px;
+            background-color: rgba(255, 255, 255, 0.1);
+            position: relative;
+        }
+        .gem-piece {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+        }
+        .entry-point {
+            transition: all 0.2s ease-in-out;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-200">
+
+    <div class="container mx-auto p-4 md:p-8">
+        <header class="text-center mb-12">
+            <h1 class="text-4xl md:text-5xl font-bold text-cyan-400 mb-2">오라파 마인과 정보 이론 💎</h1>
+            <p class="text-lg text-gray-400">엔트로피 최소화로 최적의 질문 찾기</p>
+        </header>
+
+        <main class="space-y-16">
+            <!-- 섹션 1: 개념 설명 -->
+            <section class="bg-gray-800 p-6 rounded-lg shadow-lg">
+                <h2 class="text-3xl font-bold mb-4 text-cyan-300 border-b-2 border-cyan-500 pb-2">1. '좋은 질문'이란 무엇일까요?</h2>
+                <div class="space-y-4 text-gray-300">
+                    <p>오라파 마인에서 우리의 목표는 최소한의 질문으로 보석의 위치를 알아내는 것입니다. 그렇다면 어떤 질문이 '좋은 질문'일까요? 정답은 <strong class="text-yellow-400">"가장 많은 정보를 주는 질문"</strong>입니다.</p>
+                    <p>정보 이론에서 '정보량'은 '불확실성의 감소량'으로 정의됩니다. 게임 시작 시, 수많은 정답 후보들 때문에 불확실성이 매우 높습니다. 우리는 질문을 통해 이 불확실성을 줄여나가야 합니다. 이 불확실성의 정도를 측정하는 지표가 바로 <strong class="text-yellow-400">엔트로피(Entropy)</strong>입니다.</p>
+                    <div class="bg-gray-700 p-4 rounded-md">
+                        <p><strong class="text-xl text-cyan-400">엔트로피 (H)</strong> = 불확실성의 총량. 정답 후보가 많고 결과 예측이 어려울수록 엔트로피는 높습니다.</p>
+                        <p><strong class="text-xl text-cyan-400">정보 획득량 (IG)</strong> = (질문 전 엔트로피) - (질문 후 평균 엔트로피). 이 값이 클수록 좋은 질문입니다.</p>
+                    </div>
+                    <p>따라서, 최적의 질문은 **정보 획득량이 가장 큰 질문**, 즉 질문 후 남게 될 **평균 엔트로피를 최소화**하는 질문입니다. 이는 가능한 정답 후보들을 가장 균등하게 나눠주는 질문일 가능성이 높습니다.</p>
+                </div>
+            </section>
+
+            <!-- 섹션 2: 인터랙티브 시뮬레이터 -->
+            <section class="bg-gray-800 p-6 rounded-lg shadow-lg">
+                <h2 class="text-3xl font-bold mb-4 text-cyan-300 border-b-2 border-cyan-500 pb-2">2. 인터랙티브 시뮬레이션</h2>
+                <p class="mb-6 text-gray-300">아래 4개의 보드가 현재 가능한 정답 후보라고 가정해 봅시다. 어떤 질문이 가장 효율적일지 직접 계산해 보세요.</p>
+                
+                <div id="interactive-area" class="space-y-8">
+                    <!-- 정답 후보 보드 -->
+                    <div>
+                        <h3 class="text-2xl font-semibold mb-4 text-gray-100">정답 후보 (4가지 경우)</h3>
+                        <div id="solution-candidates" class="grid grid-cols-2 md:grid-cols-4 gap-4"></div>
+                    </div>
+
+                    <!-- 계산기 -->
+                    <div class="bg-gray-700 p-6 rounded-lg">
+                        <h3 class="text-2xl font-semibold mb-4 text-gray-100">최적 질문 계산기</h3>
+                        <div class="flex flex-col md:flex-row gap-6">
+                            <!-- 시뮬레이션 보드 -->
+                            <div class="flex-shrink-0">
+                                <p class="text-center mb-2 font-semibold">테스트할 질문을 선택하세요</p>
+                                <div id="main-sim-board" class="relative w-max mx-auto">
+                                    <!-- Entry points will be generated here -->
+                                </div>
+                            </div>
+                            <!-- 계산 결과 -->
+                            <div id="calculation-result" class="flex-grow">
+                                <p class="text-gray-400 text-center md:text-left">레이저 발사 지점을 클릭하여 정보 획득량을 계산하세요.</p>
+                            </div>
+                        </div>
+                        <div class="mt-6 text-center">
+                            <button id="calculate-all-btn" class="bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-2 px-4 rounded-lg transition-transform transform hover:scale-105">
+                                모든 질문의 정보량 한 번에 계산하기
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        // Simplified game engine for the explainer
+        const explainerConfig = {
+            BOARD_W: 5,
+            BOARD_H: 4,
+            GEMS: {
+                yellow_triangle: { color: '#f1c40f', shape: [{x:0,y:0},{x:1,y:0},{x:0,y:1}], cellShapes: {'0,0':'◤','1,0':'■','0,1':'■'} },
+                blue_rhombus: { color: '#3498db', shape: [{x:1,y:0},{x:0,y:1},{x:2,y:1},{x:1,y:2}], cellShapes: {'1,0':'◢','0,1':'◥','2,1':'◣','1,2':'◤'} }
+            }
+        };
+
+        const solutionCandidatesData = [
+            { gems: [{ id: 'yellow_triangle', x: 0, y: 0, rot: 0, flip: false }] },
+            { gems: [{ id: 'yellow_triangle', x: 3, y: 2, rot: 180, flip: false }] },
+            { gems: [{ id: 'blue_rhombus', x: 1, y: 0, rot: 0, flip: false }] },
+            { gems: [{ id: 'blue_rhombus', x: 0, y: 1, rot: 90, flip: false }] }
+        ];
+
+        // --- Core Logic ---
+        function getTransformedGem(id, rotation, flipped) {
+            const src = explainerConfig.GEMS[id];
+            let shape = JSON.parse(JSON.stringify(src.shape));
+            let cellShapes = JSON.parse(JSON.stringify(src.cellShapes));
+            
+            let w = shape.length > 0 ? Math.max(...shape.map(p => p.x)) : -1;
+            let h = shape.length > 0 ? Math.max(...shape.map(p => p.y)) : -1;
+
+            if (flipped) {
+                shape.forEach(p => p.x = w - p.x);
+                cellShapes = xformCellShapes(cellShapes, (x, y) => ({ x: w - x, y }), 'H');
+            }
+
+            const k = ((rotation / 90) | 0) % 4;
+            for (let i = 0; i < k; i++) {
+                shape.forEach(p => { const tx = p.x; p.x = h - p.y; p.y = tx; });
+                cellShapes = xformCellShapes(cellShapes, (x, y) => ({ x: h - y, y: x }), 'R');
+                [w, h] = [h, w];
+            }
+
+            const minX = shape.length > 0 ? Math.min(...shape.map(p => p.x)) : 0;
+            const minY = shape.length > 0 ? Math.min(...shape.map(p => p.y)) : 0;
+            shape.forEach(p => { p.x -= minX; p.y -= minY; });
+            cellShapes = remapCellShapeKeysOffset(cellShapes, -minX, -minY);
+            
+            return { shape, cellShapes };
+        }
+
+        function xformCellShapes(cellShapes, mapXY, transformType) {
+            const out = {};
+            const transformRule = {
+                'H': { '■': '■', '◤': '◥', '◥': '◤', '◣': '◢', '◢': '◣' },
+                'R': { '■': '■', '◤': '◥', '◥': '◢', '◢': '◣', '◣': '◤' }
+            };
+            Object.entries(cellShapes).forEach(([k, v]) => {
+                const [x, y] = k.split(',').map(Number);
+                const { x: nx, y: ny } = mapXY(x, y);
+                out[`${nx},${ny}`] = transformRule[v];
+            });
+            return out;
+        }
+
+        function remapCellShapeKeysOffset(cellShapes, dx, dy) {
+            const out = {};
+            Object.entries(cellShapes).forEach(([k, v]) => {
+                const [x, y] = k.split(',').map(Number);
+                out[`${x + dx},${y + dy}`] = v;
+            });
+            return out;
+        }
+
+        function buildGrid(gems) {
+            const grid = Array(explainerConfig.BOARD_H).fill(0).map(() => Array(explainerConfig.BOARD_W).fill(null));
+            gems.forEach(g => {
+                const t = getTransformedGem(g.id, g.rot, g.flip);
+                t.shape.forEach(p => {
+                    const x = g.x + p.x, y = g.y + p.y;
+                    if (x < 0 || x >= explainerConfig.BOARD_W || y < 0 || y >= explainerConfig.BOARD_H) return;
+                    const key = `${p.x},${p.y}`;
+                    grid[y][x] = { color: explainerConfig.GEMS[g.id].color, cellShape: t.cellShapes[key] || null };
+                });
+            });
+            return grid;
+        }
+
+        function getReflection(cellShape, entryDir) {
+            const reflect180 = (dir) => ({ type: 'STRAIGHT', newDir: { dx: -dir.dx, dy: -dir.dy } });
+            const reflectDiag = (newDir) => ({ type: 'DIAGONAL', newDir });
+
+            switch (cellShape) {
+                case '■': 
+                    if (entryDir === 'N') return reflect180({dx:0, dy:1});
+                    if (entryDir === 'S') return reflect180({dx:0, dy:-1});
+                    if (entryDir === 'E') return reflect180({dx:-1, dy:0});
+                    if (entryDir === 'W') return reflect180({dx:1, dy:0});
+                    break;
+                case '◤':
+                    if (entryDir === 'S') return reflectDiag({ dx: 1, dy: 0 });
+                    if (entryDir === 'E') return reflectDiag({ dx: 0, dy: 1 });
+                    if (entryDir === 'N') return reflect180({dx:0, dy:1});
+                    if (entryDir === 'W') return reflect180({dx:1, dy:0});
+                    break;
+                case '◥':
+                    if (entryDir === 'S') return reflectDiag({ dx: -1, dy: 0 });
+                    if (entryDir === 'W') return reflectDiag({ dx: 0, dy: 1 });
+                    if (entryDir === 'N') return reflect180({dx:0, dy:1});
+                    if (entryDir === 'E') return reflect180({dx:-1, dy:0});
+                    break;
+                case '◣':
+                    if (entryDir === 'N') return reflectDiag({ dx: 1, dy: 0 });
+                    if (entryDir === 'E') return reflectDiag({ dx: 0, dy: -1 });
+                    if (entryDir === 'S') return reflect180({dx:0, dy:-1});
+                    if (entryDir === 'W') return reflect180({dx:1, dy:0});
+                    break;
+                case '◢':
+                    if (entryDir === 'N') return reflectDiag({ dx: -1, dy: 0 });
+                    if (entryDir === 'W') return reflectDiag({ dx: 0, dy: -1 });
+                    if (entryDir === 'S') return reflect180({dx:0, dy:-1});
+                    if (entryDir === 'E') return reflect180({dx:-1, dy:0});
+                    break;
+            }
+            return null;
+        }
+
+        function simulateLaser(grid, startSide, startIndex) {
+            let laser = {};
+            switch (startSide) {
+                case 'top':    laser = { pos: { x: startIndex + 0.5, y: -0.000001 }, dir: { dx: 0, dy: 1 } }; break;
+                case 'bottom': laser = { pos: { x: startIndex + 0.5, y: explainerConfig.BOARD_H + 0.000001 }, dir: { dx: 0, dy: -1 } }; break;
+                case 'left':   laser = { pos: { x: -0.000001, y: startIndex + 0.5 }, dir: { dx: 1, dy: 0 } }; break;
+                case 'right':  laser = { pos: { x: explainerConfig.BOARD_W + 0.000001, y: startIndex + 0.5 }, dir: { dx: -1, dy: 0 } }; break;
+            }
+
+            const hitColors = new Set();
+            let safety = 0;
+
+            while (safety++ < 100) {
+                let tX = Infinity, tY = Infinity;
+                if (laser.dir.dx !== 0) {
+                    const nextX = laser.dir.dx > 0 ? Math.floor(laser.pos.x) + 1 : Math.ceil(laser.pos.x) - 1;
+                    tX = (nextX - laser.pos.x) / laser.dir.dx;
+                }
+                if (laser.dir.dy !== 0) {
+                    const nextY = laser.dir.dy > 0 ? Math.floor(laser.pos.y) + 1 : Math.ceil(laser.pos.y) - 1;
+                    tY = (nextY - laser.pos.y) / laser.dir.dy;
+                }
+
+                const t = Math.min(tX, tY) + 0.000001;
+                const hitPos = { x: laser.pos.x + laser.dir.dx * t, y: laser.pos.y + laser.dir.dy * t };
+                
+                let cx, cy, entryDir;
+                if (Math.abs(tX - (t - 0.000001)) < 0.000001) {
+                    entryDir = laser.dir.dx > 0 ? 'W' : 'E';
+                    cx = laser.dir.dx > 0 ? Math.floor(hitPos.x) : Math.ceil(hitPos.x) - 1;
+                    cy = Math.floor(hitPos.y);
+                } else {
+                    entryDir = laser.dir.dy > 0 ? 'N' : 'S';
+                    cx = Math.floor(hitPos.x);
+                    cy = laser.dir.dy > 0 ? Math.floor(hitPos.y) : Math.ceil(hitPos.y) - 1;
+                }
+
+                if (cx < 0 || cx >= explainerConfig.BOARD_W || cy < 0 || cy >= explainerConfig.BOARD_H) {
+                    const exitLabel = getExitLabel(hitPos);
+                    const colors = Array.from(hitColors).sort().join(',');
+                    return `${exitLabel}:${colors}`;
+                }
+
+                const cell = grid[cy][cx];
+                const reflection = cell ? getReflection(cell.cellShape, entryDir) : null;
+
+                if (cell && cell.color) hitColors.add(cell.color);
+
+                if (reflection) {
+                    laser.dir = reflection.newDir;
+                    laser.pos = reflection.type === 'DIAGONAL' ? { x: cx + 0.5, y: cy + 0.5 } : hitPos;
+                } else {
+                    laser.pos = hitPos;
+                }
+            }
+            return 'LOOP';
+        }
+        
+        function getExitLabel(pos) {
+            const ix = Math.round(pos.x), iy = Math.round(pos.y);
+            if (iy <= 0) return `T${ix}`;
+            if (iy >= explainerConfig.BOARD_H) return `B${ix}`;
+            if (ix <= 0) return `L${iy}`;
+            if (ix >= explainerConfig.BOARD_W) return `R${iy}`;
+            return '?';
+        }
+
+        // --- UI Generation ---
+        function createBoardHTML(id, gems = []) {
+            let cells = '';
+            for (let i = 0; i < explainerConfig.BOARD_H * explainerConfig.BOARD_W; i++) {
+                cells += `<div class="gem-cell"></div>`;
+            }
+            const board = `<div id="${id}" class="gem-board bg-gray-700 p-1 rounded-md">${cells}</div>`;
+            
+            // This is a bit of a hack to append gems after the board is in the DOM
+            setTimeout(() => {
+                const boardEl = document.getElementById(id);
+                if (!boardEl) return;
+                gems.forEach(gem => {
+                    const t = getTransformedGem(gem.id, gem.rot, gem.flip);
+                    t.shape.forEach(p => {
+                        const x = gem.x + p.x;
+                        const y = gem.y + p.y;
+                        const cellIndex = y * explainerConfig.BOARD_W + x;
+                        const cell = boardEl.children[cellIndex];
+                        if (cell) {
+                            const piece = document.createElement('div');
+                            piece.className = 'gem-piece';
+                            piece.style.backgroundColor = explainerConfig.GEMS[gem.id].color;
+                            piece.style.opacity = '0.7';
+                            const clipPaths = { '◤': 'polygon(0 0, 100% 0, 0 100%)', '◥': 'polygon(0 0, 100% 0, 100% 100%)', '◣': 'polygon(0 0, 0 100%, 100% 100%)', '◢': 'polygon(100% 0, 100% 100%, 0 100%)' };
+                            if (t.cellShapes[`${p.x},${p.y}`] in clipPaths) {
+                                piece.style.clipPath = clipPaths[t.cellShapes[`${p.x},${p.y}`]];
+                            }
+                            cell.appendChild(piece);
+                        }
+                    });
+                });
+            }, 0);
+
+            return board;
+        }
+
+        function createEntryPoints(boardContainer) {
+            const sides = {
+                top: { count: explainerConfig.BOARD_W, class: 'flex -top-8 left-0 absolute' },
+                bottom: { count: explainerConfig.BOARD_W, class: 'flex -bottom-8 left-0 absolute' },
+                left: { count: explainerConfig.BOARD_H, class: 'flex flex-col -left-8 top-0 absolute' },
+                right: { count: explainerConfig.BOARD_H, class: 'flex flex-col -right-8 top-0 absolute' }
+            };
+            
+            Object.entries(sides).forEach(([side, config]) => {
+                const container = document.createElement('div');
+                container.className = config.class;
+                for (let i = 0; i < config.count; i++) {
+                    const point = document.createElement('div');
+                    point.className = 'entry-point w-[30px] h-[30px] flex items-center justify-center rounded-full bg-gray-600 hover:bg-cyan-500 cursor-pointer text-xs';
+                    point.dataset.side = side;
+                    point.dataset.index = i;
+                    point.textContent = i + 1;
+                    container.appendChild(point);
+                }
+                boardContainer.appendChild(container);
+            });
+        }
+
+        // --- Calculation & Display ---
+        function calculateEntropyForQuestion(side, index) {
+            const outcomes = {};
+            solutionCandidatesData.forEach((candidate, solIndex) => {
+                const grid = buildGrid(candidate.gems);
+                const result = simulateLaser(grid, side, index);
+                if (!outcomes[result]) {
+                    outcomes[result] = [];
+                }
+                outcomes[result].push(solIndex + 1);
+            });
+
+            const N = solutionCandidatesData.length;
+            let expectedEntropy = 0;
+            Object.values(outcomes).forEach(group => {
+                const p = group.length / N;
+                if (p > 0) {
+                    expectedEntropy -= p * (Math.log2(p));
+                }
+            });
+            
+            return { outcomes, expectedEntropy };
+        }
+
+        function displayCalculation(side, index) {
+            const { outcomes, expectedEntropy } = calculateEntropyForQuestion(side, index);
+            const resultDiv = document.getElementById('calculation-result');
+            
+            let outcomesHTML = Object.entries(outcomes).map(([result, solutions]) => {
+                const [exit, colors] = result.split(':');
+                const colorSwatches = (colors || '').split(',').filter(c => c).map(color => `<span class="inline-block w-3 h-3 rounded-sm" style="background-color:${color}"></span>`).join('') || '투명';
+                return `<div class="p-2 bg-gray-600 rounded">
+                    <p class="font-semibold">결과: <span class="text-cyan-400">${exit}</span> | 색상: ${colorSwatches}</p>
+                    <p class="text-sm text-gray-400">이 결과를 내는 후보: ${solutions.join(', ')}</p>
+                </div>`;
+            }).join('');
+
+            resultDiv.innerHTML = `
+                <h4 class="text-xl font-bold mb-2">질문: <span class="text-yellow-400">${side.toUpperCase()} ${index + 1}</span></h4>
+                <div class="space-y-2 mb-4">${outcomesHTML}</div>
+                <p class="text-lg font-semibold">결과 엔트로피: <span class="text-green-400">${expectedEntropy.toFixed(4)} bits</span></p>
+                <p class="text-sm text-gray-400">값이 낮을수록 불확실성이 많이 제거되어 좋은 질문입니다.</p>
+            `;
+        }
+        
+        function calculateAndDisplayAll() {
+            const entryPoints = document.querySelectorAll('#main-sim-board .entry-point');
+            const results = [];
+            entryPoints.forEach(point => {
+                const { side, index } = point.dataset;
+                const { expectedEntropy } = calculateEntropyForQuestion(side, parseInt(index));
+                results.push({ point, entropy: expectedEntropy });
+            });
+
+            const minEntropy = Math.min(...results.map(r => r.entropy));
+
+            results.forEach(({ point, entropy }) => {
+                point.textContent = entropy.toFixed(2);
+                if (Math.abs(entropy - minEntropy) < 0.001) {
+                    point.classList.remove('bg-gray-600', 'hover:bg-cyan-500');
+                    point.classList.add('bg-green-600', 'text-white', 'font-bold', 'scale-110');
+                } else {
+                    point.classList.remove('bg-green-600', 'scale-110');
+                    point.classList.add('bg-gray-600');
+                }
+            });
+
+            const resultDiv = document.getElementById('calculation-result');
+            resultDiv.innerHTML = `<p class="text-lg font-semibold text-center">모든 질문의 엔트로피 계산 완료!</p><p class="text-center text-gray-400"><span class="inline-block w-4 h-4 rounded-full bg-green-600 align-middle mr-2"></span>가장 정보량이 높은 (엔트로피가 낮은) 질문입니다.</p>`;
+        }
+
+        // --- Main Execution ---
+        const candidatesContainer = document.getElementById('solution-candidates');
+        solutionCandidatesData.forEach((candidate, i) => {
+            const container = document.createElement('div');
+            container.innerHTML = `<h4 class="text-lg font-semibold mb-2 text-center">후보 ${i + 1}</h4>`;
+            container.insertAdjacentHTML('beforeend', createBoardHTML(`candidate-${i}`, candidate.gems));
+            candidatesContainer.appendChild(container);
+        });
+
+        const mainBoardContainer = document.getElementById('main-sim-board');
+        mainBoardContainer.innerHTML = createBoardHTML('sim-board');
+        createEntryPoints(mainBoardContainer);
+
+        mainBoardContainer.addEventListener('click', (e) => {
+            if (e.target.classList.contains('entry-point')) {
+                const { side, index } = e.target.dataset;
+                displayCalculation(side, parseInt(index));
+            }
+        });
+        
+        document.getElementById('calculate-all-btn').addEventListener('click', calculateAndDisplayAll);
+    </script>
+</body>
+</html>
