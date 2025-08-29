@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>미제르 케일스: 재귀와 메모이제이션 분석</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: #f8f9fa;
+            color: #212529;
+        }
+        .pin {
+            width: 20px;
+            height: 60px;
+            background-color: #fca5a5; /* red-300 */
+            border: 2px solid #ef4444; /* red-500 */
+            border-radius: 10px 10px 4px 4px;
+            display: inline-block;
+            margin: 0 4px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .pin.removed {
+            opacity: 0.2;
+            transform: translateY(10px);
+        }
+        .pin-container {
+            transition: all 0.5s ease-in-out;
+        }
+        .node {
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 2px solid;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            min-width: 60px;
+            text-align: center;
+        }
+        .node-p {
+            background-color: #dbeafe; /* blue-100 */
+            border-color: #3b82f6; /* blue-500 */
+            color: #1e40af; /* blue-800 */
+        }
+        .node-n {
+            background-color: #d1fae5; /* green-100 */
+            border-color: #10b981; /* green-500 */
+            color: #065f46; /* green-800 */
+        }
+        .node-computing {
+            background-color: #fef9c3; /* yellow-100 */
+            border-color: #f59e0b; /* amber-500 */
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        .memo-item {
+            transition: all 0.5s;
+        }
+        .highlight {
+            animation: highlight-anim 1s ease;
+        }
+        @keyframes highlight-anim {
+            0% { transform: scale(1); background-color: #fef9c3; }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); background-color: inherit; }
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <div class="max-w-5xl mx-auto bg-white rounded-2xl shadow-lg p-6 md:p-10">
+        <header class="text-center mb-10 border-b pb-6">
+            <h1 class="text-4xl font-bold text-gray-800">미제르 도슨스 케일스(Misere Dawson's Kayles) 분석</h1>
+            <p class="text-lg text-gray-600 mt-2">재귀적 사고와 동적 계획법(메모이제이션)의 힘</p>
+        </header>
+
+        <main>
+            <!-- 섹션 1: 게임 소개 -->
+            <section class="mb-12">
+                <h2 class="text-2xl font-semibold text-gray-700 border-l-4 border-red-500 pl-4 mb-4">1. 게임의 정의와 목표</h2>
+                <p class="mb-4">도슨스 케일스는 일렬로 늘어선 핀(pin)들을 두 플레이어가 번갈아 가며 제거하는 게임입니다. 자신의 차례에, 플레이어는 반드시 <strong>하나의 핀</strong> 또는 <strong>인접한 두 개의 핀</strong>을 제거해야 합니다. 미제르(Misere) 규칙에서는, **마지막 핀(들)을 가져가는 사람이 패배**합니다.</p>
+                <div id="game-demo" class="mt-6 p-4 bg-gray-50 rounded-lg text-center">
+                    <p class="mb-4 font-medium">아래 핀들을 클릭하여 제거해보세요 (핀 1개 또는 인접한 2개).</p>
+                    <div id="interactive-pins" class="flex justify-center items-end h-24"></div>
+                    <button id="reset-demo-btn" class="mt-4 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition">초기화</button>
+                </div>
+            </section>
+
+            <!-- 섹션 2: 재귀적 해법 -->
+            <section class="mb-12">
+                <h2 class="text-2xl font-semibold text-gray-700 border-l-4 border-blue-500 pl-4 mb-4">2. 재귀적 해법: P-position과 N-position</h2>
+                <p class="mb-4">이 게임은 **조합 게임 이론(Combinatorial Game Theory)**의 관점에서 분석할 수 있습니다. 모든 게임 상태는 다음 두 가지 중 하나로 분류됩니다.</p>
+                <ul class="list-disc list-inside space-y-2 mb-4 pl-4 bg-blue-50 p-4 rounded-md">
+                    <li><strong class="text-blue-700">P-position (Previous player winning)</strong>: 현재 상태를 마주한 플레이어가 **패배**하는 위치. 즉, 모든 가능한 수가 상대방을 N-position으로 이끕니다.</li>
+                    <li><strong class="text-green-700">N-position (Next player winning)</strong>: 현재 상태를 마주한 플레이어가 **승리**하는 위치. 즉, 상대방을 P-position으로 보내는 수가 하나 이상 존재합니다.</li>
+                </ul>
+                <p>이 정의는 그 자체로 재귀적입니다. 어떤 상태 `S`의 승패 여부는 그 상태에서 이동 가능한 다음 상태 `S'`들의 승패 여부에 의해 결정됩니다.</p>
+                <div class="mt-6 p-4 border rounded-lg">
+                    <h3 class="font-semibold text-lg mb-2">재귀 호출 시각화</h3>
+                    <p class="mb-4">핀 개수를 선택하고 '재귀 트리 생성' 버튼을 눌러 승패를 결정하는 과정을 시각화해보세요. (주의: 핀 10개 이상은 매우 느려질 수 있습니다.)</p>
+                    <div class="flex items-center space-x-4">
+                        <label for="recursion-pins">핀 개수:</label>
+                        <input type="number" id="recursion-pins" value="7" min="1" max="15" class="w-24 p-2 border rounded-md">
+                        <button id="visualize-recursion-btn" class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition">재귀 트리 생성</button>
+                    </div>
+                    <div id="recursion-tree" class="mt-4 p-4 bg-gray-50 rounded-md overflow-x-auto whitespace-nowrap">
+                        트리 시각화 영역
+                    </div>
+                </div>
+            </section>
+
+            <!-- 섹션 3: 메모이제이션 -->
+            <section class="mb-12">
+                <h2 class="text-2xl font-semibold text-gray-700 border-l-4 border-yellow-500 pl-4 mb-4">3. 문제점과 해결책: 메모이제이션</h2>
+                <p class="mb-4">위의 재귀 트리에서 볼 수 있듯이, 같은 상태(예: 핀 3개짜리 블록)에 대한 계산이 수없이 반복됩니다. 이는 지수적인 시간 복잡도($O(2^n)$)를 유발하여 n이 조금만 커져도 계산이 불가능해집니다.</p>
+                <p>해결책은 **메모이제이션(Memoization)**입니다. 한 번 계산한 결과를 저장(`memo`)해두고, 다시 같은 계산이 필요할 때 저장된 값을 즉시 반환하는 기법입니다. 이는 동적 계획법(Dynamic Programming)의 핵심 아이디어 중 하나입니다.</p>
+                <div class="mt-6 p-4 border rounded-lg">
+                    <h3 class="font-semibold text-lg mb-2">메모이제이션 시각화</h3>
+                    <p class="mb-4">핀 12개에 대한 계산 과정을 비교해보세요. 메모이제이션이 어떻게 중복 계산을 제거하는지 확인하세요.</p>
+                    <div class="flex items-center space-x-4 mb-4">
+                        <button id="run-compare-btn" class="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition">계산 비교 시작 (n=12)</button>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <h4 class="font-medium text-center mb-2">순수 재귀</h4>
+                            <div id="recursion-stats" class="p-4 bg-red-50 rounded-md text-center">
+                                <p>총 함수 호출: <span id="rec-calls" class="font-bold">0</span></p>
+                                <p>소요 시간: <span id="rec-time" class="font-bold">0</span> ms</p>
+                            </div>
+                        </div>
+                        <div>
+                            <h4 class="font-medium text-center mb-2">메모이제이션 적용</h4>
+                            <div id="memo-stats" class="p-4 bg-green-50 rounded-md text-center">
+                                <p>총 함수 호출: <span id="memo-calls" class="font-bold">0</span></p>
+                                <p>소요 시간: <span id="memo-time" class="font-bold">0</span> ms</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <h4 class="font-medium mb-2">메모 테이블 (`memo`)</h4>
+                        <div id="memo-table" class="p-4 bg-gray-100 rounded-md font-mono text-sm h-48 overflow-y-auto"></div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- 섹션 4: 최종 데모 -->
+            <section>
+                <h2 class="text-2xl font-semibold text-gray-700 border-l-4 border-gray-500 pl-4 mb-4">4. 최종 알고리즘 데모</h2>
+                <p class="mb-4">메모이제이션을 적용하면 핀이 200개 이상이더라도 거의 즉시 결과를 계산할 수 있습니다. 시작 핀 개수를 입력하고, 해당 상태가 시작 플레이어에게 승리(N-position)인지 패배(P-position)인지 확인해보세요.</p>
+                <div class="mt-6 p-6 bg-gray-50 rounded-lg shadow-inner">
+                    <div class="flex flex-wrap items-center justify-center gap-4">
+                        <label for="final-pins" class="font-medium">핀 개수 (1-500):</label>
+                        <input type="number" id="final-pins" value="200" min="1" max="500" class="w-32 p-2 border rounded-md text-center">
+                        <button id="solve-btn" class="px-6 py-2 bg-red-500 text-white font-bold rounded-lg hover:bg-red-600 transition text-lg">결과 계산</button>
+                    </div>
+                    <div id="final-result" class="mt-6 text-center text-2xl font-bold h-10"></div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // --- 섹션 1: 인터랙티브 핀 데모 ---
+        const interactivePinsContainer = document.getElementById('interactive-pins');
+        let demoPins = 7;
+
+        function createDemoPins() {
+            interactivePinsContainer.innerHTML = '';
+            for (let i = 0; i < demoPins; i++) {
+                const pin = document.createElement('div');
+                pin.className = 'pin';
+                pin.dataset.index = i;
+                pin.addEventListener('click', handlePinClick);
+                interactivePinsContainer.appendChild(pin);
+            }
+        }
+
+        function handlePinClick(e) {
+            const index = parseInt(e.target.dataset.index);
+            const pins = Array.from(interactivePinsContainer.children);
+            
+            // 핀 1개 또는 2개 제거 로직 (간단한 시뮬레이션)
+            if (!pins[index].classList.contains('removed')) {
+                pins[index].classList.add('removed');
+            } else if (index > 0 && !pins[index-1].classList.contains('removed')) {
+                 pins[index-1].classList.add('removed');
+            }
+        }
+        
+        document.getElementById('reset-demo-btn').addEventListener('click', createDemoPins);
+        createDemoPins();
+
+        // --- 공통 계산 로직 ---
+        let memo = {};
+        let callCount = 0;
+
+        // 도슨스 케일스는 게임이 분리되는 특성이 있음.
+        // ex) XXXXXXX -> X_XXX_X -> (X, XXX, X)
+        // 각 분리된 게임의 Grundy Number(Nim-sum)를 계산해야 하지만,
+        // 여기서는 P/N 상태만 판별하므로 더 간단한 재귀로 설명.
+        // 이 데모에서는 분리되지 않는다고 가정하고 '연속된 핀의 개수' n을 상태로 사용.
+        
+        function isWinningPureRecursive(n) {
+            callCount++;
+            if (n <= 0) return false; // P-position (패배)
+
+            // 가능한 모든 수를 탐색
+            for (let i = 0; i < n; i++) {
+                // 1개 핀 제거
+                if (!isWinningPureRecursive(i) && !isWinningPureRecursive(n - i - 1)) return true;
+                // 2개 핀 제거
+                if (i + 1 < n) {
+                    if (!isWinningPureRecursive(i) && !isWinningPureRecursive(n - i - 2)) return true;
+                }
+            }
+            return false; // N-position으로 가는 수가 없으면 P-position
+        }
+
+        function isWinningMemoized(n) {
+            callCount++;
+            if (n in memo) return memo[n];
+            if (n <= 0) return false;
+
+            for (let i = 0; i < n; i++) {
+                // 1개 핀 제거
+                // XOR (Nim-sum)을 사용해야 하지만, 여기서는 P/N 상태만 판별
+                // g(i) ^ g(n-i-1) == 0 이면 P-position으로 보낼 수 있음
+                // isWinning(k)는 g(k) != 0 과 동치
+                if (isWinningMemoized(i) ^ isWinningMemoized(n - i - 1) === false) {
+                    memo[n] = true;
+                    return true;
+                }
+                // 2개 핀 제거
+                if (i + 1 < n) {
+                     if (isWinningMemoized(i) ^ isWinningMemoized(n - i - 2) === false) {
+                        memo[n] = true;
+                        return true;
+                    }
+                }
+            }
+            memo[n] = false;
+            return false;
+        }
+
+        // --- 섹션 2: 재귀 트리 시각화 ---
+        const visualizeRecursionBtn = document.getElementById('visualize-recursion-btn');
+        const recursionTreeContainer = document.getElementById('recursion-tree');
+
+        visualizeRecursionBtn.addEventListener('click', () => {
+            const n = parseInt(document.getElementById('recursion-pins').value);
+            recursionTreeContainer.innerHTML = '<p class="text-gray-500">트리 생성 중...</p>';
+            setTimeout(() => {
+                const treeRoot = buildTree(n);
+                recursionTreeContainer.innerHTML = '';
+                recursionTreeContainer.appendChild(treeRoot);
+            }, 10);
+        });
+
+        function buildTree(n, isMemo = false) {
+            const node = document.createElement('div');
+            node.className = 'node inline-block m-2';
+            const result = isMemo ? isWinningMemoized(n) : isWinningPureRecursive(n);
+            node.textContent = `n=${n}`;
+            node.classList.add(result ? 'node-n' : 'node-p');
+            
+            if (n > 0) {
+                const childrenContainer = document.createElement('div');
+                childrenContainer.className = 'pl-4 border-l-2 border-gray-300';
+
+                // 모든 가능한 수에 대한 자식 노드 생성 (간략화)
+                // 1개 제거: (n-1), 2개 제거: (n-2) 등
+                if (n - 1 >= 0) childrenContainer.appendChild(buildTree(n - 1, isMemo));
+                if (n - 2 >= 0) childrenContainer.appendChild(buildTree(n - 2, isMemo));
+                
+                node.appendChild(childrenContainer);
+            }
+            return node;
+        }
+
+        // --- 섹션 3: 메모이제이션 비교 ---
+        const runCompareBtn = document.getElementById('run-compare-btn');
+        const recCallsEl = document.getElementById('rec-calls');
+        const recTimeEl = document.getElementById('rec-time');
+        const memoCallsEl = document.getElementById('memo-calls');
+        const memoTimeEl = document.getElementById('memo-time');
+        const memoTableEl = document.getElementById('memo-table');
+        
+        runCompareBtn.addEventListener('click', () => {
+            const n = 12;
+            runCompareBtn.disabled = true;
+            runCompareBtn.textContent = "계산 중...";
+
+            // 순수 재귀
+            callCount = 0;
+            let startTime = performance.now();
+            isWinningPureRecursive(n);
+            let endTime = performance.now();
+            recCallsEl.textContent = callCount.toLocaleString();
+            recTimeEl.textContent = (endTime - startTime).toFixed(2);
+
+            // 메모이제이션
+            memo = {};
+            callCount = 0;
+            memoTableEl.innerHTML = '';
+            startTime = performance.now();
+            isWinningMemoized(n);
+            endTime = performance.now();
+            memoCallsEl.textContent = callCount.toLocaleString();
+            memoTimeEl.textContent = (endTime - startTime).toFixed(2);
+
+            // 메모 테이블 시각화
+            const sortedMemo = Object.entries(memo).sort((a, b) => parseInt(a[0]) - parseInt(b[0]));
+            sortedMemo.forEach(([key, value], i) => {
+                setTimeout(() => {
+                    const item = document.createElement('div');
+                    item.className = `memo-item p-1 rounded ${value ? 'bg-green-200' : 'bg-blue-200'}`;
+                    item.textContent = `n=${key}: ${value ? 'N' : 'P'}`;
+                    memoTableEl.appendChild(item);
+                    item.scrollIntoView({ behavior: 'smooth', block: 'end' });
+                }, i * 50);
+            });
+            
+            runCompareBtn.disabled = false;
+            runCompareBtn.textContent = "계산 비교 시작 (n=12)";
+        });
+
+        // --- 섹션 4: 최종 데모 ---
+        const solveBtn = document.getElementById('solve-btn');
+        const finalResultEl = document.getElementById('final-result');
+
+        solveBtn.addEventListener('click', () => {
+            const n = parseInt(document.getElementById('final-pins').value);
+            if (isNaN(n) || n < 1) {
+                finalResultEl.textContent = "1 이상의 숫자를 입력하세요.";
+                finalResultEl.className = "mt-6 text-center text-2xl font-bold h-10 text-red-500";
+                return;
+            }
+            
+            memo = {};
+            callCount = 0;
+            const result = isWinningMemoized(n);
+            
+            if (result) {
+                finalResultEl.textContent = `핀 ${n}개는 시작 플레이어의 승리(N-position)입니다.`;
+                finalResultEl.className = "mt-6 text-center text-2xl font-bold h-10 text-green-600";
+            } else {
+                finalResultEl.textContent = `핀 ${n}개는 시작 플레이어의 패배(P-position)입니다.`;
+                finalResultEl.className = "mt-6 text-center text-2xl font-bold h-10 text-blue-600";
+            }
+        });
+    });
+    </script>
+
+</body>
+</html>

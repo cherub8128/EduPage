@@ -12,12 +12,16 @@
     <header class="toolbar card">
       <div class="toolbar-top">
         <h1 class="brand">Misère Kayles</h1>
-        <span id="modelBadge" class="pill">Model: loading…</span>
+        <div class="badges">
+          <span id="modelBadge" class="pill">Mode: Exact DP (n ≤ 120)</span>
+          <span id="pnBadge" class="pill secondary">초기 포지션: —</span>
+        </div>
       </div>
+
       <div class="controls-grid">
         <label class="ctrl">
           <span>핀 개수</span>
-          <input id="nPins" type="number" min="2" max="128" value="60"/>
+          <input id="nPins" type="number" min="2" max="120" value="60"/>
         </label>
         <label class="ctrl">
           <span>선공</span>
@@ -28,7 +32,9 @@
         </label>
         <button id="newGameBtn" class="btn primary">새 게임</button>
         <button id="aiMoveBtn" class="btn">AI 수 두기</button>
+        <button id="theoryBtn" class="btn">이론 소개</button>
       </div>
+
       <div class="legend">
         <span><span class="swatch live"></span> 살아있는 핀</span>
         <span><span class="swatch sel"></span> 선택됨</span>
@@ -39,13 +45,12 @@
     <main class="board card">
       <div class="topbar">
         <div>현재 턴: <b id="turnWho">-</b></div>
-        <div id="gameMsg" class="muted">모델을 로드한 후 시작하세요.</div>
+        <div id="gameMsg" class="muted">정확 DP 모드입니다. 새 게임을 시작하세요.</div>
       </div>
       <div id="pins" class="pins"></div>
     </main>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort.min.js"></script>
   <script src="script.js"></script>
 </body>
 </html>

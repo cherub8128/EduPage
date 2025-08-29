@@ -1,15 +1,25 @@
 document.addEventListener('DOMContentLoaded', () => {
     'use strict';
 
-    // =================================================================================
+    // =_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=
     // CONSTANTS & CONFIG
-    // =================================================================================
+    // =_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=
     const C = {
         BOARD_W: 10,
         BOARD_H: 8,
         CELL_BASE: 40, 
         DRAG_THRESHOLD: 5,
         EPS: 1e-6,
+    };
+
+    // [NEW] Enum-like object for logging cell shapes to the console
+    const CELL_SHAPE_SYMBOLS = {
+        SQUARE: '■',
+        TRIANGLE_NW: '◤',
+        TRIANGLE_NE: '◥',
+        TRIANGLE_SW: '◣',
+        TRIANGLE_SE: '◢',
+        null: '·'
     };
 
     const GEMS = {
@@ -24,8 +34,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 '1,1': 'SQUARE'
             }
         },
-        blue_rhombus: {
-            label: '흰 마름모', color: 'white', viewBox: '0 0 80 80',
+        white_rhombus: {
+            label: '하얀 마름모', color: 'white', viewBox: '0 0 80 80',
             svgPath: 'M 40,0 L 80,40 L 40,80 L 0,40 Z',
             shape: [{x:1,y:0},{x:0,y:1},{x:2,y:1},{x:1,y:2}],
             cellShapes: {
@@ -45,8 +55,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 '0,1': 'SQUARE'
             }
         },
-        white_isosceles_triangle: {
-            label: '흰 이등변삼각형', color: 'white', viewBox: '0 0 160 80',
+        blue_isosceles_triangle: {
+            label: '파란 이등변삼각형', color: 'blue', viewBox: '0 0 160 80',
             svgPath: 'M 0,80 L 160,80 L 80,0 Z',
             shape: [{x:0,y:1},{x:1,y:1},{x:2,y:1},{x:3,y:1}, {x:1,y:0},{x:2,y:0}],
             cellShapes: {
@@ -58,8 +68,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 '3,1': 'TRIANGLE_NW'
             }
         },
-         white_isosceles_triangle_2: {
-            label: '파랑 이등변삼각형', color: 'blue', viewBox: '0 0 160 80',
+         white_isosceles_triangle: {
+            label: '흰 이등변삼각형', color: 'white', viewBox: '0 0 160 80',
             svgPath: 'M 0,80 L 160,80 L 80,0 Z',
             shape: [{x:0,y:1},{x:1,y:1},{x:2,y:1},{x:3,y:1}, {x:1,y:0},{x:2,y:0}],
             cellShapes: {
@@ -73,7 +83,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    const INITIAL_PALETTE = ['red_parallelogram', 'blue_rhombus', 'yellow_triangle_2x2', 'white_isosceles_triangle', 'white_isosceles_triangle_2'];
+    const INITIAL_PALETTE = ['red_parallelogram', 'white_rhombus', 'yellow_triangle_2x2', 'white_isosceles_triangle', 'blue_isosceles_triangle'];
 
     // =================================================================================
     // DOM ELEMENTS
@@ -174,6 +184,8 @@ document.addEventListener('DOMContentLoaded', () => {
         Object.values(state.placedGems).forEach(g => document.getElementById(g.uniqueId)?.remove());
         state.placedGems = {};
         
+        $$('#gem-palette .gem').forEach(gem => gem.style.visibility = 'visible');
+
         state.solution = generateRandomSolution();
         renderSolutionToBoard();
         
@@ -194,8 +206,10 @@ document.addEventListener('DOMContentLoaded', () => {
     function createGemElement(id, { isPaletteItem = false } = {}) {
         const gemData = GEMS[id];
         const gem = document.createElement('div');
-        const uniqueId = `${id}_${state.gemCounter++}`;
+        
+        const uniqueId = isPaletteItem ? id : `${id}_${state.gemCounter++}`;
         gem.id = uniqueId;
+
         gem.className = 'gem';
         gem.dataset.id = id;
         gem.dataset.color = gemData.color;
@@ -295,9 +309,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const isPaletteItem = gem.dataset.isPaletteItem === 'true';
         if (isPaletteItem) {
+            gem.style.visibility = 'hidden';
             const newGem = createGemElement(gem.dataset.id);
             elements.playBoard.appendChild(newGem);
-            startDrag(e, newGem);
+            startDrag(e, newGem, gem.id);
         } else {
             startDrag(e, gem);
         }
@@ -367,35 +382,37 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     
-    function startDrag(e, gem) {
+    function startDrag(e, gem, paletteId = null) {
         gem.classList.add('dragging');
+        const boardRect = elements.playBoard.getBoundingClientRect();
+        const origin = gem.parentElement === elements.playBoard && !paletteId ? snapshotFromElement(gem) : null;
+        
+        let initialLeft, initialTop;
 
-        const origin = gem.parentElement === elements.playBoard ? snapshotFromElement(gem) : null;
         if (origin) {
+            initialLeft = gem.offsetLeft;
+            initialTop = gem.offsetTop;
             delete state.placedGems[gem.id];
             updatePlayGrid();
-        }
-
-        const boardRect = elements.playBoard.getBoundingClientRect();
-        
-        if (!origin) {
+        } else {
             const svg = gem.querySelector('svg');
             const w = parseFloat(svg.style.width), h = parseFloat(svg.style.height);
-            const newLeft = e.clientX - boardRect.left - w / 2;
-            const newTop = e.clientY - boardRect.top - h / 2;
-            gem.style.left = `${newLeft}px`;
-            gem.style.top = `${newTop}px`;
+            initialLeft = e.clientX - boardRect.left - w / 2;
+            initialTop = e.clientY - boardRect.top - h / 2;
+            gem.style.left = `${initialLeft}px`;
+            gem.style.top = `${initialTop}px`;
         }
-        
+
         state.draggedGem = {
             gem,
             dragState: {
                 isDragging: false,
                 initialX: e.clientX,
                 initialY: e.clientY,
-                initialLeft: gem.offsetLeft,
-                initialTop: gem.offsetTop,
+                initialLeft: initialLeft,
+                initialTop: initialTop,
                 originPlacement: origin,
+                paletteId: paletteId
             }
         };
     }
@@ -422,7 +439,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function handleGemDrop(gem, clientX, clientY) {
         const boardRect = elements.playBoard.getBoundingClientRect();
         const cell = getCellSize();
-        const { originPlacement } = state.draggedGem.dragState;
+        const { originPlacement, paletteId } = state.draggedGem.dragState;
 
         const isInside = clientX >= boardRect.left && clientX <= boardRect.right &&
                          clientY >= boardRect.top && clientY <= boardRect.bottom;
@@ -435,24 +452,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (canPlaceAt(gem.id, gem.dataset.id, gx, gy, rot, flip)) {
                 placeGem(gem, gx, gy, rot, flip);
-                state.placedGems[gem.id] = { uniqueId: gem.id, id: gem.dataset.id, x: gx, y: gy, rotation: rot, flipped: flip };
+                state.placedGems[gem.id] = { uniqueId: gem.id, id: gem.dataset.id, x: gx, y: gy, rotation: rot, flipped: flip, paletteId: paletteId };
                 updatePlayGrid();
             } else {
-                revertOrRemoveGem(gem, originPlacement);
+                revertOrRemoveGem(gem, originPlacement, paletteId);
                 shake(elements.playBoard);
             }
         } else {
-            revertOrRemoveGem(gem, originPlacement);
+            revertOrRemoveGem(gem, originPlacement, paletteId);
         }
     }
 
-    function revertOrRemoveGem(gem, origin) {
+    function revertOrRemoveGem(gem, origin, paletteId) {
         if (origin) {
             placeGem(gem, origin.x, origin.y, origin.rotation, origin.flipped);
             state.placedGems[gem.id] = { ...origin };
             updatePlayGrid();
         } else {
             gem.remove();
+            if (paletteId) {
+                const paletteGem = document.getElementById(paletteId);
+                if (paletteGem) paletteGem.style.visibility = 'visible';
+            }
         }
     }
 
@@ -638,54 +659,43 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function getReflection(cellShape, entryDir) {
-    // Table-driven reflection rules:
-    // - SQUARE: 180° reflection
-    // - TRIANGLE_*: hypotenuse => diagonal reflection, right-angle sides => 180°
-    const reflect180 = (d) => ({ type: 'STRAIGHT', newDir: { dx: -d.dx, dy: -d.dy } });
-    const diag = (dx, dy) => ({ type: 'DIAGONAL', newDir: { dx, dy } });
+        const reflect180 = (dir) => ({ type: 'STRAIGHT', newDir: { dx: -dir.dx, dy: -dir.dy } });
+        const reflectDiag = (newDir) => ({ type: 'DIAGONAL', newDir });
 
-    const rules = {
-        'SQUARE': {
-            'N': (d)=>reflect180(d),
-            'S': (d)=>reflect180(d),
-            'E': (d)=>reflect180(d),
-            'W': (d)=>reflect180(d),
-        },
-        // right angle at NW: hypotenuse goes ↘
-        'TRIANGLE_NW': {
-            'N': (d)=>reflect180(d),
-            'W': (d)=>reflect180(d),
-            'S': (_)=>diag(1, 0),  // -> E
-            'E': (_)=>diag(0, 1),  // -> S
-        },
-        // right angle at NE: hypotenuse goes ↙
-        'TRIANGLE_NE': {
-            'N': (d)=>reflect180(d),
-            'E': (d)=>reflect180(d),
-            'S': (_)=>diag(-1, 0), // -> W
-            'W': (_)=>diag(0, 1),  // -> S
-        },
-        // right angle at SW: hypotenuse goes ↗
-        'TRIANGLE_SW': {
-            'S': (d)=>reflect180(d),
-            'W': (d)=>reflect180(d),
-            'N': (_)=>diag(1, 0),  // -> E
-            'E': (_)=>diag(0, -1), // -> N
-        },
-        // right angle at SE: hypotenuse goes ↖
-        'TRIANGLE_SE': {
-            'S': (d)=>reflect180(d),
-            'E': (d)=>reflect180(d),
-            'N': (_)=>diag(-1, 0), // -> W
-            'W': (_)=>diag(0, -1), // -> N
+        switch (cellShape) {
+            case 'SQUARE': 
+                if (entryDir === 'N') return reflect180({dx:0, dy:1});
+                if (entryDir === 'S') return reflect180({dx:0, dy:-1});
+                if (entryDir === 'E') return reflect180({dx:-1, dy:0});
+                if (entryDir === 'W') return reflect180({dx:1, dy:0});
+                break;
+            case 'TRIANGLE_NW': // 직각이 좌상단
+                if (entryDir === 'S') return reflectDiag({ dx: 1, dy: 0 });  // -> E
+                if (entryDir === 'E') return reflectDiag({ dx: 0, dy: 1 });  // -> S
+                if (entryDir === 'N') return reflect180({dx:0, dy:1});
+                if (entryDir === 'W') return reflect180({dx:1, dy:0});
+                break;
+            case 'TRIANGLE_NE': // 직각이 우상단
+                if (entryDir === 'S') return reflectDiag({ dx: -1, dy: 0 }); // -> W
+                if (entryDir === 'W') return reflectDiag({ dx: 0, dy: 1 });  // -> S
+                if (entryDir === 'N') return reflect180({dx:0, dy:1});
+                if (entryDir === 'E') return reflect180({dx:-1, dy:0});
+                break;
+            case 'TRIANGLE_SW': // 직각이 좌하단
+                if (entryDir === 'N') return reflectDiag({ dx: 1, dy: 0 });  // -> E
+                if (entryDir === 'E') return reflectDiag({ dx: 0, dy: -1 }); // -> N
+                if (entryDir === 'S') return reflect180({dx:0, dy:-1});
+                if (entryDir === 'W') return reflect180({dx:1, dy:0});
+                break;
+            case 'TRIANGLE_SE': // 직각이 우하단
+                if (entryDir === 'N') return reflectDiag({ dx: -1, dy: 0 }); // -> W
+                if (entryDir === 'W') return reflectDiag({ dx: 0, dy: -1 }); // -> N
+                if (entryDir === 'S') return reflect180({dx:0, dy:-1});
+                if (entryDir === 'E') return reflect180({dx:-1, dy:0});
+                break;
         }
-    };
-
-    const inDir = { dx: entryDir==='E'? -1 : entryDir==='W'? 1 : 0, dy: entryDir==='S'? -1 : entryDir==='N'? 1 : 0 };
-    const fn = rules[cellShape] && rules[cellShape][entryDir];
-    if (fn) return fn(inDir);
-    return null;
-}
+        return null;
+    }
 
     function getMixedColor(set) {
         const CMap = {
@@ -735,8 +745,24 @@ document.addEventListener('DOMContentLoaded', () => {
     // GAME LOGIC & STATE UPDATES
     // =================================================================================
 
+    // [NEW] Logs the current board state to the console for debugging
+    function logBoardState() {
+        const grid = state.playGrid;
+        console.clear();
+        console.log("Current Player Board State:");
+        
+        const output = grid.map(row => 
+            row.map(cell => 
+                cell ? CELL_SHAPE_SYMBOLS[cell.cellShape] : CELL_SHAPE_SYMBOLS.null
+            ).join(' ')
+        ).join('\n');
+
+        console.log(output);
+    }
+
     function updatePlayGrid() {
         state.playGrid = buildGridFromPlaced();
+        logBoardState(); // Log state every time the grid is updated
     }
 
     function updateSolutionGrid() {
@@ -744,42 +770,32 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function buildGridFromPlaced() {
-    const grid = Array(C.BOARD_H).fill(0).map(() => Array(C.BOARD_W).fill(null));
-    Object.values(state.placedGems).forEach(g => {
-        const t = getTransformedGem(g.id, g.rotation, g.flipped);
-        t.shape.forEach(p => {
-            const x = g.x + p.x, y = g.y + p.y;
-            if (x < 0 || x >= C.BOARD_W || y < 0 || y >= C.BOARD_H) return;
-            const key = `${p.x},${p.y}`;
-            grid[y][x] = {
-                color: GEMS[g.id].color,
-                cellShape: t.cellShapes[key] || null,
-                gemType: g.id,
-                uniqueId: g.uniqueId
-            };
+        const grid = Array(C.BOARD_H).fill(0).map(() => Array(C.BOARD_W).fill(null));
+        Object.values(state.placedGems).forEach(g => {
+            const t = getTransformedGem(g.id, g.rotation, g.flipped);
+            t.shape.forEach(p => {
+                const x = g.x + p.x, y = g.y + p.y;
+                if (x < 0 || x >= C.BOARD_W || y < 0 || y >= C.BOARD_H) return;
+                const key = `${p.x},${p.y}`;
+                grid[y][x] = { color: GEMS[g.id].color, cellShape: t.cellShapes[key] || null };
+            });
         });
-    });
-    return grid;
-}
+        return grid;
+    }
     
     function buildGridFromSolution() {
-    const grid = Array(C.BOARD_H).fill(0).map(() => Array(C.BOARD_W).fill(null));
-    Object.entries(state.solution).forEach(([uniqueId, g]) => {
-        const t = getTransformedGem(g.id, g.rotation, g.flipped);
-        t.shape.forEach(p => {
-            const x = g.x + p.x, y = g.y + p.y;
-            if (x < 0 || x >= C.BOARD_W || y < 0 || y >= C.BOARD_H) return;
-            const key = `${p.x},${p.y}`;
-            grid[y][x] = {
-                color: GEMS[g.id].color,
-                cellShape: t.cellShapes[key] || null,
-                gemType: g.id,
-                uniqueId
-            };
+        const grid = Array(C.BOARD_H).fill(0).map(() => Array(C.BOARD_W).fill(null));
+        Object.values(state.solution).forEach(g => {
+            const t = getTransformedGem(g.id, g.rotation, g.flipped);
+            t.shape.forEach(p => {
+                const x = g.x + p.x, y = g.y + p.y;
+                if (x < 0 || x >= C.BOARD_W || y < 0 || y >= C.BOARD_H) return;
+                const key = `${p.x},${p.y}`;
+                grid[y][x] = { color: GEMS[g.id].color, cellShape: t.cellShapes[key] || null };
+            });
         });
-    });
-    return grid;
-}
+        return grid;
+    }
     
     function checkAnswer() {
         const placedArr = Object.values(state.placedGems);
@@ -1001,33 +1017,3 @@ document.addEventListener('DOMContentLoaded', () => {
     // =================================================================================
     init();
 });
-
-
-
-
-// ================================================================
-// EXPORT HELPERS (precise shape/cell info per gem for debugging/API)
-// ================================================================
-window.getBoardSnapshot = function(kind = 'solution') {
-    const src = kind === 'play' ? state.placedGems : state.solution;
-    const result = [];
-    Object.entries(src).forEach(([key, g]) => {
-        const uniqueId = g.uniqueId || key;
-        const t = getTransformedGem(g.id, g.rotation, g.flipped);
-        const cells = t.shape.map(p => ({
-            x: g.x + p.x,
-            y: g.y + p.y,
-            cellShape: t.cellShapes[`${p.x},${p.y}`] || null
-        }));
-        result.push({
-            uniqueId,
-            gemType: g.id,
-            color: GEMS[g.id].color,
-            x: g.x, y: g.y,
-            rotation: g.rotation,
-            flipped: g.flipped,
-            cells
-        });
-    });
-    return result;
-};
