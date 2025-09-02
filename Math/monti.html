@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>몬티홀 딜레마 시뮬레이터</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- KaTeX CDN 추가 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" xintegrity="sha384-n8MVd4RsNIU0KOVEMeaPoAbJNdMYGNpaLCITPbUdaJblrzJNE2agrdMLIHN5EQGk" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" xintegrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzYCEHPNKAqv8i5HuaMusnvENqVd+BovHtCQ" crossorigin="anonymous"></script>
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        .door-container {
+            perspective: 1000px;
+        }
+        .door {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.8s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1), 0 1px 3px rgba(0,0,0,0.08);
+        }
+        .door.is-open {
+            transform: rotateY(180deg);
+        }
+        .door-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 3rem;
+            border-radius: 0.5rem;
+        }
+        .door-front {
+            background-color: #a0522d;
+            color: white;
+            border: 5px solid #8b4513;
+        }
+        .door-back {
+            background-color: #f0e68c;
+            transform: rotateY(180deg);
+        }
+        .selected {
+            box-shadow: 0 0 20px 5px #3b82f6; /* Tailwind blue-500 */
+        }
+        .stats-bar-container {
+            background-color: #e5e7eb; /* Tailwind gray-200 */
+            border-radius: 0.375rem;
+            overflow: hidden;
+        }
+        .stats-bar {
+            transition: width 0.5s ease-in-out;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800 flex items-center justify-center min-h-screen p-4">
+
+    <div class="w-full max-w-5xl mx-auto bg-white rounded-xl shadow-lg p-6 md:p-8">
+        
+        <!-- 게임 설정 -->
+        <div class="mb-8 p-4 border rounded-lg bg-gray-50">
+            <h2 class="text-xl font-bold text-center mb-4">게임 설정</h2>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
+                <div class="flex items-center gap-2 justify-center md:justify-start">
+                    <label for="numDoors" class="font-medium">문 개수(N):</label>
+                    <input type="number" id="numDoors" value="3" min="3" max="20" class="w-20 p-2 border rounded-md focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <div class="flex items-center gap-2 justify-center md:justify-start">
+                    <label for="numCars" class="font-medium">자동차 수(C):</label>
+                    <input type="number" id="numCars" value="1" min="1" max="2" class="w-20 p-2 border rounded-md focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <div class="flex items-center gap-2 justify-center md:justify-start">
+                    <label for="numHostOpens" class="font-medium">열 문 개수(K):</label>
+                    <input type="number" id="numHostOpens" value="1" min="1" max="1" class="w-20 p-2 border rounded-md focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <button id="newGameButton" class="bg-indigo-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-indigo-700 transition duration-300 transform hover:scale-105 md:col-span-1">
+                    새 게임 시작
+                </button>
+            </div>
+        </div>
+        
+        <!-- 제목 및 설명 -->
+        <div class="text-center mb-6">
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-900">몬티홀 딜레마 시뮬레이터</h1>
+            <p id="instruction" class="mt-3 text-lg text-gray-600 min-h-[2.5rem]">자동차를 찾기 위해 문 중 하나를 선택하세요.</p>
+        </div>
+
+        <!-- 문 -->
+        <div id="door-grid" class="grid gap-4 md:gap-6 mb-8"></div>
+        
+        <!-- 확률 분석 -->
+        <div class="text-center mb-6">
+            <button id="prob-toggle-button" class="text-indigo-600 hover:text-indigo-800 font-semibold">수학적 확률 분석 보기</button>
+            <div id="prob-analysis" class="hidden mt-4 p-4 bg-indigo-50 rounded-lg text-left max-w-lg mx-auto">
+                <h3 class="font-bold text-lg mb-2 text-center">전략별 예상 승률</h3>
+                <div class="flex flex-col md:flex-row justify-around items-center space-y-4 md:space-y-0 md:space-x-4">
+                    <div class="text-center">
+                        <p><strong>선택 유지 (Stay)</strong></p>
+                        <span id="stay-formula"></span>
+                        <p>약 <span id="stayProb" class="font-bold text-red-600">0%</span></p>
+                    </div>
+                    <div class="text-center">
+                        <p><strong>선택 변경 (Switch)</strong></p>
+                        <span id="switch-formula"></span>
+                        <p>약 <span id="switchProb" class="font-bold text-green-600">0%</span></p>
+                    </div>
+                </div>
+                <p class="text-xs text-gray-500 mt-4">* 사회자는 항상 염소가 있는 문만 열어준다고 가정합니다. 변경 시 남은 문 중 하나를 무작위 선택합니다.</p>
+            </div>
+        </div>
+
+        <!-- 결과 메시지 및 재시작 버튼 -->
+        <div class="text-center h-16 flex flex-col justify-center items-center">
+            <p id="result" class="text-2xl font-semibold text-blue-600 mb-4"></p>
+            <button id="resetButton" class="bg-blue-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-blue-700 transition duration-300 transform hover:scale-105 hidden">
+                다시하기
+            </button>
+        </div>
+
+        <!-- 통계 -->
+        <div class="mt-8 border-t pt-6">
+            <h2 class="text-2xl font-bold text-center mb-6">전략별 실제 승률 통계</h2>
+            <div class="space-y-6">
+                 <div>
+                    <div class="flex justify-between items-center mb-1">
+                        <h3 class="text-lg font-semibold">선택 유지 (Stay)</h3>
+                        <p class="text-gray-600 font-medium"><span id="stayWins">0</span>승 / <span id="stayLosses">0</span>패</p>
+                    </div>
+                    <div class="stats-bar-container w-full h-6"><div id="stayWinRateBar" class="stats-bar h-full bg-red-500 text-white flex items-center justify-center text-sm font-bold" style="width: 0%;"><span id="stayWinRateText">0%</span></div></div>
+                </div>
+                <div>
+                    <div class="flex justify-between items-center mb-1">
+                        <h3 class="text-lg font-semibold">선택 변경 (Switch)</h3>
+                        <p class="text-gray-600 font-medium"><span id="switchWins">0</span>승 / <span id="switchLosses">0</span>패</p>
+                    </div>
+                    <div class="stats-bar-container w-full h-6"><div id="switchWinRateBar" class="stats-bar h-full bg-green-500 text-white flex items-center justify-center text-sm font-bold" style="width: 0%;"><span id="switchWinRateText">0%</span></div></div>
+                </div>
+            </div>
+             <div class="text-center mt-6">
+                <button id="resetStatsButton" class="text-sm text-gray-500 hover:text-gray-700 underline">통계 초기화</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 게임 설정 및 상태 변수
+        let numDoors, numCars, numHostOpens;
+        let carDoors = [];
+        let userChoice;
+        let openedByHost = [];
+        let gameState = 'initial_choice';
+        let doors = [];
+        let strategy;
+
+        // 통계 관련 변수
+        let stayWins = 0, stayLosses = 0, switchWins = 0, switchLosses = 0;
+
+        // DOM 요소
+        const doorGrid = document.getElementById('door-grid');
+        const instructionText = document.getElementById('instruction');
+        const resultText = document.getElementById('result');
+        const resetButton = document.getElementById('resetButton');
+        const newGameButton = document.getElementById('newGameButton');
+        const numDoorsInput = document.getElementById('numDoors');
+        const numCarsInput = document.getElementById('numCars');
+        const numHostOpensInput = document.getElementById('numHostOpens');
+        const probToggleButton = document.getElementById('prob-toggle-button');
+        const probAnalysisDiv = document.getElementById('prob-analysis');
+        
+        function updateInputConstraints() {
+            const N = parseInt(numDoorsInput.value, 10);
+            
+            numCarsInput.max = N - 2;
+            if (parseInt(numCarsInput.value) > N - 2) {
+                numCarsInput.value = N - 2;
+            }
+            const C = parseInt(numCarsInput.value, 10);
+
+            const maxHostOpens = N - C - 1;
+            numHostOpensInput.max = maxHostOpens < 1 ? 1 : maxHostOpens;
+             if (parseInt(numHostOpensInput.value) > maxHostOpens) {
+                numHostOpensInput.value = maxHostOpens < 1 ? 1 : maxHostOpens;
+            }
+        }
+
+        function createDoors() {
+            doorGrid.innerHTML = '';
+            const columns = Math.min(numDoors, 10);
+            doorGrid.style.gridTemplateColumns = `repeat(${columns}, 1fr)`;
+            for (let i = 1; i <= numDoors; i++) {
+                const doorWrapper = document.createElement('div');
+                doorWrapper.className = 'door-container h-32 md:h-40';
+                doorWrapper.innerHTML = `
+                    <div class="door cursor-pointer" onclick="selectDoor(${i})">
+                        <div class="door-face door-front"><span class="text-2xl md:text-4xl font-bold">${i}</span></div>
+                        <div class="door-face door-back"><span class="prize-emoji text-2xl md:text-4xl"></span></div>
+                    </div>`;
+                doorGrid.appendChild(doorWrapper);
+            }
+        }
+
+        function initializeGame() {
+            updateInputConstraints();
+            numDoors = parseInt(numDoorsInput.value, 10);
+            numCars = parseInt(numCarsInput.value, 10);
+            numHostOpens = parseInt(numHostOpensInput.value, 10);
+
+            createDoors();
+            
+            doors = Array.from({length: numDoors}, (_, i) => i + 1);
+            carDoors = [];
+            while(carDoors.length < numCars){
+                const randomDoor = Math.floor(Math.random() * numDoors) + 1;
+                if(!carDoors.includes(randomDoor)) carDoors.push(randomDoor);
+            }
+            
+            document.querySelectorAll('.prize-emoji').forEach((emoji, index) => {
+                emoji.textContent = carDoors.includes(index + 1) ? '🚗' : '🐐';
+            });
+            document.querySelectorAll('.door').forEach(door => {
+                door.classList.remove('is-open', 'selected');
+                door.style.cursor = 'pointer';
+            });
+
+            gameState = 'initial_choice';
+            userChoice = null;
+            openedByHost = [];
+            strategy = null;
+            instructionText.textContent = `자동차를 찾기 위해 ${numDoors}개의 문 중 하나를 선택하세요.`;
+            resultText.textContent = '';
+            resetButton.classList.add('hidden');
+            calculateAndShowProbabilities();
+        }
+        
+        function selectDoor(doorNumber) {
+            if (gameState === 'initial_choice') handleInitialChoice(doorNumber);
+            else if (gameState === 'final_choice') handleFinalChoice(doorNumber);
+        }
+        
+        function handleInitialChoice(doorNumber) {
+            userChoice = doorNumber;
+            document.querySelectorAll('.door')[userChoice - 1].classList.add('selected');
+            gameState = 'awaiting_host';
+            instructionText.textContent = `당신은 ${userChoice}번 문을 선택했습니다. 사회자가 문을 엽니다...`;
+            setTimeout(hostOpensDoor, 1000);
+        }
+
+        function hostOpensDoor() {
+            const potentialDoors = doors.filter(d => d !== userChoice && !carDoors.includes(d));
+            
+            for (let i = potentialDoors.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [potentialDoors[i], potentialDoors[j]] = [potentialDoors[j], potentialDoors[i]];
+            }
+            openedByHost = potentialDoors.slice(0, numHostOpens);
+            openedByHost.forEach((doorNum, index) => {
+                setTimeout(() => {
+                    const doorEl = document.querySelectorAll('.door')[doorNum - 1];
+                    doorEl.classList.add('is-open');
+                    doorEl.style.cursor = 'default';
+                }, (index + 1) * 400);
+            });
+            setTimeout(() => {
+                instructionText.textContent = `사회자가 염소가 있는 ${numHostOpens}개의 문을 열었습니다. 선택을 바꾸거나 유지하세요.`;
+                gameState = 'final_choice';
+            }, openedByHost.length * 400 + 200);
+        }
+
+        function handleFinalChoice(doorNumber) {
+            if (openedByHost.includes(doorNumber)) return;
+            strategy = (doorNumber === userChoice) ? 'stay' : 'switch';
+            revealResult(doorNumber);
+        }
+
+        function revealResult(finalChoice) {
+            gameState = 'game_over';
+            document.querySelectorAll('.door').forEach(door => {
+                setTimeout(() => door.classList.add('is-open'), 200);
+                door.style.cursor = 'default';
+            });
+
+            const isWinner = carDoors.includes(finalChoice);
+            resultText.textContent = isWinner ? '축하합니다! 자동차입니다! 🚗' : '아쉽네요... 염소입니다. 🐐';
+            resultText.className = `text-2xl font-semibold mb-4 ${isWinner ? 'text-green-600' : 'text-red-600'}`;
+            instructionText.textContent = `당신은 '${strategy === 'stay' ? '선택 유지' : '선택 변경'}' 전략을 사용했습니다.`;
+            
+            updateStatistics(strategy, isWinner);
+            resetButton.classList.remove('hidden');
+        }
+
+        function calculateAndShowProbabilities() {
+            const N = numDoors, C = numCars, K = numHostOpens;
+            
+            const stayProb = C / N;
+            
+            const remainingSwitchableDoors = N - 1 - K;
+            // 스위치 승리 확률: (처음 염소를 고를 확률) * (바꿨을 때 차를 고를 확률)
+            const switchProb = remainingSwitchableDoors > 0 ? ((N - C) / N) * (C / remainingSwitchableDoors) : 0;
+            
+            document.getElementById('stayProb').textContent = `${(stayProb * 100).toFixed(1)}%`;
+            document.getElementById('switchProb').textContent = `${(switchProb * 100).toFixed(1)}%`;
+            
+            // KaTeX 렌더링
+            katex.render(`P(\\text{승리}) = \\frac{C}{N}`, document.getElementById('stay-formula'), {
+                throwOnError: false, displayMode: true
+            });
+             katex.render(`P(\\text{승리}) = \\frac{N-C}{N} \\times \\frac{C}{N-K-1}`, document.getElementById('switch-formula'), {
+                throwOnError: false, displayMode: true
+            });
+        }
+
+        function updateStatistics(strategy, isWinner) {
+            if (strategy === 'stay') isWinner ? stayWins++ : stayLosses++;
+            else isWinner ? switchWins++ : switchLosses++;
+            
+            localStorage.setItem('montyHallStats', JSON.stringify({stayWins, stayLosses, switchWins, switchLosses}));
+            displayStatistics();
+        }
+
+        function displayStatistics() {
+            const stayTotal = stayWins + stayLosses;
+            const switchTotal = switchWins + switchLosses;
+            document.getElementById('stayWins').textContent = stayWins;
+            document.getElementById('stayLosses').textContent = stayLosses;
+            document.getElementById('switchWins').textContent = switchWins;
+            document.getElementById('switchLosses').textContent = switchLosses;
+            
+            const stayWinRate = stayTotal > 0 ? ((stayWins / stayTotal) * 100).toFixed(1) : 0;
+            const switchWinRate = switchTotal > 0 ? ((switchWins / switchTotal) * 100).toFixed(1) : 0;
+
+            const stayBar = document.getElementById('stayWinRateBar');
+            stayBar.style.width = `${stayWinRate}%`;
+            document.getElementById('stayWinRateText').textContent = `${stayWinRate}%`;
+            
+            const switchBar = document.getElementById('switchWinRateBar');
+            switchBar.style.width = `${switchWinRate}%`;
+            document.getElementById('switchWinRateText').textContent = `${switchWinRate}%`;
+        }
+        
+        function loadStatistics() {
+            const stats = JSON.parse(localStorage.getItem('montyHallStats'));
+            if (stats) {
+                stayWins = stats.stayWins || 0;
+                stayLosses = stats.stayLosses || 0;
+                switchWins = stats.switchWins || 0;
+                switchLosses = stats.switchLosses || 0;
+            }
+            displayStatistics();
+        }
+
+        // Event Listeners
+        [numDoorsInput, numCarsInput, numHostOpensInput].forEach(input => input.addEventListener('change', updateInputConstraints));
+        newGameButton.addEventListener('click', initializeGame);
+        resetButton.addEventListener('click', initializeGame);
+        probToggleButton.addEventListener('click', () => {
+            const isHidden = probAnalysisDiv.classList.toggle('hidden');
+            probToggleButton.textContent = isHidden ? '수학적 확률 분석 보기' : '확률 분석 숨기기';
+        });
+        document.getElementById('resetStatsButton').addEventListener('click', () => {
+            if (confirm('정말로 모든 통계 기록을 초기화하시겠습니까?')) {
+                stayWins = 0; stayLosses = 0; switchWins = 0; switchLosses = 0;
+                localStorage.removeItem('montyHallStats');
+                displayStatistics();
+            }
+        });
+
+        window.onload = () => {
+            initializeGame();
+            loadStatistics();
+        };
+    </script>
+</body>
+</html>
+
