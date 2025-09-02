@@ -472,21 +472,22 @@ document.addEventListener('DOMContentLoaded', () => {
             return { newX: x, newY: y };
         }
 
-        // 회전 전/후 바운딩 박스 크기
+        // 회전 전/후 바운딩 박스 크기(그리드 단위)
         const wBefore = Math.max(...tBefore.shape.map(p => p.x)) + 1;
         const hBefore = Math.max(...tBefore.shape.map(p => p.y)) + 1;
         const wAfter  = Math.max(...tAfter.shape.map(p => p.x)) + 1;
         const hAfter  = Math.max(...tAfter.shape.map(p => p.y)) + 1;
 
-        // 바운딩 박스 중심(그리드 좌표계) 유지
+        // 바운딩 박스 중심(= viewBox 중심과 동일 개념)을 보존
         const centerX = x + wBefore / 2;
         const centerY = y + hBefore / 2;
 
         const newGx = Math.round(centerX - wAfter / 2);
-        const newGy = Math.round(centerY - hAfter  / 2);
+        const newGy = Math.round(centerY - hAfter / 2);
 
         return { newX: newGx, newY: newGy };
     }
+
 
 
     function canPlaceAt(uniqueId, id, x, y, rotation, flipped) {
