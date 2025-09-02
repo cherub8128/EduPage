@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>인터랙티브 행렬 시각화 도구</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" xintegrity="sha384-n8MVd4RsNIU0KOVEMmg9aaubre9e2+qklsYpGhilJsrGGIsBOHeAfl8RMyzSto0z" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" xintegrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzYCcm2IawAzXpSNEEUiJyfkXR38AG7Yd8w" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" xintegrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #111827;
+            color: #d1d5db;
+        }
+        .matrix-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 0.5rem;
+            width: 150px;
+        }
+        .matrix-input {
+            width: 40px;
+            height: 40px;
+            text-align: center;
+            background-color: #374151;
+            border: 1px solid #4b5563;
+            border-radius: 0.25rem;
+            color: #d1d5db;
+            font-weight: bold;
+        }
+        .matrix-cell {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #4b5563;
+            border-radius: 0.25rem;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        .highlight-row { background-color: #2563eb !important; color: white; }
+        .highlight-col { background-color: #db2777 !important; color: white; }
+        .highlight-result { background-color: #16a34a !important; color: white; }
+        .katex-display { margin: 0; }
+        .tab-button {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            border: none;
+            background-color: #374151;
+            color: #d1d5db;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .tab-button.active {
+            background-color: #4f46e5;
+            color: white;
+            font-weight: bold;
+        }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <div class="max-w-7xl mx-auto">
+        <header class="text-center mb-12">
+            <h1 class="text-4xl md:text-5xl font-bold text-white">인터랙티브 행렬 시각화 도구</h1>
+            <p class="mt-4 text-lg text-gray-400">3x3 행렬의 곱셈, 행렬식, 그리고 그 성질들을 직접 체험해보세요.</p>
+        </header>
+
+        <!-- Tab Navigation -->
+        <div id="tab-container" class="flex justify-center space-x-2 md:space-x-4 mb-8">
+            <button class="tab-button active" data-tab="multiplication">행렬 곱셈</button>
+            <button class="tab-button" data-tab="determinant">행렬식 계산</button>
+            <button class="tab-button" data-tab="properties">행렬식의 성질</button>
+        </div>
+
+        <!-- Tab Content -->
+        <main>
+            <!-- 1. Matrix Multiplication -->
+            <section id="multiplication" class="tab-content active">
+                <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+                    <h2 class="text-2xl font-bold mb-6 text-white text-center">3x3 행렬 곱셈 애니메이션</h2>
+                    <div class="flex flex-col md:flex-row items-center justify-center gap-8">
+                        <!-- Matrix A -->
+                        <div>
+                            <p class="text-center text-xl mb-2">A</p>
+                            <div id="matrix-a" class="matrix-grid"></div>
+                        </div>
+                        <span class="text-4xl font-bold">×</span>
+                        <!-- Matrix B -->
+                        <div>
+                            <p class="text-center text-xl mb-2">B</p>
+                            <div id="matrix-b" class="matrix-grid"></div>
+                        </div>
+                        <span class="text-4xl font-bold">=</span>
+                        <!-- Result Matrix C -->
+                        <div>
+                            <p class="text-center text-xl mb-2">C</p>
+                            <div id="matrix-c" class="matrix-grid"></div>
+                        </div>
+                    </div>
+                    <div class="text-center mt-6">
+                        <button id="multiply-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded-lg transition-colors">곱셈 실행</button>
+                        <button id="reset-mult-btn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-6 rounded-lg transition-colors ml-4">초기화</button>
+                    </div>
+                    <div id="multiplication-steps" class="mt-6 p-4 bg-gray-900 rounded-lg text-center h-20 flex items-center justify-center">
+                        <p>애니메이션 대기 중...</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 2. Determinant Calculation -->
+            <section id="determinant" class="tab-content">
+                <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+                    <h2 class="text-2xl font-bold mb-6 text-white text-center">3x3 행렬식 계산 (사뤼스 법칙)</h2>
+                    <div class="flex flex-col items-center gap-8">
+                        <div id="det-matrix" class="matrix-grid"></div>
+                        <button id="calc-det-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded-lg transition-colors">행렬식 계산</button>
+                        <div id="determinant-steps" class="mt-4 p-4 bg-gray-900 rounded-lg w-full max-w-2xl text-lg">
+                            <p class="text-center">행렬 값을 입력하고 '행렬식 계산' 버튼을 누르세요.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 3. Determinant Properties -->
+            <section id="properties" class="tab-content">
+                <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+                    <h2 class="text-2xl font-bold mb-6 text-white text-center">행렬식의 성질 탐구</h2>
+                    <div class="flex flex-col items-center gap-8">
+                         <div class="flex items-center justify-center gap-8 mb-4">
+                            <div>
+                                <p class="text-center text-xl mb-2">원래 행렬 (A)</p>
+                                <div id="prop-matrix-a" class="matrix-grid"></div>
+                                <p class="text-center mt-2">det(A) = <span id="prop-det-a">?</span></p>
+                            </div>
+                            <div id="prop-arrow" class="text-4xl font-bold text-center w-40">→</div>
+                            <div>
+                                <p class="text-center text-xl mb-2">변환된 행렬 (B)</p>
+                                <div id="prop-matrix-b" class="matrix-grid"></div>
+                                <p class="text-center mt-2">det(B) = <span id="prop-det-b">?</span></p>
+                            </div>
+                        </div>
+                        <div class="flex flex-wrap justify-center gap-2 mb-4">
+                            <select id="prop-select" class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5">
+                                <option value="swap">1. 행 교환: det(B) = -det(A)</option>
+                                <option value="scalar">2. 한 행에 상수배: det(B) = k * det(A)</option>
+                                <option value="add">3. 한 행의 상수배를 다른 행에 더하기: det(B) = det(A)</option>
+                                <option value="zero">4. 0으로만 이루어진 행: det(A) = 0</option>
+                                <option value="same">5. 두 행이 같을 때: det(A) = 0</option>
+                            </select>
+                            <button id="apply-prop-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg">적용</button>
+                             <button id="reset-prop-btn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg">초기화</button>
+                        </div>
+                        <div id="prop-explanation" class="mt-4 p-4 bg-gray-900 rounded-lg w-full max-w-3xl text-center">
+                            <p>위 목록에서 탐구하고 싶은 성질을 선택하고 '적용' 버튼을 누르세요.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const initialMatrixA = [[8, 1, 6], [3, 5, 7], [4, 9, 2]];
+            const initialMatrixB = [[1, 2, 3], [4, 5, 6], [7, 8, 9]];
+            const initialMatrixDet = [[6, 1, 1], [4, -2, 5], [2, 8, 7]];
+
+            // --- General Utility Functions ---
+            const createMatrixInputs = (containerId, matrix, isReadOnly = false) => {
+                const container = document.getElementById(containerId);
+                container.innerHTML = '';
+                for (let i = 0; i < 3; i++) {
+                    for (let j = 0; j < 3; j++) {
+                        const input = document.createElement('input');
+                        input.type = 'number';
+                        input.className = 'matrix-input';
+                        input.value = matrix[i][j];
+                        if (isReadOnly) input.readOnly = true;
+                        container.appendChild(input);
+                    }
+                }
+            };
+
+            const createMatrixCells = (containerId) => {
+                const container = document.getElementById(containerId);
+                container.innerHTML = '';
+                for (let i = 0; i < 9; i++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'matrix-cell';
+                    cell.textContent = '?';
+                    container.appendChild(cell);
+                }
+            };
+            
+            const getMatrixValues = (containerId) => {
+                const values = [];
+                const inputs = document.getElementById(containerId).getElementsByTagName('input');
+                let k = 0;
+                for (let i = 0; i < 3; i++) {
+                    const row = [];
+                    for (let j = 0; j < 3; j++) {
+                        const val = parseFloat(inputs[k++].value);
+                        row.push(isNaN(val) ? 0 : val);
+                    }
+                    values.push(row);
+                }
+                return values;
+            };
+
+            const renderKatex = (element, formula) => {
+                 try {
+                    katex.render(formula, element, {
+                        throwOnError: false,
+                        displayMode: true
+                    });
+                } catch (e) {
+                    element.textContent = "수식 렌더링 오류";
+                    console.error(e);
+                }
+            };
+            
+            const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+            // --- Tab Functionality ---
+            const tabs = document.querySelectorAll('.tab-button');
+            const tabContents = document.querySelectorAll('.tab-content');
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    tabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    const target = document.getElementById(tab.dataset.tab);
+                    tabContents.forEach(c => c.classList.remove('active'));
+                    target.classList.add('active');
+                });
+            });
+
+            // --- 1. Matrix Multiplication ---
+            const matrixAContainer = document.getElementById('matrix-a');
+            const matrixBContainer = document.getElementById('matrix-b');
+            const matrixCContainer = document.getElementById('matrix-c');
+            const multiplyBtn = document.getElementById('multiply-btn');
+            const resetMultBtn = document.getElementById('reset-mult-btn');
+            const multStepsContainer = document.getElementById('multiplication-steps');
+
+            const initMultiplication = () => {
+                createMatrixInputs('matrix-a', initialMatrixA);
+                createMatrixInputs('matrix-b', initialMatrixB);
+                createMatrixCells('matrix-c');
+                multStepsContainer.innerHTML = '<p>애니메이션 대기 중...</p>';
+                multiplyBtn.disabled = false;
+            };
+
+            const highlight = (container, type, index, add) => {
+                const cells = container.children;
+                if (type === 'row') {
+                    for (let i = 0; i < 3; i++) {
+                        cells[index * 3 + i].classList[add ? 'add' : 'remove']('highlight-row');
+                    }
+                } else { // col
+                    for (let i = 0; i < 3; i++) {
+                        cells[i * 3 + index].classList[add ? 'add' : 'remove']('highlight-col');
+                    }
+                }
+            };
+
+            multiplyBtn.addEventListener('click', async () => {
+                multiplyBtn.disabled = true;
+                const matrixA = getMatrixValues('matrix-a');
+                const matrixB = getMatrixValues('matrix-b');
+                const resultMatrix = [[0, 0, 0], [0, 0, 0], [0, 0, 0]];
+                const resultCells = matrixCContainer.children;
+                
+                for (let i = 0; i < 3; i++) {
+                    for (let j = 0; j < 3; j++) {
+                        highlight(matrixAContainer, 'row', i, true);
+                        highlight(matrixBContainer, 'col', j, true);
+                        await sleep(800);
+
+                        let sum = 0;
+                        let stepFormula = `C_{${i+1}${j+1}} = `;
+                        for (let k = 0; k < 3; k++) {
+                            sum += matrixA[i][k] * matrixB[k][j];
+                            stepFormula += `(${matrixA[i][k]} \\times ${matrixB[k][j]})`;
+                            if (k < 2) stepFormula += " + ";
+                        }
+                        stepFormula += ` = ${sum}`;
+                        
+                        renderKatex(multStepsContainer, stepFormula);
+
+                        await sleep(1500);
+
+                        const resultCell = resultCells[i * 3 + j];
+                        resultCell.textContent = sum;
+                        resultCell.classList.add('highlight-result');
+
+                        await sleep(500);
+                        
+                        resultCell.classList.remove('highlight-result');
+                        highlight(matrixAContainer, 'row', i, false);
+                        highlight(matrixBContainer, 'col', j, false);
+                        multStepsContainer.innerHTML = '';
+                    }
+                }
+                multStepsContainer.innerHTML = '<p>곱셈 완료!</p>';
+                multiplyBtn.disabled = false;
+            });
+
+            resetMultBtn.addEventListener('click', initMultiplication);
+
+            // --- 2. Determinant Calculation ---
+            const detMatrixContainer = document.getElementById('det-matrix');
+            const calcDetBtn = document.getElementById('calc-det-btn');
+            const detStepsContainer = document.getElementById('determinant-steps');
+
+            const initDeterminant = () => {
+                createMatrixInputs('det-matrix', initialMatrixDet);
+                detStepsContainer.innerHTML = `<p class="text-center">행렬 값을 입력하고 '행렬식 계산' 버튼을 누르세요.</p>`;
+            };
+
+            const calculateDeterminant = (m) => {
+                return m[0][0]*(m[1][1]*m[2][2] - m[1][2]*m[2][1]) -
+                       m[0][1]*(m[1][0]*m[2][2] - m[1][2]*m[2][0]) +
+                       m[0][2]*(m[1][0]*m[2][1] - m[1][1]*m[2][0]);
+            };
+
+            calcDetBtn.addEventListener('click', () => {
+                const m = getMatrixValues('det-matrix');
+                const p1 = m[0][0] * m[1][1] * m[2][2];
+                const p2 = m[0][1] * m[1][2] * m[2][0];
+                const p3 = m[0][2] * m[1][0] * m[2][1];
+                const n1 = m[0][2] * m[1][1] * m[2][0];
+                const n2 = m[0][0] * m[1][2] * m[2][1];
+                const n3 = m[0][1] * m[1][0] * m[2][2];
+                const det = p1 + p2 + p3 - n1 - n2 - n3;
+
+                let formula = `\\begin{aligned} \\text{det}(A) &= (${m[0][0]} \\cdot ${m[1][1]} \\cdot ${m[2][2]}) + (${m[0][1]} \\cdot ${m[1][2]} \\cdot ${m[2][0]}) + (${m[0][2]} \\cdot ${m[1][0]} \\cdot ${m[2][1]}) \\\\ &\\quad - [(${m[0][2]} \\cdot ${m[1][1]} \\cdot ${m[2][0]}) + (${m[0][0]} \\cdot ${m[1][2]} \\cdot ${m[2][1]}) + (${m[0][1]} \\cdot ${m[1][0]} \\cdot ${m[2][2]})] \\\\ &= (${p1}) + (${p2}) + (${p3}) - [(${n1}) + (${n2}) + (${n3})] \\\\ &= ${p1+p2+p3} - ${n1+n2+n3} \\\\ &= ${det} \\end{aligned}`;
+                
+                detStepsContainer.innerHTML = '';
+                renderKatex(detStepsContainer, formula);
+            });
+
+            // --- 3. Determinant Properties ---
+            const propMatrixAContainer = document.getElementById('prop-matrix-a');
+            const propMatrixBContainer = document.getElementById('prop-matrix-b');
+            const propDetA = document.getElementById('prop-det-a');
+            const propDetB = document.getElementById('prop-det-b');
+            const propSelect = document.getElementById('prop-select');
+            const applyPropBtn = document.getElementById('apply-prop-btn');
+            const resetPropBtn = document.getElementById('reset-prop-btn');
+            const propExplanation = document.getElementById('prop-explanation');
+            const propArrow = document.getElementById('prop-arrow');
+
+
+            const initProperties = () => {
+                createMatrixInputs('prop-matrix-a', initialMatrixDet, true);
+                propMatrixBContainer.innerHTML = '<div class="matrix-grid"></div>'; // Empty
+                createMatrixCells('prop-matrix-b');
+                const detA = calculateDeterminant(initialMatrixDet);
+                propDetA.textContent = detA;
+                propDetB.textContent = '?';
+                propExplanation.innerHTML = `<p>위 목록에서 탐구하고 싶은 성질을 선택하고 '적용' 버튼을 누르세요.</p>`;
+                propArrow.innerHTML = '→';
+            };
+            
+            applyPropBtn.addEventListener('click', () => {
+                let m = JSON.parse(JSON.stringify(initialMatrixDet)); // Deep copy
+                const prop = propSelect.value;
+                let explanation = '';
+                let newMatrix;
+
+                switch(prop) {
+                    case 'swap':
+                        newMatrix = [m[1], m[0], m[2]]; // Swap row 0 and 1
+                        explanation = `1행과 2행을 교환했습니다. 행렬식의 부호가 반대가 됩니다. $det(B) = -det(A)$`;
+                        propArrow.innerHTML = `\\xrightarrow{\\text{R1} \\leftrightarrow \\text{R2}}`;
+                        break;
+                    case 'scalar':
+                        const k = 2;
+                        newMatrix = m.map((row, i) => i === 0 ? row.map(cell => cell * k) : row);
+                        explanation = `1행에 상수 ${k}를 곱했습니다. 행렬식의 값도 ${k}배가 됩니다. $det(B) = ${k} \\cdot det(A)$`;
+                        propArrow.innerHTML = `\\xrightarrow{\\text{R1} \\to ${k}\\text{R1}}`;
+                        break;
+                    case 'add':
+                        const kAdd = 2;
+                        newMatrix = m.slice();
+                        newMatrix[1] = m[1].map((val, i) => val + m[0][i] * kAdd);
+                        explanation = `1행에 ${kAdd}를 곱한 값을 2행에 더했습니다. 행렬식의 값은 변하지 않습니다. $det(B) = det(A)$`;
+                        propArrow.innerHTML = `\\xrightarrow{\\text{R2} \\to \\text{R2} + ${kAdd}\\text{R1}}`;
+                        break;
+                    case 'zero':
+                        newMatrix = m.slice();
+                        newMatrix[1] = [0, 0, 0];
+                        explanation = `한 행(2행)이 모두 0이면 행렬식의 값은 0이 됩니다. $det(A) = 0$`;
+                        propArrow.innerHTML = `\\xrightarrow{\\text{R2} \\to \\text{0}}`;
+                        break;
+                    case 'same':
+                        newMatrix = m.slice();
+                        newMatrix[1] = newMatrix[0].slice(); // Make row 1 same as row 0
+                        explanation = `두 행(1행과 2행)이 같으면 행렬식의 값은 0이 됩니다. $det(A) = 0$`;
+                        propArrow.innerHTML = `\\xrightarrow{\\text{R2} \\to \\text{R1}}`;
+                        break;
+                }
+
+                createMatrixInputs('prop-matrix-b', newMatrix, true);
+                const detB = calculateDeterminant(newMatrix);
+                propDetB.textContent = detB;
+                propExplanation.innerHTML = explanation;
+                renderMathInElement(propExplanation);
+                renderKatex(propArrow, propArrow.innerHTML);
+            });
+            
+            resetPropBtn.addEventListener('click', initProperties);
+
+            // Initializations
+            initMultiplication();
+            initDeterminant();
+            initProperties();
+        });
+    </script>
+</body>
+</html>
+
