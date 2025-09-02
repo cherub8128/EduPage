@@ -873,23 +873,29 @@ document.addEventListener('DOMContentLoaded', () => {
         const gemData = GEMS[gem.dataset.id];
         const { pxW, pxH } = sizeFromViewBox(gemData.viewBox);
 
-        let left = gx * cell;
-        let top = gy * cell;
+        const left = gx * cell;
+        const top  = gy * cell;
         
         gem.dataset.rotation = String(rot);
         gem.dataset.flipped = String(!!flip);
 
         // Visual compensation for rotation of non-square gems
-        if (rot === 90 || rot === 270) {
-            left += (pxW - pxH) / 2;
-            top += (pxH - pxW) / 2;
-        }
+        // if (rot === 90 || rot === 270) {
+        //     left += (pxW - pxH) / 2;
+        //     top += (pxH - pxW) / 2;
+        // }
 
         gem.style.left = `${left}px`;
         gem.style.top = `${top}px`;
+
+        gem.style.width  = `${pxW}px`;
+        gem.style.height = `${pxH}px`;
         
+        // const scaleX = flip ? -1 : 1;
+        // gem.style.transformOrigin = `${pxW / 2}px ${pxH / 2}px`;
+        // gem.style.transform = `rotate(${rot}deg) scaleX(${scaleX})`;
         const scaleX = flip ? -1 : 1;
-        gem.style.transformOrigin = `${pxW / 2}px ${pxH / 2}px`;
+        gem.style.transformOrigin = `${pxW/2}px ${pxH/2}px`; // 중심 고정
         gem.style.transform = `rotate(${rot}deg) scaleX(${scaleX})`;
     }
     
@@ -988,13 +994,13 @@ document.addEventListener('DOMContentLoaded', () => {
         let left = gem.offsetLeft;
         let top = gem.offsetTop;
 
-        // Reverse the visual compensation to get the logical position
-        if (rot === 90 || rot === 270) {
-            const gemData = GEMS[gem.dataset.id];
-            const { pxW, pxH } = sizeFromViewBox(gemData.viewBox);
-            left -= (pxW - pxH) / 2;
-            top -= (pxH - pxW) / 2;
-        }
+        // // Reverse the visual compensation to get the logical position
+        // if (rot === 90 || rot === 270) {
+        //     const gemData = GEMS[gem.dataset.id];
+        //     const { pxW, pxH } = sizeFromViewBox(gemData.viewBox);
+        //     left -= (pxW - pxH) / 2;
+        //     top -= (pxH - pxW) / 2;
+        // }
 
         return {
             uniqueId: gem.id,

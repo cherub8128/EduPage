@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>확률의 세계: 이산확률분포 탐험하기</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" xintegrity="sha384-n8MVd4RsNIU0KOVEMeaPoAbJNdMYGNpaLCITPbUdaJblrzJNE2agrdMLIHN5EQGk" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" xintegrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzYCEHPNKAqv8i5HuaMusnvENqVd+BovHtCQ" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" xintegrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous"></script>
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+        }
+        .katex-display {
+            margin: 0.5em 0;
+        }
+        .interactive-table td, .interactive-table th {
+            transition: background-color 0.5s ease;
+        }
+        .highlight-col {
+            background-color: #e0f2fe; /* sky-100 */
+        }
+        .highlight-final {
+            background-color: #dcfce7; /* green-100 */
+        }
+        .bar-chart-container {
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            height: 300px;
+            position: relative;
+        }
+        .bar {
+            width: 1%;
+            background-color: #3b82f6;
+            transition: height 0.3s ease;
+            margin: 0 1px;
+            position: relative;
+        }
+        .bar .bar-label {
+            position: absolute;
+            bottom: -20px;
+            font-size: 10px;
+            width: 100%;
+            text-align: center;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 p-4 md:p-8">
+
+    <div class="max-w-5xl mx-auto">
+        <header class="text-center mb-12">
+            <h1 class="text-4xl md:text-5xl font-bold text-gray-900">이산확률분포 탐험하기</h1>
+            <p class="mt-4 text-lg text-gray-600">
+                실험을 통해 확률 분포를 만들고, 기댓값, 분산, 이항분포의 원리를 알아봅시다.
+            </p>
+        </header>
+
+        <main class="space-y-16">
+
+            <!-- 실험 1: 동전 3개 던지기 -->
+            <section class="bg-white p-6 rounded-xl shadow-lg">
+                <h2 class="text-3xl font-bold mb-4">실험 1: 동전 3개 던지기</h2>
+                <p class="mb-6 text-gray-600">
+                    서로 다른 동전 3개를 동시에 던지는 실험입니다. 확률변수 $X$를 '앞면이 나오는 동전의 개수'라고 할 때, $X$의 확률분포표를 만들어 봅시다.
+                </p>
+                <div class="flex items-center justify-center space-x-4 my-6">
+                    <div id="coin1" class="w-16 h-16 rounded-full bg-yellow-300 flex items-center justify-center text-2xl font-bold">?</div>
+                    <div id="coin2" class="w-16 h-16 rounded-full bg-yellow-300 flex items-center justify-center text-2xl font-bold">?</div>
+                    <div id="coin3" class="w-16 h-16 rounded-full bg-yellow-300 flex items-center justify-center text-2xl font-bold">?</div>
+                </div>
+                <div class="text-center">
+                    <button id="toss-coins-btn" class="bg-indigo-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-indigo-700 transition">동전 던지기</button>
+                    <button id="reset-coins-btn" class="ml-4 text-gray-500 hover:text-gray-700 underline text-sm">초기화</button>
+                </div>
+                <div class="mt-6 overflow-x-auto">
+                    <table class="w-full text-center border-collapse">
+                        <thead>
+                            <tr class="bg-gray-100">
+                                <th class="p-2 border">$X=x$</th>
+                                <th class="p-2 border">0</th>
+                                <th class="p-2 border">1</th>
+                                <th class="p-2 border">2</th>
+                                <th class="p-2 border">3</th>
+                                <th class="p-2 border">합계</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="p-2 border font-semibold">이론 확률 $P(X=x)$</td>
+                                <td class="p-2 border">1/8</td>
+                                <td class="p-2 border">3/8</td>
+                                <td class="p-2 border">3/8</td>
+                                <td class="p-2 border">1/8</td>
+                                <td class="p-2 border">1</td>
+                            </tr>
+                            <tr>
+                                <td class="p-2 border font-semibold">도수 (Frequency)</td>
+                                <td class="p-2 border" id="coin-freq-0">0</td>
+                                <td class="p-2 border" id="coin-freq-1">0</td>
+                                <td class="p-2 border" id="coin-freq-2">0</td>
+                                <td class="p-2 border" id="coin-freq-3">0</td>
+                                <td class="p-2 border" id="coin-total">0</td>
+                            </tr>
+                            <tr>
+                                <td class="p-2 border font-semibold">상대도수 (경험적 확률)</td>
+                                <td class="p-2 border" id="coin-rel-freq-0">0.0%</td>
+                                <td class="p-2 border" id="coin-rel-freq-1">0.0%</td>
+                                <td class="p-2 border" id="coin-rel-freq-2">0.0%</td>
+                                <td class="p-2 border" id="coin-rel-freq-3">0.0%</td>
+                                <td class="p-2 border">100%</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- 실험 2: 주사위 2개 던지기 -->
+            <section class="bg-white p-6 rounded-xl shadow-lg">
+                <h2 class="text-3xl font-bold mb-4">실험 2: 주사위 2개 던지기</h2>
+                <p class="mb-6 text-gray-600">
+                    서로 다른 주사위 2개를 동시에 던지는 실험입니다. 확률변수 $Y$를 '나오는 두 눈의 수의 합'이라고 할 때, $Y$의 확률분포표를 만들어 봅시다.
+                </p>
+                <div class="flex items-center justify-center space-x-4 my-6">
+                    <div id="die1" class="w-16 h-16 bg-white border-2 border-gray-400 rounded-lg flex items-center justify-center text-4xl font-bold">?</div>
+                    <div id="die2" class="w-16 h-16 bg-white border-2 border-gray-400 rounded-lg flex items-center justify-center text-4xl font-bold">?</div>
+                </div>
+                <div class="text-center">
+                    <button id="roll-dice-btn" class="bg-teal-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-teal-700 transition">주사위 굴리기</button>
+                    <button id="reset-dice-btn" class="ml-4 text-gray-500 hover:text-gray-700 underline text-sm">초기화</button>
+                </div>
+                <div class="mt-6 overflow-x-auto">
+                    <table class="w-full text-center border-collapse text-xs md:text-sm">
+                        <thead>
+                            <tr class="bg-gray-100">
+                                <th class="p-2 border">$Y=y$</th>
+                                <th class="p-1 border">2</th><th class="p-1 border">3</th><th class="p-1 border">4</th><th class="p-1 border">5</th>
+                                <th class="p-1 border">6</th><th class="p-1 border">7</th><th class="p-1 border">8</th><th class="p-1 border">9</th>
+                                <th class="p-1 border">10</th><th class="p-1 border">11</th><th class="p-1 border">12</th>
+                                <th class="p-1 border">합계</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="p-2 border font-semibold">이론 확률</td>
+                                <td class="p-1 border">1/36</td><td class="p-1 border">2/36</td><td class="p-1 border">3/36</td>
+                                <td class="p-1 border">4/36</td><td class="p-1 border">5/36</td><td class="p-1 border">6/36</td>
+                                <td class="p-1 border">5/36</td><td class="p-1 border">4/36</td><td class="p-1 border">3/36</td>
+                                <td class="p-1 border">2/36</td><td class="p-1 border">1/36</td>
+                                <td class="p-1 border">1</td>
+                            </tr>
+                            <tr>
+                                <td class="p-2 border font-semibold">도수</td>
+                                <td class="p-1 border" id="die-freq-2">0</td><td class="p-1 border" id="die-freq-3">0</td>
+                                <td class="p-1 border" id="die-freq-4">0</td><td class="p-1 border" id="die-freq-5">0</td>
+                                <td class="p-1 border" id="die-freq-6">0</td><td class="p-1 border" id="die-freq-7">0</td>
+                                <td class="p-1 border" id="die-freq-8">0</td><td class="p-1 border" id="die-freq-9">0</td>
+                                <td class="p-1 border" id="die-freq-10">0</td><td class="p-1 border" id="die-freq-11">0</td>
+                                <td class="p-1 border" id="die-freq-12">0</td>
+                                <td class="p-1 border" id="die-total">0</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+            
+            <!-- 기댓값, 분산, 표준편차 -->
+            <section class="bg-white p-6 rounded-xl shadow-lg">
+                <h2 class="text-3xl font-bold mb-4">기댓값, 분산, 표준편차 알아보기</h2>
+                <p class="mb-6 text-gray-600">
+                    확률분포의 특징을 나타내는 대표적인 값들입니다. '동전 3개 던지기' 실험의 이론적 확률분포를 이용해 함께 계산해 봅시다.
+                </p>
+                <div id="stats-explainer" class="bg-blue-50 p-4 rounded-lg text-center min-h-[6rem] flex items-center justify-center">
+                    <p>아래 '계산 시작' 버튼을 눌러 단계별 설명을 확인하세요.</p>
+                </div>
+                <div class="text-center my-4">
+                    <button id="start-stats-calc" class="bg-blue-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-blue-700 transition">계산 시작</button>
+                    <button id="reset-stats-calc" class="ml-4 text-gray-500 hover:text-gray-700 underline text-sm">처음으로</button>
+                </div>
+
+                <div class="mt-6 overflow-x-auto">
+                    <table class="w-full text-center border-collapse interactive-table">
+                        <thead>
+                            <tr class="bg-gray-100">
+                                <th class="p-2 border">$x_i$</th>
+                                <th class="p-2 border">$P(X=x_i)$</th>
+                                <th class="p-2 border">$x_i P(X=x_i)$</th>
+                                <th class="p-2 border">$(x_i - \mu)$</th>
+                                <th class="p-2 border">$(x_i - \mu)^2$</th>
+                                <th class="p-2 border">$(x_i - \mu)^2 P(X=x_i)$</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="p-2 border">0</td>
+                                <td class="p-2 border">1/8</td>
+                                <td class="p-2 border">0</td>
+                                <td class="p-2 border"></td>
+                                <td class="p-2 border"></td>
+                                <td class="p-2 border"></td>
+                            </tr>
+                            <tr>
+                                <td class="p-2 border">1</td>
+                                <td class="p-2 border">3/8</td>
+                                <td class="p-2 border">3/8</td>
+                                <td class="p-2 border"></td>
+                                <td class="p-2 border"></td>
+                                <td class="p-2 border"></td>
+                            </tr>
+                            <tr>
+                                <td class="p-2 border">2</td>
+                                <td class="p-2 border">3/8</td>
+                                <td class="p-2 border">6/8</td>
+                                <td class="p-2 border"></td>
+                                <td class="p-2 border"></td>
+                                <td class="p-2 border"></td>
+                            </tr>
+                            <tr>
+                                <td class="p-2 border">3</td>
+                                <td class="p-2 border">1/8</td>
+                                <td class="p-2 border">3/8</td>
+                                <td class="p-2 border"></td>
+                                <td class="p-2 border"></td>
+                                <td class="p-2 border"></td>
+                            </tr>
+                            <tr class="bg-gray-50 font-bold">
+                                <td class="p-2 border" colspan="2">합계</td>
+                                <td class="p-2 border" id="sum-xp"></td>
+                                <td class="p-2 border"></td>
+                                <td class="p-2 border"></td>
+                                <td class="p-2 border" id="sum-var"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+            
+            <!-- 이항분포와 정규분포 근사 -->
+            <section class="bg-white p-6 rounded-xl shadow-lg">
+                <h2 class="text-3xl font-bold mb-4">이항분포와 정규분포 근사</h2>
+                <p class="mb-2 text-gray-600">
+                    성공 확률이 $p$인 독립시행을 $n$번 반복할 때, 성공 횟수 $X$는 이항분포 $B(n, p)$를 따릅니다.
+                </p>
+                <div class="text-center my-4 p-4 bg-gray-50 rounded-lg">
+                    <span>$P(X=k) = \binom{n}{k} p^k (1-p)^{n-k}$</span>, 
+                    <span class="ml-4">$E(X) = np$</span>, 
+                    <span class="ml-4">$V(X) = np(1-p)$</span>
+                </div>
+                <p class="mb-6 text-gray-600">
+                    놀랍게도, 시행 횟수 $n$이 충분히 커지면 이항분포의 모양은 정규분포 곡선과 매우 비슷해집니다. 아래 슬라이더를 조작하여 직접 확인해 보세요.
+                </p>
+
+                <div class="grid md:grid-cols-2 gap-6 items-center bg-gray-50 p-4 rounded-lg">
+                    <div>
+                        <label for="n-slider" class="font-semibold">시행 횟수 n: <span id="n-value">50</span></label>
+                        <input type="range" id="n-slider" min="10" max="500" value="50" class="w-full">
+                    </div>
+                    <div>
+                        <label for="p-slider" class="font-semibold">성공 확률 p: <span id="p-value">0.5</span></label>
+                        <input type="range" id="p-slider" min="0.1" max="0.9" step="0.01" value="0.5" class="w-full">
+                    </div>
+                </div>
+
+                <div class="mt-4 relative">
+                    <div id="binomial-chart" class="bar-chart-container"></div>
+                    <svg id="normal-curve" class="absolute top-0 left-0 w-full h-full" style="pointer-events: none;"></svg>
+                </div>
+                <div id="approximation-check" class="mt-4 text-center font-semibold bg-yellow-100 p-3 rounded-lg"></div>
+                
+                <div class="mt-8 border-t pt-6">
+                    <h3 class="text-xl font-semibold mb-4">근사값 비교 계산기</h3>
+                    <p class="mb-4 text-gray-600">
+                        $n$이 충분히 클 때, 이항분포의 확률을 정규분포를 이용해 근사적으로 계산할 수 있습니다. 두 계산 결과가 얼마나 비슷한지 비교해 보세요.
+                    </p>
+                    <div class="flex flex-wrap items-center justify-center gap-4">
+                        <span>$P($</span>
+                        <input type="number" id="k-start" value="20" class="w-20 p-1 border rounded">
+                        <span>$\le X \le$</span>
+                        <input type="number" id="k-end" value="30" class="w-20 p-1 border rounded">
+                        <span>$)$</span>
+                        <button id="calculate-prob" class="bg-green-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-700">계산</button>
+                    </div>
+                    <div id="prob-results" class="mt-4 grid md:grid-cols-2 gap-4 text-center">
+                        <div class="bg-blue-50 p-3 rounded">
+                            <h4 class="font-semibold">정확한 이항분포 확률</h4>
+                            <p id="binomial-result" class="font-mono text-lg">-</p>
+                        </div>
+                        <div class="bg-green-50 p-3 rounded">
+                            <h4 class="font-semibold">정규분포 근사 확률<br>(연속성 수정 적용)</h4>
+                            <p id="normal-result" class="font-mono text-lg">-</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    if (window.renderMathInElement) {
+        renderMathInElement(document.body, {
+            delimiters: [
+                {left: "$$", right: "$$", display: true},
+                {left: "$", right: "$", display: false},
+            ]
+        });
+    }
+
+    // --- 실험 1: 동전 던지기 ---
+    const coinExperiment = {
+        freq: { 0: 0, 1: 0, 2: 0, 3: 0 },
+        total: 0,
+        init() {
+            document.getElementById('toss-coins-btn').addEventListener('click', () => this.toss());
+            document.getElementById('reset-coins-btn').addEventListener('click', () => this.reset());
+        },
+        toss() {
+            const results = [Math.random() < 0.5, Math.random() < 0.5, Math.random() < 0.5];
+            const heads = results.filter(Boolean).length;
+            
+            ['coin1', 'coin2', 'coin3'].forEach((id, i) => {
+                document.getElementById(id).textContent = results[i] ? '앞' : '뒤';
+            });
+
+            this.freq[heads]++;
+            this.total++;
+            this.updateTable();
+        },
+        updateTable() {
+            for (let i = 0; i <= 3; i++) {
+                document.getElementById(`coin-freq-${i}`).textContent = this.freq[i];
+                const relFreq = this.total > 0 ? (this.freq[i] / this.total * 100).toFixed(1) + '%' : '0.0%';
+                document.getElementById(`coin-rel-freq-${i}`).textContent = relFreq;
+            }
+            document.getElementById('coin-total').textContent = this.total;
+        },
+        reset() {
+            this.freq = { 0: 0, 1: 0, 2: 0, 3: 0 };
+            this.total = 0;
+            ['coin1', 'coin2', 'coin3'].forEach(id => document.getElementById(id).textContent = '?');
+            this.updateTable();
+        }
+    };
+
+    // --- 실험 2: 주사위 던지기 ---
+    const diceExperiment = {
+        freq: {},
+        total: 0,
+        init() {
+            for (let i = 2; i <= 12; i++) this.freq[i] = 0;
+            document.getElementById('roll-dice-btn').addEventListener('click', () => this.roll());
+            document.getElementById('reset-dice-btn').addEventListener('click', () => this.reset());
+        },
+        roll() {
+            const roll1 = Math.floor(Math.random() * 6) + 1;
+            const roll2 = Math.floor(Math.random() * 6) + 1;
+            document.getElementById('die1').textContent = roll1;
+            document.getElementById('die2').textContent = roll2;
+            const sum = roll1 + roll2;
+            this.freq[sum]++;
+            this.total++;
+            this.updateTable();
+        },
+        updateTable() {
+            for (let i = 2; i <= 12; i++) {
+                document.getElementById(`die-freq-${i}`).textContent = this.freq[i];
+            }
+            document.getElementById('die-total').textContent = this.total;
+        },
+        reset() {
+            for (let i = 2; i <= 12; i++) this.freq[i] = 0;
+            this.total = 0;
+            document.getElementById('die1').textContent = '?';
+            document.getElementById('die2').textContent = '?';
+            this.updateTable();
+        }
+    };
+    
+    // --- 기댓값, 분산, 표준편차 계산 ---
+    const statsCalculator = {
+        step: 0,
+        tableRows: document.querySelectorAll('.interactive-table tbody tr'),
+        explainerEl: document.getElementById('stats-explainer'),
+        mu: 1.5,
+        sigma2: 0.75,
+        steps: [
+            {
+                text: "<strong>1단계: 기댓값(평균) 계산</strong><br>기댓값 $E(X) = \\mu = \\sum x_i P(X=x_i)$ 입니다. 각 확률변수 값($x_i$)과 그 확률을 곱한 값들의 합입니다.",
+                col: 2
+            },
+            {
+                text: () => `<strong>기댓값 결과: $\\mu = 1.5$</strong><br>이제 '편차' $(x_i - \\mu)$를 계산합니다. 각 값이 평균으로부터 얼마나 떨어져 있는지 나타냅니다.`,
+                col: 3
+            },
+            {
+                text: "<strong>2단계: 분산 계산</strong><br>편차의 제곱 $(x_i - \\mu)^2$을 계산합니다. 편차의 부호를 없애고, 평균에서 멀리 떨어진 값에 가중치를 줍니다.",
+                col: 4
+            },
+            {
+                text: "<strong>분산 계산 (계속)</strong><br>편차 제곱의 평균, 즉 분산 $V(X) = \\sigma^2 = \\sum (x_i - \\mu)^2 P(X=x_i)$를 구하기 위해 각 편차 제곱에 확률을 곱합니다.",
+                col: 5
+            },
+            {
+                text: () => `<strong>분산 결과: $V(X) = \\sigma^2 = 0.75$</strong><br>마지막으로, 분산에 제곱근을 씌워 표준편차 $\\sigma = \\sqrt{V(X)}$를 구합니다. 이는 자료가 평균을 중심으로 얼마나 퍼져있는지 나타내는 직관적인 척도입니다.`,
+                col: null,
+                final: true
+            },
+            {
+                text: () => `<strong>최종 결과</strong><br>기댓값 $E(X) = 1.5$, 분산 $V(X) = 0.75$, 표준편차 $\\sigma(X) = \\sqrt{0.75} \\approx 0.866$ 입니다.`,
+                col: null
+            }
+        ],
+        init() {
+            document.getElementById('start-stats-calc').addEventListener('click', () => this.nextStep());
+            document.getElementById('reset-stats-calc').addEventListener('click', () => this.reset());
+            this.reset();
+        },
+        reset() {
+            this.step = 0;
+            document.getElementById('start-stats-calc').textContent = '계산 시작';
+            this.explainerEl.innerHTML = '<p>아래 \'계산 시작\' 버튼을 눌러 단계별 설명을 확인하세요.</p>';
+            this.tableRows.forEach((row, rowIndex) => {
+                if (rowIndex < 4) {
+                    for(let i=3; i<=5; i++) row.children[i].textContent = '';
+                }
+            });
+            document.getElementById('sum-xp').textContent = '';
+            document.getElementById('sum-var').textContent = '';
+            this.clearHighlights();
+        },
+        clearHighlights() {
+            document.querySelectorAll('.interactive-table td, .interactive-table th').forEach(el => {
+                el.classList.remove('highlight-col', 'highlight-final');
+            });
+        },
+        nextStep() {
+            if (this.step >= this.steps.length) return;
+            
+            const currentStep = this.steps[this.step];
+            this.explainerEl.innerHTML = typeof currentStep.text === 'function' ? currentStep.text() : currentStep.text;
+            renderMathInElement(this.explainerEl);
+            
+            this.clearHighlights();
+            if (currentStep.col !== null) {
+                document.querySelectorAll(`.interactive-table td:nth-child(${currentStep.col + 1}), .interactive-table th:nth-child(${currentStep.col + 1})`)
+                    .forEach(el => el.classList.add('highlight-col'));
+            }
+
+            this.updateTableForStep(this.step);
+            
+            document.getElementById('start-stats-calc').textContent = this.step < this.steps.length - 2 ? '다음 단계' : '결과 보기';
+            if (this.step === this.steps.length - 1) {
+                document.getElementById('start-stats-calc').textContent = '완료';
+            }
+
+            this.step++;
+        },
+        updateTableForStep(step) {
+            const values = [
+                {x:0, p:1/8}, {x:1, p:3/8}, {x:2, p:3/8}, {x:3, p:1/8}
+            ];
+            
+            if (step === 0) { // 기댓값
+                document.getElementById('sum-xp').textContent = '12/8 = 1.5';
+                document.getElementById('sum-xp').classList.add('highlight-final');
+            } else if (step === 1) { // 편차
+                 this.tableRows.forEach((row, i) => {
+                    if (i<4) row.children[3].textContent = (values[i].x - this.mu).toFixed(2);
+                });
+            } else if (step === 2) { // 편차제곱
+                this.tableRows.forEach((row, i) => {
+                    if (i<4) row.children[4].textContent = Math.pow(values[i].x - this.mu, 2).toFixed(2);
+                });
+            } else if (step === 3) { // 편차제곱*확률
+                this.tableRows.forEach((row, i) => {
+                    if (i<4) row.children[5].textContent = (Math.pow(values[i].x - this.mu, 2) * values[i].p).toFixed(4);
+                });
+            } else if (step === 4) { // 분산
+                document.getElementById('sum-var').textContent = '6/8 = 0.75';
+                document.getElementById('sum-var').classList.add('highlight-final');
+            }
+        }
+    };
+    
+    // --- 이항분포와 정규분포 근사 ---
+    const binomialNormalApprox = {
+        n: 50, p: 0.5,
+        factorial_cache: {},
+        init() {
+            this.nSlider = document.getElementById('n-slider');
+            this.pSlider = document.getElementById('p-slider');
+            this.nValue = document.getElementById('n-value');
+            this.pValue = document.getElementById('p-value');
+            this.chart = document.getElementById('binomial-chart');
+            this.curve = document.getElementById('normal-curve');
+
+            this.nSlider.addEventListener('input', e => {
+                this.n = parseInt(e.target.value);
+                this.nValue.textContent = this.n;
+                this.update();
+            });
+            this.pSlider.addEventListener('input', e => {
+                this.p = parseFloat(e.target.value);
+                this.pValue.textContent = this.p.toFixed(2);
+                this.update();
+            });
+            document.getElementById('calculate-prob').addEventListener('click', () => this.calculateProbs());
+            this.update();
+        },
+        factorial(n) {
+            if (n === 0 || n === 1) return 1;
+            if (this.factorial_cache[n]) return this.factorial_cache[n];
+            if (n > 170) return Infinity;
+            let result = 1;
+            for (let i=2; i<=n; i++) result *= i;
+            this.factorial_cache[n] = result;
+            return result;
+        },
+        combinations(n, k) {
+            if (k < 0 || k > n) return 0;
+            if (k === 0 || k === n) return 1;
+            if (k > n / 2) k = n - k;
+            let res = 1;
+            for (let i = 1; i <= k; i++) {
+                res = res * (n - i + 1) / i;
+            }
+            return res;
+        },
+        binomialProb(n, k, p) {
+            return this.combinations(n, k) * Math.pow(p, k) * Math.pow(1 - p, n - k);
+        },
+        normalPDF(x, mu, sigma) {
+            return (1 / (sigma * Math.sqrt(2 * Math.PI))) * Math.exp(-0.5 * Math.pow((x - mu) / sigma, 2));
+        },
+        stdNormalCDF(z) {
+            // approximation
+            const p  =  0.2316419;
+            const b1 =  0.319381530;
+            const b2 = -0.356563782;
+            const b3 =  1.781477937;
+            const b4 = -1.821255978;
+            const b5 =  1.330274429;
+            const t = 1.0 / (1.0 + p * Math.abs(z));
+            const y = 1.0 - (1.0 / Math.sqrt(2 * Math.PI)) * Math.exp(-z * z / 2.0) * (b1 * t + b2 * t * t + b3 * t * t * t + b4 * t * t * t * t + b5 * t * t * t * t * t);
+            return z > 0 ? y : 1.0 - y;
+        },
+        update() {
+            this.chart.innerHTML = '';
+            const mu = this.n * this.p;
+            const sigma = Math.sqrt(this.n * this.p * (1 - this.p));
+            
+            let maxProb = 0;
+            const probs = [];
+            for (let k = 0; k <= this.n; k++) {
+                const prob = this.binomialProb(this.n, k, this.p);
+                if (prob > maxProb) maxProb = prob;
+                probs.push(prob);
+            }
+            
+            // Draw bars
+            const barWidth = 100 / (this.n + 1);
+            for (let k = 0; k <= this.n; k++) {
+                const bar = document.createElement('div');
+                bar.className = 'bar';
+                bar.style.height = `${(probs[k] / maxProb) * 95}%`;
+                bar.style.left = `${k * barWidth}%`;
+                bar.style.width = `${barWidth}%`;
+                this.chart.appendChild(bar);
+            }
+            
+            // Draw normal curve
+            const svgWidth = this.chart.clientWidth;
+            const svgHeight = this.chart.clientHeight;
+            let pathData = 'M 0 ' + svgHeight;
+            const maxPDF = this.normalPDF(mu, mu, sigma);
+            for (let x_val = 0; x_val <= this.n; x_val += (this.n/200)) {
+                const pdf = this.normalPDF(x_val, mu, sigma);
+                const x = (x_val / this.n) * svgWidth;
+                const y = svgHeight - (pdf / maxPDF) * (svgHeight * 0.95);
+                pathData += ` L ${x} ${y}`;
+            }
+            pathData += ` L ${svgWidth} ${svgHeight} Z`;
+            this.curve.innerHTML = `<path d="${pathData}" fill="#22c55e" fill-opacity="0.3" stroke="#16a34a" stroke-width="2"></path>`;
+
+            // Check approximation validity
+            const np = this.n * this.p;
+            const nq = this.n * (1 - this.p);
+            const checkEl = document.getElementById('approximation-check');
+            if (np >= 5 && nq >= 5) {
+                checkEl.innerHTML = `($np = ${np.toFixed(1)} \\ge 5$, $n(1-p) = ${nq.toFixed(1)} \\ge 5$) <br> 정규분포로 근사하기에 충분합니다.`;
+                checkEl.className = 'mt-4 text-center font-semibold bg-green-100 p-3 rounded-lg';
+            } else {
+                checkEl.innerHTML = `($np = ${np.toFixed(1)} < 5$ 또는 $n(1-p) = ${nq.toFixed(1)} < 5$) <br> n이 충분히 크지 않아 정규분포 근사의 오차가 클 수 있습니다.`;
+                checkEl.className = 'mt-4 text-center font-semibold bg-red-100 p-3 rounded-lg';
+            }
+            renderMathInElement(checkEl);
+            this.calculateProbs(); // Update calculator on slider change
+        },
+        calculateProbs() {
+            const start = parseInt(document.getElementById('k-start').value);
+            const end = parseInt(document.getElementById('k-end').value);
+            
+            // Binomial
+            let binomialSum = 0;
+            for (let k = start; k <= end; k++) {
+                binomialSum += this.binomialProb(this.n, k, this.p);
+            }
+            document.getElementById('binomial-result').textContent = binomialSum.toFixed(6);
+            
+            // Normal
+            const mu = this.n * this.p;
+            const sigma = Math.sqrt(this.n * this.p * (1 - this.p));
+            // Continuity correction
+            const z1 = (start - 0.5 - mu) / sigma;
+            const z2 = (end + 0.5 - mu) / sigma;
+            const normalApprox = this.stdNormalCDF(z2) - this.stdNormalCDF(z1);
+            document.getElementById('normal-result').textContent = normalApprox.toFixed(6);
+        }
+    };
+    
+    coinExperiment.init();
+    diceExperiment.init();
+    statsCalculator.init();
+    binomialNormalApprox.init();
+});
+</script>
+
+</body>
+</html>
