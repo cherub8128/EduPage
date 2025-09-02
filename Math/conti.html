@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>연속확률변수 실험실</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" xintegrity="sha384-n8MVd4RsNIU0KOVEMeaPoAbJNdMYGNpaLCITPbUdaJblrzJNE2agrdMLIHN5EQGk" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" xintegrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzYCEHPNKAqv8i5HuaMusnvENqVd+BovHtCQ" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" xintegrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous"></script>
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+        }
+        .graph-container {
+            width: 100%;
+            height: 250px;
+            background-color: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            position: relative;
+        }
+        .graph-container svg {
+            width: 100%;
+            height: 100%;
+        }
+        .range-slider-container {
+            position: relative;
+            height: 20px;
+            width: 100%;
+        }
+        .range-slider-container input[type=range] {
+            position: absolute;
+            width: 100%;
+            pointer-events: none;
+            -webkit-appearance: none;
+            background: transparent;
+        }
+        .range-slider-container input[type=range]::-webkit-slider-thumb {
+            pointer-events: all;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #4f46e5;
+            cursor: pointer;
+            -webkit-appearance: none;
+        }
+         .range-slider-container input[type=range]::-moz-range-thumb {
+            pointer-events: all;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #4f46e5;
+            cursor: pointer;
+        }
+        .visualization-area {
+            width: 100%;
+            padding-bottom: 100%; /* 1:1 Aspect Ratio */
+            position: relative;
+            background: #f3f4f6;
+            border-radius: 0.5rem;
+            border: 1px solid #d1d5db;
+        }
+        .visualization-area svg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800 p-4 md:p-8">
+
+    <div class="max-w-5xl mx-auto">
+        <header class="text-center mb-12">
+            <h1 class="text-4xl md:text-5xl font-bold text-gray-900">연속확률변수 실험실</h1>
+            <p class="mt-4 text-lg text-gray-600 max-w-3xl mx-auto">
+                연속확률변수는 특정 값이 아닌 '구간'의 확률을 다룹니다. 다양한 분포의 확률밀도함수(PDF) 그래프 아래 면적을 통해 확률을 직접 구해봅시다.
+            </p>
+        </header>
+
+        <main class="space-y-16">
+
+            <!-- 실험 1: 균등분포 -->
+            <section class="bg-white p-6 rounded-xl shadow-lg">
+                <h2 class="text-3xl font-bold mb-4 text-center">실험 1: 버스 도착 시간 (균등분포) 🚌</h2>
+                <p class="mb-6 text-gray-600 text-center">
+                    버스는 0분에서 10분 사이에 언제든 도착할 수 있으며, 특정 구간에 도착할 확률은 구간의 길이에 비례합니다.
+                </p>
+                <div id="uniform-dist-app"></div>
+            </section>
+            
+            <!-- 실험 2: 정규분포 -->
+            <section class="bg-white p-6 rounded-xl shadow-lg">
+                <h2 class="text-3xl font-bold mb-4 text-center">실험 2: 성인의 키 분포 (정규분포) 📏</h2>
+                <p class="mb-6 text-gray-600 text-center">
+                    자연 현상에서 가장 흔히 발견되는 정규분포입니다. 평균 근처의 값이 나타날 확률이 높고, 평균에서 멀어질수록 확률은 급격히 낮아집니다.
+                </p>
+                <div id="normal-dist-app"></div>
+            </section>
+            
+            <!-- 실험 3: 지수분포 -->
+            <section class="bg-white p-6 rounded-xl shadow-lg">
+                <h2 class="text-3xl font-bold mb-4 text-center">실험 3: 전구의 수명 (지수분포) 💡</h2>
+                <p class="mb-6 text-gray-600 text-center">
+                    어떤 사건이 발생할 때까지 걸리는 시간을 모델링합니다. '고장'이나 '붕괴'처럼, 시간이 지날수록 일어날 확률이 줄어드는 현상을 설명합니다.
+                </p>
+                <div id="exponential-dist-app"></div>
+            </section>
+
+            <!-- 실험 4: 삼각분포 -->
+            <section class="bg-white p-6 rounded-xl shadow-lg">
+                <h2 class="text-3xl font-bold mb-4 text-center">실험 4: 프로젝트 완료 시간 (삼각분포) ⏳</h2>
+                <p class="mb-6 text-gray-600 text-center">
+                    최소, 최대, 그리고 최빈값(가장 가능성 높은 값)만 알 때 유용한 분포입니다. 직관적이고 간단하여 예측 모델에 자주 사용됩니다.
+                </p>
+                <div id="triangular-dist-app"></div>
+            </section>
+            
+            <!-- 실험 5: 베타분포 -->
+            <section class="bg-white p-6 rounded-xl shadow-lg">
+                <h2 class="text-3xl font-bold mb-4 text-center">실험 5: 고객 평점 분석 (베타분포) ⭐</h2>
+                <p class="mb-6 text-gray-600 text-center">
+                    0과 1 사이의 값을 가지는 확률 변수를 모델링하는 데 특화되어 있습니다. 성공 확률, 비율, 평점 등 다양한 데이터를 분석할 수 있습니다.
+                </p>
+                <div id="beta-dist-app"></div>
+            </section>
+            
+            <!-- 실험 6: 기하학적 확률 -->
+            <section class="bg-white p-6 rounded-xl shadow-lg">
+                <h2 class="text-3xl font-bold mb-4 text-center">실험 6: 운석 충돌 확률 (기하학적 확률) ☄️</h2>
+                <p class="mb-6 text-gray-600 text-center">
+                    정사각형 영역에 운석이 무작위로 떨어질 때, 안의 원에 맞을 확률은 두 도형의 '넓이' 비율과 같습니다. 이 원리를 이용해 원주율($\pi$)을 근사해 봅시다.
+                </p>
+                <div id="geometric-prob-app"></div>
+            </section>
+
+        </main>
+    </div>
+
+<script>
+// KaTeX 렌더링을 위한 전역 함수
+function renderKatex() {
+    if (window.renderMathInElement) {
+        renderMathInElement(document.body, {
+            delimiters: [
+                {left: "$$", right: "$$", display: true},
+                {left: "$", right: "$", display: false},
+            ]
+        });
+    }
+}
+
+class ContinuousDistApp {
+    constructor(containerId, config) {
+        this.container = document.getElementById(containerId);
+        this.config = config;
+        this.params = { ...config.initialParams };
+        this.range = [ ...config.initialRange ];
+        this.createDOM();
+        this.addEventListeners();
+        this.update();
+    }
+
+    createDOM() {
+        let paramControls = '';
+        for (const key in this.config.params) {
+            const p = this.config.params[key];
+            paramControls += `
+                <div class="flex-1">
+                    <label for="${this.config.id}-${key}" class="font-semibold block mb-1">${p.label}: <span id="${this.config.id}-${key}-value">${p.initial}</span></label>
+                    <input type="range" id="${this.config.id}-${key}" min="${p.min}" max="${p.max}" step="${p.step}" value="${p.initial}" class="w-full">
+                </div>
+            `;
+        }
+
+        this.container.innerHTML = `
+            <div class="grid md:grid-cols-2 gap-8 items-center">
+                <div class="control-panel space-y-6">
+                    <div class="bg-gray-50 p-4 rounded-lg space-y-4">
+                        <div class="flex gap-4">${paramControls}</div>
+                        <div>
+                            <p class="font-semibold">확률 구간 선택:</p>
+                            <div class="range-slider-container mt-2">
+                                <input type="range" id="${this.config.id}-slider-1" min="${this.config.domain[0]}" max="${this.config.domain[1]}" step="${this.config.step}" value="${this.range[0]}">
+                                <input type="range" id="${this.config.id}-slider-2" min="${this.config.domain[0]}" max="${this.config.domain[1]}" step="${this.config.step}" value="${this.range[1]}">
+                            </div>
+                            <div class="flex justify-between text-sm mt-1">
+                                <span>${this.config.domain[0]}</span>
+                                <span>${this.config.domain[1]}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-center bg-indigo-50 p-4 rounded-lg">
+                        <p class="text-lg">선택된 구간: [<span id="${this.config.id}-range-min" class="font-bold"></span>, <span id="${this.config.id}-range-max" class="font-bold"></span>]</p>
+                        <p class="text-xl mt-1">계산된 확률: <span id="${this.config.id}-probability" class="font-bold text-indigo-700"></span></p>
+                    </div>
+                     <div class="text-center text-sm text-gray-600 bg-gray-50 p-2 rounded-lg">
+                        <p class="font-semibold">확률밀도함수 (PDF)</p>
+                        <div id="${this.config.id}-formula"></div>
+                    </div>
+                </div>
+                <div id="${this.config.id}-graph" class="graph-container"></div>
+            </div>
+        `;
+        
+        this.ui = {
+            graph: document.getElementById(`${this.config.id}-graph`),
+            slider1: document.getElementById(`${this.config.id}-slider-1`),
+            slider2: document.getElementById(`${this.config.id}-slider-2`),
+            rangeMin: document.getElementById(`${this.config.id}-range-min`),
+            rangeMax: document.getElementById(`${this.config.id}-range-max`),
+            probability: document.getElementById(`${this.config.id}-probability`),
+            formula: document.getElementById(`${this.config.id}-formula`),
+            paramElements: {}
+        };
+        for (const key in this.config.params) {
+            this.ui.paramElements[key] = {
+                slider: document.getElementById(`${this.config.id}-${key}`),
+                value: document.getElementById(`${this.config.id}-${key}-value`)
+            };
+        }
+    }
+    
+    addEventListeners() {
+        this.ui.slider1.addEventListener('input', () => this.handleRangeChange());
+        this.ui.slider2.addEventListener('input', () => this.handleRangeChange());
+        for (const key in this.config.params) {
+            this.ui.paramElements[key].slider.addEventListener('input', (e) => this.handleParamChange(key, parseFloat(e.target.value)));
+        }
+    }
+
+    handleRangeChange() {
+        let val1 = parseFloat(this.ui.slider1.value);
+        let val2 = parseFloat(this.ui.slider2.value);
+        if (val1 > val2) [val1, val2] = [val2, val1];
+        this.range = [val1, val2];
+        this.update();
+    }
+    
+    handleParamChange(key, value) {
+        this.params[key] = value;
+        this.ui.paramElements[key].value.textContent = value.toFixed(this.config.params[key].precision || 2);
+        this.update();
+    }
+
+    integrate(f, a, b, n = 100) {
+        const h = (b - a) / n;
+        let sum = 0.5 * (f(a) + f(b));
+        for (let i = 1; i < n; i++) sum += f(a + i * h);
+        return sum * h;
+    }
+
+    update() {
+        this.ui.rangeMin.textContent = this.range[0].toFixed(2);
+        this.ui.rangeMax.textContent = this.range[1].toFixed(2);
+        this.ui.formula.innerHTML = this.config.getFormula(this.params);
+        if(window.katex) katex.render(this.ui.formula.innerHTML, this.ui.formula, { throwOnError: false });
+        
+        const pdf = (x) => this.config.pdf(x, this.params);
+        const probability = this.integrate(pdf, this.range[0], this.range[1]);
+        this.ui.probability.textContent = probability.toFixed(4);
+        
+        this.drawGraph();
+    }
+    
+    drawGraph() {
+        const container = this.ui.graph;
+        container.innerHTML = '';
+        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        const { width, height } = container.getBoundingClientRect();
+        if (width === 0 || height === 0) return;
+        const padding = { top: 10, right: 10, bottom: 20, left: 30 };
+        
+        const [minX, maxX] = this.config.domain;
+        const pdf = (x) => this.config.pdf(x, this.params);
+        
+        let maxY = 0;
+        for (let i = 0; i <= 100; i++) maxY = Math.max(maxY, pdf(minX + (i / 100) * (maxX - minX)));
+        maxY *= 1.1;
+
+        const xScale = (x) => padding.left + ((x - minX) / (maxX - minX)) * (width - padding.left - padding.right);
+        const yScale = (y) => height - padding.bottom - (y / maxY) * (height - padding.top - padding.bottom);
+        
+        const areaPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        let areaData = `M ${xScale(this.range[0])} ${yScale(0)}`;
+        const steps = 50;
+        for (let i = 0; i <= steps; i++) {
+            const x = this.range[0] + (i / steps) * (this.range[1] - this.range[0]);
+            areaData += ` L ${xScale(x)} ${yScale(pdf(x))}`;
+        }
+        areaData += ` L ${xScale(this.range[1])} ${yScale(0)} Z`;
+        areaPath.setAttribute('d', areaData);
+        areaPath.setAttribute('fill', '#c7d2fe');
+        svg.appendChild(areaPath);
+
+        const curvePath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        let curveData = '';
+        const curveSteps = 200;
+        for (let i = 0; i <= curveSteps; i++) {
+            const x = minX + (i / curveSteps) * (maxX - minX);
+            const y = pdf(x);
+            curveData += ` ${i === 0 ? 'M' : 'L'} ${xScale(x)} ${yScale(y)}`;
+        }
+        curvePath.setAttribute('d', curveData);
+        curvePath.setAttribute('fill', 'none');
+        curvePath.setAttribute('stroke', '#4f46e5');
+        curvePath.setAttribute('stroke-width', '2');
+        svg.appendChild(curvePath);
+
+        svg.innerHTML += `<line x1="${padding.left}" y1="${height - padding.bottom}" x2="${width - padding.right}" y2="${height - padding.bottom}" stroke="#9ca3af"/>`;
+        svg.innerHTML += `<line x1="${padding.left}" y1="${padding.top}" x2="${padding.left}" y2="${height - padding.bottom}" stroke="#9ca3af"/>`;
+
+        container.appendChild(svg);
+    }
+}
+
+class GeometricProbabilityApp {
+    constructor(containerId) {
+        this.container = document.getElementById(containerId);
+        this.createDOM();
+        this.addEventListeners();
+        this.reset();
+    }
+    
+    createDOM() {
+        this.container.innerHTML = `
+            <div class="grid md:grid-cols-2 gap-8 items-center">
+                <div class="control-panel space-y-4">
+                    <div class="text-center bg-gray-50 p-4 rounded-lg">
+                        <p>총 시도: <span id="geo-total" class="font-bold text-gray-800">0</span></p>
+                        <p>원 안 명중: <span id="geo-hits" class="font-bold text-green-600">0</span></p>
+                    </div>
+                    <div class="text-center bg-green-50 p-4 rounded-lg">
+                        <p>측정 확률: <span id="geo-prob" class="font-bold text-green-700">N/A</span></p>
+                        <p class="text-sm">이론 확률: $\\frac{\\text{원 넓이}}{\\text{사각형 넓이}} = \\frac{\\pi r^2}{(2r)^2} = \\frac{\\pi}{4} \\approx 0.7854$</p>
+                    </div>
+                    <div class="text-center bg-yellow-50 p-4 rounded-lg">
+                        <p>추정된 $\\pi$ 값: <span id="geo-pi" class="font-bold text-yellow-800">N/A</span></p>
+                        <p class="text-sm">계산: $4 \\times \\frac{\\text{명중}}{\\text{총 시도}}$</p>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button id="geo-throw-1" class="bg-green-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-600">1개 던지기</button>
+                        <button id="geo-throw-10" class="bg-green-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-600">10개 던지기</button>
+                        <button id="geo-throw-100" class="bg-green-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-600">100개 던지기</button>
+                        <button id="geo-throw-1000" class="bg-green-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-600">1000개 던지기</button>
+                    </div>
+                    <button id="geo-reset" class="w-full bg-gray-400 text-white font-bold py-2 px-4 rounded-lg hover:bg-gray-500">초기화</button>
+                </div>
+                <div class="visualization-area">
+                    <svg id="geo-svg"></svg>
+                </div>
+            </div>
+        `;
+        this.ui = {
+            total: document.getElementById('geo-total'),
+            hits: document.getElementById('geo-hits'),
+            prob: document.getElementById('geo-prob'),
+            pi: document.getElementById('geo-pi'),
+            svg: document.getElementById('geo-svg'),
+            buttons: {
+                b1: document.getElementById('geo-throw-1'),
+                b10: document.getElementById('geo-throw-10'),
+                b100: document.getElementById('geo-throw-100'),
+                b1000: document.getElementById('geo-throw-1000'),
+                reset: document.getElementById('geo-reset'),
+            }
+        };
+    }
+    
+    addEventListeners() {
+        this.ui.buttons.b1.addEventListener('click', () => this.runTrials(1));
+        this.ui.buttons.b10.addEventListener('click', () => this.runTrials(10));
+        this.ui.buttons.b100.addEventListener('click', () => this.runTrials(100));
+        this.ui.buttons.b1000.addEventListener('click', () => this.runTrials(1000));
+        this.ui.buttons.reset.addEventListener('click', () => this.reset());
+    }
+    
+    reset() {
+        this.total = 0;
+        this.hits = 0;
+        this.isAnimating = false;
+        this.ui.svg.innerHTML = `
+            <rect x="0" y="0" width="100%" height="100%" fill="white" />
+            <circle cx="50%" cy="50%" r="50%" fill="#e0f2f1" stroke="#4db6ac" stroke-width="1" />
+        `;
+        this.updateDisplay();
+        this.toggleButtons(true);
+    }
+    
+    async runTrials(count) {
+        if (this.isAnimating) return;
+        this.isAnimating = true;
+        this.toggleButtons(false);
+
+        for (let i = 0; i < count; i++) {
+            const x = Math.random(); // 0 to 1
+            const y = Math.random(); // 0 to 1
+            const distSq = (x - 0.5)**2 + (y - 0.5)**2;
+            const isHit = distSq <= 0.5**2;
+
+            this.total++;
+            if (isHit) this.hits++;
+            
+            this.drawPoint(x, y, isHit);
+            if (count < 100) {
+                 this.updateDisplay();
+                 await new Promise(r => setTimeout(r, 10));
+            }
+        }
+        this.updateDisplay();
+        this.isAnimating = false;
+        this.toggleButtons(true);
+    }
+    
+    drawPoint(x, y, isHit) {
+        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        circle.setAttribute('cx', `${x * 100}%`);
+        circle.setAttribute('cy', `${y * 100}%`);
+        circle.setAttribute('r', '1');
+        circle.setAttribute('fill', isHit ? '#14b8a6' : '#f87171');
+        this.ui.svg.appendChild(circle);
+    }
+
+    updateDisplay() {
+        this.ui.total.textContent = this.total;
+        this.ui.hits.textContent = this.hits;
+        if (this.total > 0) {
+            const prob = this.hits / this.total;
+            this.ui.prob.textContent = prob.toFixed(4);
+            this.ui.pi.textContent = (4 * prob).toFixed(5);
+        } else {
+            this.ui.prob.textContent = 'N/A';
+            this.ui.pi.textContent = 'N/A';
+        }
+        renderKatex();
+    }
+    
+    toggleButtons(enable) {
+        Object.values(this.ui.buttons).forEach(btn => btn.disabled = !enable);
+    }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    new ContinuousDistApp('uniform-dist-app', {
+        id: 'uniform', domain: [0, 10], step: 0.1, initialRange: [2, 4],
+        initialParams: {}, params: {},
+        pdf: (x, p) => (x >= 0 && x <= 10) ? 0.1 : 0,
+        getFormula: (p) => `f(x) = \\begin{cases} \\frac{1}{10} & 0 \\le x \\le 10 \\\\ 0 & \\text{otherwise} \\end{cases}`
+    });
+    new ContinuousDistApp('normal-dist-app', {
+        id: 'normal', domain: [140, 210], step: 0.5, initialRange: [165, 180],
+        initialParams: { mu: 175, sigma: 7.5 },
+        params: {
+            mu: { label: '평균 $\\mu$', initial: 175, min: 160, max: 190, step: 0.5 },
+            sigma: { label: '표준편차 $\\sigma$', initial: 7.5, min: 2, max: 15, step: 0.5 }
+        },
+        pdf: (x, p) => (1 / (p.sigma * Math.sqrt(2 * Math.PI))) * Math.exp(-0.5 * Math.pow((x - p.mu) / p.sigma, 2)),
+        getFormula: (p) => `f(x) = \\frac{1}{${p.sigma.toFixed(1)}\\sqrt{2\\pi}} e^{-\\frac{1}{2}(\\frac{x-${p.mu.toFixed(1)}}{${p.sigma.toFixed(1)}})^2}`
+    });
+    new ContinuousDistApp('exponential-dist-app', {
+        id: 'expo', domain: [0, 5000], step: 10, initialRange: [0, 1000],
+        initialParams: { lambda: 0.001 },
+        params: { lambda: { label: '비율 $\\lambda$', initial: 0.001, min: 0.0005, max: 0.002, step: 0.0001, precision: 4 }},
+        pdf: (x, p) => x >= 0 ? p.lambda * Math.exp(-p.lambda * x) : 0,
+        getFormula: (p) => `f(x) = ${p.lambda.toFixed(4)} e^{-${p.lambda.toFixed(4)}x} \\quad (x \\ge 0)`
+    });
+    new ContinuousDistApp('triangular-dist-app', {
+        id: 'triangular', domain: [0, 20], step: 0.1, initialRange: [8, 15],
+        initialParams: { a: 5, b: 18, c: 10 },
+        params: {
+            a: { label: '최소값 $a$', initial: 5, min: 1, max: 9, step: 0.5 },
+            c: { label: '최빈값 $c$', initial: 10, min: 5, max: 15, step: 0.5 },
+            b: { label: '최대값 $b$', initial: 18, min: 11, max: 19, step: 0.5 }
+        },
+        pdf: (x, p) => {
+            if (x < p.a || x > p.b) return 0;
+            if (x >= p.a && x <= p.c) return 2 * (x - p.a) / ((p.b - p.a) * (p.c - p.a));
+            if (x > p.c && x <= p.b) return 2 * (p.b - x) / ((p.b - p.a) * (p.b - p.c));
+            return 0;
+        },
+        getFormula: (p) => `f(x) = \\begin{cases} \\frac{2(x-a)}{(b-a)(c-a)} & a \\le x \\le c \\\\ \\frac{2(b-x)}{(b-a)(b-c)} & c < x \\le b \\end{cases}`
+    });
+    
+    function gamma(z) {
+        const p = [676.5203681218851, -1259.1392167224028, 771.32342877765313, -176.61502916214059, 12.507343278686905, -0.13857109526572012, 9.9843695780195716e-6, 1.5056327351493116e-7];
+        if (z < 0.5) return Math.PI / (Math.sin(Math.PI * z) * gamma(1 - z));
+        z -= 1;
+        let x = 0.99999999999980993;
+        for (let i = 0; i < p.length; i++) x += p[i] / (z + i + 1);
+        const t = z + p.length - 0.5;
+        return Math.sqrt(2 * Math.PI) * Math.pow(t, z + 0.5) * Math.exp(-t) * x;
+    }
+    
+    new ContinuousDistApp('beta-dist-app', {
+        id: 'beta', domain: [0, 1], step: 0.01, initialRange: [0.6, 0.9],
+        initialParams: { alpha: 8, beta: 2 },
+        params: {
+            alpha: { label: '모수 $\\alpha$', initial: 8, min: 0.5, max: 15, step: 0.1, precision:1 },
+            beta: { label: '모수 $\\beta$', initial: 2, min: 0.5, max: 15, step: 0.1, precision:1 }
+        },
+        pdf: (x, p) => {
+            if (x < 0 || x > 1) return 0;
+            const betaFunc = gamma(p.alpha) * gamma(p.beta) / gamma(p.alpha + p.beta);
+            if (betaFunc === 0) return 0;
+            return (1 / betaFunc) * Math.pow(x, p.alpha - 1) * Math.pow(1 - x, p.beta - 1);
+        },
+        getFormula: (p) => `f(x; \\alpha, \\beta) = \\frac{x^{${p.alpha.toFixed(1)}-1}(1-x)^{${p.beta.toFixed(1)}-1}}{B(${p.alpha.toFixed(1)}, ${p.beta.toFixed(1)})}`
+    });
+
+    new GeometricProbabilityApp('geometric-prob-app');
+    
+    renderKatex();
+});
+</script>
+</body>
+</html>
+

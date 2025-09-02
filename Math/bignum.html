@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>확률과 위험성 실험실</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" xintegrity="sha384-n8MVd4RsNIU0KOVEMeaPoAbJNdMYGNpaLCITPbUdaJblrzJNE2agrdMLIHN5EQGk" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" xintegrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzYCEHPNKAqv8i5HuaMusnvENqVd+BovHtCQ" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" xintegrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous"></script>
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+        }
+        .graph-container {
+            width: 100%;
+            height: 300px;
+            background-color: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            position: relative;
+        }
+        .graph-container svg {
+            width: 100%;
+            height: 100%;
+        }
+        .control-panel button, .control-panel select, .control-panel input {
+            transition: all 0.2s ease-in-out;
+        }
+        .control-panel button:disabled {
+            background-color: #9ca3af;
+            cursor: not-allowed;
+        }
+        .status-box {
+            min-height: 5rem;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800 p-4 md:p-8">
+
+    <div class="max-w-6xl mx-auto">
+        <header class="text-center mb-12">
+            <h1 class="text-4xl md:text-5xl font-bold text-gray-900">확률과 위험성 실험실</h1>
+            <p class="mt-4 text-lg text-gray-600 max-w-3xl mx-auto">
+                '큰 수의 법칙'이 현실 세계, 특히 도박과 같은 확률 게임에서 어떻게 작동하는지 시뮬레이션을 통해 탐험해 봅시다.
+            </p>
+        </header>
+
+        <main class="space-y-16">
+
+            <!-- 실험 1: 주사위 굴리기 -->
+            <section class="bg-white p-6 rounded-xl shadow-lg">
+                <h2 class="text-3xl font-bold mb-4 text-center">실험 1: 정육면체 주사위 🎲</h2>
+                <p class="mb-6 text-gray-600 text-center">
+                    정육면체 주사위를 반복해서 던질 때, 눈의 평균값은 이론적 기댓값 $E(X) = 3.5$ 에 수렴할까요?
+                </p>
+                <div class="grid md:grid-cols-2 gap-8 items-center">
+                    <div class="control-panel space-y-4">
+                        <div id="die-visual" class="w-24 h-24 mx-auto bg-white border-2 border-gray-400 rounded-lg flex items-center justify-center text-5xl font-bold shadow-inner">?</div>
+                        <div class="text-center">
+                            <p class="text-lg">총 시행 횟수: <span id="die-trials" class="font-bold text-indigo-600">0</span></p>
+                            <p class="text-lg">현재 눈의 평균: <span id="die-avg" class="font-bold text-indigo-600">N/A</span></p>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button id="die-roll-1" class="bg-indigo-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-600">1번 굴리기</button>
+                            <button id="die-roll-10" class="bg-indigo-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-600">10번 굴리기</button>
+                            <button id="die-roll-100" class="bg-indigo-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-600">100번 굴리기</button>
+                            <button id="die-roll-1000" class="bg-indigo-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-600">1000번 굴리기</button>
+                        </div>
+                        <button id="die-reset" class="w-full bg-gray-400 text-white font-bold py-2 px-4 rounded-lg hover:bg-gray-500">초기화</button>
+                    </div>
+                    <div id="die-graph" class="graph-container"></div>
+                </div>
+            </section>
+            
+            <!-- 실험 2: 나만의 동전 만들기 -->
+            <section class="bg-white p-6 rounded-xl shadow-lg">
+                <h2 class="text-3xl font-bold mb-4 text-center">실험 2: 나만의 동전 만들기 🪙</h2>
+                <p class="mb-6 text-gray-600 text-center">
+                    '앞면'이 나올 확률 $P(H)$를 직접 설정하여, 불공정한 동전도 큰 수의 법칙을 따르는지 확인해 봅시다.
+                </p>
+                <div class="grid md:grid-cols-2 gap-8 items-center">
+                     <div class="control-panel space-y-4">
+                        <div id="coin-visual" class="w-24 h-24 mx-auto rounded-full bg-yellow-300 flex items-center justify-center text-2xl font-bold shadow-inner border-4 border-yellow-500">?</div>
+                        <div class="text-center">
+                            <p class="text-lg">총 시행 횟수: <span id="coin-trials" class="font-bold text-teal-600">0</span></p>
+                            <p class="text-lg">앞면 비율: <span id="coin-avg" class="font-bold text-teal-600">N/A</span></p>
+                        </div>
+                        <div>
+                            <label for="p-slider" class="font-semibold">앞면 확률 $P(H)$: <span id="p-value">0.50</span></label>
+                            <input type="range" id="p-slider" min="0" max="1" step="0.01" value="0.5" class="w-full">
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button id="coin-toss-1" class="bg-teal-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-teal-600">1번 던지기</button>
+                            <button id="coin-toss-10" class="bg-teal-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-teal-600">10번 던지기</button>
+                            <button id="coin-toss-100" class="bg-teal-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-teal-600">100번 던지기</button>
+                            <button id="coin-toss-1000" class="bg-teal-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-teal-600">1000번 던지기</button>
+                        </div>
+                        <button id="coin-reset" class="w-full bg-gray-400 text-white font-bold py-2 px-4 rounded-lg hover:bg-gray-500">초기화</button>
+                    </div>
+                    <div id="coin-graph" class="graph-container"></div>
+                </div>
+            </section>
+
+            <!-- 실험 3: 양궁 선수가 되어보기 -->
+            <section class="bg-white p-6 rounded-xl shadow-lg">
+                <h2 class="text-3xl font-bold mb-4 text-center">실험 3: 양궁 선수가 되어보기 🎯</h2>
+                <p class="mb-6 text-gray-600 text-center">
+                    과녁에 화살을 쏘아 점수를 기록합니다. 평균 점수는 이 선수의 '진정한 실력' (이론적 평균 점수)에 수렴할까요?
+                </p>
+                <div class="grid md:grid-cols-2 gap-8 items-center">
+                     <div class="control-panel space-y-4">
+                        <div id="dart-visual" class="w-48 h-48 mx-auto rounded-full bg-gray-200 relative shadow-lg">
+                            <div class="absolute inset-0 rounded-full bg-white border-2 border-black"></div>
+                            <div class="absolute inset-2 rounded-full bg-white border-2 border-black"></div>
+                            <div class="absolute inset-4 rounded-full bg-black border-2 border-black"></div>
+                            <div class="absolute inset-6 rounded-full bg-black border-2 border-black"></div>
+                            <div class="absolute inset-8 rounded-full bg-blue-500 border-2 border-black"></div>
+                            <div class="absolute inset-10 rounded-full bg-blue-500 border-2 border-black"></div>
+                            <div class="absolute inset-12 rounded-full bg-red-500 border-2 border-black"></div>
+                            <div class="absolute inset-14 rounded-full bg-red-500 border-2 border-black"></div>
+                            <div class="absolute inset-16 rounded-full bg-yellow-400 border-2 border-black"></div>
+                            <div class="absolute inset-20 rounded-full bg-yellow-400 border-2 border-black"></div>
+                            <div id="dart-hit" class="absolute w-2 h-2 bg-black rounded-full transform -translate-x-1/2 -translate-y-1/2" style="display:none;"></div>
+                        </div>
+                        <div class="text-center">
+                            <p class="text-lg">총 발사 횟수: <span id="dart-trials" class="font-bold text-red-600">0</span></p>
+                            <p class="text-lg">현재 평균 점수: <span id="dart-avg" class="font-bold text-red-600">N/A</span></p>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button id="dart-throw-1" class="bg-red-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-red-600">1발 쏘기</button>
+                            <button id="dart-throw-10" class="bg-red-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-red-600">10발 쏘기</button>
+                            <button id="dart-throw-100" class="bg-red-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-red-600">100발 쏘기</button>
+                            <button id="dart-throw-1000" class="bg-red-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-red-600">1000발 쏘기</button>
+                        </div>
+                        <button id="dart-reset" class="w-full bg-gray-400 text-white font-bold py-2 px-4 rounded-lg hover:bg-gray-500">초기화</button>
+                    </div>
+                    <div id="dart-graph" class="graph-container"></div>
+                </div>
+            </section>
+            
+            <!-- 실험 4: 도박꾼의 파멸 -->
+            <section class="bg-white p-6 rounded-xl shadow-lg">
+                <h2 class="text-3xl font-bold mb-4 text-center">실험 4: 도박꾼의 파멸 📉</h2>
+                <p class="mb-6 text-gray-600 text-center">
+                    승리 확률이 50%보다 아주 약간만 낮아도(하우스 엣지), 장기적으로는 파산할 확률이 100%에 가까워집니다.
+                </p>
+                <div class="grid md:grid-cols-2 gap-8 items-center">
+                    <div class="control-panel space-y-4">
+                        <div class="bg-gray-50 p-4 rounded-lg space-y-3">
+                            <div>
+                                <label for="ruin-capital" class="font-semibold">초기 자본:</label>
+                                <input type="number" id="ruin-capital" value="100" class="w-full p-1 border rounded mt-1">
+                            </div>
+                            <div>
+                                <label for="ruin-bet" class="font-semibold">베팅 금액:</label>
+                                <input type="number" id="ruin-bet" value="5" class="w-full p-1 border rounded mt-1">
+                            </div>
+                            <div>
+                                <label for="ruin-prob" class="font-semibold">승리 확률: <span id="ruin-prob-value">49.0%</span></label>
+                                <input type="range" id="ruin-prob" min="0.45" max="0.51" step="0.001" value="0.49" class="w-full">
+                            </div>
+                        </div>
+                         <div id="ruin-status-box" class="text-center bg-blue-50 p-4 rounded-lg status-box flex flex-col justify-center">
+                            <p class="text-lg">현재 자본: <span id="ruin-current-capital" class="font-bold text-blue-800">100</span></p>
+                            <p class="text-lg">베팅 횟수: <span id="ruin-bet-count" class="font-bold text-blue-800">0</span></p>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button id="ruin-bet-1" class="bg-blue-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-600">1회 베팅</button>
+                            <button id="ruin-bet-100" class="bg-blue-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-600">100회 베팅</button>
+                            <button id="ruin-bet-1000" class="bg-blue-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-600">1000회 베팅</button>
+                            <button id="ruin-bet-until" class="bg-red-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-red-700">파산까지</button>
+                        </div>
+                        <button id="ruin-reset" class="w-full bg-gray-400 text-white font-bold py-2 px-4 rounded-lg hover:bg-gray-500">초기화</button>
+                    </div>
+                    <div id="ruin-graph" class="graph-container"></div>
+                </div>
+            </section>
+
+            <!-- 실험 5: 마틴게일 전략의 함정 -->
+            <section class="bg-white p-6 rounded-xl shadow-lg">
+                <h2 class="text-3xl font-bold mb-4 text-center">실험 5: 마틴게일 전략의 함정 📈💥</h2>
+                <p class="mb-6 text-gray-600 text-center">
+                    '잃으면 2배로' 베팅하는 마틴게일 전략은 왜 위험할까요? 자본의 한계 또는 테이블 한도 때문에 결국 실패하게 됩니다.
+                </p>
+                 <div class="grid md:grid-cols-2 gap-8 items-center">
+                    <div class="control-panel space-y-4">
+                        <div class="bg-gray-50 p-4 rounded-lg space-y-3">
+                             <div>
+                                <label for="mart-capital" class="font-semibold">초기 자본:</label>
+                                <input type="number" id="mart-capital" value="1000" class="w-full p-1 border rounded mt-1">
+                            </div>
+                            <div>
+                                <label for="mart-bet" class="font-semibold">최초 베팅:</label>
+                                <input type="number" id="mart-bet" value="10" class="w-full p-1 border rounded mt-1">
+                            </div>
+                            <div>
+                                <label for="mart-limit" class="font-semibold">테이블 한도:</label>
+                                <input type="number" id="mart-limit" value="500" class="w-full p-1 border rounded mt-1">
+                            </div>
+                        </div>
+                         <div id="mart-status-box" class="text-center bg-orange-50 p-4 rounded-lg status-box flex flex-col justify-center">
+                            <p class="text-base">현재 자본: <span id="mart-current-capital" class="font-bold text-orange-800">1000</span></p>
+                            <p class="text-base">다음 베팅: <span id="mart-next-bet" class="font-bold text-orange-800">10</span></p>
+                            <p class="text-base">연패 횟수: <span id="mart-loss-streak" class="font-bold text-orange-800">0</span></p>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button id="mart-bet-next" class="bg-orange-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-orange-600">다음 베팅</button>
+                            <button id="mart-bet-auto" class="bg-orange-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-orange-600">자동 진행</button>
+                        </div>
+                        <button id="mart-reset" class="w-full bg-gray-400 text-white font-bold py-2 px-4 rounded-lg hover:bg-gray-500">초기화</button>
+                    </div>
+                    <div id="mart-graph" class="graph-container"></div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    if (window.renderMathInElement) {
+        renderMathInElement(document.body, {
+            delimiters: [ {left: "$$", right: "$$", display: true}, {left: "$", right: "$", display: false} ]
+        });
+    }
+
+    class LLNExperiment {
+        constructor(config) {
+            this.config = config;
+            this.isAnimating = false;
+            this.init();
+        }
+
+        init() {
+            this.ui = {
+                trials: document.getElementById(this.config.ids.trials),
+                avg: document.getElementById(this.config.ids.avg),
+                graph: document.getElementById(this.config.ids.graph),
+                visual: document.getElementById(this.config.ids.visual),
+                reset: document.getElementById(this.config.ids.reset)
+            };
+            this.buttons = {};
+            this.config.buttons.forEach(b => {
+                this.buttons[b.count] = document.getElementById(b.id);
+                this.buttons[b.count].addEventListener('click', () => this.runTrials(b.count));
+            });
+            this.ui.reset.addEventListener('click', () => this.reset());
+            this.reset();
+        }
+
+        reset() {
+            this.trials = 0;
+            this.sum = 0;
+            this.history = [];
+            if(this.config.onReset) this.config.onReset();
+            this.updateDisplay();
+            if (this.ui.visual) this.updateVisual('?');
+            this.drawGraph();
+        }
+
+        async runTrials(count) {
+            if (this.isAnimating) return;
+            this.isAnimating = true;
+            this.toggleButtons(false);
+
+            for (let i = 0; i < count; i++) {
+                const outcome = this.config.getOutcome();
+                this.trials++;
+                this.sum += outcome;
+                const avg = this.sum / this.trials;
+                this.history.push(avg);
+
+                if (count <= 100) {
+                    if(this.ui.visual) this.updateVisual(outcome);
+                    this.updateDisplay();
+                    this.drawGraph();
+                    await new Promise(resolve => setTimeout(resolve, 50));
+                }
+            }
+
+            if (count > 100) {
+                this.updateDisplay();
+                this.drawGraph();
+            }
+
+            this.isAnimating = false;
+            this.toggleButtons(true);
+        }
+
+        updateVisual(outcome) {
+            if (this.config.visualUpdater) {
+                this.config.visualUpdater(this.ui.visual, outcome);
+            } else {
+                this.ui.visual.textContent = outcome;
+            }
+        }
+        
+        updateDisplay() {
+            this.ui.trials.textContent = this.trials;
+            const avg = this.trials > 0 ? (this.sum / this.trials).toFixed(3) : 'N/A';
+            this.ui.avg.textContent = avg;
+        }
+
+        drawGraph() {
+            this.ui.graph.innerHTML = '';
+            const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            const rect = this.ui.graph.getBoundingClientRect();
+            if (rect.width === 0 || rect.height === 0) return;
+            const { width, height } = rect;
+            const padding = { top: 20, right: 20, bottom: 40, left: 50 };
+            
+            const [minY, maxY] = this.config.yRange;
+
+            const xScale = (i) => padding.left + (i / Math.max(1, this.history.length - 1)) * (width - padding.left - padding.right);
+            const yScale = (y) => padding.top + ((maxY - y) / (maxY - minY)) * (height - padding.top - padding.bottom);
+
+            svg.innerHTML = `
+                <line x1="${padding.left}" y1="${height - padding.bottom}" x2="${width - padding.right}" y2="${height - padding.bottom}" stroke="#9ca3af"/>
+                <line x1="${padding.left}" y1="${padding.top}" x2="${padding.left}" y2="${height - padding.bottom}" stroke="#9ca3af"/>
+                <text x="${padding.left + (width - padding.left - padding.right) / 2}" y="${height - 5}" text-anchor="middle" font-size="12" fill="#6b7280">시행 횟수</text>
+                <text x="${padding.left-10}" y="${padding.top + (height - padding.top - padding.bottom)/2}" text-anchor="middle" transform="rotate(-90, ${padding.left-10}, ${padding.top + (height - padding.top - padding.bottom)/2})" font-size="12" fill="#6b7280">평균값</text>
+            `;
+            
+            for (let i = 0; i <= 4; i++) {
+                const yVal = minY + i * (maxY - minY) / 4;
+                const yPos = yScale(yVal);
+                svg.innerHTML += `<text x="${padding.left - 8}" y="${yPos + 4}" text-anchor="end" font-size="10" fill="#6b7280">${yVal.toFixed(1)}</text>`;
+                svg.innerHTML += `<line x1="${padding.left-4}" y1="${yPos}" x2="${width - padding.right}" y2="${yPos}" stroke="#e5e7eb" stroke-dasharray="2"/>`;
+            }
+
+            const theoryVal = typeof this.config.theoreticalValue === 'function' ? this.config.theoreticalValue() : this.config.theoreticalValue;
+            const theoryY = yScale(theoryVal);
+            svg.innerHTML += `<line x1="${padding.left}" y1="${theoryY}" x2="${width-padding.right}" y2="${theoryY}" stroke="${this.config.color}" stroke-width="2" stroke-dasharray="4"/>`;
+            svg.innerHTML += `<text x="${width - padding.right - 5}" y="${theoryY - 5}" text-anchor="end" font-size="12" fill="${this.config.color}" font-weight="bold">이론값: ${typeof theoryVal === 'number' ? theoryVal.toFixed(2) : theoryVal}</text>`;
+
+            if (this.history.length > 1) {
+                let pathData = `M ${xScale(0)} ${yScale(this.history[0])}`;
+                this.history.forEach((avg, i) => { if (i > 0) pathData += ` L ${xScale(i)} ${yScale(avg)}`; });
+                const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                path.setAttribute('d', pathData); path.setAttribute('fill', 'none'); path.setAttribute('stroke', this.config.color); path.setAttribute('stroke-width', '2');
+                svg.appendChild(path);
+            }
+            this.ui.graph.appendChild(svg);
+        }
+        
+        toggleButtons(enable) {
+            Object.values(this.buttons).forEach(btn => btn.disabled = !enable);
+        }
+    }
+
+    // --- Experiment 1: Die ---
+    new LLNExperiment({
+        ids: { trials: 'die-trials', avg: 'die-avg', graph: 'die-graph', visual: 'die-visual', reset: 'die-reset' },
+        buttons: [{id: 'die-roll-1', count: 1}, {id: 'die-roll-10', count: 10}, {id: 'die-roll-100', count: 100}, {id: 'die-roll-1000', count: 1000}],
+        getOutcome: () => Math.floor(Math.random() * 6) + 1,
+        yRange: [1, 6], theoreticalValue: 3.5, color: '#6366f1'
+    });
+
+    // --- Experiment 2: Coin ---
+    const pSlider = document.getElementById('p-slider');
+    const pValue = document.getElementById('p-value');
+    const coinExp = new LLNExperiment({
+        ids: { trials: 'coin-trials', avg: 'coin-avg', graph: 'coin-graph', visual: 'coin-visual', reset: 'coin-reset' },
+        buttons: [{id: 'coin-toss-1', count: 1}, {id: 'coin-toss-10', count: 10}, {id: 'coin-toss-100', count: 100}, {id: 'coin-toss-1000', count: 1000}],
+        getOutcome: () => (Math.random() < parseFloat(pSlider.value) ? 1 : 0),
+        yRange: [0, 1], theoreticalValue: () => parseFloat(pSlider.value), color: '#0d9488',
+        visualUpdater: (el, outcome) => { el.textContent = outcome === 1 ? '앞' : '뒤'; },
+        onReset: () => { pSlider.disabled = false; }
+    });
+    pSlider.addEventListener('input', (e) => { pValue.textContent = parseFloat(e.target.value).toFixed(2); });
+    pSlider.addEventListener('change', () => coinExp.reset());
+    document.querySelectorAll('#coin-toss-1, #coin-toss-10, #coin-toss-100, #coin-toss-1000').forEach(btn => {
+        btn.addEventListener('click', () => { pSlider.disabled = true; });
+    });
+
+    // --- Experiment 3: Darts ---
+    function getDartScore() {
+        let u, v, s;
+        do { u = Math.random() * 2 - 1; v = Math.random() * 2 - 1; s = u * u + v * v; } while (s >= 1 || s === 0);
+        const mul = Math.sqrt(-2.0 * Math.log(s) / s);
+        const x = u * mul * 0.2, y = v * mul * 0.2;
+        const dist = Math.sqrt(x*x + y*y);
+        let score = 0;
+        if (dist <= 0.1) score = 10; else if (dist <= 0.2) score = 9; else if (dist <= 0.3) score = 8;
+        else if (dist <= 0.4) score = 7; else if (dist <= 0.5) score = 6; else if (dist <= 0.6) score = 5;
+        else if (dist <= 0.7) score = 4; else if (dist <= 0.8) score = 3; else if (dist <= 0.9) score = 2;
+        else if (dist <= 1.0) score = 1;
+        return { score, x, y };
+    }
+    new LLNExperiment({
+        ids: { trials: 'dart-trials', avg: 'dart-avg', graph: 'dart-graph', visual: null, reset: 'dart-reset' },
+        buttons: [{id: 'dart-throw-1', count: 1}, {id: 'dart-throw-10', count: 10}, {id: 'dart-throw-100', count: 100}, {id: 'dart-throw-1000', count: 1000}],
+        getOutcome: () => {
+            const { score, x, y } = getDartScore();
+            const hitEl = document.getElementById('dart-hit'), visualEl = document.getElementById('dart-visual');
+            const { width, height } = visualEl.getBoundingClientRect();
+            hitEl.style.left = `${width / 2 + x * (width / 2)}px`;
+            hitEl.style.top = `${height / 2 + y * (height / 2)}px`;
+            hitEl.style.display = 'block';
+            return score;
+        },
+        yRange: [0, 10], theoreticalValue: 7.7, color: '#dc2626',
+        onReset: () => { document.getElementById('dart-hit').style.display = 'none'; }
+    });
+    
+    // --- Experiment 4: Gambler's Ruin ---
+    class GamblersRuinExperiment {
+        constructor() {
+            this.initUI();
+            this.addEventListeners();
+            this.reset();
+        }
+        initUI() {
+            this.ui = {
+                capitalInput: document.getElementById('ruin-capital'),
+                betInput: document.getElementById('ruin-bet'),
+                probSlider: document.getElementById('ruin-prob'),
+                probValue: document.getElementById('ruin-prob-value'),
+                currentCapital: document.getElementById('ruin-current-capital'),
+                betCount: document.getElementById('ruin-bet-count'),
+                graph: document.getElementById('ruin-graph'),
+                statusBox: document.getElementById('ruin-status-box'),
+                buttons: {
+                    bet1: document.getElementById('ruin-bet-1'),
+                    bet100: document.getElementById('ruin-bet-100'),
+                    bet1000: document.getElementById('ruin-bet-1000'),
+                    untilRuin: document.getElementById('ruin-bet-until'),
+                    reset: document.getElementById('ruin-reset')
+                }
+            };
+        }
+        addEventListeners() {
+            this.ui.probSlider.addEventListener('input', e => {
+                this.ui.probValue.textContent = (parseFloat(e.target.value) * 100).toFixed(1) + '%';
+            });
+            Object.values(this.ui.buttons).forEach(btn => btn.addEventListener('click', (e) => this.handleButtonClick(e.target.id)));
+            // Reset if settings are changed
+            this.ui.capitalInput.addEventListener('change', () => this.reset());
+            this.ui.betInput.addEventListener('change', () => this.reset());
+            this.ui.probSlider.addEventListener('change', () => this.reset());
+        }
+        reset() {
+            this.isAnimating = false;
+            this.initialCapital = parseInt(this.ui.capitalInput.value);
+            this.capital = this.initialCapital;
+            this.betAmount = parseInt(this.ui.betInput.value);
+            this.betCount = 0;
+            this.history = [this.capital];
+            this.updateDisplay();
+            this.drawGraph();
+            this.toggleButtons(true);
+            this.ui.statusBox.classList.remove('bg-red-100');
+            this.ui.statusBox.classList.add('bg-blue-50');
+        }
+        handleButtonClick(id) {
+            switch(id) {
+                case 'ruin-bet-1': this.runBets(1); break;
+                case 'ruin-bet-100': this.runBets(100); break;
+                case 'ruin-bet-1000': this.runBets(1000); break;
+                case 'ruin-bet-until': this.runBets(Infinity); break;
+                case 'ruin-reset': this.reset(); break;
+            }
+        }
+        async runBets(count) {
+            if (this.isAnimating || this.capital <= 0) return;
+            this.isAnimating = true;
+            this.toggleButtons(false);
+            const winProb = parseFloat(this.ui.probSlider.value);
+            
+            for (let i=0; i < count; i++) {
+                if (this.capital <= 0) break;
+                
+                this.betCount++;
+                if (Math.random() < winProb) {
+                    this.capital += this.betAmount;
+                } else {
+                    this.capital -= this.betAmount;
+                }
+                this.history.push(this.capital);
+
+                if(count <=100) {
+                    this.updateDisplay();
+                    this.drawGraph();
+                    await new Promise(r => setTimeout(r, 20));
+                }
+            }
+            if(count > 100) {
+                this.updateDisplay();
+                this.drawGraph();
+            }
+
+            if (this.capital <= 0) {
+                this.handleRuin();
+            } else {
+                 this.isAnimating = false;
+                 this.toggleButtons(true);
+            }
+        }
+        handleRuin() {
+            this.ui.statusBox.innerHTML = `<p class="text-2xl font-bold text-red-700">파산!</p><p>${this.betCount}회 만에 모든 자본을 잃었습니다.</p>`;
+            this.ui.statusBox.classList.add('bg-red-100');
+            this.ui.statusBox.classList.remove('bg-blue-50');
+            this.toggleButtons(false, true); // keep reset enabled
+        }
+        updateDisplay() {
+            this.ui.currentCapital.textContent = this.capital;
+            this.ui.betCount.textContent = this.betCount;
+        }
+        drawGraph() {
+            this.ui.graph.innerHTML = '';
+            const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            const rect = this.ui.graph.getBoundingClientRect();
+            if (rect.width === 0 || rect.height === 0) return;
+            const { width, height } = rect;
+            const padding = { top: 20, right: 20, bottom: 40, left: 50 };
+            
+            const maxY = Math.max(this.initialCapital, ...this.history) * 1.1;
+
+            const xScale = (i) => padding.left + (i / Math.max(1, this.history.length - 1)) * (width - padding.left - padding.right);
+            const yScale = (y) => height - padding.bottom - (y / maxY) * (height - padding.top - padding.bottom);
+            
+            svg.innerHTML = `
+                <line x1="${padding.left}" y1="${yScale(0)}" x2="${width-padding.right}" y2="${yScale(0)}" stroke="#9ca3af"/>
+                <text x="${padding.left + 10}" y="${yScale(0) - 5}" font-size="12" fill="#6b7280">0 (파산)</text>
+            `;
+
+            if (this.history.length > 1) {
+                let pathData = `M ${xScale(0)} ${yScale(this.history[0])}`;
+                this.history.forEach((val, i) => { if (i > 0) pathData += ` L ${xScale(i)} ${yScale(val)}`; });
+                const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                path.setAttribute('d', pathData); path.setAttribute('fill', 'none'); path.setAttribute('stroke', '#3b82f6'); path.setAttribute('stroke-width', '2');
+                svg.appendChild(path);
+            }
+            this.ui.graph.appendChild(svg);
+        }
+        toggleButtons(enable, keepReset=false) {
+            for(const key in this.ui.buttons) {
+                if (key === 'reset' && !keepReset) this.ui.buttons[key].disabled = !enable;
+                else if (key !== 'reset') this.ui.buttons[key].disabled = !enable;
+            }
+            this.ui.capitalInput.disabled = !enable;
+            this.ui.betInput.disabled = !enable;
+            this.ui.probSlider.disabled = !enable;
+        }
+    }
+    new GamblersRuinExperiment();
+
+    // --- Experiment 5: Martingale ---
+    class MartingaleExperiment {
+        constructor() {
+            this.initUI();
+            this.addEventListeners();
+            this.reset();
+        }
+        initUI() {
+            this.ui = {
+                capitalInput: document.getElementById('mart-capital'),
+                betInput: document.getElementById('mart-bet'),
+                limitInput: document.getElementById('mart-limit'),
+                currentCapital: document.getElementById('mart-current-capital'),
+                nextBet: document.getElementById('mart-next-bet'),
+                lossStreak: document.getElementById('mart-loss-streak'),
+                graph: document.getElementById('mart-graph'),
+                statusBox: document.getElementById('mart-status-box'),
+                buttons: {
+                    next: document.getElementById('mart-bet-next'),
+                    auto: document.getElementById('mart-bet-auto'),
+                    reset: document.getElementById('mart-reset')
+                }
+            };
+        }
+        addEventListeners() {
+            this.ui.buttons.next.addEventListener('click', () => this.runBet());
+            this.ui.buttons.auto.addEventListener('click', () => this.toggleAuto());
+            this.ui.buttons.reset.addEventListener('click', () => this.reset());
+            this.ui.capitalInput.addEventListener('change', () => this.reset());
+            this.ui.betInput.addEventListener('change', () => this.reset());
+            this.ui.limitInput.addEventListener('change', () => this.reset());
+        }
+        reset() {
+            this.stopAuto();
+            this.initialCapital = parseInt(this.ui.capitalInput.value);
+            this.initialBet = parseInt(this.ui.betInput.value);
+            this.tableLimit = parseInt(this.ui.limitInput.value);
+            this.capital = this.initialCapital;
+            this.currentBet = this.initialBet;
+            this.lossStreak = 0;
+            this.history = [this.capital];
+            this.betCount = 0;
+            this.updateDisplay();
+            this.drawGraph();
+            this.toggleButtons(true);
+        }
+        toggleAuto() {
+            if (this.isAutoRunning) {
+                this.stopAuto();
+            } else {
+                this.startAuto();
+            }
+        }
+        startAuto() {
+            this.isAutoRunning = true;
+            this.ui.buttons.auto.textContent = '정지';
+            this.ui.buttons.auto.classList.replace('bg-orange-500', 'bg-gray-600');
+            this.autoInterval = setInterval(() => {
+                if(!this.runBet()) this.stopAuto();
+            }, 100);
+        }
+        stopAuto() {
+            this.isAutoRunning = false;
+            this.ui.buttons.auto.textContent = '자동 진행';
+            this.ui.buttons.auto.classList.replace('bg-gray-600', 'bg-orange-500');
+            clearInterval(this.autoInterval);
+        }
+        runBet() {
+            if (this.capital <= 0 || this.currentBet > this.capital || this.currentBet > this.tableLimit) {
+                this.handleEnd();
+                return false;
+            }
+
+            if (Math.random() < 0.49) { // Win (using 49% for realism)
+                this.capital += this.currentBet;
+                this.currentBet = this.initialBet;
+                this.lossStreak = 0;
+            } else { // Lose
+                this.capital -= this.currentBet;
+                this.currentBet *= 2;
+                this.lossStreak++;
+            }
+            this.betCount++;
+            this.history.push(this.capital);
+            this.updateDisplay();
+            this.drawGraph();
+            return true;
+        }
+        handleEnd() {
+            let reason = '';
+            if (this.currentBet > this.capital) {
+                 reason = `베팅 금액(${this.currentBet})이 자본(${this.capital})보다 커져 파산했습니다.`;
+            } else if (this.currentBet > this.tableLimit) {
+                 reason = `베팅 금액(${this.currentBet})이 테이블 한도(${this.tableLimit})를 초과했습니다.`;
+            } else if (this.capital <= 0) {
+                 reason = `자본이 0이 되어 파산했습니다.`;
+            }
+            this.ui.statusBox.innerHTML = `<p class="text-xl font-bold text-red-700">게임 종료!</p><p class="text-sm">${this.betCount}회 만에 종료. ${reason}</p>`;
+            this.toggleButtons(false, true);
+        }
+        updateDisplay() {
+            this.ui.currentCapital.textContent = this.capital;
+            this.ui.nextBet.textContent = this.currentBet;
+            this.ui.lossStreak.textContent = this.lossStreak;
+            
+            if (this.capital <= 0 || this.currentBet > this.capital || this.currentBet > this.tableLimit) {
+                this.ui.statusBox.classList.add('bg-red-100');
+                this.ui.statusBox.classList.remove('bg-orange-50');
+            } else {
+                 this.ui.statusBox.classList.remove('bg-red-100');
+                 this.ui.statusBox.classList.add('bg-orange-50');
+            }
+        }
+        drawGraph() {
+            // Reusing the drawing logic from Gambler's Ruin, slightly adapted
+            const graphUI = { graph: this.ui.graph };
+            const history = this.history;
+            const initialCapital = this.initialCapital;
+            
+            graphUI.graph.innerHTML = '';
+            const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            const rect = graphUI.graph.getBoundingClientRect();
+            if (rect.width === 0 || rect.height === 0) return;
+            const { width, height } = rect;
+            const padding = { top: 20, right: 20, bottom: 40, left: 50 };
+            
+            const maxY = Math.max(initialCapital, ...history) * 1.1;
+
+            const xScale = (i) => padding.left + (i / Math.max(1, history.length - 1)) * (width - padding.left - padding.right);
+            const yScale = (y) => height - padding.bottom - (y / maxY) * (height - padding.top - padding.bottom);
+            
+            svg.innerHTML = `
+                <line x1="${padding.left}" y1="${yScale(0)}" x2="${width-padding.right}" y2="${yScale(0)}" stroke="#9ca3af"/>
+                <text x="${padding.left + 10}" y="${yScale(0) - 5}" font-size="12" fill="#6b7280">0 (파산)</text>
+            `;
+
+            if (history.length > 1) {
+                let pathData = `M ${xScale(0)} ${yScale(history[0])}`;
+                history.forEach((val, i) => { if (i > 0) pathData += ` L ${xScale(i)} ${yScale(val)}`; });
+                const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                path.setAttribute('d', pathData); path.setAttribute('fill', 'none'); path.setAttribute('stroke', '#f97316'); path.setAttribute('stroke-width', '2');
+                svg.appendChild(path);
+            }
+            graphUI.graph.appendChild(svg);
+        }
+        toggleButtons(enable, keepReset=false) {
+            this.ui.buttons.next.disabled = !enable;
+            this.ui.buttons.auto.disabled = !enable;
+            if(!keepReset) this.ui.buttons.reset.disabled = !enable;
+            this.ui.capitalInput.disabled = !enable;
+            this.ui.betInput.disabled = !enable;
+            this.ui.limitInput.disabled = !enable;
+        }
+    }
+    new MartingaleExperiment();
+});
+</script>
+
+</body>
+</html>
