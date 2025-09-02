@@ -879,11 +879,6 @@ document.addEventListener('DOMContentLoaded', () => {
         gem.dataset.rotation = String(rot);
         gem.dataset.flipped = String(!!flip);
 
-        // Visual compensation for rotation of non-square gems
-        // if (rot === 90 || rot === 270) {
-        //     left += (pxW - pxH) / 2;
-        //     top += (pxH - pxW) / 2;
-        // }
 
         gem.style.left = `${left}px`;
         gem.style.top = `${top}px`;
@@ -994,13 +989,6 @@ document.addEventListener('DOMContentLoaded', () => {
         let left = gem.offsetLeft;
         let top = gem.offsetTop;
 
-        // // Reverse the visual compensation to get the logical position
-        // if (rot === 90 || rot === 270) {
-        //     const gemData = GEMS[gem.dataset.id];
-        //     const { pxW, pxH } = sizeFromViewBox(gemData.viewBox);
-        //     left -= (pxW - pxH) / 2;
-        //     top -= (pxH - pxW) / 2;
-        // }
 
         return {
             uniqueId: gem.id,

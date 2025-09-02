@@ -25,26 +25,24 @@
         .highlight-final {
             background-color: #dcfce7; /* green-100 */
         }
-        .bar-chart-container {
-            display: flex;
-            align-items: flex-end;
-            justify-content: center;
-            height: 300px;
+        .chart-container {
+            height: 320px;
             position: relative;
+            overflow-x: auto;
+            border: 1px solid #e5e7eb;
+            background-color: #f9fafb;
+            scrollbar-width: thin;
+            scrollbar-color: #9ca3af #f3f4f6;
         }
-        .bar {
-            width: 1%;
-            background-color: #3b82f6;
-            transition: height 0.3s ease;
-            margin: 0 1px;
-            position: relative;
+        .chart-container::-webkit-scrollbar {
+            height: 8px;
         }
-        .bar .bar-label {
-            position: absolute;
-            bottom: -20px;
-            font-size: 10px;
-            width: 100%;
-            text-align: center;
+        .chart-container::-webkit-scrollbar-track {
+            background: #f3f4f6;
+        }
+        .chart-container::-webkit-scrollbar-thumb {
+            background-color: #9ca3af;
+            border-radius: 4px;
         }
     </style>
 </head>
@@ -263,9 +261,8 @@
                     </div>
                 </div>
 
-                <div class="mt-4 relative">
-                    <div id="binomial-chart" class="bar-chart-container"></div>
-                    <svg id="normal-curve" class="absolute top-0 left-0 w-full h-full" style="pointer-events: none;"></svg>
+                <div id="binomial-chart-wrapper" class="chart-container mt-4">
+                    <!-- SVG is generated here by JavaScript -->
                 </div>
                 <div id="approximation-check" class="mt-4 text-center font-semibold bg-yellow-100 p-3 rounded-lg"></div>
                 
@@ -299,14 +296,19 @@
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
-    if (window.renderMathInElement) {
-        renderMathInElement(document.body, {
-            delimiters: [
-                {left: "$$", right: "$$", display: true},
-                {left: "$", right: "$", display: false},
-            ]
-        });
-    }
+    // KaTeX 렌더링 함수
+    const renderKatex = (element = document.body) => {
+        if (window.renderMathInElement) {
+            renderMathInElement(element, {
+                delimiters: [
+                    {left: "$$", right: "$$", display: true},
+                    {left: "$", right: "$", display: false},
+                ]
+            });
+        }
+    };
+    // 초기 렌더링
+    renderKatex();
 
     // --- 실험 1: 동전 던지기 ---
     const coinExperiment = {
@@ -440,7 +442,7 @@ document.addEventListener("DOMContentLoaded", () => {
             
             const currentStep = this.steps[this.step];
             this.explainerEl.innerHTML = typeof currentStep.text === 'function' ? currentStep.text() : currentStep.text;
-            renderMathInElement(this.explainerEl);
+            renderKatex(this.explainerEl);
             
             this.clearHighlights();
             if (currentStep.col !== null) {
@@ -493,8 +495,7 @@ document.addEventListener("DOMContentLoaded", () => {
             this.pSlider = document.getElementById('p-slider');
             this.nValue = document.getElementById('n-value');
             this.pValue = document.getElementById('p-value');
-            this.chart = document.getElementById('binomial-chart');
-            this.curve = document.getElementById('normal-curve');
+            this.chartWrapper = document.getElementById('binomial-chart-wrapper');
 
             this.nSlider.addEventListener('input', e => {
                 this.n = parseInt(e.target.value);
@@ -532,6 +533,7 @@ document.addEventListener("DOMContentLoaded", () => {
             return this.combinations(n, k) * Math.pow(p, k) * Math.pow(1 - p, n - k);
         },
         normalPDF(x, mu, sigma) {
+            if (sigma === 0) return x === mu ? Infinity : 0;
             return (1 / (sigma * Math.sqrt(2 * Math.PI))) * Math.exp(-0.5 * Math.pow((x - mu) / sigma, 2));
         },
         stdNormalCDF(z) {
@@ -547,7 +549,7 @@ document.addEventListener("DOMContentLoaded", () => {
             return z > 0 ? y : 1.0 - y;
         },
         update() {
-            this.chart.innerHTML = '';
+            this.chartWrapper.innerHTML = '';
             const mu = this.n * this.p;
             const sigma = Math.sqrt(this.n * this.p * (1 - this.p));
             
@@ -558,31 +560,47 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (prob > maxProb) maxProb = prob;
                 probs.push(prob);
             }
+
+            const svgHeight = 320;
+            const pointSpacing = Math.max(20, 800 / this.n);
+            const svgWidth = (this.n + 1) * pointSpacing;
+
+            const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+            svg.setAttribute('width', svgWidth);
+            svg.setAttribute('height', svgHeight);
             
-            // Draw bars
-            const barWidth = 100 / (this.n + 1);
+            let binomialPoints = '';
+            let binomialCircles = '';
+
             for (let k = 0; k <= this.n; k++) {
-                const bar = document.createElement('div');
-                bar.className = 'bar';
-                bar.style.height = `${(probs[k] / maxProb) * 95}%`;
-                bar.style.left = `${k * barWidth}%`;
-                bar.style.width = `${barWidth}%`;
-                this.chart.appendChild(bar);
+                const x = k * pointSpacing + pointSpacing / 2;
+                const y = (svgHeight - 20) - (probs[k] / maxProb) * (svgHeight - 40);
+                binomialPoints += `${x},${y} `;
+                binomialCircles += `<circle cx="${x}" cy="${y}" r="3" fill="#3b82f6" />`;
             }
-            
+
             // Draw normal curve
-            const svgWidth = this.chart.clientWidth;
-            const svgHeight = this.chart.clientHeight;
-            let pathData = 'M 0 ' + svgHeight;
-            const maxPDF = this.normalPDF(mu, mu, sigma);
-            for (let x_val = 0; x_val <= this.n; x_val += (this.n/200)) {
+            let pathData = `M 0,${svgHeight-20}`;
+            for (let x_val = 0; x_val <= this.n; x_val += (this.n/400)) {
                 const pdf = this.normalPDF(x_val, mu, sigma);
-                const x = (x_val / this.n) * svgWidth;
-                const y = svgHeight - (pdf / maxPDF) * (svgHeight * 0.95);
-                pathData += ` L ${x} ${y}`;
+                const x = x_val * pointSpacing + pointSpacing / 2;
+                const y = (svgHeight - 20) - (pdf / maxProb) * (svgHeight - 40);
+                pathData += ` L ${x},${y}`;
             }
-            pathData += ` L ${svgWidth} ${svgHeight} Z`;
-            this.curve.innerHTML = `<path d="${pathData}" fill="#22c55e" fill-opacity="0.3" stroke="#16a34a" stroke-width="2"></path>`;
+             pathData += ` L ${svgWidth},${svgHeight-20}`;
+
+            svg.innerHTML = `
+                <path d="${pathData}" fill="#22c55e" fill-opacity="0.3" stroke="#16a34a" stroke-width="2"></path>
+                <polyline points="${binomialPoints.trim()}" fill="none" stroke="#3b82f6" stroke-width="2"/>
+                ${binomialCircles}
+            `;
+            this.chartWrapper.appendChild(svg);
+            
+            // Scroll to center on the mode (most likely outcome)
+            const mode = Math.floor((this.n + 1) * this.p);
+            const modePixel = mode * pointSpacing + pointSpacing / 2;
+            const scrollPos = modePixel - (this.chartWrapper.clientWidth / 2);
+            this.chartWrapper.scrollLeft = scrollPos;
 
             // Check approximation validity
             const np = this.n * this.p;
@@ -595,13 +613,16 @@ document.addEventListener("DOMContentLoaded", () => {
                 checkEl.innerHTML = `($np = ${np.toFixed(1)} < 5$ 또는 $n(1-p) = ${nq.toFixed(1)} < 5$) <br> n이 충분히 크지 않아 정규분포 근사의 오차가 클 수 있습니다.`;
                 checkEl.className = 'mt-4 text-center font-semibold bg-red-100 p-3 rounded-lg';
             }
-            renderMathInElement(checkEl);
+            renderKatex(checkEl);
+
             this.calculateProbs(); // Update calculator on slider change
         },
         calculateProbs() {
             const start = parseInt(document.getElementById('k-start').value);
             const end = parseInt(document.getElementById('k-end').value);
             
+            if (isNaN(start) || isNaN(end)) return;
+
             // Binomial
             let binomialSum = 0;
             for (let k = start; k <= end; k++) {
@@ -612,6 +633,10 @@ document.addEventListener("DOMContentLoaded", () => {
             // Normal
             const mu = this.n * this.p;
             const sigma = Math.sqrt(this.n * this.p * (1 - this.p));
+            if (sigma === 0) {
+                 document.getElementById('normal-result').textContent = (start <= mu && mu <= end) ? '1.000000' : '0.000000';
+                 return;
+            }
             // Continuity correction
             const z1 = (start - 0.5 - mu) / sigma;
             const z2 = (end + 0.5 - mu) / sigma;
@@ -629,3 +654,4 @@ document.addEventListener("DOMContentLoaded", () => {
 
 </body>
 </html>
+
