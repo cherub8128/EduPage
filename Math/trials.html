@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>확률의 세계: 독립 사건 탐험하기</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+        }
+        .shape {
+            width: 40px;
+            height: 40px;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            margin: 4px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .shape-circle { background-color: #ef4444; border-radius: 50%; } /* red-500 */
+        .shape-triangle { 
+            width: 0;
+            height: 0;
+            border-left: 20px solid transparent;
+            border-right: 20px solid transparent;
+            border-bottom: 35px solid #3b82f6; /* blue-500 */
+            background-color: transparent;
+        }
+        .shape-square { background-color: #22c55e; } /* green-500 */
+        .coin {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #64748b;
+            background: linear-gradient(45deg, #f1f5f9, #cbd5e1);
+            box-shadow: 4px 4px 8px #94a3b8, -4px -4px 8px #ffffff;
+            cursor: pointer;
+            transition: transform 0.5s;
+            transform-style: preserve-3d;
+        }
+        .coin.flipping {
+            transform: rotateY(900deg);
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800 p-4 md:p-8">
+
+    <div class="max-w-4xl mx-auto">
+        <header class="text-center mb-12">
+            <h1 class="text-4xl md:text-5xl font-bold text-gray-900">확률의 세계: 독립 사건 탐험하기</h1>
+            <p class="mt-4 text-lg text-gray-600">
+                어떤 사건이 다른 사건에 영향을 주지 않을 때 '독립'이라고 합니다. <br class="hidden md:block">
+                세 가지 실험을 통해 독립 사건과 종속 사건의 차이를 직접 체험해 보세요.
+            </p>
+        </header>
+
+        <main class="space-y-12">
+            <!-- 실험 1: 복원 추출 vs. 비복원 추출 -->
+            <section class="bg-white p-6 rounded-xl shadow-lg">
+                <h2 class="text-2xl font-bold mb-4">실험 1: 복원 추출 vs. 비복원 추출</h2>
+                <p class="mb-6 text-gray-600">주머니에서 공을 뽑을 때, 뽑은 공을 다시 넣는(복원) 경우와 넣지 않는(비복원) 경우의 확률 변화를 비교해 봅시다.</p>
+                <div class="grid md:grid-cols-2 gap-8">
+                    <!-- 복원 추출 -->
+                    <div>
+                        <h3 class="text-xl font-semibold mb-3 text-center text-indigo-600">복원 추출 (독립 사건)</h3>
+                        <div id="restoration-bag" class="h-48 bg-gray-100 rounded-lg p-4 flex flex-wrap content-start"></div>
+                        <div class="text-center my-4">
+                            <button id="draw-restoration" class="bg-indigo-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-indigo-700 transition">공 뽑기</button>
+                        </div>
+                        <div id="restoration-prob" class="text-center font-mono"></div>
+                        <p class="text-sm text-center text-gray-500 mt-2">뽑은 공을 다시 넣기 때문에, 다음 공을 뽑을 확률은 항상 동일합니다.</p>
+                    </div>
+                    <!-- 비복원 추출 -->
+                    <div>
+                        <h3 class="text-xl font-semibold mb-3 text-center text-teal-600">비복원 추출 (종속 사건)</h3>
+                        <div id="non-restoration-bag" class="h-48 bg-gray-100 rounded-lg p-4 flex flex-wrap content-start"></div>
+                        <div class="text-center my-4">
+                            <button id="draw-non-restoration" class="bg-teal-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-teal-700 transition">공 뽑기</button>
+                        </div>
+                        <div id="non-restoration-prob" class="text-center font-mono"></div>
+                        <p class="text-sm text-center text-gray-500 mt-2">뽑은 공을 제거하기 때문에, 다음 공을 뽑을 확률이 계속 변합니다.</p>
+                    </div>
+                </div>
+                 <div class="text-center mt-6">
+                    <button id="reset-exp1" class="text-sm text-gray-500 hover:text-gray-700 underline">실험 1 초기화</button>
+                </div>
+            </section>
+
+            <!-- 실험 2: 동전 던지기와 갬블러의 오류 -->
+            <section class="bg-white p-6 rounded-xl shadow-lg">
+                <h2 class="text-2xl font-bold mb-4">실험 2: 동전 던지기와 갬블러의 오류</h2>
+                <p class="mb-6 text-gray-600">동전을 던지는 것은 대표적인 독립 시행입니다. 앞면이 연속으로 나왔다고 해서 다음번에 뒷면이 나올 확률이 높아질까요? 직접 확인해 보세요.</p>
+                <div class="flex flex-col items-center">
+                    <div id="coin" class="coin">?</div>
+                    <p class="my-4 font-semibold">다음 결과 예측: <span class="text-blue-600">앞면 50%</span>, <span class="text-red-600">뒷면 50%</span></p>
+                    <div class="mt-4 w-full bg-gray-100 p-3 rounded-lg">
+                        <h4 class="font-semibold mb-2">결과 기록:</h4>
+                        <div id="coin-history" class="text-lg flex flex-wrap gap-x-2"></div>
+                    </div>
+                     <div class="text-center mt-6">
+                        <button id="reset-exp2" class="text-sm text-gray-500 hover:text-gray-700 underline">실험 2 초기화</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 실험 3: 비복원 추출은 독립 시행일까? -->
+            <section class="bg-white p-6 rounded-xl shadow-lg">
+                <h2 class="text-2xl font-bold mb-4">탐구: 비복원 추출은 정말 독립 시행일까?</h2>
+                <p class="mb-6 text-gray-600">상자 안에 여러 모양의 도형이 있습니다. 도형을 하나씩 꺼낼 때(비복원), 다음에 특정 도형을 뽑을 확률이 어떻게 변하는지 관찰해 봅시다.</p>
+                <div id="shape-box" class="min-h-48 bg-gray-100 rounded-lg p-4 flex flex-wrap content-start items-center justify-center"></div>
+                <div class="text-center my-4">
+                    <button id="draw-shape" class="bg-amber-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-amber-700 transition">도형 뽑기</button>
+                </div>
+                <div>
+                    <h4 class="font-semibold text-center mb-2">다음 시행의 확률</h4>
+                    <div id="shape-prob" class="text-center font-mono flex justify-around"></div>
+                </div>
+                <p id="shape-conclusion" class="mt-4 text-center font-semibold text-red-600 h-6"></p>
+                 <div class="text-center mt-6">
+                    <button id="reset-exp3" class="text-sm text-gray-500 hover:text-gray-700 underline">실험 3 초기화</button>
+                </div>
+            </section>
+        </main>
+    </div>
+
+<script>
+    // --- 유틸리티 함수 ---
+    const createBall = (color) => {
+        const ball = document.createElement('div');
+        ball.className = `w-6 h-6 rounded-full m-1 shadow ${color}`;
+        return ball;
+    };
+
+    const createShape = (type) => {
+        const shape = document.createElement('div');
+        if (type === 'circle') shape.className = 'shape shape-circle';
+        else if (type === 'triangle') shape.className = 'shape shape-triangle';
+        else if (type === 'square') shape.className = 'shape shape-square';
+        return shape;
+    };
+
+    const formatProb = (count, total) => total > 0 ? (count / total * 100).toFixed(1) : 0;
+
+    // --- 실험 1: 복원 vs 비복원 ---
+    const exp1 = {
+        restorationBagEl: document.getElementById('restoration-bag'),
+        nonRestorationBagEl: document.getElementById('non-restoration-bag'),
+        restorationProbEl: document.getElementById('restoration-prob'),
+        nonRestorationProbEl: document.getElementById('non-restoration-prob'),
+        drawRestorationBtn: document.getElementById('draw-restoration'),
+        drawNonRestorationBtn: document.getElementById('draw-non-restoration'),
+        resetBtn: document.getElementById('reset-exp1'),
+        
+        initialBalls: { 'bg-red-500': 5, 'bg-blue-500': 5, 'bg-green-500': 5 },
+        restorationBalls: [],
+        nonRestorationBalls: [],
+        
+        init() {
+            this.restorationBalls = Object.entries(this.initialBalls).flatMap(([color, count]) => Array(count).fill(color));
+            this.nonRestorationBalls = [...this.restorationBalls];
+            this.render();
+            this.drawRestorationBtn.onclick = () => this.draw('restoration');
+            this.drawNonRestorationBtn.onclick = () => this.draw('non-restoration');
+            this.resetBtn.onclick = () => this.init();
+        },
+        
+        render() {
+            this.restorationBagEl.innerHTML = '';
+            this.restorationBalls.forEach(color => this.restorationBagEl.appendChild(createBall(color)));
+            
+            this.nonRestorationBagEl.innerHTML = '';
+            this.nonRestorationBalls.forEach(color => this.nonRestorationBagEl.appendChild(createBall(color)));
+            
+            this.updateProbs();
+        },
+        
+        updateProbs() {
+            const updateEl = (el, balls) => {
+                const counts = balls.reduce((acc, color) => ({...acc, [color]: (acc[color] || 0) + 1 }), {});
+                const total = balls.length;
+                el.innerHTML = `
+                    <span class="text-red-500">● ${formatProb(counts['bg-red-500'] || 0, total)}%</span>
+                    <span class="text-blue-500">● ${formatProb(counts['bg-blue-500'] || 0, total)}%</span>
+                    <span class="text-green-500">● ${formatProb(counts['bg-green-500'] || 0, total)}%</span>
+                `;
+            };
+            updateEl(this.restorationProbEl, this.restorationBalls);
+            updateEl(this.nonRestorationProbEl, this.nonRestorationBalls);
+        },
+
+        draw(type) {
+            const bag = type === 'restoration' ? this.restorationBalls : this.nonRestorationBalls;
+            if (bag.length === 0) return;
+
+            const index = Math.floor(Math.random() * bag.length);
+            const drawnColor = bag[index];
+
+            const bagEl = type === 'restoration' ? this.restorationBagEl : this.nonRestorationBagEl;
+            const drawnBall = bagEl.children[index];
+
+            drawnBall.style.transform = 'scale(1.5) translateY(-50px)';
+            drawnBall.style.zIndex = '10';
+
+            setTimeout(() => {
+                if (type === 'non-restoration') {
+                    this.nonRestorationBalls.splice(index, 1);
+                }
+                this.render();
+            }, 800);
+        }
+    };
+    exp1.init();
+    
+    // --- 실험 2: 동전 던지기 ---
+    const exp2 = {
+        coinEl: document.getElementById('coin'),
+        historyEl: document.getElementById('coin-history'),
+        resetBtn: document.getElementById('reset-exp2'),
+        
+        init() {
+            this.coinEl.onclick = () => this.flip();
+            this.resetBtn.onclick = () => {
+                this.historyEl.innerHTML = '';
+                this.coinEl.textContent = '?';
+            };
+        },
+
+        flip() {
+            if (this.coinEl.classList.contains('flipping')) return;
+            
+            this.coinEl.classList.add('flipping');
+            this.coinEl.textContent = '';
+
+            setTimeout(() => {
+                const result = Math.random() < 0.5 ? '앞' : '뒤';
+                this.coinEl.classList.remove('flipping');
+                this.coinEl.textContent = result;
+                
+                const resultEl = document.createElement('span');
+                resultEl.textContent = result;
+                resultEl.className = result === '앞' ? 'text-blue-600' : 'text-red-600';
+                this.historyEl.appendChild(resultEl);
+            }, 1000);
+        }
+    };
+    exp2.init();
+    
+    // --- 실험 3: 비복원 추출 심화 ---
+    const exp3 = {
+        boxEl: document.getElementById('shape-box'),
+        probEl: document.getElementById('shape-prob'),
+        conclusionEl: document.getElementById('shape-conclusion'),
+        drawBtn: document.getElementById('draw-shape'),
+        resetBtn: document.getElementById('reset-exp3'),
+
+        initialShapes: { 'circle': 7, 'triangle': 7, 'square': 7 },
+        currentShapes: [],
+
+        init() {
+            this.currentShapes = Object.entries(this.initialShapes).flatMap(([type, count]) => Array(count).fill(type));
+            this.render();
+            this.drawBtn.onclick = () => this.draw();
+            this.resetBtn.onclick = () => this.init();
+            this.conclusionEl.textContent = '';
+        },
+        
+        render() {
+            this.boxEl.innerHTML = '';
+            this.currentShapes.forEach(type => this.boxEl.appendChild(createShape(type)));
+            this.updateProbs();
+        },
+
+        updateProbs() {
+            const counts = this.currentShapes.reduce((acc, type) => ({...acc, [type]: (acc[type] || 0) + 1 }), {});
+            const total = this.currentShapes.length;
+            this.probEl.innerHTML = `
+                <span class="text-red-500">● ${formatProb(counts['circle'] || 0, total)}%</span>
+                <span class="text-blue-500">▲ ${formatProb(counts['triangle'] || 0, total)}%</span>
+                <span class="text-green-500">■ ${formatProb(counts['square'] || 0, total)}%</span>
+            `;
+        },
+
+        draw() {
+            if (this.currentShapes.length === 0) return;
+            
+            const index = Math.floor(Math.random() * this.currentShapes.length);
+            
+            const drawnShapeEl = this.boxEl.children[index];
+            drawnShapeEl.style.transform = 'scale(1.5) translateY(-60px)';
+            drawnShapeEl.style.opacity = '0';
+            
+            setTimeout(() => {
+                this.currentShapes.splice(index, 1);
+                this.render();
+                this.conclusionEl.textContent = '확률이 변했습니다! 이것은 종속 사건입니다.';
+            }, 500);
+        }
+    };
+    exp3.init();
+</script>
+
+</body>
+</html>
