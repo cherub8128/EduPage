@@ -67,7 +67,7 @@
             <h2 class="text-2xl font-bold mb-4 border-b pb-3 text-slate-900">단계 1: 전체 프로세스 개요</h2>
             <p class="mb-6 text-slate-700">우리는 다음 7가지 단계를 거쳐 AI 물리 게임을 완성할 것입니다. 각 단계는 아이디어를 현실로 만드는 과정입니다.</p>
             <ol class="list-decimal list-inside space-y-3 text-slate-700">
-                <li><strong class="font-semibold text-slate-800">Pygame 물리 게임 제작:</strong> 물리 엔진이 적용된 미니멀하고 아름다운 2D 게임 제작</li>
+                <li><strong class="font-semibold text-slate-800">Pygame 물리 게임 제작:</strong> 물리 로직이 적용된 미니멀하고 아름다운 2D 게임 제작</li>
                 <li><strong class="font-semibold text-slate-800">Gymnasium 강화학습 환경 설계:</strong> 게임을 AI가 학습할 수 있는 표준 환경으로 변환</li>
                 <li><strong class="font-semibold text-slate-800">SB3 모델 학습:</strong> Gymnasium 환경에서 강화학습 에이전트 학습 및 모델 저장</li>
                 <li><strong class="font-semibold text-slate-800">ONNX 모델 변환:</strong> 학습된 모델을 웹 환경에 맞는 ONNX 형식으로 변환</li>
@@ -76,9 +76,9 @@
             </ol>
         </section>
 
-        <!-- Step 2: Pygame & Pymunk -->
+        <!-- Step 2: Pygame & Pure Python Physics -->
         <section id="step2" class="step bg-white p-6 sm:p-8 rounded-2xl shadow-lg border border-slate-200 mb-10">
-            <h2 class="text-2xl font-bold mb-4 border-b pb-3 text-slate-900">단계 2: Pygame & Pymunk 물리 게임 제작</h2>
+            <h2 class="text-2xl font-bold mb-4 border-b pb-3 text-slate-900">단계 2: Pygame 물리 게임 제작 (순수 Python)</h2>
             <p class="mb-6 text-slate-700">먼저 만들고 싶은 게임의 아이디어를 구체화합니다. 아래 가이드를 참고하여 '게임 로직'을 작성한 뒤, 전체 프롬프트를 복사하여 Gemini에게 요청하세요.</p>
             
             <div class="user-input">
@@ -94,17 +94,21 @@
 
             <div class="prompt-block">
                 <button class="copy-button">복사</button>
-                <pre class="bg-slate-100 text-slate-800 p-4 rounded-lg overflow-x-auto text-sm"><code class="language-text">You are an expert Python game developer specializing in visually stunning, minimalist games using Pygame and Pymunk.
+                <pre class="bg-slate-100 text-slate-800 p-4 rounded-lg overflow-x-auto text-sm"><code class="language-text">You are an expert Python game developer specializing in visually stunning, minimalist games using Pygame.
 
-Your task is to create a complete, single-file Python script for a 2D physics game based on the following requirements.
+Your task is to create a complete, single-file Python script for a 2D game with custom physics, based on the following requirements.
 
 ### Game Logic Plan
 [여기에 위에서 기획한 게임 콘셉트, 목표, 조작 방법, 성공/실패 조건을 상세히 설명하세요.]
 
 ### Technical Requirements (Strict)
 1.  **Python Version:** 3.12
-2.  **Libraries:** `pygame` (latest), `pymunk==7.1.0`
-3.  **Physics Engine Note (VERY IMPORTANT):** You must use the modern Pymunk API for collision handling. Do NOT use the old `CollisionHandler` class. Instead, register callbacks directly using `Space.on_collision()`. This is a critical requirement for compatibility with Pymunk 7.1.0.
+2.  **Libraries:** `pygame` (latest)
+3.  **Physics Implementation (VERY IMPORTANT):** Do NOT use any external physics libraries like Pymunk. You must implement the physics logic from scratch using pure Python. This includes:
+    * **Movement:** Handling position, velocity, and acceleration.
+    * **Gravity:** A constant downward force affecting relevant objects.
+    * **Controls:** Applying forces or changing velocity based on user input (e.g., thrusters).
+    * **Collision Detection:** Simple Axis-Aligned Bounding Box (AABB) collision detection between the player and other game elements.
 
 ### Visual Design (CRITICAL)
 1.  **Aesthetics:** A minimalist, clean, retro-sci-fi aesthetic.
@@ -114,7 +118,7 @@ Your task is to create a complete, single-file Python script for a 2D physics ga
 
 ### Code Quality
 * The code must be in a **single, runnable file**.
-* It must be well-commented, especially the physics and game logic parts.
+* It must be well-commented, especially the custom physics and game logic parts.
 * Follow Python best practices (PEP 8) and use the latest library references to minimize bugs.</code></pre>
             </div>
         </section>
@@ -138,7 +142,7 @@ Your task is to create a complete, single-file Python script for a 2D physics ga
                 <button class="copy-button">복사</button>
                 <pre class="bg-slate-100 text-slate-800 p-4 rounded-lg overflow-x-auto text-sm"><code class="language-text">You are an expert Reinforcement Learning Engineer specializing in creating custom Gymnasium environments.
 
-I am attaching the Pygame/Pymunk game script (`game.py`). Your task is to wrap it into a `gymnasium.Env` class. The resulting script should be a single file containing both the original game logic and the new environment class.
+I am attaching the Pygame game script (`game.py`). Your task is to wrap it into a `gymnasium.Env` class. The resulting script should be a single file containing both the original game logic and the new environment class.
 
 ### Environment Design Requirements
 
