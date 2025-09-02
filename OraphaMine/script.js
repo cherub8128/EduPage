@@ -16,23 +16,22 @@ document.addEventListener('DOMContentLoaded', () => {
         red_parallelogram: {
             label: '빨강 평행사변형', color: 'red', viewBox: '0 0 120 40',
             svgPath: 'M 40,0 L 120,0 L 80,40 L 0,40 Z',
-            shape: [{x:1,y:0},{x:2,y:0},{x:0,y:1},{x:1,y:1}],
+            shape: [{x:1,y:0},{x:2,y:0},{x:3,y:0}],
             cellShapes: {
-                '1,0': '■',
-                '2,0': '◣',
-                '0,1': '◥',
-                '1,1': '■'
+                '1,0': '◢',
+                '2,0': '■',
+                '3,0': '◤',
             }
         },
         white_rhombus: {
             label: '하얀 마름모', color: 'white', viewBox: '0 0 80 80',
             svgPath: 'M 40,0 L 80,40 L 40,80 L 0,40 Z',
-            shape: [{x:1,y:0},{x:0,y:1},{x:2,y:1},{x:1,y:2}],
+            shape: [{x:0,y:0},{x:0,y:1},{x:1,y:0},{x:1,y:1}],
             cellShapes: {
-                '1,0': '◢',
+                '0,0': '◢',
                 '0,1': '◥',
-                '2,1': '◣',
-                '1,2': '◤'
+                '1,0': '◣',
+                '1,1': '◤'
             }
         },
         yellow_triangle_2x2: {
@@ -40,9 +39,9 @@ document.addEventListener('DOMContentLoaded', () => {
             svgPath: 'M 0,0 L 80,0 L 0,80 Z',
             shape: [{x:0,y:0},{x:1,y:0},{x:0,y:1}],
             cellShapes: {
-                '0,0': '◤',
-                '1,0': '■',
-                '0,1': '■'
+                '0,0': '■',
+                '1,0': '◤',
+                '0,1': '◤'
             }
         },
         blue_isosceles_triangle: {
@@ -52,10 +51,10 @@ document.addEventListener('DOMContentLoaded', () => {
             cellShapes: {
                 '1,0': '◢',
                 '2,0': '◣',
-                '0,1': '◥',
+                '0,1': '◢',
                 '1,1': '■',
                 '2,1': '■',
-                '3,1': '◤'
+                '3,1': '◣'
             }
         },
          white_isosceles_triangle: {
@@ -65,10 +64,10 @@ document.addEventListener('DOMContentLoaded', () => {
             cellShapes: {
                 '1,0': '◢',
                 '2,0': '◣',
-                '0,1': '◥',
+                '0,1': '◢',
                 '1,1': '■',
                 '2,1': '■',
-                '3,1': '◤'
+                '3,1': '◣'
             }
         }
     };
@@ -181,12 +180,14 @@ document.addEventListener('DOMContentLoaded', () => {
         
         updatePlayGrid();
         updateSolutionGrid();
+        
         state.questionCount = 0;
         
         elements.solutionContainer.style.display = 'none';
         elements.historyLog.innerHTML = '';
         updateUI();
         clearBeam();
+        logAllBoardStates();
     }
 
     // =================================================================================
@@ -317,11 +318,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (!dragState.isDragging && (Math.abs(dx) > C.DRAG_THRESHOLD || Math.abs(dy) > C.DRAG_THRESHOLD)) {
             dragState.isDragging = true;
-            if (state.pressRotate.gemId === gem.id) {
-                gem.dataset.rotation = String(state.pressRotate.prevRotation);
-                applyTransform(gem);
-                state.pressRotate = { gemId: null, prevRotation: 0 };
-            }
+            // No rotation change on drag start
         }
 
         if (dragState.isDragging) {
@@ -338,16 +335,14 @@ document.addEventListener('DOMContentLoaded', () => {
         gem.classList.remove('dragging');
 
         const wasDragging = dragState.isDragging;
-        const wasPaletteClone = dragState.originPlacement === null;
 
-        if (!wasDragging && !wasPaletteClone) {
+        if (!wasDragging && dragState.originPlacement) {
             handleGemClick(gem);
         } else {
             handleGemDrop(gem, e.clientX, e.clientY);
         }
         
         state.draggedGem = null;
-        state.pressRotate = { gemId: null, prevRotation: 0 };
     }
 
     function onGemDoubleClick(e) {
@@ -355,18 +350,15 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!gem || state.draggedGem || gem.dataset.isPaletteItem) return;
         
         e.preventDefault();
-        const prev = gem.dataset.flipped === 'true';
-        gem.dataset.flipped = String(!prev);
-        applyTransform(gem);
-        
-        const snap = snapshotFromElement(gem);
-        if (!canPlaceAt(snap.uniqueId, snap.id, snap.x, snap.y, snap.rotation, !prev)) {
-            gem.dataset.flipped = String(prev);
-            applyTransform(gem);
+        const snapBefore = snapshotFromElement(gem);
+        const nextFlipped = !snapBefore.flipped;
+
+        if (!canPlaceAt(snapBefore.uniqueId, snapBefore.id, snapBefore.x, snapBefore.y, snapBefore.rotation, nextFlipped)) {
             shake(elements.playBoard);
         } else {
+            setGemAppearance(gem, snapBefore.x, snapBefore.y, snapBefore.rotation, nextFlipped);
             if (state.placedGems[gem.id]) {
-                state.placedGems[gem.id].flipped = !prev;
+                state.placedGems[gem.id].flipped = nextFlipped;
                 updatePlayGrid();
             }
         }
@@ -408,54 +400,53 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function handleGemClick(gem) {
-        const prev = parseInt(gem.dataset.rotation) || 0;
-        const next = (prev + 90) % 360;
-        gem.dataset.rotation = String(next);
-        applyTransform(gem);
+        const snapBefore = snapshotFromElement(gem);
+        const nextRot = (snapBefore.rotation + 90) % 360;
 
-        const snap = snapshotFromElement(gem);
-        if (!canPlaceAt(snap.uniqueId, snap.id, snap.x, snap.y, next, snap.flipped)) {
-            gem.dataset.rotation = String(prev);
-            applyTransform(gem);
+        // Calculate the new anchor position to keep the gem's center stationary
+        const { newX, newY } = calculateNewAnchorForRotation(snapBefore, nextRot, snapBefore.flipped);
+
+        if (!canPlaceAt(snapBefore.uniqueId, snapBefore.id, newX, newY, nextRot, snapBefore.flipped)) {
             shake(elements.playBoard);
         } else {
+            setGemAppearance(gem, newX, newY, nextRot, snapBefore.flipped);
             if (state.placedGems[gem.id]) {
-                state.placedGems[gem.id].rotation = next;
+                state.placedGems[gem.id].x = newX;
+                state.placedGems[gem.id].y = newY;
+                state.placedGems[gem.id].rotation = nextRot;
                 updatePlayGrid();
             }
         }
     }
 
     function handleGemDrop(gem, clientX, clientY) {
-        const boardRect = elements.playBoard.getBoundingClientRect();
-        const cell = getCellSize();
         const { originPlacement, paletteId } = state.draggedGem.dragState;
+        
+        const rot = parseInt(gem.dataset.rotation) || 0;
+        const flip = gem.dataset.flipped === 'true';
 
+        // Calculate logical position based on visual position, then snap to grid
+        const snap = snapshotFromElement(gem); 
+        const gx = snap.x;
+        const gy = snap.y;
+
+        const boardRect = elements.playBoard.getBoundingClientRect();
         const isInside = clientX >= boardRect.left && clientX <= boardRect.right &&
                          clientY >= boardRect.top && clientY <= boardRect.bottom;
 
-        if (isInside) {
-            const gx = Math.round(gem.offsetLeft / cell);
-            const gy = Math.round(gem.offsetTop / cell);
-            const rot = parseInt(gem.dataset.rotation) || 0;
-            const flip = gem.dataset.flipped === 'true';
-
-            if (canPlaceAt(gem.id, gem.dataset.id, gx, gy, rot, flip)) {
-                placeGem(gem, gx, gy, rot, flip);
-                state.placedGems[gem.id] = { uniqueId: gem.id, id: gem.dataset.id, x: gx, y: gy, rotation: rot, flipped: flip, paletteId: paletteId };
-                updatePlayGrid();
-            } else {
-                revertOrRemoveGem(gem, originPlacement, paletteId);
-                shake(elements.playBoard);
-            }
+        if (isInside && canPlaceAt(gem.id, gem.dataset.id, gx, gy, rot, flip)) {
+            setGemAppearance(gem, gx, gy, rot, flip);
+            state.placedGems[gem.id] = { uniqueId: gem.id, id: gem.dataset.id, x: gx, y: gy, rotation: rot, flipped: flip, paletteId: paletteId };
+            updatePlayGrid();
         } else {
             revertOrRemoveGem(gem, originPlacement, paletteId);
+            if(isInside) shake(elements.playBoard);
         }
     }
 
     function revertOrRemoveGem(gem, origin, paletteId) {
         if (origin) {
-            placeGem(gem, origin.x, origin.y, origin.rotation, origin.flipped);
+            setGemAppearance(gem, origin.x, origin.y, origin.rotation, origin.flipped);
             state.placedGems[gem.id] = { ...origin };
             updatePlayGrid();
         } else {
@@ -470,6 +461,28 @@ document.addEventListener('DOMContentLoaded', () => {
     // =================================================================================
     // GEM TRANSFORMATION & COLLISION
     // =================================================================================
+    
+    function calculateNewAnchorForRotation(gemInfo, newRotation, newFlipped) {
+        const { id, x, y, rotation, flipped } = gemInfo;
+
+        const tBefore = getTransformedGem(id, rotation, flipped);
+        const tAfter = getTransformedGem(id, newRotation, newFlipped);
+
+        if (tBefore.shape.length === 0 || tAfter.shape.length === 0) return { newX: x, newY: y };
+        
+        // Use center of mass for all gems. Each cell's center is at (p.x + 0.5, p.y + 0.5)
+        const absCoordsBefore = tBefore.shape.map(p => ({ x: x + p.x, y: y + p.y }));
+        const centerXBefore = absCoordsBefore.reduce((sum, p) => sum + p.x + 0.5, 0) / absCoordsBefore.length;
+        const centerYBefore = absCoordsBefore.reduce((sum, p) => sum + p.y + 0.5, 0) / absCoordsBefore.length;
+
+        const relCenterXAfter = tAfter.shape.reduce((sum, p) => sum + p.x + 0.5, 0) / tAfter.shape.length;
+        const relCenterYAfter = tAfter.shape.reduce((sum, p) => sum + p.y + 0.5, 0) / tAfter.shape.length;
+
+        const newGx = Math.round(centerXBefore - relCenterXAfter);
+        const newGy = Math.round(centerYBefore - relCenterYAfter);
+
+        return { newX: newGx, newY: newGy };
+    }
 
     function canPlaceAt(uniqueId, id, x, y, rotation, flipped) {
         const t = getTransformedGem(id, rotation, flipped);
@@ -534,7 +547,7 @@ document.addEventListener('DOMContentLoaded', () => {
         Object.entries(cellShapes).forEach(([k, v]) => {
             const [x, y] = k.split(',').map(Number);
             const { x: nx, y: ny } = mapXY(x, y);
-            out[`${nx},${ny}`] = transformRule[v];
+            out[`${nx},${ny}`] = transformRule[transformType][v];
         });
         return out;
     }
@@ -586,10 +599,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const cell = grid[cy][cx];
             const reflection = cell ? getReflection(cell.cellShape, entryDir) : null;
             
+            let cellCenter = null;
             const isDiagonal = reflection && reflection.type === 'DIAGONAL';
 
             if (isDiagonal) {
-                const cellCenter = { x: cx + 0.5, y: cy + 0.5 };
+                cellCenter = { x: cx + 0.5, y: cy + 0.5 };
                 currentPath.push(cellCenter);
             } else {
                 currentPath.push(hitPos);
@@ -735,28 +749,33 @@ document.addEventListener('DOMContentLoaded', () => {
     // GAME LOGIC & STATE UPDATES
     // =================================================================================
 
-    // [NEW] Logs the current board state to the console for debugging
-    function logBoardState() {
-        const grid = state.playGrid;
+    function logAllBoardStates() {
         console.clear();
-        console.log("Current Player Board State:");
         
-        const output = grid.map(row => 
-            row.map(cell => 
-                cell ? cell.cellShape : '·'
-            ).join(' ')
-        ).join('\n');
+        const formatGrid = (grid) => {
+            if (!grid) return "Grid not initialized.";
+            return grid.map(row => 
+                row.map(cell => 
+                    cell ? cell.cellShape : '·'
+                ).join(' ')
+            ).join('\n');
+        };
 
-        console.log(output);
+        console.log("--- Player Board State ---");
+        console.log(formatGrid(state.playGrid));
+        
+        console.log("\n--- Solution Board State (for debugging) ---");
+        console.log(formatGrid(state.solutionGrid));
     }
 
     function updatePlayGrid() {
         state.playGrid = buildGridFromPlaced();
-        logBoardState(); // Log state every time the grid is updated
+        logAllBoardStates();
     }
 
     function updateSolutionGrid() {
         state.solutionGrid = buildGridFromSolution();
+        logAllBoardStates();
     }
 
     function buildGridFromPlaced() {
@@ -838,26 +857,33 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.solutionBoard.innerHTML = '';
         Object.values(state.solution).forEach(g => {
             const el = createGemElement(g.id);
-            placeGem(el, g.x, g.y, g.rotation, g.flipped);
+            setGemAppearance(el, g.x, g.y, g.rotation, g.flipped);
             elements.solutionBoard.appendChild(el);
         });
     }
 
-    function placeGem(gem, gx, gy, rot, flip) {
+    function setGemAppearance(gem, gx, gy, rot, flip) {
         const cell = getCellSize();
-        gem.style.left = `${gx * cell}px`;
-        gem.style.top = `${gy * cell}px`;
+        const gemData = GEMS[gem.dataset.id];
+        const { pxW, pxH } = sizeFromViewBox(gemData.viewBox);
+
+        let left = gx * cell;
+        let top = gy * cell;
+        
         gem.dataset.rotation = String(rot);
         gem.dataset.flipped = String(!!flip);
-        applyTransform(gem);
-    }
 
-    function applyTransform(gem) {
-        const rot = parseInt(gem.dataset.rotation) || 0;
-        const scaleX = gem.dataset.flipped === 'true' ? -1 : 1;
-        const svg = gem.querySelector('svg');
-        const w = parseFloat(svg.style.width), h = parseFloat(svg.style.height);
-        gem.style.transformOrigin = `${w / 2}px ${h / 2}px`;
+        // Visual compensation for rotation of non-square gems
+        if (rot === 90 || rot === 270) {
+            left += (pxW - pxH) / 2;
+            top += (pxH - pxW) / 2;
+        }
+
+        gem.style.left = `${left}px`;
+        gem.style.top = `${top}px`;
+        
+        const scaleX = flip ? -1 : 1;
+        gem.style.transformOrigin = `${pxW / 2}px ${pxH / 2}px`;
         gem.style.transform = `rotate(${rot}deg) scaleX(${scaleX})`;
     }
     
@@ -951,12 +977,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function snapshotFromElement(gem) {
         const cell = getCellSize();
+        const rot = parseInt(gem.dataset.rotation) || 0;
+        
+        let left = gem.offsetLeft;
+        let top = gem.offsetTop;
+
+        // Reverse the visual compensation to get the logical position
+        if (rot === 90 || rot === 270) {
+            const gemData = GEMS[gem.dataset.id];
+            const { pxW, pxH } = sizeFromViewBox(gemData.viewBox);
+            left -= (pxW - pxH) / 2;
+            top -= (pxH - pxW) / 2;
+        }
+
         return {
             uniqueId: gem.id,
             id: gem.dataset.id,
-            x: Math.round(gem.offsetLeft / cell),
-            y: Math.round(gem.offsetTop / cell),
-            rotation: parseInt(gem.dataset.rotation) || 0,
+            x: Math.round(left / cell),
+            y: Math.round(top / cell),
+            rotation: rot,
             flipped: gem.dataset.flipped === 'true'
         };
     }
@@ -991,12 +1030,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const { pxW, pxH } = sizeFromViewBox(gemData.viewBox);
             svg.style.width = `${pxW}px`;
             svg.style.height = `${pxH}px`;
-            applyTransform(gem);
         });
         
         Object.values(state.placedGems).forEach(g => {
             const el = document.getElementById(g.uniqueId);
-            if (el) placeGem(el, g.x, g.y, g.rotation, g.flipped);
+            if (el) setGemAppearance(el, g.x, g.y, g.rotation, g.flipped);
         });
         renderSolutionToBoard();
         clearBeam();
