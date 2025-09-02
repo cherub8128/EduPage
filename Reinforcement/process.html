@@ -94,9 +94,9 @@
 
             <div class="prompt-block">
                 <button class="copy-button">복사</button>
-                <pre class="bg-slate-100 text-slate-800 p-4 rounded-lg overflow-x-auto text-sm"><code class="language-text">You are an expert Python game developer specializing in visually stunning, minimalist games using Pygame.
+                <pre class="bg-slate-100 text-slate-800 p-4 rounded-lg overflow-x-auto text-sm"><code class="language-text">You are an expert Python game developer and a digital artist, specializing in creating visually stunning, minimalist games with Pygame.
 
-Your task is to create a complete, single-file Python script for a 2D game with custom physics, based on the following requirements.
+Your task is to create a complete, single-file Python script for a 2D game. This isn't just a game; it's a piece of interactive art.
 
 ### Game Logic Plan
 [여기에 위에서 기획한 게임 콘셉트, 목표, 조작 방법, 성공/실패 조건을 상세히 설명하세요.]
@@ -104,22 +104,24 @@ Your task is to create a complete, single-file Python script for a 2D game with 
 ### Technical Requirements (Strict)
 1.  **Python Version:** 3.12
 2.  **Libraries:** `pygame` (latest)
-3.  **Physics Implementation (VERY IMPORTANT):** Do NOT use any external physics libraries like Pymunk. You must implement the physics logic from scratch using pure Python. This includes:
-    * **Movement:** Handling position, velocity, and acceleration.
-    * **Gravity:** A constant downward force affecting relevant objects.
-    * **Controls:** Applying forces or changing velocity based on user input (e.g., thrusters).
-    * **Collision Detection:** Simple Axis-Aligned Bounding Box (AABB) collision detection between the player and other game elements.
+3.  **Physics Implementation (VERY IMPORTANT):** Do NOT use any external physics libraries. Implement all physics from scratch using pure Python, including movement (position, velocity, acceleration), gravity, controls, and simple AABB collision detection.
 
-### Visual Design (CRITICAL)
-1.  **Aesthetics:** A minimalist, clean, retro-sci-fi aesthetic.
-2.  **Color Palette:** Use a dark space-themed background (e.g., `#0a0f1e`) with glowing neon elements for the player and objects (e.g., player in `#00ffdd`, obstacles in `#ff0055`). Implement particle effects for thrusters.
-3.  **Rendering:** All shapes must be drawn with anti-aliasing for smooth edges.
-4.  **Window:** Create a window of size 800x600 pixels.
+### Visual Design (CRITICAL - Emulate a Top Digital Artist)
+1.  **Aesthetics:** The game must be a piece of interactive art. Aim for a minimalist, elegant, and atmospheric retro-sci-fi aesthetic. Think of games like 'Alto's Adventure' or 'Monument Valley' but in a space context. Every frame should be beautiful enough to be a screenshot.
+2.  **Color Palette & Lighting:** Use a deep, nuanced color palette. Instead of a flat black background, use a dark navy or purple gradient (e.g., from `#0a0f1e` to `#1a1f36`) to create depth. Player and interactive elements should have a vibrant, ethereal glow (e.g., a pulsating cyan `#00ffdd` for the player, a menacing magenta `#ff0055` for hazards). The glow should feel like light, not just a colored shape.
+3.  **Rendering & Effects:**
+    * **Anti-aliasing:** This is mandatory for all shapes to ensure silky-smooth edges.
+    * **Particle System:** Implement a sophisticated particle system for the thrusters. The particles should be small, fade out gracefully, and have slight color and velocity variations to look organic.
+    * **Subtle Background Animation:** Add a very slow-moving parallax starfield in the background to create a sense of movement without being distracting. A few stars should twinkle subtly.
+4.  **Typography & UI:** Any text (like a "Game Over" screen) should use a clean, modern, sans-serif font. Keep UI elements to an absolute minimum.
+5.  **Window:** Create a window of size 800x600 pixels.
 
 ### Code Quality
-* The code must be in a **single, runnable file**.
-* It must be well-commented, especially the custom physics and game logic parts.
-* Follow Python best practices (PEP 8) and use the latest library references to minimize bugs.</code></pre>
+* The code must be in a **single, runnable file**, be well-commented, and follow Python best practices.</code></pre>
+            </div>
+            <div class="user-input mt-6">
+                <h3 class="font-semibold text-lg text-slate-800 mb-2">다음 단계 준비</h3>
+                <p class="text-sm text-slate-600">Gemini가 생성한 Python 코드를 <code class="bg-amber-200 px-1 rounded">game.py</code> 라는 이름으로 저장하세요. 이 파일은 다음 단계에서 사용됩니다.</p>
             </div>
         </section>
 
@@ -127,6 +129,11 @@ Your task is to create a complete, single-file Python script for a 2D game with 
         <section id="step3" class="step bg-white p-6 sm:p-8 rounded-2xl shadow-lg border border-slate-200 mb-10">
             <h2 class="text-2xl font-bold mb-4 border-b pb-3 text-slate-900">단계 3: Gymnasium 강화학습 환경 설계</h2>
             <p class="mb-6 text-slate-700">Pygame 코드를 AI가 학습할 수 있는 `Gymnasium` 환경으로 변환합니다. 아래 프롬프트는 Gemini가 게임 코드를 분석하여 최적의 RL 환경을 자동으로 설계하도록 지시합니다.</p>
+            
+            <div class="user-input">
+                <h3 class="font-semibold text-lg text-slate-800 mb-2">필요한 파일 정보</h3>
+                <p class="text-sm text-slate-600">이 단계에서는 이전 단계에서 생성한 <code>game.py</code> 파일이 필요합니다. 이 파일을 첨부하여 아래 프롬프트를 실행하세요.</p>
+            </div>
 
             <div class="prompt-block">
                 <button class="copy-button">복사</button>
@@ -157,6 +164,10 @@ Based on your analysis of the `game.py` script, you must define and implement th
 4.  **Implement Core Methods:**
     * Correctly implement `__init__()`, `reset()`, `step()`, `render()`, and `close()` according to the Gymnasium API, integrating your designed spaces and reward function.</code></pre>
             </div>
+            <div class="user-input mt-6">
+                <h3 class="font-semibold text-lg text-slate-800 mb-2">다음 단계 준비</h3>
+                <p class="text-sm text-slate-600">생성된 강화학습 환경 코드를 <code class="bg-amber-200 px-1 rounded">environment.py</code> 라는 이름으로 저장하세요. 이 파일은 모델 학습 및 변환에 사용됩니다.</p>
+            </div>
         </section>
 
         <!-- Step 4: SB3 Training -->
@@ -165,8 +176,9 @@ Based on your analysis of the `game.py` script, you must define and implement th
             <p class="mb-6 text-slate-700">`Gymnasium` 환경을 사용하여 강화학습 에이전트를 학습시킵니다. 아래 프롬프트는 학습 과정 모니터링, 모델 저장, 이어서 학습하기 기능을 보장하는 간결한 학습 코드를 생성합니다.</p>
             
             <div class="user-input">
-                <h3 class="font-semibold text-lg text-slate-800 mb-2">필요한 파일 정보</h3>
-                <p class="text-sm text-slate-600">이 단계에서는 이전 단계에서 생성된 <code>environment.py</code> 파일이 필요합니다. 이 파일을 학습 스크립트를 실행할 위치와 같은 폴더에 저장하세요.</p>
+                <h3 class="font-semibold text-lg text-slate-800 mb-2">파일 준비 및 실행 안내</h3>
+                <p class="text-sm text-slate-600">이전 단계에서 생성된 <code>environment.py</code> 파일을 준비하세요.</p>
+                <p class="text-sm text-slate-600 mt-2">아래 프롬프트로 생성된 코드를 <code class="bg-amber-200 px-1 rounded">train.py</code>로 저장하고, <code class="bg-amber-200 px-1 rounded">environment.py</code>와 같은 폴더에 넣은 후 터미널에서 <code class="bg-amber-200 px-1 rounded">python train.py</code> 명령어로 실행하여 학습을 시작하세요.</p>
             </div>
 
             <div class="prompt-block">
@@ -194,6 +206,12 @@ The final code should be clean, efficient, and focus only on the training logic.
         <section id="step5" class="step bg-white p-6 sm:p-8 rounded-2xl shadow-lg border border-slate-200 mb-10">
             <h2 class="text-2xl font-bold mb-4 border-b pb-3 text-slate-900">단계 5: ONNX 모델 변환</h2>
             <p class="mb-6 text-slate-700">학습된 SB3 모델(`.zip`)을 웹 브라우저에서 사용할 수 있는 ONNX 형식으로 변환합니다. 웹 AI 실행을 위한 필수 단계입니다.</p>
+            
+            <div class="user-input">
+                <h3 class="font-semibold text-lg text-slate-800 mb-2">필요한 파일 정보</h3>
+                <p class="text-sm text-slate-600">이 단계에서는 <code>environment.py</code> (3단계 산출물)와 <code>final_model.zip</code> (4단계 산출물) 파일이 필요합니다. 이 두 파일을 첨부하여 아래 프롬프트를 실행하세요.</p>
+            </div>
+
             <div class="prompt-block">
                 <button class="copy-button">복사</button>
                 <pre class="bg-slate-100 text-slate-800 p-4 rounded-lg overflow-x-auto text-sm"><code class="language-text">You are an expert in ML model deployment.
@@ -212,6 +230,11 @@ Your task is to write a new Python script that converts the attached `final_mode
     * `opset_version`: 12
 5.  **Verification:** Add a section to verify the `model.onnx` using `onnxruntime` in Python. Run inference with the dummy input and print the result to confirm it works.</code></pre>
             </div>
+
+            <div class="user-input mt-6">
+                <h3 class="font-semibold text-lg text-slate-800 mb-2">실행 및 다음 단계 준비</h3>
+                <p class="text-sm text-slate-600">생성된 변환 코드를 <code class="bg-amber-200 px-1 rounded">convert_onnx.py</code>로 저장하세요. 이 파일을 <code>environment.py</code> 및 <code>final_model.zip</code>과 같은 폴더에 위치시킨 후, 터미널에서 <code class="bg-amber-200 px-1 rounded">python convert_onnx.py</code>를 실행하면 최종 산출물인 <code class="bg-amber-200 px-1 rounded">model.onnx</code> 파일이 생성됩니다.</p>
+            </div>
         </section>
         
         <!-- Step 6: JavaScript Game -->
@@ -220,24 +243,29 @@ Your task is to write a new Python script that converts the attached `final_mode
             <p class="mb-6 text-slate-700">AI의 플레이를 직접 볼 수 있는 웹 페이지를 만듭니다. Python 게임의 시각적 디자인을 재현하고, `onnxruntime-web`을 사용해 AI 모델을 실행합니다.</p>
             
              <div class="user-input">
-                <h3 class="font-semibold text-lg text-slate-800 mb-2">필요한 파일 및 정보</h3>
-                <p class="text-sm text-slate-600">이 단계에서는 이전 단계에서 생성된 <code>model.onnx</code> 파일과, 3단계에서 Gemini가 정의한 관측 공간의 구조에 대한 정보가 필요합니다.</p>
+                <h3 class="font-semibold text-lg text-slate-800 mb-2">파일 준비 및 실행 안내</h3>
+                <p class="text-sm text-slate-600">이전 단계에서 생성된 <code>model.onnx</code> 파일을 준비하세요.</p>
+                <p class="text-sm text-slate-600 mt-2">아래 프롬프트로 생성된 코드를 <code class="bg-amber-200 px-1 rounded">index.html</code> 파일로 저장하고, <code class="bg-amber-200 px-1 rounded">model.onnx</code> 파일과 같은 폴더에 위치시키세요. 그 후 <code class="bg-amber-200 px-1 rounded">index.html</code> 파일을 웹 브라우저에서 열면 AI 게임을 확인할 수 있습니다.</p>
             </div>
 
             <div class="prompt-block">
                 <button class="copy-button">복사</button>
-                <pre class="bg-slate-100 text-slate-800 p-4 rounded-lg overflow-x-auto text-sm"><code class="language-text">You are a senior front-end developer skilled in JavaScript, HTML5 Canvas, and AI model integration.
+                <pre class="bg-slate-100 text-slate-800 p-4 rounded-lg overflow-x-auto text-sm"><code class="language-text">You are a senior front-end developer and digital artist, skilled in JavaScript, HTML5 Canvas, and AI model integration.
 
-Your task is to create a **single, self-contained `index.html` file** that loads a local `model.onnx` file to power an AI agent.
+Your task is to create a **single, self-contained `index.html` file** that is a visually stunning, minimalist web game powered by a local `model.onnx` file.
 
 ### Reference Information
-* **Game Visuals:** Replicate the minimalist, retro-sci-fi aesthetic from the Python game (dark background, glowing neon objects, particles).
+* **Artistic Vision:** Your primary goal is to replicate the artistic vision of the Python game: an elegant, minimalist, and atmospheric retro-sci-fi aesthetic. It must feel like interactive art.
 * **Observation Space Structure:** [여기에 단계 3에서 Gemini가 정의한 관측 공간의 구조와 순서를 정확히 붙여넣으세요. (예: `[pos_x, pos_y, vel_x, vel_y, angle, ang_vel, dist_to_pad]`)]
 
 ### Requirements:
 
 1.  **Game Replication:** Recreate the game's core mechanics and visuals using HTML5 Canvas and plain JavaScript. Do not use a physics library.
-2.  **Visual Design (CRITICAL):** The design must be exceptionally clean, minimalist, and visually appealing. Center the canvas and use `requestAnimationFrame` for smooth animations. Add a subtle loading indicator for the ONNX model.
+2.  **Visual Design (CRITICAL - Emulate a Top Digital Artist):**
+    * The final product must be visually stunning, clean, and minimalist. Center the canvas perfectly.
+    * Replicate the sophisticated visual effects from the Python version: the deep gradient background, the ethereal glow of objects, the organic particle system for thrusters, and the subtle parallax starfield.
+    * Animations must be fluid and smooth, powered by `requestAnimationFrame`.
+    * Implement a clean, non-intrusive loading indicator (e.g., a pulsating dot) while the ONNX model loads.
 3.  **AI Integration with onnxruntime-web:**
     * Include `onnxruntime-web` via CDN.
     * Asynchronously load the local `model.onnx`.
@@ -246,7 +274,7 @@ Your task is to create a **single, self-contained `index.html` file** that loads
         2.  Create an `ort.Tensor` and run inference.
         3.  Extract the action with the highest probability from the model's output (using an argmax function).
         4.  Apply the action to the game.
-4.  **Self-Critique:** Before finishing, review your own code for potential bugs, especially in the state normalization and model inference steps, to ensure the game runs smoothly.</code></pre>
+4.  **Self-Critique:** Before finishing, review your own code for potential bugs, especially in state normalization and model inference steps, to ensure the game runs smoothly.</code></pre>
             </div>
         </section>
 
@@ -316,7 +344,8 @@ Your task is to create a **single, self-contained `index.html` file** that loads
                         } else {
                             console.error('Fallback: Failed to copy text.');
                         }
-                    } catch (err) {
+                    } catch (err)
+ {
                         console.error('Fallback: Error copying text: ', err);
                     }
 
