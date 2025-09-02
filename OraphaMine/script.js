@@ -466,23 +466,28 @@ document.addEventListener('DOMContentLoaded', () => {
         const { id, x, y, rotation, flipped } = gemInfo;
 
         const tBefore = getTransformedGem(id, rotation, flipped);
-        const tAfter = getTransformedGem(id, newRotation, newFlipped);
+        const tAfter  = getTransformedGem(id, newRotation, newFlipped);
 
-        if (tBefore.shape.length === 0 || tAfter.shape.length === 0) return { newX: x, newY: y };
-        
-        // Use center of mass for all gems. Each cell's center is at (p.x + 0.5, p.y + 0.5)
-        const absCoordsBefore = tBefore.shape.map(p => ({ x: x + p.x, y: y + p.y }));
-        const centerXBefore = absCoordsBefore.reduce((sum, p) => sum + p.x + 0.5, 0) / absCoordsBefore.length;
-        const centerYBefore = absCoordsBefore.reduce((sum, p) => sum + p.y + 0.5, 0) / absCoordsBefore.length;
+        if (!tBefore.shape.length || !tAfter.shape.length) {
+            return { newX: x, newY: y };
+        }
 
-        const relCenterXAfter = tAfter.shape.reduce((sum, p) => sum + p.x + 0.5, 0) / tAfter.shape.length;
-        const relCenterYAfter = tAfter.shape.reduce((sum, p) => sum + p.y + 0.5, 0) / tAfter.shape.length;
+        // 회전 전/후 바운딩 박스 크기
+        const wBefore = Math.max(...tBefore.shape.map(p => p.x)) + 1;
+        const hBefore = Math.max(...tBefore.shape.map(p => p.y)) + 1;
+        const wAfter  = Math.max(...tAfter.shape.map(p => p.x)) + 1;
+        const hAfter  = Math.max(...tAfter.shape.map(p => p.y)) + 1;
 
-        const newGx = Math.round(centerXBefore - relCenterXAfter);
-        const newGy = Math.round(centerYBefore - relCenterYAfter);
+        // 바운딩 박스 중심(그리드 좌표계) 유지
+        const centerX = x + wBefore / 2;
+        const centerY = y + hBefore / 2;
+
+        const newGx = Math.round(centerX - wAfter / 2);
+        const newGy = Math.round(centerY - hAfter  / 2);
 
         return { newX: newGx, newY: newGy };
     }
+
 
     function canPlaceAt(uniqueId, id, x, y, rotation, flipped) {
         const t = getTransformedGem(id, rotation, flipped);
