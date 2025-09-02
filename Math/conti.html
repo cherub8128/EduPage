@@ -447,10 +447,6 @@ class GeometricProbabilityApp {
             this.ui.prob.textContent = 'N/A';
             this.ui.pi.textContent = 'N/A';
         }
-        if(window.katex) {
-            katex.render(this.ui.theoryProb.innerHTML, this.ui.theoryProb, { throwOnError: false });
-            katex.render(this.ui.piFormula.innerHTML, this.ui.piFormula, { throwOnError: false });
-        }
     }
     
     toggleButtons(enable) {
@@ -672,4 +668,5 @@ document.addEventListener("DOMContentLoaded", () => {
 </script>
 </body>
 </html>
+
 
