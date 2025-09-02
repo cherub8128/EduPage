@@ -51,9 +51,31 @@
             font-size: 0.9rem;
             color: #234E52;
         }
+        /* Modal Styles */
+        .modal-card {
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .modal-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800">
+
+    <!-- Theme Modal -->
+    <div id="theme-modal" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col">
+            <div class="p-5 border-b flex justify-between items-center">
+                <h2 class="text-xl font-bold text-slate-800">추천 게임 주제</h2>
+                <button id="close-modal-btn" class="text-slate-500 hover:text-slate-800">&times;</button>
+            </div>
+            <div id="theme-grid" class="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 overflow-y-auto">
+                <!-- Theme cards will be injected here by JS -->
+            </div>
+        </div>
+    </div>
+
 
     <div class="container mx-auto p-4 sm:p-6 md:p-8 max-w-4xl">
         <!-- Header -->
@@ -62,35 +84,40 @@
             <p class="mt-4 text-base sm:text-lg text-slate-600">Pygame부터 JavaScript 배포까지, Gemini와 함께하는 AI 게임 개발 여정</p>
         </header>
 
-        <!-- Step 1: Overview -->
+        <!-- New Step 1: Brainstorming -->
         <section id="step1" class="step bg-white p-6 sm:p-8 rounded-2xl shadow-lg border border-slate-200 mb-10">
-            <h2 class="text-2xl font-bold mb-4 border-b pb-3 text-slate-900">단계 1: 전체 프로세스 개요</h2>
-            <p class="mb-6 text-slate-700">우리는 다음 8가지 단계를 거쳐 AI 물리 게임을 완성할 것입니다. 각 단계는 아이디어를 현실로 만드는 과정입니다.</p>
-            <ol class="list-decimal list-inside space-y-3 text-slate-700">
-                <li><strong class="font-semibold text-slate-800">Pygame 물리 게임 제작:</strong> 물리 로직이 적용된 미니멀하고 아름다운 2D 게임 제작</li>
-                <li><strong class="font-semibold text-slate-800">Gymnasium 강화학습 환경 설계:</strong> 게임을 AI가 학습할 수 있는 표준 환경으로 변환</li>
-                <li><strong class="font-semibold text-slate-800">SB3 모델 학습:</strong> Gymnasium 환경에서 강화학습 에이전트 학습</li>
-                <li><strong class="font-semibold text-slate-800">학습된 모델 테스트:</strong> Pygame 환경에서 학습된 에이전트의 성능 시각화</li>
-                <li><strong class="font-semibold text-slate-800">ONNX 모델 변환:</strong> 학습된 모델을 웹 환경에 맞는 ONNX 형식으로 변환</li>
-                <li><strong class="font-semibold text-slate-800">JavaScript 웹 게임 구현:</strong> ONNX 모델을 불러와 AI 플레이를 시각화하는 웹 게임 제작</li>
-                <li><strong class="font-semibold text-slate-800">GitHub Pages 배포:</strong> 완성된 웹 게임을 전 세계에 무료로 배포</li>
-            </ol>
+            <h2 class="text-2xl font-bold mb-4 border-b pb-3 text-slate-900">단계 1: 게임 아이디어 구체화하기</h2>
+            <p class="mb-4 text-slate-700">좋은 게임은 좋은 아이디어에서 시작합니다. 만들고 싶은 게임의 주제가 명확하지 않다면, 아래 '추천 주제 보기' 버튼을 눌러 영감을 얻어보세요.</p>
+            <button id="open-modal-btn" class="mb-6 bg-amber-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-amber-600 transition-colors">🎮 추천 주제 보기 & 영감 얻기</button>
+            <p class="mb-6 text-slate-700">주제를 정했다면, 아래 프롬프트를 이용해 Gemini에게 상세한 게임 기획을 요청하세요. 선택한 주제를 `[ ]` 안에 넣으면 됩니다.</p>
+            
+            <div class="prompt-block">
+                <button class="copy-button">복사</button>
+                <pre class="bg-slate-100 text-slate-800 p-4 rounded-lg overflow-x-auto text-sm"><code class="language-text">You are a creative game designer. Based on the theme "[여기에 선택한 게임 주제를 입력하세요. 예: 로켓 착륙시키기]", please develop a detailed and engaging game plan.
+
+The plan must be structured with the following four sections:
+
+1.  **Game Concept:** A brief, exciting one-paragraph summary of the game.
+2.  **Player Objective:** A clear description of what the player needs to accomplish.
+3.  **Controls:** A simple and intuitive control scheme.
+4.  **Win/Loss Conditions:** Specific, measurable conditions for success and failure.
+
+Write the plan in Korean.</code></pre>
+            </div>
+             <div class="user-input mt-6">
+                <h3 class="font-semibold text-lg text-slate-800 mb-2">다음 단계 준비</h3>
+                <p class="text-sm text-slate-600">Gemini가 생성한 상세 기획안을 복사하여, 다음 단계인 **단계 2**의 '게임 로직 기획' 입력란에 붙여넣을 준비를 하세요.</p>
+            </div>
         </section>
 
         <!-- Step 2: Pygame & Pure Python Physics -->
         <section id="step2" class="step bg-white p-6 sm:p-8 rounded-2xl shadow-lg border border-slate-200 mb-10">
             <h2 class="text-2xl font-bold mb-4 border-b pb-3 text-slate-900">단계 2: Pygame 물리 게임 제작 (순수 Python)</h2>
-            <p class="mb-6 text-slate-700">먼저 만들고 싶은 게임의 아이디어를 구체화합니다. 아래 가이드를 참고하여 '게임 로직'을 작성한 뒤, 전체 프롬프트를 복사하여 Gemini에게 요청하세요.</p>
+            <p class="mb-6 text-slate-700">이제 구체화된 게임 기획안을 바탕으로 실제 플레이가 가능한 Pygame 게임을 제작할 차례입니다. 1단계에서 생성된 기획안을 아래 입력란에 붙여넣고, 전체 프롬프트를 Gemini에게 요청하세요.</p>
             
             <div class="user-input">
                 <h3 class="font-semibold text-lg text-slate-800 mb-2">게임 로직 기획</h3>
-                <p class="text-sm text-slate-600">아래 항목을 참고하여 만들고 싶은 게임의 핵심 규칙과 조작법을 자유롭게 서술하고, 프롬프트의 `[ ]` 안에 붙여넣으세요.</p>
-                <ul class="list-disc list-inside mt-2 text-sm text-slate-700 space-y-1">
-                    <li><strong>게임 콘셉트:</strong> (예: 우주선이 중력을 피해 장애물을 피하며 안전하게 착륙 지점에 도달해야 합니다.)</li>
-                    <li><strong>플레이어 목표:</strong> (예: 최소한의 연료를 사용하여 가장 부드럽게 착륙하는 것이 목표입니다.)</li>
-                    <li><strong>조작 방법:</strong> (예: 좌우 방향키로 좌우 추력기를, 위쪽 방향키로 메인 추력기를 작동시킵니다.)</li>
-                    <li><strong>성공/실패 조건:</strong> (예: 착륙 지점에 일정 속도 이하로 접촉 시 성공, 그 외의 충돌이나 화면 이탈 시 실패입니다.)</li>
-                </ul>
+                <textarea id="game-logic-textarea" rows="8" class="w-full p-2 border border-amber-300 rounded-md bg-white text-sm" placeholder="이곳에 1단계에서 생성된 게임 기획안(콘셉트, 목표, 조작법, 성공/실패 조건)을 붙여넣으세요."></textarea>
             </div>
 
             <div class="prompt-block">
@@ -100,7 +127,7 @@
 Your task is to create a complete, single-file Python script for a 2D game. This isn't just a game; it's a piece of interactive art.
 
 ### Game Logic Plan
-[여기에 위에서 기획한 게임 콘셉트, 목표, 조작 방법, 성공/실패 조건을 상세히 설명하세요.]
+[여기에 위 '게임 로직 기획' 입력란의 내용을 붙여넣으세요.]
 
 ### Technical Requirements (Strict)
 1.  **Python Version:** 3.12
