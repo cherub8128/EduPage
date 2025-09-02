@@ -50,6 +50,9 @@
         .coin.flipping {
             transform: rotateY(900deg);
         }
+        .quiz-option {
+            transition: background-color 0.2s;
+        }
     </style>
 </head>
 <body class="bg-gray-100 text-gray-800 p-4 md:p-8">
@@ -59,7 +62,7 @@
             <h1 class="text-4xl md:text-5xl font-bold text-gray-900">확률의 세계: 독립 사건 탐험하기</h1>
             <p class="mt-4 text-lg text-gray-600">
                 어떤 사건이 다른 사건에 영향을 주지 않을 때 '독립'이라고 합니다. <br class="hidden md:block">
-                세 가지 실험을 통해 독립 사건과 종속 사건의 차이를 직접 체험해 보세요.
+                여러 실험을 통해 독립 사건과 종속 사건의 차이를 직접 체험해 보세요.
             </p>
         </header>
 
@@ -127,6 +130,37 @@
                 <p id="shape-conclusion" class="mt-4 text-center font-semibold text-red-600 h-6"></p>
                  <div class="text-center mt-6">
                     <button id="reset-exp3" class="text-sm text-gray-500 hover:text-gray-700 underline">실험 3 초기화</button>
+                </div>
+            </section>
+
+            <!-- 보너스: 독립 vs 배반 -->
+            <section class="bg-white p-6 rounded-xl shadow-lg">
+                <h2 class="text-2xl font-bold mb-4">보너스: 독립 사건 vs. 배반 사건</h2>
+                <div class="space-y-4 text-gray-600">
+                    <p>독립과 배반은 자주 혼동되지만 전혀 다른 개념입니다.</p>
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div class="bg-blue-50 p-4 rounded-lg">
+                            <h4 class="font-bold text-lg text-blue-800">독립 사건 (Independent Events)</h4>
+                            <p>두 사건 A, B가 서로의 확률에 <strong class="text-blue-800">영향을 주지 않는 관계</strong>입니다. 즉, 한 사건이 일어났다는 사실이 다른 사건의 확률을 바꾸지 않습니다.</p>
+                            <p class="mt-2 font-mono bg-blue-100 p-2 rounded">P(A ∩ B) = P(A) × P(B)</p>
+                            <p class="mt-2 text-sm">예: 동전을 던져 앞면이 나오는 사건과 주사위를 던져 짝수가 나오는 사건.</p>
+                        </div>
+                        <div class="bg-red-50 p-4 rounded-lg">
+                            <h4 class="font-bold text-lg text-red-800">배반 사건 (Mutually Exclusive)</h4>
+                            <p>두 사건 A, B가 <strong class="text-red-800">절대 동시에 일어날 수 없는 관계</strong>입니다. 교집합이 공집합(∅)입니다.</p>
+                            <p class="mt-2 font-mono bg-red-100 p-2 rounded">P(A ∩ B) = 0</p>
+                            <p class="mt-2 text-sm">예: 주사위 한 개를 던져 1이 나오는 사건과 6이 나오는 사건.</p>
+                        </div>
+                    </div>
+                    <p class="!mt-6 text-center font-semibold">⚡️ <strong class="text-indigo-600">핵심</strong>: 두 사건이 배반이면(동시에 발생 불가), 한 사건이 발생하면 다른 사건은 절대 발생할 수 없으므로(<span class="font-mono">P(B|A)=0</span>) 서로의 확률에 큰 영향을 줍니다. 따라서 <strong class="text-indigo-600">배반 사건은 서로 종속 사건</strong>입니다. (단, 두 사건의 확률이 모두 0이 아닐 때)</p>
+                </div>
+                <div class="mt-8 border-t pt-6">
+                    <h3 class="text-xl font-semibold text-center mb-4">개념 확인 퀴즈</h3>
+                    <div id="quiz-container" class="bg-gray-50 p-4 rounded-lg">
+                        <p id="quiz-question" class="font-semibold mb-4 text-center"></p>
+                        <div id="quiz-options" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
+                        <div id="quiz-feedback" class="mt-4 text-center"></div>
+                    </div>
                 </div>
             </section>
         </main>
@@ -306,7 +340,88 @@
         }
     };
     exp3.init();
+
+    // --- 보너스: 퀴즈 ---
+    const bonusQuiz = {
+        questionEl: document.getElementById('quiz-question'),
+        optionsEl: document.getElementById('quiz-options'),
+        feedbackEl: document.getElementById('quiz-feedback'),
+        
+        currentQuestionIndex: 0,
+        questions: [
+            {
+                question: "주사위 한 개를 던질 때, '홀수가 나오는 사건'과 '짝수가 나오는 사건'의 관계는?",
+                options: ["독립", "배반", "둘 다 해당", "둘 다 아님"],
+                answer: 1,
+                explanation: "홀수와 짝수는 동시에 나올 수 없으므로 배반 사건입니다. 배반 사건은 서로 종속입니다."
+            },
+            {
+                question: "카드 덱에서 한 장을 뽑을 때, '하트(♥)가 나오는 사건'과 '킹(K)이 나오는 사건'의 관계는?",
+                options: ["독립", "배반", "둘 다 해당", "둘 다 아님"],
+                answer: 0,
+                explanation: "하트 킹(K♥)이 존재하므로 배반이 아닙니다. P(하트)=1/4, P(킹)=1/13, P(하트∩킹)=1/52 이므로 P(하트)×P(킹)=P(하트∩킹)이 성립하여 독립입니다."
+            },
+             {
+                question: "오늘 비가 올 사건과 내일 비가 올 사건의 관계는?",
+                options: ["독립", "배반", "종속", "알 수 없음"],
+                answer: 2,
+                explanation: "일반적으로 오늘의 날씨는 내일의 날씨에 영향을 줍니다. 따라서 두 사건은 서로 종속 관계에 가깝습니다."
+            }
+        ],
+
+        init() {
+            this.loadQuestion();
+        },
+
+        loadQuestion() {
+            this.feedbackEl.innerHTML = '';
+            const q = this.questions[this.currentQuestionIndex];
+            this.questionEl.textContent = `Q${this.currentQuestionIndex+1}. ${q.question}`;
+            this.optionsEl.innerHTML = '';
+            q.options.forEach((option, index) => {
+                const button = document.createElement('button');
+                button.textContent = option;
+                button.className = "quiz-option p-3 bg-white border-2 border-gray-200 rounded-lg hover:bg-gray-100 hover:border-indigo-400";
+                button.onclick = () => this.checkAnswer(index);
+                this.optionsEl.appendChild(button);
+            });
+        },
+
+        checkAnswer(selectedIndex) {
+            const q = this.questions[this.currentQuestionIndex];
+            const buttons = this.optionsEl.children;
+
+            // Disable buttons after selection
+            for(let btn of buttons) {
+                btn.disabled = true;
+                if(btn.textContent === q.options[q.answer]) {
+                    btn.classList.add('bg-green-200', 'border-green-400');
+                }
+            }
+
+            if (selectedIndex === q.answer) {
+                this.feedbackEl.innerHTML = `<p class="text-green-600 font-bold">정답입니다!</p><p class="text-sm">${q.explanation}</p>`;
+                buttons[selectedIndex].classList.add('bg-green-200', 'border-green-400');
+
+            } else {
+                this.feedbackEl.innerHTML = `<p class="text-red-600 font-bold">오답입니다.</p><p class="text-sm">${q.explanation}</p>`;
+                buttons[selectedIndex].classList.add('bg-red-200', 'border-red-400');
+            }
+
+            const nextButton = document.createElement('button');
+            nextButton.textContent = '다음 문제 →';
+            nextButton.className = 'mt-3 bg-indigo-500 text-white py-1 px-3 rounded-md text-sm';
+            nextButton.onclick = () => {
+                this.currentQuestionIndex = (this.currentQuestionIndex + 1) % this.questions.length;
+                this.loadQuestion();
+            };
+            this.feedbackEl.appendChild(nextButton);
+        }
+    };
+    bonusQuiz.init();
+
 </script>
 
 </body>
 </html>
+
