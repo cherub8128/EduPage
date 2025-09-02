@@ -43,6 +43,14 @@
             border-radius: 0.5rem;
             margin-bottom: 1rem;
         }
+        .highlight-note {
+            background-color: #E6FFFA;
+            border-left: 4px solid #38B2AC;
+            padding: 1rem;
+            margin-top: 1rem;
+            font-size: 0.9rem;
+            color: #234E52;
+        }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800">
@@ -57,9 +65,9 @@
         <!-- Step 1: Overview -->
         <section id="step1" class="step bg-white p-6 sm:p-8 rounded-2xl shadow-lg border border-slate-200 mb-10">
             <h2 class="text-2xl font-bold mb-4 border-b pb-3 text-slate-900">단계 1: 전체 프로세스 개요</h2>
-            <p class="mb-6 text-slate-700">우리는 다음 6가지 단계를 거쳐 AI 물리 게임을 완성할 것입니다. 각 단계는 아이디어를 현실로 만드는 과정입니다.</p>
+            <p class="mb-6 text-slate-700">우리는 다음 7가지 단계를 거쳐 AI 물리 게임을 완성할 것입니다. 각 단계는 아이디어를 현실로 만드는 과정입니다.</p>
             <ol class="list-decimal list-inside space-y-3 text-slate-700">
-                <li><strong class="font-semibold text-slate-800">게임 아이디어 구체화 및 Pygame 제작:</strong> 물리 엔진이 적용된 미니멀하고 아름다운 2D 게임 제작</li>
+                <li><strong class="font-semibold text-slate-800">Pygame 물리 게임 제작:</strong> 물리 엔진이 적용된 미니멀하고 아름다운 2D 게임 제작</li>
                 <li><strong class="font-semibold text-slate-800">Gymnasium 강화학습 환경 설계:</strong> 게임을 AI가 학습할 수 있는 표준 환경으로 변환</li>
                 <li><strong class="font-semibold text-slate-800">SB3 모델 학습:</strong> Gymnasium 환경에서 강화학습 에이전트 학습 및 모델 저장</li>
                 <li><strong class="font-semibold text-slate-800">ONNX 모델 변환:</strong> 학습된 모델을 웹 환경에 맞는 ONNX 형식으로 변환</li>
@@ -71,40 +79,37 @@
         <!-- Step 2: Pygame & Pymunk -->
         <section id="step2" class="step bg-white p-6 sm:p-8 rounded-2xl shadow-lg border border-slate-200 mb-10">
             <h2 class="text-2xl font-bold mb-4 border-b pb-3 text-slate-900">단계 2: Pygame & Pymunk 물리 게임 제작</h2>
-            <p class="mb-6 text-slate-700">먼저 만들고 싶은 게임의 아이디어를 구체화합니다. 아래 가이드를 참고하여 각 항목을 채운 뒤, 전체 프롬프트를 복사하여 Gemini에게 요청하세요.</p>
+            <p class="mb-6 text-slate-700">먼저 만들고 싶은 게임의 아이디어를 구체화합니다. 아래 가이드를 참고하여 '게임 로직'을 작성한 뒤, 전체 프롬프트를 복사하여 Gemini에게 요청하세요.</p>
             
             <div class="user-input">
-                <h3 class="font-semibold text-lg text-slate-800 mb-2">만들고 싶은 게임 정보 입력</h3>
-                <p class="text-sm text-slate-600">아래 텍스트를 수정하여 프롬프트의 `[ ]` 안에 붙여넣으세요.</p>
+                <h3 class="font-semibold text-lg text-slate-800 mb-2">게임 로직 기획</h3>
+                <p class="text-sm text-slate-600">아래 항목을 참고하여 만들고 싶은 게임의 핵심 규칙과 조작법을 자유롭게 서술하고, 프롬프트의 `[ ]` 안에 붙여넣으세요.</p>
                 <ul class="list-disc list-inside mt-2 text-sm text-slate-700 space-y-1">
-                    <li><strong>게임 콘셉트:</strong> (예: 우주선이 장애물을 피하며 착륙하는 게임)</li>
-                    <li><strong>기술 요구사항:</strong> (예: `pygame`, `pymunk==7.10`)</li>
-                    <li><strong>조작 방법:</strong> (예: 좌우 방향키로 추력 조절, 스페이스바로 메인 부스터)</li>
-                    <li><strong>시각 디자인:</strong> (예: 어두운 우주 배경, 네온 스타일의 우주선과 장애물, 부드러운 파티클 효과)</li>
+                    <li><strong>게임 콘셉트:</strong> (예: 우주선이 중력을 피해 장애물을 피하며 안전하게 착륙 지점에 도달해야 합니다.)</li>
+                    <li><strong>플레이어 목표:</strong> (예: 최소한의 연료를 사용하여 가장 부드럽게 착륙하는 것이 목표입니다.)</li>
+                    <li><strong>조작 방법:</strong> (예: 좌우 방향키로 좌우 추력기를, 위쪽 방향키로 메인 추력기를 작동시킵니다.)</li>
+                    <li><strong>성공/실패 조건:</strong> (예: 착륙 지점에 일정 속도 이하로 접촉 시 성공, 그 외의 충돌이나 화면 이탈 시 실패입니다.)</li>
                 </ul>
             </div>
 
             <div class="prompt-block">
                 <button class="copy-button">복사</button>
-                <pre class="bg-slate-100 text-slate-800 p-4 rounded-lg overflow-x-auto text-sm"><code class="language-text">You are an expert Python game developer specializing in creating visually stunning and minimalist games with Pygame and the Pymunk physics engine.
+                <pre class="bg-slate-100 text-slate-800 p-4 rounded-lg overflow-x-auto text-sm"><code class="language-text">You are an expert Python game developer specializing in visually stunning, minimalist games using Pygame and Pymunk.
 
-Your task is to create a complete, single-file Python script for a 2D physics game based on the following user-defined requirements.
+Your task is to create a complete, single-file Python script for a 2D physics game based on the following requirements.
 
-### Game Concept
-[여기에 만들고 싶은 게임의 핵심 콘셉트와 목표, 규칙을 상세히 설명하세요. 예: A lander must navigate through a cavern and land softly on a target platform.]
+### Game Logic Plan
+[여기에 위에서 기획한 게임 콘셉트, 목표, 조작 방법, 성공/실패 조건을 상세히 설명하세요.]
 
-### Technical Requirements
+### Technical Requirements (Strict)
 1.  **Python Version:** 3.12
-2.  **Libraries:** [필요한 라이브러리와 버전을 명시하세요. 예: `pygame` (latest), `pymunk==7.10`]
-3.  **Physics:** Describe the core physics. [물리 엔진으로 제어할 요소를 설명하세요. 예: The lander is affected by gravity and rotational forces. Collisions should be handled realistically.]
-
-### Controls
-[플레이어의 조작 방법을 설명하세요. 예: Left/Right arrow keys control rotational thrusters. Up arrow key controls the main thruster.]
+2.  **Libraries:** `pygame` (latest), `pymunk==7.1.0`
+3.  **Physics Engine Note (VERY IMPORTANT):** You must use the modern Pymunk API for collision handling. Do NOT use the old `CollisionHandler` class. Instead, register callbacks directly using `Space.on_collision()`. This is a critical requirement for compatibility with Pymunk 7.1.0.
 
 ### Visual Design (CRITICAL)
-1.  **Aesthetics:** Describe the desired visual style. [원하는 시각적 스타일을 설명하세요. 예: A minimalist, retro-sci-fi aesthetic.]
-2.  **Color Palette:** [게임의 색상 팔레트를 지정하세요. 예: A dark blue background, with glowing neon green for the lander and red for obstacles.]
-3.  **Rendering:** Ensure high-quality rendering. [Anti-Aliasing 등 렌더링 품질에 대한 요구사항을 명시하세요. 예: All shapes must be drawn with anti-aliasing.]
+1.  **Aesthetics:** A minimalist, clean, retro-sci-fi aesthetic.
+2.  **Color Palette:** Use a dark space-themed background (e.g., `#0a0f1e`) with glowing neon elements for the player and objects (e.g., player in `#00ffdd`, obstacles in `#ff0055`). Implement particle effects for thrusters.
+3.  **Rendering:** All shapes must be drawn with anti-aliasing for smooth edges.
 4.  **Window:** Create a window of size 800x600 pixels.
 
 ### Code Quality
@@ -117,7 +122,7 @@ Your task is to create a complete, single-file Python script for a 2D physics ga
         <!-- Step 3: Gymnasium Env -->
         <section id="step3" class="step bg-white p-6 sm:p-8 rounded-2xl shadow-lg border border-slate-200 mb-10">
             <h2 class="text-2xl font-bold mb-4 border-b pb-3 text-slate-900">단계 3: Gymnasium 강화학습 환경 설계</h2>
-            <p class="mb-6 text-slate-700">이전 단계에서 생성된 Pygame 코드를 AI가 학습할 수 있는 `Gymnasium` 환경으로 변환합니다. AI의 행동을 유도할 관측 공간, 행동 공간, 보상 함수를 정의하는 것이 핵심입니다.</p>
+            <p class="mb-6 text-slate-700">Pygame 코드를 AI가 학습할 수 있는 `Gymnasium` 환경으로 변환합니다. AI의 행동을 유도할 관측 공간, 행동 공간, 보상 함수를 정의하는 것이 핵심입니다.</p>
 
             <div class="user-input">
                 <h3 class="font-semibold text-lg text-slate-800 mb-2">강화학습 환경 정보 입력</h3>
@@ -133,150 +138,139 @@ Your task is to create a complete, single-file Python script for a 2D physics ga
                 <button class="copy-button">복사</button>
                 <pre class="bg-slate-100 text-slate-800 p-4 rounded-lg overflow-x-auto text-sm"><code class="language-text">You are an expert Reinforcement Learning Engineer specializing in creating custom Gymnasium environments.
 
-I am attaching the Pygame/Pymunk game script (`game.py`) created in the previous step. Your task is to take the content of this script and wrap it into a `gymnasium.Env` class. The resulting script should be a single file containing both the original game logic and the new environment class.
+I am attaching the Pygame/Pymunk game script (`game.py`). Your task is to wrap it into a `gymnasium.Env` class. The resulting script should be a single file containing both the original game logic and the new environment class.
 
 ### Environment Design Requirements
 
 1.  **Observation Space (`observation_space`):**
-    * Define a `Box` space that includes all necessary state information for the agent.
+    * Define a `Box` space.
     * [AI가 결정을 내리는 데 필요한 관측 요소들을 명시하세요. 예: Lander's (x, y) position, (vx, vy) velocities, angle, angular velocity, and distance to the landing pad.]
-    * Normalize these values to a suitable range (e.g., -1 to 1) for better training performance.
+    * Normalize these values to a suitable range for better training performance.
 
 2.  **Action Space (`action_space`):**
-    * Define a `Discrete` or `Box` space for the agent's actions.
+    * Define a `Discrete` space.
     * [AI가 수행할 수 있는 행동들을 명시하세요. 예: A `Discrete(4)` space for 0: do nothing, 1: fire left thruster, 2: fire main thruster, 3: fire right thruster.]
 
-3.  **Reward Function (CRITICAL):**
+3.  **Reward Function (CRITICAL & PRECISE):**
     * Design a precise reward function to encourage the desired behavior.
     * [AI의 행동을 유도할 보상/패널티 규칙을 상세히 설계하세요. 예:
-    * Reward for moving closer to the landing pad.
-    * Large positive reward for a successful soft landing.
-    * Large negative penalty for crashing or flying off-screen.
-    * Small negative penalty for fuel consumption on each thruster fire.]
+    * **Shaping Reward:** Reward for moving closer to the landing pad.
+    * **Success Reward:** Large positive reward (e.g., +100) for a successful soft landing.
+    * **Penalty:** Large negative penalty (e.g., -100) for crashing or flying off-screen.
+    * **Efficiency Penalty:** Small negative penalty for fuel consumption on each thruster fire.]
     
 4.  **Implement Core Methods:**
-    * Implement `__init__()`, `reset()`, `step()`, `render()`, and `close()` methods according to the Gymnasium API.</code></pre>
+    * Correctly implement `__init__()`, `reset()`, `step()`, `render()`, and `close()` according to the Gymnasium API.</code></pre>
             </div>
         </section>
 
         <!-- Step 4: SB3 Training -->
         <section id="step4" class="step bg-white p-6 sm:p-8 rounded-2xl shadow-lg border border-slate-200 mb-10">
             <h2 class="text-2xl font-bold mb-4 border-b pb-3 text-slate-900">단계 4: SB3로 모델 학습</h2>
-            <p class="mb-6 text-slate-700">이전 단계에서 만든 `Gymnasium` 환경을 사용하여 강화학습 에이전트를 학습시킵니다. 학습 과정 모니터링, 모델 저장, 이어서 학습하기 기능은 필수입니다.</p>
+            <p class="mb-6 text-slate-700">`Gymnasium` 환경을 사용하여 강화학습 에이전트를 학습시킵니다. 아래 프롬프트는 학습 과정 모니터링, 모델 저장, 이어서 학습하기 기능을 보장합니다.</p>
             <div class="prompt-block">
                 <button class="copy-button">복사</button>
-                <pre class="bg-slate-100 text-slate-800 p-4 rounded-lg overflow-x-auto text-sm"><code class="language-text">You are a Machine Learning Engineer with expertise in training agents using Stable Baselines3 (SB3).
+                <pre class="bg-slate-100 text-slate-800 p-4 rounded-lg overflow-x-auto text-sm"><code class="language-text">You are a Machine Learning Engineer with expertise in Stable Baselines3 (SB3).
 
-I am attaching the Python script (`environment.py`) which contains the full game logic and the custom Gymnasium environment class.
+I am attaching the Python script (`environment.py`) which contains the custom Gymnasium environment.
 
-Your task is to write a new, complete Python script that trains a `PPO` agent on this custom environment. The new script should include all the code from the attached environment file, plus the new training logic, all in one single file.
+Your task is to write a new, complete Python script that trains a `PPO` agent on this environment. The new script should include all the code from the attached environment file, plus the new training logic, all in one single file.
 
-### Training Script Requirements:
-
-Implement the following three critical features:
+### Training Script Requirements (Mandatory):
 
 1.  **TensorBoard Logging:**
-    * Configure the `PPO` model to log training metrics to a `tensorboard_log` directory for visualization.
+    * Configure the `PPO` model to log training metrics (reward, loss, etc.) to a `tensorboard_logs/` directory.
 
 2.  **Periodic Checkpoint Saving:**
-    * Use `CheckpointCallback` to periodically save the model during training (e.g., every 10,000 steps) to a dedicated checkpoints directory.
+    * Use `CheckpointCallback` to save the model every 10,000 steps to a `checkpoints/` directory.
 
-3.  **Loading from Checkpoint:**
-    * Include a boolean flag or a simple logic to check for existing checkpoints. If a checkpoint is found, the script should load it and continue training. Otherwise, it should start a new training session.
+3.  **Resume from Checkpoint:**
+    * Implement logic to automatically check for the latest checkpoint in the `checkpoints/` directory. If a checkpoint exists, load it and continue training. Otherwise, start a new training session.
 
-Finally, set the script to train for a significant number of timesteps (e.g., 1,000,000) and save the final trained model as `final_model.zip`.</code></pre>
+Finally, set the script to train for 1,000,000 total timesteps and save the final trained model as `final_model.zip`.</code></pre>
             </div>
         </section>
 
         <!-- Step 5: ONNX Conversion -->
         <section id="step5" class="step bg-white p-6 sm:p-8 rounded-2xl shadow-lg border border-slate-200 mb-10">
             <h2 class="text-2xl font-bold mb-4 border-b pb-3 text-slate-900">단계 5: ONNX 모델 변환</h2>
-            <p class="mb-6 text-slate-700">SB3로 학습한 모델(`.zip` 파일)을 웹 브라우저에서 사용할 수 있는 ONNX 형식으로 변환합니다. 이 단계는 Python 백엔드 없이 웹에서 AI를 실행하기 위해 필수적입니다.</p>
+            <p class="mb-6 text-slate-700">학습된 SB3 모델(`.zip`)을 웹 브라우저에서 사용할 수 있는 ONNX 형식으로 변환합니다. 웹 AI 실행을 위한 필수 단계입니다.</p>
             <div class="prompt-block">
                 <button class="copy-button">복사</button>
-                <pre class="bg-slate-100 text-slate-800 p-4 rounded-lg overflow-x-auto text-sm"><code class="language-text">You are an expert in ML model deployment and optimization.
+                <pre class="bg-slate-100 text-slate-800 p-4 rounded-lg overflow-x-auto text-sm"><code class="language-text">You are an expert in ML model deployment.
 
-I am attaching the Python script (`environment.py`) which contains the Gymnasium environment definition. I will also provide the trained model (`final_model.zip`) as another attachment.
+I am attaching the Python script (`environment.py`) which contains the Gymnasium environment definition, and the trained model (`final_model.zip`).
 
-Your task is to write a new Python script that converts the attached `final_model.zip` into the ONNX format. The script must use the environment definition from the attached `environment.py` script to correctly infer the model's input shape.
+Your task is to write a new Python script that converts the attached `final_model.zip` into the ONNX format.
 
 ### Conversion Script Requirements:
-1.  **Load the SB3 Model:** The script should first load the `final_model.zip`.
-2.  **Import Environment:** Import the environment class from the `environment.py` script and create an instance to access the `observation_space`.
-3.  **Define Dummy Input:** Create a dummy observation tensor that matches the shape and type of the environment's `observation_space`.
-4.  **Export to ONNX:** Use `torch.onnx.export()` to perform the conversion, saving the result as `model.onnx`.
-    * Specify clear `input_names` (`['observation']`) and `output_names` (`['action']`).
-    * Set `opset_version` to a recent, compatible version (e.g., 12).
-5.  **Verification:** Add a section to verify the conversion using `onnxruntime` in Python. Load the `model.onnx`, run inference with the dummy input, and print the result to confirm it works.</code></pre>
+1.  **Load SB3 Model:** Load `final_model.zip`.
+2.  **Import Environment:** Import the environment class from `environment.py` and create an instance to access the `observation_space`.
+3.  **Create Dummy Input:** Create a dummy observation tensor matching the shape and type of the environment's `observation_space`.
+4.  **Export to ONNX:** Use `torch.onnx.export()` to convert the model, saving it as `model.onnx`.
+    * `input_names`: `['observation']`
+    * `output_names`: `['action']`
+    * `opset_version`: 12
+5.  **Verification:** Add a section to verify the `model.onnx` using `onnxruntime` in Python. Run inference with the dummy input and print the result to confirm it works.</code></pre>
             </div>
         </section>
         
         <!-- Step 6: JavaScript Game -->
         <section id="step6" class="step bg-white p-6 sm:p-8 rounded-2xl shadow-lg border border-slate-200 mb-10">
             <h2 class="text-2xl font-bold mb-4 border-b pb-3 text-slate-900">단계 6: JavaScript 웹 게임 구현</h2>
-            <p class="mb-6 text-slate-700">마지막으로, 사용자가 AI의 플레이를 직접 볼 수 있는 웹 페이지를 만듭니다. 이 페이지는 Python 게임의 시각적 디자인을 재현하고, `onnxruntime-web`을 사용해 변환된 AI 모델을 실행합니다.</p>
+            <p class="mb-6 text-slate-700">AI의 플레이를 직접 볼 수 있는 웹 페이지를 만듭니다. Python 게임의 시각적 디자인을 재현하고, `onnxruntime-web`을 사용해 AI 모델을 실행합니다.</p>
             
              <div class="user-input">
                 <h3 class="font-semibold text-lg text-slate-800 mb-2">필요한 파일 및 정보</h3>
-                <p class="text-sm text-slate-600">이 단계를 진행하기 전에, 이전 단계에서 생성된 <code>model.onnx</code> 파일이 준비되어 있어야 합니다. 이 파일은 생성될 <code>index.html</code> 파일과 같은 폴더에 위치해야 합니다.</p>
+                <p class="text-sm text-slate-600">이 단계에서는 이전 단계에서 생성된 <code>model.onnx</code> 파일이 필요합니다. 이 파일은 생성될 <code>index.html</code> 파일과 같은 폴더에 위치해야 합니다.</p>
             </div>
 
             <div class="prompt-block">
                 <button class="copy-button">복사</button>
-                <pre class="bg-slate-100 text-slate-800 p-4 rounded-lg overflow-x-auto text-sm"><code class="language-text">You are a senior front-end developer with expertise in modern JavaScript, HTML5 Canvas, and integrating AI models.
+                <pre class="bg-slate-100 text-slate-800 p-4 rounded-lg overflow-x-auto text-sm"><code class="language-text">You are a senior front-end developer skilled in JavaScript, HTML5 Canvas, and AI model integration.
 
-Your task is to create a **single, self-contained `index.html` file** that loads and runs a local `model.onnx` file to power the game's AI agent.
+Your task is to create a **single, self-contained `index.html` file** that loads a local `model.onnx` file to power an AI agent.
 
 ### Reference Information
-* **Game Concept and Visuals:** [여기에 단계 2에서 정의한 게임 콘셉트와 시각 디자인을 다시 설명해주세요.]
-* **Observation Space Structure:** [여기에 단계 3에서 정의한 관측 공간의 구조와 순서를 설명해주세요. (예: `[pos_x, pos_y, vel_x, vel_y, angle, ang_vel]`)]
+* **Game Visuals:** Replicate the minimalist, retro-sci-fi aesthetic from the Python game (dark background, glowing neon objects, particles).
+* **Observation Space Structure:** [여기에 단계 3에서 정의한 관측 공간의 구조와 순서를 정확히 붙여넣으세요. (예: `[pos_x, pos_y, vel_x, vel_y, angle, ang_vel, dist_to_pad]`)]
 
 ### Requirements:
 
-1.  **Game Replication:**
-    * Recreate the game's core mechanics and visuals using HTML5 Canvas and plain JavaScript.
-    * Implement simple physics (gravity, collision) directly in JavaScript. **Do not use a physics library.**
-
-2.  **Visual Design (CRITICAL):**
-    * The design must be exceptionally clean, minimalist, and visually appealing, matching the Python game's aesthetic.
-    * Center the canvas and use `requestAnimationFrame` for smooth animations.
-    * Add a subtle loading indicator while the `model.onnx` file is loading.
-
-3.  **AI Integration with ONNX.js:**
-    * Include the `onnxruntime-web` library via CDN.
-    * Asynchronously load the local `model.onnx` file.
-    * In the main game loop:
-        1.  Get the current game state and create a normalized `Float32Array` observation that **exactly matches the structure and order of the Python environment's observation space.** This is critical for the model to work correctly.
-        2.  Create an `ort.Tensor` and run the ONNX session.
-        3.  Extract the action with the highest probability from the model's output logits (using an argmax function).
-        4.  Apply the chosen action to the game.
-
-4.  **Code Quality and Self-Critique:**
-    * Write clean, well-commented JavaScript.
-    * Before finishing, review your own code for potential bugs, especially in the state normalization and model inference steps, to ensure the game runs smoothly and the AI behaves as expected.</code></pre>
+1.  **Game Replication:** Recreate the game's core mechanics and visuals using HTML5 Canvas and plain JavaScript. Do not use a physics library.
+2.  **Visual Design (CRITICAL):** The design must be exceptionally clean, minimalist, and visually appealing. Center the canvas and use `requestAnimationFrame` for smooth animations. Add a subtle loading indicator for the ONNX model.
+3.  **AI Integration with onnxruntime-web:**
+    * Include `onnxruntime-web` via CDN.
+    * Asynchronously load the local `model.onnx`.
+    * In the game loop:
+        1.  Get the current game state and create a normalized `Float32Array` observation that **exactly matches the structure and order of the Python environment's observation space.** This is critical.
+        2.  Create an `ort.Tensor` and run inference.
+        3.  Extract the action with the highest probability from the model's output (using an argmax function).
+        4.  Apply the action to the game.
+4.  **Self-Critique:** Before finishing, review your own code for potential bugs, especially in the state normalization and model inference steps, to ensure the game runs smoothly.</code></pre>
             </div>
         </section>
 
         <!-- Step 7: GitHub Pages -->
         <section id="step7" class="step bg-white p-6 sm:p-8 rounded-2xl shadow-lg border border-slate-200 mb-10">
             <h2 class="text-2xl font-bold mb-4 border-b pb-3 text-slate-900">단계 7: GitHub Pages로 웹에 배포하기</h2>
-            <p class="mb-6 text-slate-700">완성된 AI 웹 게임(`index.html`, `model.onnx`)을 인터넷에 올려 누구나 접속할 수 있도록 합니다. GitHub Pages는 이 작업을 위한 가장 간단한 무료 호스팅 방법입니다.</p>
+            <p class="mb-6 text-slate-700">완성된 AI 웹 게임(`index.html`, `model.onnx`)을 GitHub Pages를 통해 무료로 배포하는 가장 간단한 방법입니다.</p>
             <div class="space-y-4 text-slate-700">
                 <div>
-                    <h3 class="font-semibold text-lg text-slate-800">1. GitHub 저장소(Repository) 생성</h3>
-                    <p class="mt-1 ml-2">GitHub에 로그인 후, 'New repository'를 클릭하여 저장소 이름을 정하고 'Public'으로 설정합니다.</p>
+                    <h3 class="font-semibold text-lg text-slate-800">1. GitHub 저장소 생성</h3>
+                    <p class="mt-1 ml-2">GitHub에 로그인 후, 'New repository'를 클릭하여 저장소를 'Public'으로 생성합니다.</p>
                 </div>
                 <div>
                     <h3 class="font-semibold text-lg text-slate-800">2. 파일 업로드</h3>
-                    <p class="mt-1 ml-2">생성된 저장소에서 'Add file' &rarr; 'Upload files'를 클릭하여 로컬의 `index.html`과 `model.onnx` 파일을 업로드합니다.</p>
+                    <p class="mt-1 ml-2">생성된 저장소에서 'Add file' &rarr; 'Upload files'를 클릭하여 `index.html`과 `model.onnx` 파일을 업로드합니다.</p>
                 </div>
                 <div>
                     <h3 class="font-semibold text-lg text-slate-800">3. GitHub Pages 활성화</h3>
-                    <p class="mt-1 ml-2">저장소 'Settings' &rarr; 'Pages'로 이동하여 'Source'의 브랜치를 'main'으로 선택하고 저장합니다.</p>
+                    <p class="mt-1 ml-2">저장소 'Settings' &rarr; 'Pages' 탭으로 이동하여 'Source'를 'Deploy from a branch'로, 브랜치를 'main'으로 선택하고 저장합니다.</p>
                 </div>
                 <div>
-                    <h3 class="font-semibold text-lg text-slate-800">4. 배포 확인</h3>
-                    <p class="mt-1 ml-2">잠시 후 나타나는 `https://&lt;사용자명&gt;.github.io/&lt;저장소명&gt;/` 형태의 주소로 접속하여 게임을 확인하고 공유할 수 있습니다.</p>
+                    <h3 class="font-semibold text-lg text-slate-800">4. 배포 확인 및 공유</h3>
+                    <p class="mt-1 ml-2">잠시 후 나타나는 `https://&lt;사용자명&gt;.github.io/&lt;저장소명&gt;/` 주소로 접속하여 게임을 확인하고 공유합니다.</p>
                 </div>
             </div>
         </section>
@@ -304,22 +298,34 @@ Your task is to create a **single, self-contained `index.html` file** that loads
                     const codeBlock = button.nextElementSibling.querySelector('code');
                     const codeText = codeBlock.innerText;
 
-                    navigator.clipboard.writeText(codeText).then(() => {
-                        button.textContent = '복사 완료!';
-                        button.classList.add('copied');
+                    // Create a temporary textarea element to hold the text
+                    const textArea = document.createElement('textarea');
+                    textArea.value = codeText;
+                    document.body.appendChild(textArea);
+                    textArea.select();
 
-                        setTimeout(() => {
-                            button.textContent = '복사';
-                            button.classList.remove('copied');
-                        }, 2000);
-                    }).catch(err => {
-                        console.error('Failed to copy text: ', err);
-                    });
+                    try {
+                        const successful = document.execCommand('copy');
+                        if (successful) {
+                            button.textContent = '복사 완료!';
+                            button.classList.add('copied');
+
+                            setTimeout(() => {
+                                button.textContent = '복사';
+                                button.classList.remove('copied');
+                            }, 2000);
+                        } else {
+                            console.error('Fallback: Failed to copy text.');
+                        }
+                    } catch (err) {
+                        console.error('Fallback: Error copying text: ', err);
+                    }
+
+                    document.body.removeChild(textArea);
                 });
             });
         });
     </script>
 </body>
 </html>
-
 
