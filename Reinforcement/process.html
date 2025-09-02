@@ -126,72 +126,67 @@ Your task is to create a complete, single-file Python script for a 2D game with 
         <!-- Step 3: Gymnasium Env -->
         <section id="step3" class="step bg-white p-6 sm:p-8 rounded-2xl shadow-lg border border-slate-200 mb-10">
             <h2 class="text-2xl font-bold mb-4 border-b pb-3 text-slate-900">단계 3: Gymnasium 강화학습 환경 설계</h2>
-            <p class="mb-6 text-slate-700">Pygame 코드를 AI가 학습할 수 있는 `Gymnasium` 환경으로 변환합니다. AI의 행동을 유도할 관측 공간, 행동 공간, 보상 함수를 정의하는 것이 핵심입니다.</p>
+            <p class="mb-6 text-slate-700">Pygame 코드를 AI가 학습할 수 있는 `Gymnasium` 환경으로 변환합니다. 아래 프롬프트는 Gemini가 게임 코드를 분석하여 최적의 RL 환경을 자동으로 설계하도록 지시합니다.</p>
 
-            <div class="user-input">
-                <h3 class="font-semibold text-lg text-slate-800 mb-2">강화학습 환경 정보 입력</h3>
-                 <p class="text-sm text-slate-600">아래 텍스트를 수정하여 프롬프트의 `[ ]` 안에 붙여넣으세요.</p>
-                <ul class="list-disc list-inside mt-2 text-sm text-slate-700 space-y-1">
-                    <li><strong>관측 공간(Observation Space):</strong> (예: 우주선의 x, y 좌표, x, y 속도, 각도, 각속도, 착륙 지점과의 거리)</li>
-                    <li><strong>행동 공간(Action Space):</strong> (예: 0: 아무것도 안함, 1: 왼쪽 엔진, 2: 메인 엔진, 3: 오른쪽 엔진)</li>
-                    <li><strong>보상 함수(Reward Function):</strong> (예: 착륙 지점에 가까워질수록 +, 부드럽게 착륙하면 큰 +, 충돌하거나 화면 밖으로 나가면 큰 -)</li>
-                </ul>
-            </div>
-            
             <div class="prompt-block">
                 <button class="copy-button">복사</button>
                 <pre class="bg-slate-100 text-slate-800 p-4 rounded-lg overflow-x-auto text-sm"><code class="language-text">You are an expert Reinforcement Learning Engineer specializing in creating custom Gymnasium environments.
 
-I am attaching the Pygame game script (`game.py`). Your task is to wrap it into a `gymnasium.Env` class. The resulting script should be a single file containing both the original game logic and the new environment class.
+I am attaching the Pygame game script (`game.py`). Your task is to analyze its code and create an optimal `gymnasium.Env` wrapper class for it. The final output must be a single Python file containing both the original game logic and the new environment class.
 
-### Environment Design Requirements
+### Environment Design Requirements:
+
+Based on your analysis of the `game.py` script, you must define and implement the following components. Provide a clear explanation for your design choices in the code comments.
 
 1.  **Observation Space (`observation_space`):**
-    * Define a `Box` space.
-    * [AI가 결정을 내리는 데 필요한 관측 요소들을 명시하세요. 예: Lander's (x, y) position, (vx, vy) velocities, angle, angular velocity, and distance to the landing pad.]
-    * Normalize these values to a suitable range for better training performance.
+    * Analyze the game's state variables (e.g., positions, velocities, etc.) and propose a suitable `Box` observation space.
+    * The space must contain all information necessary for an agent to make optimal decisions.
+    * Normalize the observation values to a standard range (e.g., -1 to 1) for better training stability.
 
 2.  **Action Space (`action_space`):**
-    * Define a `Discrete` space.
-    * [AI가 수행할 수 있는 행동들을 명시하세요. 예: A `Discrete(4)` space for 0: do nothing, 1: fire left thruster, 2: fire main thruster, 3: fire right thruster.]
+    * Analyze the game's control scheme and define an appropriate `Discrete` action space.
+    * Clearly map each discrete action to a specific game control (e.g., 0: do nothing, 1: fire main thruster).
 
 3.  **Reward Function (CRITICAL & PRECISE):**
-    * Design a precise reward function to encourage the desired behavior.
-    * [AI의 행동을 유도할 보상/패널티 규칙을 상세히 설계하세요. 예:
-    * **Shaping Reward:** Reward for moving closer to the landing pad.
-    * **Success Reward:** Large positive reward (e.g., +100) for a successful soft landing.
-    * **Penalty:** Large negative penalty (e.g., -100) for crashing or flying off-screen.
-    * **Efficiency Penalty:** Small negative penalty for fuel consumption on each thruster fire.]
-    
+    * Design a sophisticated and precise reward function that encourages the agent to achieve the game's objective.
+    * Your design should include:
+        * **Shaping Rewards:** Small, continuous rewards for making incremental progress towards the goal.
+        * **Terminal Rewards:** A large positive reward for winning and a large negative reward for losing.
+        * **Efficiency Penalties:** Small penalties for inefficient actions (e.g., wasting fuel, time).
+
 4.  **Implement Core Methods:**
-    * Correctly implement `__init__()`, `reset()`, `step()`, `render()`, and `close()` according to the Gymnasium API.</code></pre>
+    * Correctly implement `__init__()`, `reset()`, `step()`, `render()`, and `close()` according to the Gymnasium API, integrating your designed spaces and reward function.</code></pre>
             </div>
         </section>
 
         <!-- Step 4: SB3 Training -->
         <section id="step4" class="step bg-white p-6 sm:p-8 rounded-2xl shadow-lg border border-slate-200 mb-10">
             <h2 class="text-2xl font-bold mb-4 border-b pb-3 text-slate-900">단계 4: SB3로 모델 학습</h2>
-            <p class="mb-6 text-slate-700">`Gymnasium` 환경을 사용하여 강화학습 에이전트를 학습시킵니다. 아래 프롬프트는 학습 과정 모니터링, 모델 저장, 이어서 학습하기 기능을 보장합니다.</p>
+            <p class="mb-6 text-slate-700">`Gymnasium` 환경을 사용하여 강화학습 에이전트를 학습시킵니다. 아래 프롬프트는 학습 과정 모니터링, 모델 저장, 이어서 학습하기 기능을 보장하는 간결한 학습 코드를 생성합니다.</p>
+            
+            <div class="user-input">
+                <h3 class="font-semibold text-lg text-slate-800 mb-2">필요한 파일 정보</h3>
+                <p class="text-sm text-slate-600">이 단계에서는 이전 단계에서 생성된 <code>environment.py</code> 파일이 필요합니다. 이 파일을 학습 스크립트를 실행할 위치와 같은 폴더에 저장하세요.</p>
+            </div>
+
             <div class="prompt-block">
                 <button class="copy-button">복사</button>
                 <pre class="bg-slate-100 text-slate-800 p-4 rounded-lg overflow-x-auto text-sm"><code class="language-text">You are a Machine Learning Engineer with expertise in Stable Baselines3 (SB3).
 
-I am attaching the Python script (`environment.py`) which contains the custom Gymnasium environment.
+Your task is to write a concise Python script (`train.py`) that trains a `PPO` agent on a custom Gymnasium environment.
 
-Your task is to write a new, complete Python script that trains a `PPO` agent on this environment. The new script should include all the code from the attached environment file, plus the new training logic, all in one single file.
+The script will import the custom environment class (e.g., `GameEnv`) from a local file named `environment.py`.
 
 ### Training Script Requirements (Mandatory):
 
-1.  **TensorBoard Logging:**
-    * Configure the `PPO` model to log training metrics (reward, loss, etc.) to a `tensorboard_logs/` directory.
+1.  **Environment Import:** Import the environment class from `environment.py`.
+2.  **TensorBoard Logging:** Configure the `PPO` model to log training metrics (reward, loss, etc.) to a `tensorboard_logs/` directory.
+3.  **Periodic Checkpoint Saving:** Use `CheckpointCallback` to save the model every 10,000 steps to a `checkpoints/` directory.
+4.  **Resume from Checkpoint:** Implement logic to automatically check for the latest checkpoint in the `checkpoints/` directory. If a checkpoint exists, load it and continue training. Otherwise, start a new training session.
+5.  **Training Loop:** Train the agent for 1,000,000 total timesteps.
+6.  **Final Model:** Save the final trained model as `final_model.zip`.
 
-2.  **Periodic Checkpoint Saving:**
-    * Use `CheckpointCallback` to save the model every 10,000 steps to a `checkpoints/` directory.
-
-3.  **Resume from Checkpoint:**
-    * Implement logic to automatically check for the latest checkpoint in the `checkpoints/` directory. If a checkpoint exists, load it and continue training. Otherwise, start a new training session.
-
-Finally, set the script to train for 1,000,000 total timesteps and save the final trained model as `final_model.zip`.</code></pre>
+The final code should be clean, efficient, and focus only on the training logic.</code></pre>
             </div>
         </section>
 
@@ -226,7 +221,7 @@ Your task is to write a new Python script that converts the attached `final_mode
             
              <div class="user-input">
                 <h3 class="font-semibold text-lg text-slate-800 mb-2">필요한 파일 및 정보</h3>
-                <p class="text-sm text-slate-600">이 단계에서는 이전 단계에서 생성된 <code>model.onnx</code> 파일이 필요합니다. 이 파일은 생성될 <code>index.html</code> 파일과 같은 폴더에 위치해야 합니다.</p>
+                <p class="text-sm text-slate-600">이 단계에서는 이전 단계에서 생성된 <code>model.onnx</code> 파일과, 3단계에서 Gemini가 정의한 관측 공간의 구조에 대한 정보가 필요합니다.</p>
             </div>
 
             <div class="prompt-block">
@@ -237,7 +232,7 @@ Your task is to create a **single, self-contained `index.html` file** that loads
 
 ### Reference Information
 * **Game Visuals:** Replicate the minimalist, retro-sci-fi aesthetic from the Python game (dark background, glowing neon objects, particles).
-* **Observation Space Structure:** [여기에 단계 3에서 정의한 관측 공간의 구조와 순서를 정확히 붙여넣으세요. (예: `[pos_x, pos_y, vel_x, vel_y, angle, ang_vel, dist_to_pad]`)]
+* **Observation Space Structure:** [여기에 단계 3에서 Gemini가 정의한 관측 공간의 구조와 순서를 정확히 붙여넣으세요. (예: `[pos_x, pos_y, vel_x, vel_y, angle, ang_vel, dist_to_pad]`)]
 
 ### Requirements:
 
@@ -287,7 +282,7 @@ Your task is to create a **single, self-contained `index.html` file** that loads
             <ul class="list-disc list-inside space-y-2 text-slate-700">
                 <li><strong>게임 아이디어 확장:</strong> 게임에 새로운 규칙, 장애물, 또는 더 어려운 단계를 추가하여 발전시켜 보세요.</li>
                 <li><strong>보상 함수 실험:</strong> 다른 보상 체계를 설계하여 AI의 행동 패턴이 어떻게 바뀌는지 관찰해보세요.</li>
-                <li><strong>모델 아키텍처 변경:</strong> SB3에서 다른 알고리즘(예: DQN)을 사용하거나 신경망의 크기를 조절해보세요.</li>
+                <li><strong>모델 아키텍처 변경:</strong> SB3에서 다른 알고リズム(예: DQN)을 사용하거나 신경망의 크기를 조절해보세요.</li>
             </ul>
             <p class="mt-6 text-center text-slate-600 font-medium">이 프로세스는 다양한 프로젝트에 적용할 수 있는 강력한 파이프라인입니다. 즐겁게 실험하고 창조하세요!</p>
         </section>
