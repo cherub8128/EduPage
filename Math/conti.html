@@ -137,6 +137,15 @@
                 <div id="geometric-prob-app"></div>
             </section>
 
+            <!-- 실험 7: 결합 균등분포 -->
+            <section class="bg-white p-6 rounded-xl shadow-lg">
+                <h2 class="text-3xl font-bold mb-4 text-center">실험 7: 두 친구의 약속 (결합 균등분포) 🤝</h2>
+                <p class="mb-6 text-gray-600 text-center">
+                    두 친구의 도착 시간(X, Y)이 각각 균등분포를 따를 때, 만날 확률은 2차원 평면의 특정 '면적'으로 결정됩니다.
+                </p>
+                <div id="rendezvous-prob-app"></div>
+            </section>
+
         </main>
     </div>
 
@@ -148,7 +157,8 @@ function renderKatex() {
             delimiters: [
                 {left: "$$", right: "$$", display: true},
                 {left: "$", right: "$", display: false},
-            ]
+            ],
+            throwOnError: false
         });
     }
 }
@@ -279,7 +289,7 @@ class ContinuousDistApp {
         
         let maxY = 0;
         for (let i = 0; i <= 100; i++) maxY = Math.max(maxY, pdf(minX + (i / 100) * (maxX - minX)));
-        maxY *= 1.1;
+        maxY = Math.max(maxY, 0.001) * 1.1; // Ensure maxY is not zero
 
         const xScale = (x) => padding.left + ((x - minX) / (maxX - minX)) * (width - padding.left - padding.right);
         const yScale = (y) => height - padding.bottom - (y / maxY) * (height - padding.top - padding.bottom);
@@ -335,11 +345,11 @@ class GeometricProbabilityApp {
                     </div>
                     <div class="text-center bg-green-50 p-4 rounded-lg">
                         <p>측정 확률: <span id="geo-prob" class="font-bold text-green-700">N/A</span></p>
-                        <p class="text-sm">이론 확률: $\\frac{\\text{원 넓이}}{\\text{사각형 넓이}} = \\frac{\\pi r^2}{(2r)^2} = \\frac{\\pi}{4} \\approx 0.7854$</p>
+                        <div class="text-sm" id="geo-theory-prob">이론 확률: $\\frac{\\text{원 넓이}}{\\text{사각형 넓이}} = \\frac{\\pi r^2}{(2r)^2} = \\frac{\\pi}{4} \\approx 0.7854$</div>
                     </div>
                     <div class="text-center bg-yellow-50 p-4 rounded-lg">
                         <p>추정된 $\\pi$ 값: <span id="geo-pi" class="font-bold text-yellow-800">N/A</span></p>
-                        <p class="text-sm">계산: $4 \\times \\frac{\\text{명중}}{\\text{총 시도}}$</p>
+                        <div class="text-sm" id="geo-pi-formula">계산: $4 \\times \\frac{\\text{명중}}{\\text{총 시도}}$</div>
                     </div>
                     <div class="grid grid-cols-2 gap-2">
                         <button id="geo-throw-1" class="bg-green-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-600">1개 던지기</button>
@@ -366,7 +376,9 @@ class GeometricProbabilityApp {
                 b100: document.getElementById('geo-throw-100'),
                 b1000: document.getElementById('geo-throw-1000'),
                 reset: document.getElementById('geo-reset'),
-            }
+            },
+            theoryProb: document.getElementById('geo-theory-prob'),
+            piFormula: document.getElementById('geo-pi-formula'),
         };
     }
     
@@ -396,8 +408,8 @@ class GeometricProbabilityApp {
         this.toggleButtons(false);
 
         for (let i = 0; i < count; i++) {
-            const x = Math.random(); // 0 to 1
-            const y = Math.random(); // 0 to 1
+            const x = Math.random();
+            const y = Math.random();
             const distSq = (x - 0.5)**2 + (y - 0.5)**2;
             const isHit = distSq <= 0.5**2;
 
@@ -435,13 +447,154 @@ class GeometricProbabilityApp {
             this.ui.prob.textContent = 'N/A';
             this.ui.pi.textContent = 'N/A';
         }
-        renderKatex();
+        if(window.katex) {
+            katex.render(this.ui.theoryProb.innerHTML, this.ui.theoryProb, { throwOnError: false });
+            katex.render(this.ui.piFormula.innerHTML, this.ui.piFormula, { throwOnError: false });
+        }
     }
     
     toggleButtons(enable) {
         Object.values(this.ui.buttons).forEach(btn => btn.disabled = !enable);
     }
 }
+
+class RendezvousProblemApp {
+    constructor(containerId) {
+        this.container = document.getElementById(containerId);
+        this.createDOM();
+        this.addEventListeners();
+        this.reset();
+    }
+
+    createDOM() {
+        this.container.innerHTML = `
+            <div class="grid md:grid-cols-2 gap-8 items-center">
+                <div class="control-panel space-y-4">
+                     <div>
+                        <label for="rendezvous-wait-time" class="font-semibold block mb-1">기다리는 시간 (분): <span id="rendezvous-wait-value" class="font-bold">15</span></label>
+                        <input type="range" id="rendezvous-wait-time" min="0" max="60" step="1" value="15" class="w-full">
+                    </div>
+                    <div class="text-center bg-gray-50 p-4 rounded-lg">
+                        <p>총 시도: <span id="rendezvous-total" class="font-bold text-gray-800">0</span></p>
+                        <p>만남 성공: <span id="rendezvous-hits" class="font-bold text-purple-600">0</span></p>
+                    </div>
+                    <div class="text-center bg-purple-50 p-4 rounded-lg">
+                        <p>측정 확률: <span id="rendezvous-prob-sim" class="font-bold text-purple-700">N/A</span></p>
+                        <p>이론 확률: <span id="rendezvous-prob-theory" class="font-bold text-purple-700"></span></p>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button id="rendezvous-throw-1" class="bg-purple-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-purple-600">1회 시도</button>
+                        <button id="rendezvous-throw-100" class="bg-purple-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-purple-600">100회 시도</button>
+                    </div>
+                    <button id="rendezvous-reset" class="w-full bg-gray-400 text-white font-bold py-2 px-4 rounded-lg hover:bg-gray-500">초기화</button>
+                </div>
+                <div class="visualization-area">
+                    <svg id="rendezvous-svg"></svg>
+                </div>
+            </div>
+        `;
+        this.ui = {
+            waitTimeSlider: document.getElementById('rendezvous-wait-time'),
+            waitValue: document.getElementById('rendezvous-wait-value'),
+            total: document.getElementById('rendezvous-total'),
+            hits: document.getElementById('rendezvous-hits'),
+            simProb: document.getElementById('rendezvous-prob-sim'),
+            theoryProb: document.getElementById('rendezvous-prob-theory'),
+            svg: document.getElementById('rendezvous-svg'),
+            buttons: {
+                b1: document.getElementById('rendezvous-throw-1'),
+                b100: document.getElementById('rendezvous-throw-100'),
+                reset: document.getElementById('rendezvous-reset'),
+            }
+        }
+    }
+    
+    addEventListeners() {
+        this.ui.waitTimeSlider.addEventListener('input', (e) => this.handleSliderChange(e));
+        this.ui.buttons.b1.addEventListener('click', () => this.runTrials(1));
+        this.ui.buttons.b100.addEventListener('click', () => this.runTrials(100));
+        this.ui.buttons.reset.addEventListener('click', () => this.reset());
+    }
+
+    handleSliderChange(e) {
+        this.waitTime = parseInt(e.target.value);
+        this.ui.waitValue.textContent = this.waitTime;
+        this.reset();
+    }
+    
+    reset() {
+        this.waitTime = parseInt(this.ui.waitTimeSlider.value);
+        this.ui.waitValue.textContent = this.waitTime;
+        this.total = 0;
+        this.hits = 0;
+        this.isAnimating = false;
+        this.drawGraph();
+        this.updateDisplay();
+        this.toggleButtons(true);
+    }
+    
+    drawGraph() {
+        this.ui.svg.innerHTML = '';
+        const w = this.waitTime / 60; // normalized waiting time
+        // The six vertices of the hexagon
+        const points = [
+            [0, w], [1 - w, 1], [1, 1-w],
+            [1, 0], [w, 0], [0, w]
+        ].map(p => `${p[0]*100},${p[1]*100}`).join(' ');
+        
+        const polygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+        polygon.setAttribute('points', points);
+        polygon.setAttribute('class', 'fill-purple-200 stroke-purple-400');
+        this.ui.svg.appendChild(polygon);
+    }
+    
+    async runTrials(count) {
+        if (this.isAnimating) return;
+        this.isAnimating = true;
+        this.toggleButtons(false);
+        
+        for(let i=0; i<count; i++) {
+            const x = Math.random();
+            const y = Math.random();
+            const isHit = Math.abs(x - y) <= this.waitTime / 60;
+            this.total++;
+            if (isHit) this.hits++;
+
+            const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            circle.setAttribute('cx', `${x * 100}%`);
+            circle.setAttribute('cy', `${y * 100}%`);
+            circle.setAttribute('r', '1');
+            circle.setAttribute('fill', isHit ? '#8b5cf6' : '#f87171');
+            this.ui.svg.appendChild(circle);
+        }
+        this.updateDisplay();
+        this.isAnimating = false;
+        this.toggleButtons(true);
+    }
+    
+    updateDisplay() {
+        this.ui.total.textContent = this.total;
+        this.ui.hits.textContent = this.hits;
+        
+        const totalArea = 60 * 60;
+        const missArea = (60 - this.waitTime) ** 2;
+        const hitArea = totalArea - missArea;
+        const theoryProb = hitArea / totalArea;
+        this.ui.theoryProb.textContent = theoryProb.toFixed(4);
+
+        if (this.total > 0) {
+            this.ui.simProb.textContent = (this.hits / this.total).toFixed(4);
+        } else {
+            this.ui.simProb.textContent = 'N/A';
+        }
+    }
+
+    toggleButtons(enable) {
+        Object.values(this.ui.buttons).forEach(btn => btn.disabled = !enable);
+        this.ui.waitTimeSlider.disabled = !enable;
+    }
+}
+
 
 document.addEventListener("DOMContentLoaded", () => {
     new ContinuousDistApp('uniform-dist-app', {
@@ -476,7 +629,7 @@ document.addEventListener("DOMContentLoaded", () => {
             b: { label: '최대값 $b$', initial: 18, min: 11, max: 19, step: 0.5 }
         },
         pdf: (x, p) => {
-            if (x < p.a || x > p.b) return 0;
+            if (x < p.a || x > p.b || p.c < p.a || p.b < p.c) return 0; // ensure valid params
             if (x >= p.a && x <= p.c) return 2 * (x - p.a) / ((p.b - p.a) * (p.c - p.a));
             if (x > p.c && x <= p.b) return 2 * (p.b - x) / ((p.b - p.a) * (p.b - p.c));
             return 0;
@@ -502,7 +655,7 @@ document.addEventListener("DOMContentLoaded", () => {
             beta: { label: '모수 $\\beta$', initial: 2, min: 0.5, max: 15, step: 0.1, precision:1 }
         },
         pdf: (x, p) => {
-            if (x < 0 || x > 1) return 0;
+            if (x <= 0 || x >= 1) return 0;
             const betaFunc = gamma(p.alpha) * gamma(p.beta) / gamma(p.alpha + p.beta);
             if (betaFunc === 0) return 0;
             return (1 / betaFunc) * Math.pow(x, p.alpha - 1) * Math.pow(1 - x, p.beta - 1);
@@ -511,8 +664,10 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     new GeometricProbabilityApp('geometric-prob-app');
+    new RendezvousProblemApp('rendezvous-prob-app');
     
-    renderKatex();
+    // Initial Render
+    setTimeout(renderKatex, 100);
 });
 </script>
 </body>
