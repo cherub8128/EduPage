@@ -9,17 +9,7 @@
     <!-- KaTeX CDN 추가 -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" xintegrity="sha384-n8MVd4RsNIU0KOVEMeaPoAbJNdMYGNpaLCITPbUdaJblrzJNE2agrdMLIHN5EQGk" crossorigin="anonymous">
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" xintegrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzYCEHPNKAqv8i5HuaMusnvENqVd+BovHtCQ" crossorigin="anonymous"></script>
-    <script>
-        // KaTeX auto-rendering
-        document.addEventListener("DOMContentLoaded", function() {
-            renderMathInElement(document.body, {
-                delimiters: [
-                    {left: "$$", right: "$$", display: true},
-                    {left: "$", right: "$", display: false}
-                ]
-            });
-        });
-    </script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" xintegrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous"></script>
     <style>
         body {
             font-family: 'Noto Sans KR', sans-serif;
@@ -129,21 +119,63 @@
                 </div>
             </section>
 
-            <!-- 실험 3: 비복원 추출은 독립 시행일까? -->
+            <!-- 실험 3: 비복원 추출과 모집단의 크기 -->
             <section class="bg-white p-6 rounded-xl shadow-lg">
-                <h2 class="text-2xl font-bold mb-4">탐구: 비복원 추출은 정말 독립 시행일까?</h2>
-                <p class="mb-6 text-gray-600">상자 안에 여러 모양의 도형이 있습니다. 도형을 하나씩 꺼낼 때(비복원), 다음에 특정 도형을 뽑을 확률이 어떻게 변하는지 관찰해 봅시다.</p>
-                <div id="shape-box" class="min-h-48 bg-gray-100 rounded-lg p-4 flex flex-wrap content-start items-center justify-center"></div>
-                <div class="text-center my-4">
-                    <button id="draw-shape" class="bg-amber-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-amber-700 transition">도형 뽑기</button>
+                <h2 class="text-2xl font-bold mb-4">탐구 1: 비복원 추출과 모집단의 크기</h2>
+                <p class="mb-6 text-gray-600">비복원 추출은 이전의 결과가 다음 결과의 확률에 영향을 주므로 항상 <strong class="text-teal-600">종속</strong>입니다. 하지만 모집단의 크기가 매우 크다면 어떨까요? 아래 버튼으로 모집단 크기를 선택하고 확률 변화를 관찰해 봅시다.</p>
+                
+                <div id="exp3-setup" class="text-center my-4 flex justify-center gap-4">
+                    <button id="setup-small-pop" class="bg-sky-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-sky-700 transition">작은 모집단 (총 21개)</button>
+                    <button id="setup-large-pop" class="bg-violet-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-violet-700 transition">큰 모집단 (총 2100개)</button>
                 </div>
-                <div>
-                    <h4 class="font-semibold text-center mb-2">다음 시행의 확률</h4>
-                    <div id="shape-prob" class="text-center font-mono flex justify-around"></div>
+
+                <div id="exp3-run" class="hidden">
+                    <div id="shape-box" class="min-h-[12rem] bg-gray-100 rounded-lg p-4 flex flex-wrap content-center items-center justify-center relative overflow-hidden">
+                        <!-- 도형 개수와 애니메이션이 여기에 표시됩니다. -->
+                    </div>
+                    <div class="text-center my-4">
+                        <button id="draw-shape" class="bg-amber-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-amber-700 transition">도형 뽑기</button>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold text-center mb-2">다음 시행의 확률</h4>
+                        <div id="shape-prob" class="text-center font-mono flex justify-around"></div>
+                    </div>
+                    <p id="shape-conclusion" class="mt-4 text-center font-semibold h-12 flex items-center justify-center"></p>
                 </div>
-                <p id="shape-conclusion" class="mt-4 text-center font-semibold text-red-600 h-6"></p>
+
                  <div class="text-center mt-6">
                     <button id="reset-exp3" class="text-sm text-gray-500 hover:text-gray-700 underline">실험 3 초기화</button>
+                </div>
+            </section>
+            
+            <!-- 실험 4: 비례 표본 추출 -->
+            <section class="bg-white p-6 rounded-xl shadow-lg">
+                <h2 class="text-2xl font-bold mb-4">탐구 2: 비례 표본 추출과 독립 시행</h2>
+                <p class="mb-6 text-gray-600">
+                    모집단과 <strong class="text-emerald-600">정확히 같은 비율의 표본</strong>을 비복원 추출하면, 남은 모집단의 확률 분포는 어떻게 될까요? <br>
+                    아래 상자에는 <span class="text-red-500">동그라미 8개</span>, <span class="text-blue-500">세모 12개</span>, <span class="text-green-500">네모 20개</span> (비율 2:3:5)가 들어있습니다.
+                </p>
+            
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <div class="grid md:grid-cols-2 gap-6 items-center">
+                        <div class="text-center">
+                            <h3 class="font-semibold text-lg">현재 상자 상태 (<span id="exp4-total"></span>)</h3>
+                             <div id="exp4-shape-container" class="my-2 flex flex-wrap justify-center items-center bg-gray-200 p-2 rounded-md min-h-[12rem] transition-all duration-500"></div>
+                            <h4 class="font-semibold mt-4">각 도형을 뽑을 확률</h4>
+                            <div id="exp4-probs" class="font-mono"></div>
+                        </div>
+                        <div class="text-center">
+                             <button id="draw-proportional-sample" class="bg-emerald-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-emerald-700 transition text-lg disabled:bg-gray-400">
+                                비율에 맞춰<br>2●, 3▲, 5■ 뽑기
+                             </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <p id="exp4-conclusion" class="mt-6 text-center font-semibold h-12 flex items-center justify-center text-lg"></p>
+            
+                <div class="text-center mt-6">
+                    <button id="reset-exp4" class="text-sm text-gray-500 hover:text-gray-700 underline">실험 4 초기화</button>
                 </div>
             </section>
 
@@ -219,31 +251,21 @@
     </div>
 
 <script>
-    // KaTeX 렌더링을 위한 함수
-    function renderKaTeX() {
-        if (window.katex) {
-            const containers = document.querySelectorAll('.katex-container');
-            containers.forEach(container => {
-                const tex = container.textContent || container.innerText;
-                try {
-                    katex.render(tex, container, {
-                        throwOnError: false,
-                        displayMode: true
-                    });
-                } catch (e) {
-                    console.error(e);
-                }
+    document.addEventListener("DOMContentLoaded", function() {
+        if (window.renderMathInElement) {
+            renderMathInElement(document.body, {
+                delimiters: [
+                    {left: "$$", right: "$$", display: true},
+                    {left: "$", right: "$", display: false}
+                ]
             });
-             const inlineContainers = document.querySelectorAll('p, strong, span');
-             inlineContainers.forEach(el => {
-                 if (el.innerHTML.includes('$')) {
-                    // This is a simple replacement and might not handle all cases.
-                    // For a robust solution, a more advanced parser would be needed.
-                 }
-             });
         }
-    }
-
+        exp1.init();
+        exp2.init();
+        exp3.init();
+        exp4.init();
+        bonusQuiz.init();
+    });
 
     // --- 유틸리티 함수 ---
     const createBall = (color) => {
@@ -259,8 +281,19 @@
         else if (type === 'square') shape.className = 'shape shape-square';
         return shape;
     };
-
-    const formatProb = (count, total) => total > 0 ? (count / total * 100).toFixed(1) : 0;
+    
+    const createSmallShape = (type) => {
+        const shape = createShape(type);
+        shape.style.width = '24px';
+        shape.style.height = '24px';
+        shape.style.margin = '2px';
+        if (type === 'triangle') {
+            shape.style.borderLeftWidth = '12px';
+            shape.style.borderRightWidth = '12px';
+            shape.style.borderBottomWidth = '20px';
+        }
+        return shape;
+    };
 
     // --- 실험 1: 복원 vs 비복원 ---
     const exp1 = {
@@ -296,6 +329,7 @@
         },
         
         updateProbs() {
+            const formatProb = (count, total) => total > 0 ? (count / total * 100).toFixed(1) : 0;
             const updateEl = (el, balls) => {
                 const counts = balls.reduce((acc, color) => ({...acc, [color]: (acc[color] || 0) + 1 }), {});
                 const total = balls.length;
@@ -314,8 +348,6 @@
             if (bag.length === 0) return;
 
             const index = Math.floor(Math.random() * bag.length);
-            const drawnColor = bag[index];
-
             const bagEl = type === 'restoration' ? this.restorationBagEl : this.nonRestorationBagEl;
             const drawnBall = bagEl.children[index];
 
@@ -330,7 +362,6 @@
             }, 800);
         }
     };
-    exp1.init();
     
     // --- 실험 2: 동전 던지기 ---
     const exp2 = {
@@ -364,60 +395,188 @@
             }, 1000);
         }
     };
-    exp2.init();
     
-    // --- 실험 3: 비복원 추출 심화 ---
+    // --- 실험 3: 비복원 추출과 모집단의 크기 ---
     const exp3 = {
+        setupEl: document.getElementById('exp3-setup'),
+        runEl: document.getElementById('exp3-run'),
+        smallPopBtn: document.getElementById('setup-small-pop'),
+        largePopBtn: document.getElementById('setup-large-pop'),
         boxEl: document.getElementById('shape-box'),
         probEl: document.getElementById('shape-prob'),
         conclusionEl: document.getElementById('shape-conclusion'),
         drawBtn: document.getElementById('draw-shape'),
         resetBtn: document.getElementById('reset-exp3'),
 
-        initialShapes: { 'circle': 7, 'triangle': 7, 'square': 7 },
-        currentShapes: [],
+        counts: {},
+        total: 0,
+        isLargePopulation: false,
 
         init() {
-            this.currentShapes = Object.entries(this.initialShapes).flatMap(([type, count]) => Array(count).fill(type));
-            this.render();
+            this.smallPopBtn.onclick = () => this.setup(false);
+            this.largePopBtn.onclick = () => this.setup(true);
             this.drawBtn.onclick = () => this.draw();
-            this.resetBtn.onclick = () => this.init();
-            this.conclusionEl.textContent = '';
+            this.resetBtn.onclick = () => this.reset();
+            this.reset();
         },
         
+        reset() {
+            this.runEl.classList.add('hidden');
+            this.setupEl.classList.remove('hidden');
+            this.boxEl.innerHTML = '<p class="text-gray-400">모집단 크기를 선택해주세요.</p>';
+            this.probEl.innerHTML = '';
+            this.conclusionEl.innerHTML = '';
+        },
+        
+        setup(isLarge) {
+            this.isLargePopulation = isLarge;
+            const multiplier = isLarge ? 100 : 1;
+            this.counts = { 'circle': 7 * multiplier, 'triangle': 7 * multiplier, 'square': 7 * multiplier };
+            this.total = 21 * multiplier;
+
+            this.setupEl.classList.add('hidden');
+            this.runEl.classList.remove('hidden');
+            this.conclusionEl.innerHTML = '';
+            this.render();
+        },
+
         render() {
-            this.boxEl.innerHTML = '';
-            this.currentShapes.forEach(type => this.boxEl.appendChild(createShape(type)));
+            this.boxEl.innerHTML = `
+                <div class="text-center">
+                    <h4 class="font-semibold mb-2">상자 안의 도형 개수</h4>
+                    <p class="text-lg"><span class="text-red-500 font-bold">●</span> 동그라미: <span class="font-mono">${this.counts.circle}</span>개</p>
+                    <p class="text-lg"><span class="text-blue-500 font-bold">▲</span> 세모: <span class="font-mono">${this.counts.triangle}</span>개</p>
+                    <p class="text-lg"><span class="text-green-500 font-bold">■</span> 네모: <span class="font-mono">${this.counts.square}</span>개</p>
+                    <p class="mt-2 font-bold">총 ${this.total}개</p>
+                </div>
+            `;
             this.updateProbs();
         },
 
         updateProbs() {
-            const counts = this.currentShapes.reduce((acc, type) => ({...acc, [type]: (acc[type] || 0) + 1 }), {});
-            const total = this.currentShapes.length;
+            const formatProbDetailed = (count, total) => total > 0 ? (count / total * 100).toFixed(4) : "0.0000";
             this.probEl.innerHTML = `
-                <span class="text-red-500">● ${formatProb(counts['circle'] || 0, total)}%</span>
-                <span class="text-blue-500">▲ ${formatProb(counts['triangle'] || 0, total)}%</span>
-                <span class="text-green-500">■ ${formatProb(counts['square'] || 0, total)}%</span>
+                <span class="text-red-500">● ${formatProbDetailed(this.counts['circle'] || 0, this.total)}%</span>
+                <span class="text-blue-500">▲ ${formatProbDetailed(this.counts['triangle'] || 0, this.total)}%</span>
+                <span class="text-green-500">■ ${formatProbDetailed(this.counts['square'] || 0, this.total)}%</span>
             `;
         },
 
         draw() {
-            if (this.currentShapes.length === 0) return;
+            if (this.total === 0) {
+                this.conclusionEl.textContent = '상자가 비었습니다!';
+                return;
+            }
             
-            const index = Math.floor(Math.random() * this.currentShapes.length);
-            
-            const drawnShapeEl = this.boxEl.children[index];
-            drawnShapeEl.style.transform = 'scale(1.5) translateY(-60px)';
-            drawnShapeEl.style.opacity = '0';
-            
+            const rand = Math.random() * this.total;
+            let drawnType;
+            if (rand < this.counts.circle) {
+                drawnType = 'circle';
+            } else if (rand < this.counts.circle + this.counts.triangle) {
+                drawnType = 'triangle';
+            } else {
+                drawnType = 'square';
+            }
+
+            this.counts[drawnType]--;
+            this.total--;
+
+            const animatedShape = createShape(drawnType);
+            animatedShape.style.position = 'absolute';
+            animatedShape.style.transition = 'transform 1s ease-out, opacity 1s ease-out';
+            this.boxEl.appendChild(animatedShape);
+
             setTimeout(() => {
-                this.currentShapes.splice(index, 1);
+                 animatedShape.style.transform = `translateY(-150px) scale(1.5) rotate(360deg)`;
+                 animatedShape.style.opacity = '0';
+            }, 10);
+           
+            setTimeout(() => {
+                animatedShape.remove();
                 this.render();
-                this.conclusionEl.textContent = '확률이 변했습니다! 이것은 종속 사건입니다.';
-            }, 500);
+                if (this.isLargePopulation) {
+                    this.conclusionEl.innerHTML = '확률이 <strong class="text-violet-600">아주 미세하게</strong> 변했습니다. <br>이처럼 모집단이 매우 크면, 비복원추출도 독립시행에 가깝게 볼 수 있습니다.';
+                } else {
+                    this.conclusionEl.innerHTML = '확률이 <strong class="text-sky-600">눈에 띄게</strong> 변했습니다. <br>이것이 바로 종속 사건의 특징입니다.';
+                }
+            }, 1000);
         }
     };
-    exp3.init();
+    
+    // --- 실험 4: 비례 표본 추출 ---
+    const exp4 = {
+        containerEl: document.getElementById('exp4-shape-container'),
+        totalEl: document.getElementById('exp4-total'),
+        probsEl: document.getElementById('exp4-probs'),
+        drawBtn: document.getElementById('draw-proportional-sample'),
+        resetBtn: document.getElementById('reset-exp4'),
+        conclusionEl: document.getElementById('exp4-conclusion'),
+
+        initialCounts: { circle: 8, triangle: 12, square: 20 },
+        currentCounts: {},
+
+        init() {
+            this.drawBtn.onclick = () => this.draw();
+            this.resetBtn.onclick = () => this.reset();
+            this.reset();
+        },
+
+        reset() {
+            this.currentCounts = { ...this.initialCounts };
+            this.drawBtn.disabled = false;
+            this.conclusionEl.innerHTML = '';
+            this.render();
+        },
+
+        render() {
+            const total = this.currentCounts.circle + this.currentCounts.triangle + this.currentCounts.square;
+            this.totalEl.textContent = `총 ${total}개`;
+            
+            // Render shapes
+            this.containerEl.innerHTML = '';
+            for (let i = 0; i < this.currentCounts.circle; i++) this.containerEl.appendChild(createSmallShape('circle'));
+            for (let i = 0; i < this.currentCounts.triangle; i++) this.containerEl.appendChild(createSmallShape('triangle'));
+            for (let i = 0; i < this.currentCounts.square; i++) this.containerEl.appendChild(createSmallShape('square'));
+
+            // Update probabilities display
+            const formatProb = (count, total) => total > 0 ? (count / total * 100).toFixed(1) : 0;
+            this.probsEl.innerHTML = `
+                <span class="text-red-500">● ${formatProb(this.currentCounts.circle, total)}%</span> | 
+                <span class="text-blue-500">▲ ${formatProb(this.currentCounts.triangle, total)}%</span> | 
+                <span class="text-green-500">■ ${formatProb(this.currentCounts.square, total)}%</span>
+            `;
+        },
+
+        draw() {
+            if (this.currentCounts.circle < 4 || this.currentCounts.triangle < 6 || this.currentCounts.square < 10) {
+                this.drawBtn.disabled = true;
+                this.conclusionEl.textContent = '더 이상 비례에 맞춰 뽑을 수 없습니다.';
+                return;
+            }
+
+            this.currentCounts.circle -= 2;
+            this.currentCounts.triangle -= 3;
+            this.currentCounts.square -= 5;
+
+            // Simple visual feedback
+            this.containerEl.classList.add('opacity-50');
+            
+            setTimeout(() => {
+                this.render();
+                this.containerEl.classList.remove('opacity-50');
+                this.conclusionEl.innerHTML = '<span class="text-emerald-600">확률이 변하지 않았습니다!</span><br><span class="text-sm">이는 다음 시행이 이전 시행과 독립임을 의미합니다.</span>';
+
+                // Check if another draw is possible
+                if (this.currentCounts.circle < 4 || this.currentCounts.triangle < 6 || this.currentCounts.square < 10) {
+                    this.drawBtn.disabled = true;
+                    setTimeout(() => {
+                         this.conclusionEl.innerHTML += '<br><span class="text-xs text-gray-500">이제 더 이상 비례에 맞춰 뽑을 수 없습니다.</span>';
+                    }, 1000);
+                }
+            }, 300);
+        }
+    };
+
 
     // --- 보너스: 퀴즈 ---
     const bonusQuiz = {
@@ -469,7 +628,6 @@
             const q = this.questions[this.currentQuestionIndex];
             const buttons = this.optionsEl.children;
 
-            // Disable buttons after selection
             for(let btn of buttons) {
                 btn.disabled = true;
                 if(btn.textContent === q.options[q.answer]) {
@@ -496,15 +654,7 @@
             this.feedbackEl.appendChild(nextButton);
         }
     };
-    
-    document.addEventListener('DOMContentLoaded', function() {
-        renderKaTeX();
-        bonusQuiz.init();
-    });
-
 </script>
-<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" xintegrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzYCEHPNKAqv8i5HuaMusnvENqVd+BovHtCQ" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" xintegrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous"></script>
 
 </body>
 </html>
