@@ -6,6 +6,20 @@
     <title>확률의 세계: 독립 사건 탐험하기</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- KaTeX CDN 추가 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" xintegrity="sha384-n8MVd4RsNIU0KOVEMeaPoAbJNdMYGNpaLCITPbUdaJblrzJNE2agrdMLIHN5EQGk" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" xintegrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzYCEHPNKAqv8i5HuaMusnvENqVd+BovHtCQ" crossorigin="anonymous"></script>
+    <script>
+        // KaTeX auto-rendering
+        document.addEventListener("DOMContentLoaded", function() {
+            renderMathInElement(document.body, {
+                delimiters: [
+                    {left: "$$", right: "$$", display: true},
+                    {left: "$", right: "$", display: false}
+                ]
+            });
+        });
+    </script>
     <style>
         body {
             font-family: 'Noto Sans KR', sans-serif;
@@ -142,18 +156,56 @@
                         <div class="bg-blue-50 p-4 rounded-lg">
                             <h4 class="font-bold text-lg text-blue-800">독립 사건 (Independent Events)</h4>
                             <p>두 사건 A, B가 서로의 확률에 <strong class="text-blue-800">영향을 주지 않는 관계</strong>입니다. 즉, 한 사건이 일어났다는 사실이 다른 사건의 확률을 바꾸지 않습니다.</p>
-                            <p class="mt-2 font-mono bg-blue-100 p-2 rounded">P(A ∩ B) = P(A) × P(B)</p>
+                            <div class="mt-2 font-mono bg-blue-100 p-2 rounded text-center text-sm katex-container">$P(A \cap B) = P(A) \times P(B)$</div>
                             <p class="mt-2 text-sm">예: 동전을 던져 앞면이 나오는 사건과 주사위를 던져 짝수가 나오는 사건.</p>
                         </div>
                         <div class="bg-red-50 p-4 rounded-lg">
                             <h4 class="font-bold text-lg text-red-800">배반 사건 (Mutually Exclusive)</h4>
-                            <p>두 사건 A, B가 <strong class="text-red-800">절대 동시에 일어날 수 없는 관계</strong>입니다. 교집합이 공집합(∅)입니다.</p>
-                            <p class="mt-2 font-mono bg-red-100 p-2 rounded">P(A ∩ B) = 0</p>
+                            <p>두 사건 A, B가 <strong class="text-red-800">절대 동시에 일어날 수 없는 관계</strong>입니다. 교집합이 공집합($\emptyset$)입니다.</p>
+                             <div class="mt-2 font-mono bg-red-100 p-2 rounded text-center text-sm katex-container">$P(A \cap B) = 0$</div>
                             <p class="mt-2 text-sm">예: 주사위 한 개를 던져 1이 나오는 사건과 6이 나오는 사건.</p>
                         </div>
                     </div>
-                    <p class="!mt-6 text-center font-semibold">⚡️ <strong class="text-indigo-600">핵심</strong>: 두 사건이 배반이면(동시에 발생 불가), 한 사건이 발생하면 다른 사건은 절대 발생할 수 없으므로(<span class="font-mono">P(B|A)=0</span>) 서로의 확률에 큰 영향을 줍니다. 따라서 <strong class="text-indigo-600">배반 사건은 서로 종속 사건</strong>입니다. (단, 두 사건의 확률이 모두 0이 아닐 때)</p>
                 </div>
+                
+                <div class="mt-8 border-t pt-6">
+                    <h3 class="text-xl font-semibold mb-4">독립과 배반에 대한 참/거짓 명제</h3>
+                    <div class="space-y-6">
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <p class="font-semibold">명제 1: 두 사건 A, B가 배반 사건이면, 두 사건은 서로 독립이다.</p>
+                            <p class="mt-2"><strong class="text-red-600">거짓</strong></p>
+                            <p class="text-sm text-gray-700 mt-1">
+                                <strong>설명:</strong> (단, $P(A) \neq 0, P(B) \neq 0$) <br>
+                                두 사건 A, B가 배반이면 $P(A \cap B) = 0$ 입니다. <br>
+                                만약 두 사건이 독립이라면 $P(A \cap B) = P(A) \times P(B)$ 를 만족해야 합니다. <br>
+                                하지만 $P(A) > 0, P(B) > 0$ 이므로 $P(A) \times P(B) > 0$ 입니다. <br>
+                                따라서 $0 \neq P(A) \times P(B)$ 이므로, 두 사건은 독립이 아니라 <strong class="text-indigo-600">종속</strong>입니다.
+                            </p>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <p class="font-semibold">명제 2: 두 사건 A, B가 서로 독립이면, 두 사건은 배반 사건이다.</p>
+                            <p class="mt-2"><strong class="text-red-600">거짓</strong></p>
+                             <p class="text-sm text-gray-700 mt-1">
+                                <strong>설명:</strong> (단, $P(A) \neq 0, P(B) \neq 0$) <br>
+                                두 사건이 독립이면 $P(A \cap B) = P(A) \times P(B)$ 입니다. <br>
+                                $P(A)>0, P(B)>0$ 이므로, $P(A \cap B) > 0$ 입니다. <br>
+                                배반 사건의 정의는 $P(A \cap B) = 0$ 이므로, 두 사건은 배반 사건이 될 수 없습니다.
+                            </p>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <p class="font-semibold">명제 3: 두 사건 A, B가 서로 독립이면, A와 B의 여사건($B^c$)도 서로 독립이다.</p>
+                            <p class="mt-2"><strong class="text-green-600">참</strong></p>
+                             <p class="text-sm text-gray-700 mt-1">
+                                <strong>증명:</strong> A와 $B^c$가 독립임을 보이려면 $P(A \cap B^c) = P(A) \times P(B^c)$ 임을 보이면 됩니다. <br>
+                                $P(A \cap B^c) = P(A) - P(A \cap B)$ 입니다. <br>
+                                A와 B가 독립이므로 $P(A \cap B) = P(A) \times P(B)$ 입니다. <br>
+                                따라서, $P(A \cap B^c) = P(A) - P(A)P(B) = P(A)(1-P(B)) = P(A)P(B^c)$ 입니다. <br>
+                                그러므로 A와 $B^c$는 서로 독립입니다. (마찬가지로 $A^c$와 B, $A^c$와 $B^c$도 서로 독립입니다.)
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="mt-8 border-t pt-6">
                     <h3 class="text-xl font-semibold text-center mb-4">개념 확인 퀴즈</h3>
                     <div id="quiz-container" class="bg-gray-50 p-4 rounded-lg">
@@ -167,6 +219,32 @@
     </div>
 
 <script>
+    // KaTeX 렌더링을 위한 함수
+    function renderKaTeX() {
+        if (window.katex) {
+            const containers = document.querySelectorAll('.katex-container');
+            containers.forEach(container => {
+                const tex = container.textContent || container.innerText;
+                try {
+                    katex.render(tex, container, {
+                        throwOnError: false,
+                        displayMode: true
+                    });
+                } catch (e) {
+                    console.error(e);
+                }
+            });
+             const inlineContainers = document.querySelectorAll('p, strong, span');
+             inlineContainers.forEach(el => {
+                 if (el.innerHTML.includes('$')) {
+                    // This is a simple replacement and might not handle all cases.
+                    // For a robust solution, a more advanced parser would be needed.
+                 }
+             });
+        }
+    }
+
+
     // --- 유틸리티 함수 ---
     const createBall = (color) => {
         const ball = document.createElement('div');
@@ -418,9 +496,15 @@
             this.feedbackEl.appendChild(nextButton);
         }
     };
-    bonusQuiz.init();
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        renderKaTeX();
+        bonusQuiz.init();
+    });
 
 </script>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" xintegrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzYCEHPNKAqv8i5HuaMusnvENqVd+BovHtCQ" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" xintegrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous"></script>
 
 </body>
 </html>
