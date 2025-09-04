@@ -466,29 +466,23 @@ document.addEventListener('DOMContentLoaded', () => {
         const { id, x, y, rotation, flipped } = gemInfo;
 
         const tBefore = getTransformedGem(id, rotation, flipped);
-        const tAfter  = getTransformedGem(id, newRotation, newFlipped);
+        const tAfter = getTransformedGem(id, newRotation, newFlipped);
 
-        if (!tBefore.shape.length || !tAfter.shape.length) {
-            return { newX: x, newY: y };
-        }
+        if (tBefore.shape.length === 0 || tAfter.shape.length === 0) return { newX: x, newY: y };
+        
+        // Use center of mass for all gems. Each cell's center is at (p.x + 0.5, p.y + 0.5)
+        const absCoordsBefore = tBefore.shape.map(p => ({ x: x + p.x, y: y + p.y }));
+        const centerXBefore = absCoordsBefore.reduce((sum, p) => sum + p.x + 0.5, 0) / absCoordsBefore.length;
+        const centerYBefore = absCoordsBefore.reduce((sum, p) => sum + p.y + 0.5, 0) / absCoordsBefore.length;
 
-        // 회전 전/후 바운딩 박스 크기(그리드 단위)
-        const wBefore = Math.max(...tBefore.shape.map(p => p.x)) + 1;
-        const hBefore = Math.max(...tBefore.shape.map(p => p.y)) + 1;
-        const wAfter  = Math.max(...tAfter.shape.map(p => p.x)) + 1;
-        const hAfter  = Math.max(...tAfter.shape.map(p => p.y)) + 1;
+        const relCenterXAfter = tAfter.shape.reduce((sum, p) => sum + p.x + 0.5, 0) / tAfter.shape.length;
+        const relCenterYAfter = tAfter.shape.reduce((sum, p) => sum + p.y + 0.5, 0) / tAfter.shape.length;
 
-        // 바운딩 박스 중심(= viewBox 중심과 동일 개념)을 보존
-        const centerX = x + wBefore / 2;
-        const centerY = y + hBefore / 2;
-
-        const newGx = Math.round(centerX - wAfter / 2);
-        const newGy = Math.round(centerY - hAfter / 2);
+        const newGx = Math.round(centerXBefore - relCenterXAfter);
+        const newGy = Math.round(centerYBefore - relCenterYAfter);
 
         return { newX: newGx, newY: newGy };
     }
-
-
 
     function canPlaceAt(uniqueId, id, x, y, rotation, flipped) {
         const t = getTransformedGem(id, rotation, flipped);
@@ -873,123 +867,22 @@ document.addEventListener('DOMContentLoaded', () => {
         const gemData = GEMS[gem.dataset.id];
         const { pxW, pxH } = sizeFromViewBox(gemData.viewBox);
 
-        const left = gx * cell;
-        const top  = gy * cell;
+    // Ensure container matches SVG size for correct center
+    gem.style.width  = `${pxW}px`;
+    gem.style.height = `${pxH}px`;
+
+    // Compensation so 90°/270° rotations keep the same anchor for non-square viewBoxes
+    if (rot === 90 || rot === 270) {
+        left += (pxW - pxH) / 2;
+        top  += (pxH - pxW) / 2;
+    }
+    left = gx * cell;
+        let top = gy * cell;
         
         gem.dataset.rotation = String(rot);
         gem.dataset.flipped = String(!!flip);
 
-
-        gem.style.left = `${left}px`;
-        gem.style.top = `${top}px`;
-
-        gem.style.width  = `${pxW}px`;
-        gem.style.height = `${pxH}px`;
-        
-        // const scaleX = flip ? -1 : 1;
-        // gem.style.transformOrigin = `${pxW / 2}px ${pxH / 2}px`;
-        // gem.style.transform = `rotate(${rot}deg) scaleX(${scaleX})`;
-        const scaleX = flip ? -1 : 1;
-        gem.style.transformOrigin = `${pxW/2}px ${pxH/2}px`; // 중심 고정
-        gem.style.transform = `rotate(${rot}deg) scaleX(${scaleX})`;
-    }
-    
-    function drawBeamSegments(segments, board) {
-        const cell = getCellSize();
-        const rect = board.getBoundingClientRect();
-        const toScreen = p => ({ x: rect.left + p.x * cell, y: rect.top + p.y * cell });
-        
-        segments.forEach(seg => {
-            const pts = seg.path.map(toScreen);
-            for (let i = 1; i < pts.length; i++) {
-                drawLine(pts[i - 1], pts[i], seg.color);
-            }
-        });
-        setTimeout(clearBeam, 2000);
-    }
-
-    function drawLine(p1, p2, color) {
-        ctx.beginPath();
-        ctx.moveTo(p1.x, p1.y);
-        ctx.lineTo(p2.x, p2.y);
-        ctx.strokeStyle = color;
-        ctx.lineWidth = 4;
-        ctx.lineCap = 'round';
-        ctx.shadowColor = color;
-        ctx.shadowBlur = 15;
-        ctx.stroke();
-    }
-
-    function clearBeam() {
-        ctx.clearRect(0, 0, elements.laserCanvas.width, elements.laserCanvas.height);
-    }
-    
-    function shake(el) {
-        el.animate([
-            { transform: 'translateX(0)' },
-            { transform: 'translateX(-6px)' },
-            { transform: 'translateX(6px)' },
-            { transform: 'translateX(0)' }
-        ], { duration: 200 });
-    }
-    
-    function logHistory(startLabel, endPos, colors) {
-        const exitLabel = getExitLabel(endPos);
-        const mixedColor = getMixedColor(colors);
-
-        const logEntry = document.createElement('div');
-        logEntry.className = 'log-entry';
-        
-        const swatch = document.createElement('div');
-        swatch.className = 'color-swatch';
-        swatch.style.backgroundColor = mixedColor.hex;
-        
-        const text = document.createElement('span');
-        text.textContent = `${startLabel} ➞ ${exitLabel} (${mixedColor.name})`;
-
-        logEntry.appendChild(swatch);
-        logEntry.appendChild(text);
-        elements.historyLog.prepend(logEntry);
-    }
-
-    function getExitLabel(pos) {
-        const {x, y} = pos;
-        const ix = Math.round(x), iy = Math.round(y);
-
-        if (iy <= 0) return `${ix}`;
-        if (iy >= C.BOARD_H) return ['I','J','K','L','M','N','O','P','Q','R'][ix - 1];
-        if (ix <= 0) return `${String.fromCharCode(65 + iy - 1)}`;
-        if (ix >= C.BOARD_W) return `${11 + iy - 1}`;
-        return '?';
-    }
-
-    function toggleSolution() {
-        const isVisible = elements.solutionContainer.style.display === 'block';
-        elements.solutionContainer.style.display = isVisible ? 'none' : 'block';
-    }
-
-    function showModal(title, text) {
-        elements.modalTitle.textContent = title;
-        elements.modalText.textContent = text;
-        elements.modal.style.display = 'flex';
-    }
-
-    function closeModal() {
-        elements.modal.style.display = 'none';
-    }
-    
-    // =================================================================================
-    // HELPERS & RESIZE
-    // =================================================================================
-
-    function snapshotFromElement(gem) {
-        const cell = getCellSize();
-        const rot = parseInt(gem.dataset.rotation) || 0;
-        
-        let left = gem.offsetLeft;
-        let top = gem.offsetTop;
-
-
+        // Visual compensation for rotation of non-square gems
         return {
             uniqueId: gem.id,
             id: gem.dataset.id,

@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LaTeX 문법 가이드</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&family=D2Coding&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <header class="main-header">
+        <div class="container">
+            <a href="index.html" class="logo">LaTeX Hub</a>
+            <nav class="main-nav">
+                <a href="index.html">홈</a>
+                <a href="syntax.html" class="active">문법</a>
+                <a href="setting.html">환경설정</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <h1 class="page-title">LaTeX 문법 가이드</h1>
+        <p class="page-subtitle">
+            자주 사용하는 LaTeX 문법을 카드 형태로 정리했습니다. 필요한 부분을 빠르게 찾아보세요.
+        </p>
+
+        <div class="card-container">
+            <!-- 문서 구조 -->
+            <div class="card">
+                <h3>문서 구조</h3>
+                <p>문서의 기본 골격을 정의합니다.</p>
+                <pre><code>\documentclass[12pt]{article}
+\usepackage{kotex}
+
+\title{제목}
+\author{작성자}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\section{섹션 제목}
+내용...
+
+\end{document}</code></pre>
+            </div>
+
+            <!-- 텍스트 서식 -->
+            <div class="card">
+                <h3>텍스트 서식</h3>
+                <p>글자를 꾸미는 다양한 방법입니다.</p>
+                <pre><code>\textbf{굵은 글씨}
+\textit{기울인 글씨}
+\underline{밑줄 글씨}
+
+{\small 작은 글씨}
+{\large 큰 글씨}
+
+\texttt{타자기 글씨}</code></pre>
+            </div>
+
+            <!-- 인라인 수식 -->
+            <div class="card">
+                <h3>인라인 수식</h3>
+                <p>문장 안에 자연스럽게 수식을 넣습니다.</p>
+                <pre><code>아인슈타인의 공식 $E=mc^2$는 유명하다.
+
+피타고라스 정리 $a^2+b^2=c^2$는 직각삼각형에 적용된다.</code></pre>
+            </div>
+
+            <!-- 디스플레이 수식 -->
+            <div class="card">
+                <h3>디스플레이 수식</h3>
+                <p>수식을 별도의 행으로 강조하여 표시합니다.</p>
+                <pre><code>\[ E=mc^2 \]
+
+\begin{equation}
+x = \frac{-b \pm \sqrt{b^2-4ac}}{2a}
+\end{equation}</code></pre>
+            </div>
+
+            <!-- 리스트 -->
+            <div class="card">
+                <h3>리스트</h3>
+                <p>순서가 있거나 없는 목록을 만듭니다.</p>
+                <pre><code>% 순서 없는 리스트
+\begin{itemize}
+  \item 항목 1
+  \item 항목 2
+\end{itemize}
+
+% 순서 있는 리스트
+\begin{enumerate}
+  \item 첫 번째
+  \item 두 번째
+\end{enumerate}</code></pre>
+            </div>
+
+            <!-- 테이블 -->
+            <div class="card">
+                <h3>테이블</h3>
+                <p>간단한 표를 만드는 방법입니다.</p>
+                <pre><code>\begin{tabular}{|l|c|r|}
+\hline
+ 왼쪽 & 중앙 & 오른쪽 \\
+ \hline
+ 1 & 2 & 3 \\
+ 4 & 5 & 6 \\
+\hline
+\end{tabular}</code></pre>
+            </div>
+
+             <!-- 이미지 포함 -->
+            <div class="card">
+                <h3>이미지 포함</h3>
+                <p>외부 이미지 파일을 문서에 추가합니다.</p>
+                <pre><code>% graphicx 패키지 필요
+\usepackage{graphicx}
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=0.8\textwidth]{imagename.png}
+  \caption{이미지 설명}
+  \label{fig:my_label}
+\end{figure}</code></pre>
+            </div>
+
+            <!-- 각주 및 인용 -->
+            <div class="card">
+                <h3>각주 및 인용</h3>
+                <p>부가 설명이나 출처를 표기합니다.</p>
+                <pre><code>이것은 예시입니다.\footnote{이것이 각주입니다.}
+
+"이것은 인용문입니다." \cite{source_key}</code></pre>
+            </div>
+        </div>
+    </main>
+
+</body>
+</html>
