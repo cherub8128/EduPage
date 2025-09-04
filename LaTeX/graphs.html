@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LaTeX 그래프 연동 가이드</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&family=Fira+Code&family=D2Coding&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <header class="main-header">
+        <div class="container header-content">
+            <a href="index.html" class="logo">LaTeX Hub</a>
+            <nav class="main-nav">
+                <a href="index.html">홈</a>
+                <a href="syntax.html">문법</a>
+                <a href="graphs.html" class="active">그래프</a>
+                <a href="setting.html">환경설정</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <div class="page-header">
+            <div class="container">
+                <h1>그래프 연동 가이드</h1>
+                <p class="subtitle">Matplotlib, MATLAB, Plotly 등에서 생성한 그래프를 LaTeX 문서에 최적의 품질로 삽입하는 방법을 알아봅니다.</p>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="card-grid">
+
+                <div class="card intro-card">
+                    <h2>그래프 삽입 방식: PGF vs PDF/SVG</h2>
+                    <p style="max-width: 70ch; margin: 1rem auto 0 auto;"><b>PGF</b>는 LaTeX 코드로 그래프를 그려 문서와 글꼴이 완벽히 통합되지만, 일부 프로그램에서만 지원합니다. <b>PDF/SVG</b>는 대부분의 프로그램에서 지원하는 벡터 형식으로, PGF만큼은 아니지만 매우 높은 품질을 보장합니다.</p>
+                </div>
+
+                <div class="card">
+                    <h3>1. Matplotlib (pyplot) &rarr; PGF</h3>
+                    <p>Python의 Matplotlib으로 그린 그래프를 <code>.pgf</code> 파일로 저장하는 방법입니다. <code>text.usetex</code> 설정을 활성화하는 것이 핵심입니다.</p>
+                    <div class="code-block-wrapper">
+                        <button class="copy-button">Copy</button>
+                        <pre><code>import matplotlib.pyplot as plt
+import numpy as np
+
+plt.rcParams.update({
+    "text.usetex": True,
+    "font.family": "serif",
+    "pgf.texsystem": "xelatex",
+    "pgf.preamble": "\\usepackage{kotex}"
+})
+
+x = np.linspace(0, 2 * np.pi, 100)
+plt.plot(np.sin(x), label="$\\sin(x)$")
+plt.title("Sine Wave (사인파)")
+plt.savefig("matplotlib_plot.pgf")</code></pre>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>2. MATLAB &rarr; PGF</h3>
+                    <p>MATLAB에서 그린 그래프를 <code>.pgf</code> 파일로 저장합니다. <code>print</code> 명령어에 <code>-dpgf</code> 옵션을 사용합니다.</p>
+                    <div class="code-block-wrapper">
+                        <button class="copy-button">Copy</button>
+                        <pre><code>x = linspace(0, 2*pi, 100);
+y = sin(x);
+plot(x, y);
+title('Sine Wave');
+print -dpgf matlab_plot.pgf</code></pre>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>3. Plotly &rarr; PDF / SVG</h3>
+                    <p>Plotly는 PGF를 직접 지원하지 않지만, 고품질 벡터 형식인 PDF나 SVG로 그래프를 내보낼 수 있습니다. PDF로 저장하려면 <code>kaleido</code> 패키지가 필요합니다. (<code>pip install kaleido</code>)</p>
+                    <div class="code-block-wrapper">
+                        <button class="copy-button">Copy</button>
+                        <pre><code>import plotly.graph_objects as go
+
+fig = go.Figure(data=go.Scatter(x=np.arange(10), y=np.arange(10)**2))
+fig.update_layout(title_text="Plotly Figure")
+
+# --- PDF 또는 SVG 파일로 저장 ---
+# fig.write_image("plotly_plot.svg")
+fig.write_image("plotly_plot.pdf")</code></pre>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>4. LaTeX 문서에 그래프 포함하기</h3>
+                    <p><code>pgf</code>와 <code>graphicx</code> 패키지를 사용하고, 파일 형식에 따라 <code>\input</code> 또는 <code>\includegraphics</code> 명령어로 파일을 불러옵니다.</p>
+                    <div class="code-block-wrapper">
+                        <button class="copy-button">Copy</button>
+                        <pre><code>\documentclass[12pt]{article}
+\usepackage{kotex}
+\usepackage{pgf}
+\usepackage{graphicx}
+
+\begin{document}
+
+% PGF 파일 포함 (Matplotlib, MATLAB)
+\begin{figure}[h!]
+  \centering
+  \input{matplotlib_plot.pgf}
+  \caption{Matplotlib PGF 그래프}
+\end{figure}
+
+% PDF/SVG 파일 포함 (Plotly)
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=0.8\textwidth]{plotly_plot.pdf}
+  \caption{Plotly PDF 그래프}
+\end{figure}
+
+\end{document}</code></pre>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>

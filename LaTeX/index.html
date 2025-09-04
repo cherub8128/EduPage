@@ -3,42 +3,59 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LaTeX 프로젝트 홈</title>
+    <title>LaTeX Hub</title>
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&family=Fira+Code&display=swap" rel="stylesheet">
 </head>
 <body>
 
     <header class="main-header">
-        <div class="container">
+        <div class="container header-content">
             <a href="index.html" class="logo">LaTeX Hub</a>
             <nav class="main-nav">
                 <a href="index.html" class="active">홈</a>
                 <a href="syntax.html">문법</a>
+                <a href="graphs.html">그래프</a>
                 <a href="setting.html">환경설정</a>
             </nav>
         </div>
     </header>
 
-    <main class="container">
-        <h1 class="page-title" style="margin-top: 3rem;">LaTeX 프로젝트에 오신 것을 환영합니다</h1>
-        <p class="page-subtitle">
-            이곳에서 LaTeX 관련 정보와 환경 설정 가이드, 그리고 자주 사용하는 문법 예제를 확인하실 수 있습니다.
-        </p>
-
-        <div class="card-container">
-            <div class="card">
-                <h3>LaTeX 문법 가이드</h3>
-                <p>문서 작성에 필수적인 LaTeX의 핵심 문법들을 기능별로 분류하여 정리했습니다. 수식, 표, 이미지 등 다양한 예제를 통해 빠르게 학습할 수 있습니다.</p>
-                <a href="syntax.html" style="display:inline-block; margin-top: 1rem; font-weight: 600;">문법 페이지로 이동 &rarr;</a>
+    <main>
+        <div class="page-header">
+            <div class="container">
+                <h1>LaTeX 정보의 모든 것</h1>
+                <p class="subtitle">문서 작성, 그래프 통합, 환경 설정까지. LaTeX 사용에 필요한 모든 정보를 한 곳에서 확인하세요.</p>
             </div>
-            <div class="card">
-                <h3>Windows 환경설정 가이드</h3>
-                <p>MiKTeX, VS Code, 그리고 Live Share를 사용하여 Windows에서 실시간 공동 작업을 위한 LaTeX 환경을 구축하는 방법을 단계별로 안내합니다.</p>
-                <a href="setting.html" style="display:inline-block; margin-top: 1rem; font-weight: 600;">환경설정 가이드 보기 &rarr;</a>
+        </div>
+
+        <div class="container">
+            <div class="card-grid">
+                <div class="card intro-card">
+                    <h2>빠른 시작</h2>
+                    <p>아래 링크를 통해 필요한 정보로 바로 이동할 수 있습니다.</p>
+                </div>
+                <div class="card">
+                    <h3>LaTeX 문법 가이드</h3>
+                    <p>문서 구조부터 고급 수식까지, 필수적인 LaTeX 문법을 다양한 예제와 함께 학습할 수 있습니다. 코드 복사 기능으로 편리하게 사용하세요.</p>
+                    <a href="syntax.html" style="font-weight: 600;">문법 가이드 보기 &rarr;</a>
+                </div>
+                <div class="card">
+                    <h3>그래프 연동 가이드</h3>
+                    <p>Python(Matplotlib)과 MATLAB에서 생성한 그래프를 벡터 형식(.pgf)으로 변환하여 LaTeX 문서에 완벽하게 통합하는 방법을 안내합니다.</p>
+                    <a href="graphs.html" style="font-weight: 600;">그래프 가이드 보기 &rarr;</a>
+                </div>
+                <div class="card">
+                    <h3>Windows 환경설정</h3>
+                    <p>MiKTeX와 VS Code를 사용하여 Windows PC에 LaTeX 협업 환경을 구축하는 방법을 단계별로 상세히 설명합니다.</p>
+                    <a href="setting.html" style="font-weight: 600;">환경설정 가이드 보기 &rarr;</a>
+                </div>
             </div>
         </div>
     </main>
 
+    <script src="script.js"></script>
 </body>
 </html>

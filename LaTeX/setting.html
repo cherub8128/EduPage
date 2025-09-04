@@ -3,116 +3,89 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Windows에서 MiKTeX, VS Code, Live Share로 LaTeX 환경 구축하기</title>
+    <title>LaTeX 환경설정 가이드</title>
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&family=D2Coding&display=swap" rel="stylesheet">
-    <!-- Code Syntax Highlighting (Prism.js) Theme -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&family=Fira+Code&family=D2Coding&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
 </head>
 <body>
 
     <header class="main-header">
-        <div class="container">
+        <div class="container header-content">
             <a href="index.html" class="logo">LaTeX Hub</a>
             <nav class="main-nav">
                 <a href="index.html">홈</a>
                 <a href="syntax.html">문법</a>
+                <a href="graphs.html">그래프</a>
                 <a href="setting.html" class="active">환경설정</a>
             </nav>
         </div>
     </header>
 
-    <header class="header">
-        <h1>Windows LaTeX 공동 작업 환경 구축</h1>
-        <p>MiKTeX, Visual Studio Code, Live Share를 활용한 완벽 가이드</p>
-        <div class="mt-12">
-            <a href="#step1" class="button">시작하기</a>
-        </div>
-    </header>
-
     <main>
-        <!-- 섹션 1: MiKTeX 설치 -->
-        <section id="step1" class="step-section">
-            <div class="card w-full max-w-5xl">
-                <div class="grid md:grid-cols-2 gap-12 items-center">
-                    <div>
-                        <p class="step-number">Step 1</p>
-                        <h2 class="text-3xl sm:text-4xl text-slate-800 mb-2">MiKTeX 설치하기</h2>
-                        <p class="mt-4 text-slate-600 leading-relaxed">MiKTeX는 LaTeX 문서를 PDF로 변환(컴파일)하는 데 필요한 모든 핵심 프로그램을 제공하는 '배포판'입니다.</p>
-                        <h3 class="text-xl text-slate-700 mt-8 mb-4 border-b border-slate-200 pb-2 font-bold">설치 과정</h3>
-                        <ol class="list-decimal list-inside space-y-4 text-slate-700">
-                            <li><strong>다운로드:</strong> 공식 사이트에서 설치 프로그램을 받으세요.</li>
-                            <li><strong>핵심 설정:</strong> 설치 중 <strong class="text-sky-600">'Install missing packages on-the-fly'를 'Yes'로 변경</strong>하여 패키지를 자동 설치하도록 설정하세요.</li>
-                        </ol>
-                    </div>
-                    <div class="text-center p-4">
-                        <img src="https://placehold.co/600x300/E2E8F0/0284C7?text=MiKTeX+%EC%84%A4%EC%B9%98+%ED%99%94%EB%A9%B4" alt="MiKTeX 설치 설정 화면 예시" class="rounded-lg shadow-md w-full mb-8">
-                        <a href="https://miktex.org/download" target="_blank" class="button">MiKTeX 다운로드</a>
-                    </div>
-                </div>
+        <div class="page-header">
+            <div class="container">
+                <h1>Windows LaTeX 협업 환경 구축</h1>
+                <p class="subtitle">MiKTeX, Visual Studio Code, Live Share를 활용하여 실시간으로 LaTeX 문서를 공동 편집할 수 있는 완벽한 환경을 설정하는 가이드입니다.</p>
             </div>
-        </section>
+        </div>
 
-        <!-- 섹션 2: VS Code 및 LaTeX Workshop 설치 -->
-        <section id="step2" class="step-section">
-            <div class="card w-full max-w-5xl text-center">
-                <p class="step-number">Step 2</p>
-                <h2 class="text-3xl sm:text-4xl text-slate-800 mb-2">VS Code &amp; LaTeX Workshop 설치</h2>
-                <p class="max-w-2xl mx-auto mt-4 text-slate-600 leading-relaxed">VS Code에 'LaTeX Workshop' 확장 프로그램을 설치하면, LaTeX 문서 작성부터 미리보기까지 모든 작업을 한 곳에서 해결할 수 있습니다.</p>
-                <div class="mt-8">
-                    <img src="https://placehold.co/600x250/E2E8F0/0284C7?text=VS+Code+%ED%99%95%EC%9E%A5+%ED%94%84%EB%A1%9C%EA%B7%B8%EB%9E%A8+%EA%B2%80%EC%83%89" alt="VS Code 확장 프로그램 마켓플레이스 검색 예시" class="rounded-lg shadow-md w-full max-w-2xl mx-auto">
-                    <p class="mt-6 text-sm text-slate-500">VS Code 확장 프로그램 탭(`Ctrl+Shift+X`)에서 `LaTeX Workshop`을 검색하여 설치하세요.</p>
+        <div class="container">
+            <div class="card-grid">
+
+                <div class="card">
+                    <h3>Step 1: MiKTeX 설치하기</h3>
+                    <p>MiKTeX는 LaTeX 문서를 PDF로 변환(컴파일)하는 데 필요한 모든 핵심 프로그램을 제공하는 '배포판'입니다. 패키지 자동 설치 기능이 가장 큰 장점입니다.</p>
+                    <ol>
+                        <li><strong>다운로드:</strong> <a href="https://miktex.org/download" target="_blank">공식 사이트</a>에서 설치 프로그램을 받으세요.</li>
+                        <li><strong>핵심 설정:</strong> 설치 중 'Install missing packages on-the-fly'를 <strong>'Yes'</strong>로 변경하여 필요한 패키지를 컴파일 시 자동으로 설치하도록 설정하세요.</li>
+                    </ol>
                 </div>
-            </div>
-        </section>
-        
-        <!-- 섹션 3: LaTeX Workshop 설정 (XeTeX 기본값) -->
-        <section id="step3" class="step-section">
-            <div class="card w-full max-w-5xl">
-                 <div class="grid md:grid-cols-2 gap-12 items-center">
-                    <div>
-                        <p class="step-number">Step 3</p>
-                        <h2 class="text-3xl sm:text-4xl text-slate-800 mb-2">XeTeX 기본 컴파일러 설정</h2>
-                        <p class="mt-4 text-slate-600 leading-relaxed">한글을 원활하게 사용하기 위해 `XeTeX` 컴파일러를 LaTeX Workshop의 기본값으로 설정합니다.</p>
-                        <h3 class="text-xl text-slate-700 mt-8 mb-4 border-b border-slate-200 pb-2 font-bold">설정 방법</h3>
-                        <ol class="list-decimal list-inside space-y-4 text-slate-700">
-                            <li>`Ctrl+Shift+P`로 `settings.json` 파일을 엽니다.</li>
-                            <li>아래 코드를 복사하여 붙여넣고 저장합니다.</li>
-                        </ol>
-                    </div>
-                    <div>
-<pre><code class="language-json">
-"latex-workshop.latex.tools": [
+
+                <div class="card">
+                    <h3>Step 2: VS Code & LaTeX Workshop</h3>
+                    <p>VS Code에 'LaTeX Workshop' 확장 프로그램을 설치하면, 코드 작성부터 실시간 미리보기, 컴파일까지 모든 작업을 한 곳에서 해결할 수 있습니다.</p>
+                    <p>VS Code 확장 프로그램 탭(<code>Ctrl+Shift+X</code>)에서 <code>LaTeX Workshop</code>을 검색하여 설치하세요.</p>
+                </div>
+
+                <div class="card">
+                    <h3>Step 3: XeTeX 기본 컴파일러 설정</h3>
+                    <p>한글을 원활하게 사용하고 다양한 폰트를 쉽게 적용하기 위해 <code>XeTeX</code> 컴파일러를 LaTeX Workshop의 기본값으로 설정합니다.</p>
+                    <p><code>Ctrl+Shift+P</code>로 VS Code의 설정 파일(<code>settings.json</code>)을 열고 아래 코드를 추가하세요.</p>
+                    <div class="code-block-wrapper">
+                        <button class="copy-button">Copy</button>
+                        <pre><code class="language-json">"latex-workshop.latex.tools": [
     {
         "name": "xelatex",
         "command": "xelatex",
-        "args": ["-synctex=1", "-interaction=nonstopmode", "-file-line-error", "%DOCFILE%"]
+        "args": [
+            "-synctex=1",
+            "-interaction=nonstopmode",
+            "-file-line-error",
+            "%DOCFILE%"
+        ]
     }
 ],
 "latex-workshop.latex.recipes": [
-    { "name": "xelatex", "tools": ["xelatex"] }
+    {
+        "name": "xelatex",
+        "tools": ["xelatex"]
+    }
 ],
-"latex-workshop.latex.recipe.default": "xelatex"
-</code></pre>
+"latex-workshop.latex.recipe.default": "xelatex"</code></pre>
                     </div>
                 </div>
-            </div>
-        </section>
 
-        <!-- 섹션 4: KoTeX 예제 만들어보기 -->
-        <section id="step4" class="step-section">
-            <div class="card w-full max-w-5xl">
-                <div class="text-center">
-                    <p class="step-number">Step 4</p>
-                    <h2 class="text-3xl sm:text-4xl text-slate-800 mb-2">한글(KoTeX) 예제 만들기</h2>
-                    <p class="max-w-2xl mx-auto mt-4 text-slate-600 leading-relaxed">`example.tex` 파일을 만들고 아래 코드를 붙여넣은 후, 빌드(`Ctrl+Alt+B`)하여 한글 PDF가 잘 생성되는지 확인해 보세요.</p>
-                </div>
-                <div class="grid md:grid-cols-2 gap-8 mt-8 items-start">
-                    <div class="relative">
-                        <pre style="max-height: 400px; margin: 0;"><code id="latex-code-block" class="language-latex">
-% !TEX program = xelatex
+                <div class="card">
+                    <h3>Step 4: 한글(KoTeX) 예제 만들기</h3>
+                    <p><code>example.tex</code> 파일을 만들고 아래 코드를 붙여넣은 후, 빌드(<code>Ctrl+Alt+B</code>)하여 한글 PDF가 잘 생성되는지 확인해 보세요.</p>
+                    <div class="code-block-wrapper">
+                        <button class="copy-button">Copy</button>
+                        <pre><code id="latex-code-block" class="language-latex">% !TEX program = xelatex
 \documentclass[12pt]{article}
-\usepackage{amsmath} % For advanced math typesetting
+\usepackage{amsmath}
 \usepackage{kotex}
 
 % --- 폰트 설정 (사용자 환경에 맞는 폰트 필요) ---
@@ -122,89 +95,32 @@
 \setmonofont{D2Coding}
 
 \title{수학 논문 예시}
-\author{김민준}
+\author{차형준}
 \date{\today}
 
 \begin{document}
 \maketitle
 
 \section{서론}
-LaTeX는 복잡한 수식을 간결하고 아름답게 표현하는 데 매우 강력한 도구입니다. 
-예를 들어, 아인슈타인의 유명한 질량-에너지 등가 원리인 $E=mc^2$와 같은 
-인라인 수식도 쉽게 작성할 수 있습니다.
+LaTeX는 복잡한 수식을 간결하고 아름답게 표현하는 데 매우 강력한 도구입니다. 예를 들어, 아인슈타인의 유명한 질량-에너지 등가 원리인 $E=mc^2$와 같은 인라인 수식도 쉽게 작성할 수 있습니다.
 
-\section{이차방정식의 근의 공식}
-수식 블록을 사용하여 더 복잡한 공식을 표현할 수 있습니다. 
-이차방정식 $ax^2 + bx + c = 0$ ($a \ne 0$)의 해는 근의 공식을 통해 
-구할 수 있으며, 이는 다음과 같습니다.
-\begin{equation}
-x = \frac{-b \pm \sqrt{b^2-4ac}}{2a}
-\end{equation}
-이 공식은 수학의 여러 분야에서 매우 중요하게 사용됩니다.
-
-\end{document}
-</code></pre>
-                        <button id="copy-button" class="absolute top-3 right-3 bg-slate-700 hover:bg-slate-600 text-white font-semibold py-1 px-3 rounded-md text-sm transition-colors duration-200 z-10">
-                            복사
-                        </button>
-                    </div>
-                    <div class="text-center">
-                        <img src="https://placehold.co/600x400/E2E8F0/0284C7?text=LaTeX+PDF+%EB%AF%B8%EB%A6%AC%EB%B3%B4%EA%B8%B0" alt="VS Code에서 tex 코드와 컴파일된 PDF가 나란히 보이는 화면" class="rounded-lg shadow-md w-full">
+\end{document}</code></pre>
                     </div>
                 </div>
-            </div>
-        </section>
 
-        <!-- 섹션 5: Live Share로 공동 작업하기 -->
-        <section id="step5" class="step-section">
-            <div class="card w-full max-w-5xl text-center">
-                <p class="step-number">Step 5</p>
-                <h2 class="text-3xl sm:text-4xl text-slate-800 mb-2">Live Share로 공동 작업</h2>
-                <p class="max-w-2xl mx-auto mt-4 text-slate-600 leading-relaxed">VS Code의 `Live Share` 확장 프로그램을 설치하고 로그인하면, 초대 링크 하나로 다른 사람과 실시간 문서 공동 편집이 가능합니다.</p>
-                <div class="note max-w-3xl mx-auto text-left">
+                <div class="card">
+                    <h3>Step 5: Live Share로 공동 작업</h3>
+                    <p>VS Code의 <code>Live Share</code> 확장 프로그램을 설치하고 로그인하면, 초대 링크 하나로 다른 사람과 실시간으로 문서를 함께 편집할 수 있습니다.</p>
                     <p><strong>핵심 기능:</strong> 호스트만 LaTeX 컴파일 환경이 구축되어 있으면 됩니다. 참여자는 LaTeX 설치 없이도 공동 편집 및 PDF 결과 확인이 가능하여 협업이 매우 간편해집니다.</p>
                 </div>
-                 <div class="mt-8">
-                     <img src="https://placehold.co/600x200/E2E8F0/0284C7?text=Live+Share+%EC%84%B8%EC%85%98+%EC%8B%9C%EC%9E%91" alt="VS Code Live Share 시작 버튼" class="rounded-lg shadow-md w-full max-w-2xl mx-auto">
-                     <p class="mt-6 text-sm text-slate-500">왼쪽 하단 'Live Share' 버튼으로 세션을 시작하고 링크를 공유하세요.</p>
-                 </div>
-            </div>
-        </section>
-    </main>
-    
-    <footer class="text-center py-10">
-        <p class="text-slate-500">이 가이드와 함께 즐거운 LaTeX 문서 작업을 경험해 보세요!</p>
-    </footer>
 
-    <!-- Code Syntax Highlighting (Prism.js) Scripts -->
+            </div>
+        </div>
+    </main>
+
+    <script src="script.js"></script>
+    <!-- Prism JS for syntax highlighting in setting.html code blocks -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const copyButton = document.getElementById('copy-button');
-            const codeBlock = document.getElementById('latex-code-block');
-
-            if (copyButton && codeBlock) {
-                copyButton.addEventListener('click', () => {
-                    navigator.clipboard.writeText(codeBlock.innerText).then(() => {
-                        copyButton.textContent = '복사 완료!';
-                        copyButton.classList.add('bg-green-600');
-                        setTimeout(() => {
-                            copyButton.textContent = '복사';
-                            copyButton.classList.remove('bg-green-600');
-                        }, 2000);
-                    }).catch(err => {
-                        console.error('클립보드 복사에 실패했습니다:', err);
-                        copyButton.textContent = '복사 실패';
-                         setTimeout(() => {
-                            copyButton.textContent = '복사';
-                        }, 2000);
-                    });
-                });
-            }
-        });
-    </script>
 </body>
 </html>
-
