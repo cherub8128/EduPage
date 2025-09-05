@@ -117,17 +117,16 @@
     <main class="container mx-auto px-6 py-12">
         <p class="text-center text-lg text-gray-600 mb-12">"수학은 보이지 않는 것을 보는 예술이다." - 이 수업을 통해 커피잔 속에서 아름다운 수학을 발견해 봅시다.</p>
 
-        <!-- Step 1 to 3 -->
+        <!-- Step 1: Observation -->
         <section id="step1" class="mb-16">
             <div class="step-card bg-white p-8 rounded-xl shadow-lg">
                 <h2 class="text-3xl font-bold mb-4 border-b-2 border-blue-200 pb-2">Step 1: 현상 관찰 및 문제 발견</h2>
                 <p class="mb-6 text-gray-600">스마트폰 플래시를 이용해 커피잔 안쪽에 빛을 비추고, 바닥에 생기는 밝은 무늬(Caustic)를 관찰해 봅시다.</p>
                 <div class="grid md:grid-cols-2 gap-8">
                     <div>
-                        <label for="image-upload" class="block text-lg font-semibold mb-2">📸 관찰 사진 업로드</label>
-                        <input type="file" id="image-upload" accept="image/*" class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                        <h3 class="block text-lg font-semibold mb-2">📸 관찰 예시 사진</h3>
                         <div class="mt-4 border rounded-lg p-4 bg-gray-50 min-h-[200px] flex items-center justify-center">
-                            <img id="image-preview" src="https://placehold.co/400x300/e2e8f0/64748b?text=사진+미리보기" alt="관찰 사진 미리보기" class="max-w-full max-h-64 rounded-md">
+                            <img id="image-preview" src="https://i.stack.imgur.com/93oA9.jpeg" alt="커피잔 속 Caustic 현상 예시" class="max-w-full max-h-64 rounded-md">
                         </div>
                     </div>
                     <div>
@@ -138,6 +137,7 @@
             </div>
         </section>
 
+        <!-- Step 2: Modeling -->
         <section id="step2" class="mb-16">
             <div class="step-card bg-white p-8 rounded-xl shadow-lg">
                 <h2 class="text-3xl font-bold mb-4 border-b-2 border-green-200 pb-2">Step 2: 반사 광선 수학적 모델링</h2>
@@ -167,6 +167,7 @@
             </div>
         </section>
 
+        <!-- Step 3: Epicycloid -->
         <section id="step3" class="mb-16">
              <div class="step-card bg-white p-8 rounded-xl shadow-lg">
                 <h2 class="text-3xl font-bold mb-4 border-b-2 border-purple-200 pb-2">Step 3: 포락선과 에피사이클로이드</h2>
@@ -205,43 +206,49 @@
             </div>
         </section>
 
-        <!-- NEW Step 4: Simulation Tools -->
+        <!-- Step 4: Simulation Tools -->
         <section id="step4" class="mb-16">
             <div class="step-card bg-white p-8 rounded-xl shadow-lg">
                 <h2 class="text-3xl font-bold mb-4 border-b-2 border-teal-200 pb-2">Step 4: 공학 도구로 시뮬레이션하기</h2>
                 <p class="mb-6 text-gray-600">GeoGebra, Python, MATLAB 등 다양한 공학 도구를 사용하여 우리가 유도한 Caustic Curve를 직접 그려보고 탐구해 봅시다.</p>
                 
-                <!-- Tabs -->
                 <div class="mb-4 border-b border-gray-200">
                     <nav class="-mb-px flex space-x-8" aria-label="Tabs">
-                        <button class="tab-button active whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" data-tab="geogebra1">GeoGebra</button>
-                        <button class="tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300" data-tab="geogebra2">GeoGebra(수식)</button>
+                        <button class="tab-button active whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" data-tab="geogebra1">GeoGebra (도구)</button>
+                        <button class="tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300" data-tab="geogebra2">GeoGebra (수식)</button>
                         <button class="tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300" data-tab="python">Python</button>
                         <button class="tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300" data-tab="matlab">MATLAB</button>
                     </nav>
                 </div>
 
-                <!-- Tab Content -->
                 <div>
                     <div id="geogebra1" class="tab-content active">
-                        <h3 class="text-xl font-semibold mb-2">GeoGebra로 포락선 그리기(움직임)</h3>
-                        <p class="mb-4 text-gray-600">GeoGebra의 자취 기능을 이용하면 반사 광선들이 만드는 포락선을 동적으로 확인할 수 있습니다.</p>
-                        <ol class="list-decimal list-inside space-y-2 bg-gray-50 p-4 rounded-md">
-                            <li><strong class="font-semibold"></strong></li>
-                            <li><strong class="font-semibold"></strong></li>
-                            <li><strong class="font-semibold"></strong></li>
-                            <li><strong class="font-semibold"></strong></li>
-                        </ol>
+                        <h3 class="text-xl font-semibold mb-2">GeoGebra로 포락선 그리기 (도구 활용)</h3>
+                        <p class="mb-4 text-gray-600">GeoGebra의 도구를 이용해 커피잔에서 반사되는 빛을 구현해 봅시다.</p>
+                        <div class="grid md:grid-cols-2 gap-8">
+                            <ol class="list-decimal list-inside space-y-2 bg-gray-50 p-4 rounded-md">
+                                <li><strong class="font-semibold">도구 펼치기:</strong> <code>도구</code> ➡️ <code>펼치기</code> 버튼 클릭</li>
+                                <li><strong class="font-semibold">원 그리기:</strong> <code>원:중심과 반지름</code> ➡️ 원점 클릭 후 (1,0) 클릭</li>
+                                <li><strong class="font-semibold">원 위의 점 찍기:</strong> <code>대상 위의 점</code> ➡️ 원 위의 한 점 클릭 (점 A)</li>
+                                <li><strong class="font-semibold">수평선 그리기:</strong> <code>평행선</code> ➡️ x축 클릭 ➡️ 점 A 클릭</li>
+                                <li><strong class="font-semibold">접선 그리기:</strong> <code>접선</code> ➡️ 점 A 클릭 ➡️ 원 클릭</li>
+                                <li><strong class="font-semibold">반사선 그리기:</strong> <code>직선에 대하여 대칭</code> ➡️ 수평선 클릭 ➡️ 접선 클릭</li>
+                                <li><strong class="font-semibold">자취 보이기:</strong> 반사선 오른쪽 클릭 ➡️ <code>자취 보이기</code> 체크</li>
+                                <li><strong class="font-semibold">애니메이션:</strong> 점 A 오른쪽 클릭 ➡️ <code>애니메이션</code> 실행</li>
+                            </ol>
+                            <div class="flex items-center justify-center">
+                                <img src="https://placehold.co/400x300/e2e8f0/64748b?text=GeoGebra+%EC%98%88%EC%8B%9C+%EC%82%AC%EC%A7%84" alt="GeoGebra 자취 기능 예시" class="rounded-lg shadow-md">
+                            </div>
+                        </div>
                     </div>
                     <div id="geogebra2" class="tab-content">
-                        <h3 class="text-xl font-semibold mb-2">GeoGebra로 포락선 그리기(수식)</h3>
+                        <h3 class="text-xl font-semibold mb-2">GeoGebra로 포락선 그리기 (수식 활용)</h3>
                         <p class="mb-4 text-gray-600">GeoGebra의 자취 기능을 이용하면 반사 광선들이 만드는 포락선을 동적으로 확인할 수 있습니다.</p>
                         <ol class="list-decimal list-inside space-y-2 bg-gray-50 p-4 rounded-md">
                             <li><strong class="font-semibold">슬라이더 만들기:</strong> <code>슬라이더</code> 도구로 변수 \(\theta\)를 \(0\)에서 \(2\pi\) 범위로 만듭니다.</li>
                             <li><strong class="font-semibold">원과 반사점 생성:</strong> <code>x^2 + y^2 = 1</code>로 원을 그리고, <code>P = (cos(θ), sin(θ))</code>로 반사점을 만듭니다.</li>
                             <li><strong class="font-semibold">반사 광선 그리기:</strong> <code>y - sin(θ) = tan(2θ) * (x - cos(θ))</code>를 입력합니다.</li>
                             <li><strong class="font-semibold">자취 그리기:</strong> <code>자취</code> 도구를 선택 후, 반사 광선을 클릭하고 이어서 \(\theta\) 슬라이더를 클릭합니다. 슬라이더를 움직이면 Caustic Curve가 그려집니다.</li>
-                            <li><strong class="font-semibold">반사 광선의 직선의 방정식이 어떻게 유도되는지 생각해봅시다.</li>
                         </ol>
                     </div>
                     <div id="python" class="tab-content">
@@ -308,8 +315,7 @@ hold off;
             </div>
         </section>
 
-
-        <!-- RE-NUMBERED Step 5: Deep Dive -->
+        <!-- Step 5: Deep Dive -->
         <section id="step5">
             <div class="step-card bg-white p-8 rounded-xl shadow-lg">
                 <h2 class="text-3xl font-bold mb-4 border-b-2 border-yellow-200 pb-2">Step 5: 나만의 심화 탐구 설계하기</h2>
@@ -359,16 +365,6 @@ hold off;
             });
         });
 
-        // Image Preview
-        const imageUpload = document.getElementById('image-upload');
-        const imagePreview = document.getElementById('image-preview');
-        imageUpload.addEventListener('change', (event) => {
-            const file = event.target.files[0];
-            if (file) {
-                imagePreview.src = URL.createObjectURL(file);
-            }
-        });
-        
         // Copy plan to clipboard
         const copyBtn = document.getElementById('copy-plan');
         const copyInfo = document.getElementById('copy-info');
@@ -561,3 +557,4 @@ hold off;
     </script>
 </body>
 </html>
+
