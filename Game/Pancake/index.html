@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>부침개 뒤집기 – Matter.js 데모</title>
+    <style>
+      html, body { height: 100%; margin: 0; background:#0b1020; color:#e8ecf1; font-family: system-ui, -apple-system, Segoe UI, Roboto, Noto Sans, sans-serif; }
+      #ui { position: fixed; left: 16px; top: 16px; padding: 12px 14px; background: rgba(0,0,0,.45); border:1px solid rgba(255,255,255,.12); border-radius: 12px; backdrop-filter: blur(6px); }
+      #ui h1 { margin: 0 0 6px; font-size: 18px; font-weight: 700; }
+      #ui p { margin: 6px 0; font-size: 13px; line-height: 1.5; opacity: .9; }
+      #footer { position: fixed; right: 12px; bottom: 8px; font-size: 12px; opacity: .6; }
+      canvas { outline: none; display: block; }
+    </style>
+    <!-- Matter.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/matter-js@0.19.0/build/matter.min.js"></script>
+  </head>
+  <body>
+    <div id="ui">
+      <h1>부침개 뒤집기 (2D 사이드뷰)</h1>
+      <p>←/→: 팬 좌우 이동 · ↑/↓: 팬 회전(−80°~80°)<br/>
+         Space: 팬을 위로 살짝 들었다가 원위치(빠른 탭)<br/>
+         R: 리셋, G: 중력 토글</p>
+      <p>부침개: 1열 체인(입자+조인트), 탄성 0, 굽힘 보강(i–i+2 & i–i+3)</p>
+      <p>Tip: 각도를 살짝 주고 Space를 짧게 탭!</p>
+    </div>
+    <div id="footer">Matter.js 물리 시뮬레이션 • 최종 버전</div>
+
+    <script>
+      const { Engine, Render, Runner, World, Bodies, Body, Constraint, Events } = Matter;
+
+      // ===== 엔진/렌더러 =====
+      const engine = Engine.create();
+      engine.positionIterations = 12; // 안정성 ↑ (기본 6)
+      engine.velocityIterations = 8;  // 안정성 ↑ (기본 4)
+      engine.constraintIterations = 4; // 0.19+에서 동작 (없어도 무해)
+      engine.gravity.y = 1.2; // 사이드뷰 느낌
+
+      const W = window.innerWidth;
+      const H = window.innerHeight;
+
+      const render = Render.create({
+        element: document.body,
+        engine,
+        options: {
+          width: W,
+          height: H,
+          wireframes: false,
+          background: '#0b1020'
+        }
+      });
+      Render.run(render);
+      const runner = Runner.create();
+      Runner.run(runner, engine);
+
+      const world = engine.world;
+
+      // ===== 월드 경계 =====
+      const thickness = 80;
+      const ground = Bodies.rectangle(W/2, H + thickness/2, W * 2, thickness, { isStatic: true, render: { fillStyle: '#0f172a' } });
+      const ceil   = Bodies.rectangle(W/2, -thickness/2, W * 2, thickness, { isStatic: true, render: { fillStyle: '#0f172a' } });
+      const wallL  = Bodies.rectangle(-thickness/2, H/2, thickness, H * 2, { isStatic: true, render: { fillStyle: '#0f172a' } });
+      const wallR  = Bodies.rectangle(W + thickness/2, H/2, thickness, H * 2, { isStatic: true, render: { fillStyle: '#0f172a' } });
+      World.add(world, [ground, ceil, wallL, wallR]);
+
+      // ===== 프라이팬(합성 바디) + 피벗 =====
+      const anchor = { x: W * 0.5, y: H * 0.65 };
+
+      const panBottom = Bodies.rectangle(anchor.x, anchor.y, 260, 20, {
+        chamfer: { radius: 10 },
+        render: { fillStyle: '#2d2d2d' }
+      });
+      const panSideL = Bodies.rectangle(anchor.x - 130, anchor.y - 36, 20, 100, {
+        angle: -0.6,
+        chamfer: { radius: 10 },
+        render: { fillStyle: '#2d2d2d' }
+      });
+      const panSideR = Bodies.rectangle(anchor.x + 130, anchor.y - 36, 20, 100, {
+        angle: 0.6,
+        chamfer: { radius: 10 },
+        render: { fillStyle: '#2d2d2d' }
+      });
+
+      let pan = Body.create({
+        parts: [panBottom, panSideL, panSideR],
+        friction: 0.4,
+        frictionStatic: 0.8,
+        frictionAir: 0.02,
+        restitution: 0.08,
+        render: { fillStyle: '#262626', strokeStyle:'#111', lineWidth: 1 }
+      });
+
+      const pivot = Constraint.create({
+        pointA: { x: anchor.x, y: anchor.y },
+        bodyB: pan,
+        pointB: { x: 0, y: 0 },
+        length: 0,
+        stiffness: 1.0,
+        damping: 0.25
+      });
+      World.add(world, [pan, pivot]);
+
+      // ===== 컨트롤 상태 =====
+      let anchorTargetX = anchor.x;
+      const baseAnchorY = anchor.y;
+      let anchorYOffset = 0; // Space 들기
+
+      const DEG2RAD = Math.PI / 180;
+      let desiredAngle = 0; // 라디안
+      const MIN_ANGLE = -80 * DEG2RAD;
+      const MAX_ANGLE =  80 * DEG2RAD;
+
+      const MOVE_SPEED = 8;             // 좌우 이동 속도(px/틱)
+      const ROT_SPEED  = 1.8 * DEG2RAD; // 회전 속도(rad/틱)
+
+      // ===== 부침개(한 줄 체인) =====
+      const PANCAKE_CONF = {
+        length: 260,
+        segments: 18,          // 자유도↓ → 덜 휘어짐
+        particleRadius: 6,
+        density: 0.0012,
+        friction: 0.9,
+        frictionStatic: 1.0,
+        linkStiffness: 0.98,
+        linkDamping: 0.28,
+        bendStiffness: 0.9,    // i–i+2 보강
+        bendDamping: 0.25,
+        thirdStiffness: 0.7,   // i–i+3 추가 보강
+        thirdDamping: 0.22
+      };
+
+      let pancake = { nodes: [], constraints: [] };
+      // 체인 내부 자가충돌 비활성화(음수 그룹)
+      const chainGroup = Body.nextGroup(true);
+
+      function buildPancake() {
+        teardownPancake();
+        const cfg = PANCAKE_CONF;
+        const n = cfg.segments + 1;
+        const step = cfg.length / cfg.segments;
+        const y = anchor.y - 52;
+        const startX = anchor.x - cfg.length / 2;
+
+        const nodes = [];
+        for (let i = 0; i < n; i++) {
+          const node = Bodies.circle(startX + i * step, y, cfg.particleRadius, {
+            density: cfg.density,
+            friction: cfg.friction,
+            frictionStatic: cfg.frictionStatic,
+            frictionAir: 0.012, // 진동 억제
+            restitution: 0,     // 튀지 않음
+            collisionFilter: { group: chainGroup },
+            render: { fillStyle: '#d6a86e', strokeStyle: '#8a5a2f', lineWidth: 1 }
+          });
+          nodes.push(node);
+        }
+
+        const cons = [];
+        // 1) 인접 링크 (i - i+1)
+        for (let i = 0; i < n - 1; i++) {
+          cons.push(Constraint.create({
+            bodyA: nodes[i], bodyB: nodes[i + 1],
+            length: step,
+            stiffness: cfg.linkStiffness,
+            damping: cfg.linkDamping,
+            render: { visible: false }
+          }));
+        }
+        // 2) 굽힘 보강 (i - i+2)
+        for (let i = 0; i < n - 2; i++) {
+          cons.push(Constraint.create({
+            bodyA: nodes[i], bodyB: nodes[i + 2],
+            length: step * 2,
+            stiffness: cfg.bendStiffness,
+            damping: cfg.bendDamping,
+            render: { visible: false }
+          }));
+        }
+        // 3) 추가 보강 (i - i+3)
+        for (let i = 0; i < n - 3; i++) {
+          cons.push(Constraint.create({
+            bodyA: nodes[i], bodyB: nodes[i + 3],
+            length: step * 3,
+            stiffness: cfg.thirdStiffness,
+            damping: cfg.thirdDamping,
+            render: { visible: false }
+          }));
+        }
+
+        pancake.nodes = nodes;
+        pancake.constraints = cons;
+        World.add(world, nodes);
+        World.add(world, cons);
+      }
+
+      function teardownPancake() {
+        if (pancake.nodes.length) World.remove(world, pancake.nodes);
+        if (pancake.constraints.length) World.remove(world, pancake.constraints);
+        pancake.nodes = []; pancake.constraints = [];
+      }
+
+      function resetPancake() { buildPancake(); }
+      buildPancake();
+
+      // ===== 입력 처리 =====
+      const keys = Object.create(null);
+      window.addEventListener('keydown', (e) => {
+        keys[e.code] = true;
+        if (['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Space'].includes(e.code)) e.preventDefault();
+        if (e.code === 'Space') toss();
+        if (e.code === 'KeyR') resetAll();
+        if (e.code === 'KeyG') toggleGravity();
+      });
+      window.addEventListener('keyup', (e) => { keys[e.code] = false; });
+
+      // ===== 업데이트 루프 =====
+      Events.on(engine, 'beforeUpdate', () => {
+        // 좌우 이동 (Anchor 이동 → 피벗이 따라감)
+        if (keys['ArrowLeft'] || keys['KeyA'])  anchorTargetX -= MOVE_SPEED;
+        if (keys['ArrowRight']|| keys['KeyD'])  anchorTargetX += MOVE_SPEED;
+        const margin = 120; // 화면 가장자리 여유
+        anchorTargetX = Math.max(margin, Math.min(W - margin, anchorTargetX));
+        anchor.x = anchorTargetX;
+        pivot.pointA.x = anchorTargetX;
+        pivot.pointA.y = baseAnchorY + anchorYOffset;
+
+        // 회전 (−80° ~ 80°로 클램프)
+        if (keys['ArrowUp']   || keys['KeyW']) desiredAngle -= ROT_SPEED;
+        if (keys['ArrowDown'] || keys['KeyS']) desiredAngle += ROT_SPEED;
+        if (desiredAngle < MIN_ANGLE) desiredAngle = MIN_ANGLE;
+        if (desiredAngle > MAX_ANGLE) desiredAngle = MAX_ANGLE;
+        Body.setAngle(pan, desiredAngle);
+        Body.setAngularVelocity(pan, 0); // 드리프트 억제
+      });
+
+      // ===== 액션 =====
+      let lastToss = 0, bumping = false;
+      function toss() {
+        const now = performance.now();
+        if (now - lastToss < 180) return; // 쿨다운 (ms)
+        lastToss = now;
+        if (bumping) return;
+        bumping = true;
+        anchorYOffset = -24; // 위로 살짝 들기
+        setTimeout(() => { anchorYOffset = 0; bumping = false; }, 120); // 원위치
+      }
+
+      function resetAll() {
+        // 팬 리셋
+        anchorTargetX = W * 0.5;
+        anchor.x = anchorTargetX;
+        pivot.pointA.x = anchorTargetX;
+        anchorYOffset = 0;
+
+        desiredAngle = 0;
+        Body.setPosition(pan, { x: anchor.x, y: baseAnchorY });
+        Body.setVelocity(pan, { x: 0, y: 0 });
+        Body.setAngularVelocity(pan, 0);
+        Body.setAngle(pan, 0);
+
+        // 부침개 리셋 (소프트바디 재구성)
+        resetPancake();
+      }
+
+      function toggleGravity() {
+        engine.gravity.y = engine.gravity.y !== 0 ? 0 : 1.2;
+      }
+
+      // ===== 리사이즈 대응(간단) =====
+      window.addEventListener('resize', () => {
+        render.canvas.width = window.innerWidth;
+        render.canvas.height = window.innerHeight;
+        render.options.width = window.innerWidth;
+        render.options.height = window.innerHeight;
+      });
+
+      // (옵션) 향후: 슬라이더 UI로 강성/감쇠/세그먼트 조절 가능
+    </script>
+  </body>
+</html>

@@ -1,0 +1,121 @@
+body {
+    margin: 0;
+    font-family: 'Orbitron', sans-serif;
+    background-color: #0a0a1a;
+    color: #e0e0ff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    overflow: hidden;
+    position: relative;
+}
+
+body::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: linear-gradient(45deg, rgba(255, 0, 255, 0.1), rgba(0, 255, 255, 0.1));
+    pointer-events: none;
+    animation: background-pan 15s linear infinite;
+}
+
+@keyframes background-pan {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+.container {
+    text-align: center;
+    z-index: 1;
+}
+
+header h1 {
+    font-size: 3.5rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 5px;
+    color: #fff;
+    text-shadow:
+        0 0 5px #fff,
+        0 0 10px #fff,
+        0 0 20px #0ff,
+        0 0 30px #0ff,
+        0 0 40px #0ff;
+    animation: flicker 3s infinite alternate;
+}
+
+@keyframes flicker {
+    0%, 18%, 22%, 25%, 53%, 57%, 100% {
+        text-shadow:
+            0 0 4px #fff,
+            0 0 11px #fff,
+            0 0 19px #fff,
+            0 0 40px #0ff,
+            0 0 80px #0ff,
+            0 0 90px #0ff,
+            0 0 100px #0ff,
+            0 0 150px #0ff;
+    }
+    20%, 24%, 55% {        
+        text-shadow: none;
+    }
+}
+
+.game-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 3rem;
+    margin-top: 4rem;
+}
+
+.game-card {
+    position: relative;
+    background: rgba(10, 20, 40, 0.6);
+    border: 2px solid rgba(0, 255, 255, 0.5);
+    border-radius: 15px;
+    padding: 2rem;
+    text-decoration: none;
+    color: #e0e0ff;
+    transform-style: preserve-3d;
+    transition: transform 0.5s, box-shadow 0.5s;
+    backdrop-filter: blur(5px);
+    box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+}
+
+.game-card:hover {
+    transform: perspective(1000px) rotateY(10deg) rotateX(5deg) scale(1.05);
+    box-shadow: 0 0 35px rgba(0, 255, 255, 0.8);
+}
+
+.card-content h2 {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    color: #fff;
+    text-transform: uppercase;
+}
+
+.card-content p {
+    font-size: 1rem;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.4;
+}
+
+/* Specific card styling for visual flair */
+#orapha-mine:hover {
+    box-shadow: 0 0 35px rgba(255, 100, 255, 0.8);
+}
+#orapha-mine {
+     border-color: rgba(255, 100, 255, 0.5);
+}
+
+@media (max-width: 768px) {
+    .game-grid {
+        grid-template-columns: 1fr;
+    }
+    header h1 {
+        font-size: 2.5rem;
+    }
+}
