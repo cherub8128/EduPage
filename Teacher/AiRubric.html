@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 기반 탐구 보고서 피드백 시스템</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700&display=swap');
+        body {
+            font-family: 'Pretendard', sans-serif;
+        }
+        .radar-container {
+            width: 100%;
+            max-width: 450px;
+            margin: auto;
+        }
+        .page {
+            display: none;
+        }
+        .page.active {
+            display: block;
+        }
+        .loader {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #3498db;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .toast {
+            visibility: hidden;
+            min-width: 250px;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 8px;
+            padding: 16px;
+            position: fixed;
+            z-index: 100;
+            left: 50%;
+            bottom: 30px;
+            transform: translateX(-50%);
+            font-size: 17px;
+            opacity: 0;
+            transition: opacity 0.5s, visibility 0.5s;
+        }
+        .toast.show {
+            visibility: visible;
+            opacity: 1;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <!-- Toast Message -->
+    <div id="toast" class="toast">메시지</div>
+
+    <!-- Login Page -->
+    <div id="login-page" class="page active min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-100 to-indigo-200 p-4">
+        <div class="w-full max-w-md bg-white rounded-2xl shadow-xl p-8 space-y-6 text-center">
+            <div class="mx-auto w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center">
+                <i class="fa-solid fa-flask-vial text-4xl text-blue-500"></i>
+            </div>
+            <h1 class="text-3xl font-bold text-gray-900">AI 탐구 보고서 피드백</h1>
+            <p class="text-gray-600">이름과 역할을 선택하여 시작하세요.</p>
+            
+            <form id="login-form" class="space-y-6">
+                <div>
+                    <label for="name-input" class="sr-only">이름</label>
+                    <input type="text" id="name-input" placeholder="이름을 입력하세요" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 transition" required>
+                </div>
+                <div>
+                    <label for="role-select" class="sr-only">역할</label>
+                    <select id="role-select" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 transition bg-white">
+                        <option value="student">학생</option>
+                        <option value="teacher">교사</option>
+                    </select>
+                </div>
+                <div id="password-field" class="hidden">
+                    <label for="password-input" class="sr-only">비밀번호</label>
+                    <input type="password" id="password-input" placeholder="비밀번호를 입력하세요" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+                </div>
+                <button type="submit" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    시작하기 <i class="fa-solid fa-arrow-right ml-2"></i>
+                </button>
+            </form>
+            <div class="text-xs text-gray-500 pt-4 border-t mt-6">
+                <p><i class="fa-solid fa-brain mr-1"></i>Powered by Gemma 3</p>
+                <p class="mt-1">본 서비스는 Google의 Gemma 3 모델을 기반으로 시뮬레이션됩니다. 실제 AI API 호출 없이, 업로드된 텍스트를 분석하여 교육적 피드백을 생성하는 과정을 모의 실험합니다.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Student Page -->
+    <div id="student-page" class="page">
+        <header class="bg-white shadow-md p-4 flex justify-between items-center sticky top-0 z-10">
+            <h1 class="text-2xl font-bold text-blue-600"><i class="fa-solid fa-file-alt mr-2"></i><span id="student-name-header"></span>님의 분석 결과</h1>
+            <button id="logout-btn-student" class="text-gray-500 hover:text-red-500 transition"><i class="fa-solid fa-sign-out-alt text-2xl"></i></button>
+        </header>
+
+        <main class="p-4 md:p-8">
+            <!-- Report Submission Section -->
+            <div id="submission-section" class="max-w-4xl mx-auto bg-white p-8 rounded-2xl shadow-lg">
+                <h2 class="text-2xl font-bold mb-2 text-center">보고서 제출하기</h2>
+                <p class="text-gray-500 mb-6 text-center">작성한 보고서 내용을 아래 입력창에 복사하여 붙여넣어 주세요.</p>
+                <textarea id="report-text-input" rows="15" placeholder="이곳에 보고서 내용을 붙여넣으세요..." class="w-full p-4 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"></textarea>
+                <button id="submit-report-btn" class="mt-4 w-full bg-blue-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-blue-700 transition-transform transform hover:scale-105">
+                    <i class="fa-solid fa-paper-plane mr-2"></i>AI 분석 요청하기
+                </button>
+            </div>
+
+            <!-- Loading Section -->
+            <div id="loading-section" class="hidden text-center max-w-2xl mx-auto p-8">
+                <div class="loader mx-auto"></div>
+                <h2 class="text-2xl font-semibold mt-6 text-gray-700">Gemma AI가 보고서를 분석하고 있어요...</h2>
+                <p class="text-gray-500 mt-2">잠시만 기다려주세요. 심층적인 분석을 통해 피드백을 생성하고 있습니다.</p>
+            </div>
+
+            <!-- Feedback Section -->
+            <div id="feedback-section" class="hidden grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
+                <!-- Left Column: Radar Chart -->
+                <div class="bg-white p-6 rounded-2xl shadow-lg">
+                    <h2 class="text-2xl font-bold mb-4 text-center">탐구 역량 분석 (Rubric)</h2>
+                    <div class="radar-container">
+                        <canvas id="rubric-radar-chart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Right Column: Text Feedback -->
+                <div class="space-y-6">
+                    <!-- Strengths -->
+                    <div class="bg-white p-6 rounded-2xl shadow-lg">
+                        <h3 class="text-xl font-bold text-green-600 mb-3"><i class="fa-solid fa-check-circle mr-2"></i>잘했어요! (Strengths)</h3>
+                        <p id="feedback-strengths" class="text-gray-700 leading-relaxed"></p>
+                    </div>
+                    <!-- Areas for Improvement -->
+                    <div class="bg-white p-6 rounded-2xl shadow-lg">
+                        <h3 class="text-xl font-bold text-orange-600 mb-3"><i class="fa-solid fa-lightbulb mr-2"></i>더 성장해봐요! (Improvement)</h3>
+                        <p id="feedback-improvements" class="text-gray-700 leading-relaxed"></p>
+                    </div>
+                     <!-- Curriculum Alignment -->
+                    <div class="bg-white p-6 rounded-2xl shadow-lg">
+                        <h3 class="text-xl font-bold text-blue-600 mb-3"><i class="fa-solid fa-book-open mr-2"></i>교육과정 연계 분석</h3>
+                        <div id="feedback-alignment" class="text-gray-700 leading-relaxed"></div>
+                    </div>
+                    <!-- Misconceptions -->
+                    <div class="bg-white p-6 rounded-2xl shadow-lg">
+                        <h3 class="text-xl font-bold text-red-600 mb-3"><i class="fa-solid fa-exclamation-triangle mr-2"></i>개념 확인하기 (Misconceptions)</h3>
+                        <p id="feedback-misconceptions" class="text-gray-700 leading-relaxed"></p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <!-- Teacher Page -->
+    <div id="teacher-page" class="page">
+        <header class="bg-white shadow-md p-4 flex justify-between items-center sticky top-0 z-10">
+            <h1 class="text-2xl font-bold text-indigo-600"><i class="fa-solid fa-user-tie mr-2"></i>교사 관리자 페이지</h1>
+            <button id="logout-btn-teacher" class="text-gray-500 hover:text-red-500 transition"><i class="fa-solid fa-sign-out-alt text-2xl"></i></button>
+        </header>
+        
+        <div class="flex flex-col md:flex-row">
+            <!-- Left Panel: Student List -->
+            <aside class="w-full md:w-1/4 bg-gray-100 p-4 border-r border-gray-200 min-h-screen">
+                <h2 class="text-xl font-bold mb-4">제출 학생 목록</h2>
+                <div id="student-list" class="space-y-2">
+                     <p class="text-gray-500">아직 제출한 학생이 없습니다.</p>
+                </div>
+            </aside>
+            
+            <!-- Right Panel: Feedback View/Edit -->
+            <main id="teacher-feedback-view" class="w-full md:w-3/4 p-4 md:p-8">
+                 <div id="teacher-no-student-selected" class="flex flex-col items-center justify-center h-full text-center text-gray-500">
+                    <i class="fas fa-users text-6xl mb-4"></i>
+                    <h2 class="text-2xl font-semibold">학생을 선택해주세요</h2>
+                    <p>왼쪽 목록에서 학생을 선택하면 평가 결과를 확인하고 수정할 수 있습니다.</p>
+                </div>
+
+                <div id="teacher-feedback-content" class="hidden">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-3xl font-bold text-gray-800"><span id="teacher-student-name"></span> 학생 분석 결과</h2>
+                         <button id="save-changes-btn" class="bg-green-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-green-700 transition-transform transform hover:scale-105">
+                             <i class="fa-solid fa-save mr-2"></i>변경 내용 저장
+                         </button>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <!-- Left: Radar Chart (Editable Scores) -->
+                        <div class="bg-white p-6 rounded-2xl shadow-lg">
+                            <h2 class="text-2xl font-bold mb-4 text-center">탐구 역량 분석 (Rubric)</h2>
+                            <div class="radar-container">
+                                <canvas id="teacher-radar-chart"></canvas>
+                            </div>
+                            <div id="teacher-score-inputs" class="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-6"></div>
+                        </div>
+
+                        <!-- Right: Text Feedback (Editable) -->
+                        <div class="space-y-6">
+                            <div class="bg-white p-6 rounded-2xl shadow-lg">
+                                <h3 class="text-xl font-bold text-green-600 mb-3"><i class="fa-solid fa-check-circle mr-2"></i>잘했어요! (Strengths)</h3>
+                                <textarea id="teacher-feedback-strengths" class="w-full p-2 border border-gray-300 rounded-md h-32"></textarea>
+                            </div>
+                            <div class="bg-white p-6 rounded-2xl shadow-lg">
+                                <h3 class="text-xl font-bold text-orange-600 mb-3"><i class="fa-solid fa-lightbulb mr-2"></i>더 성장해봐요! (Improvement)</h3>
+                                <textarea id="teacher-feedback-improvements" class="w-full p-2 border border-gray-300 rounded-md h-32"></textarea>
+                            </div>
+                            <div class="bg-white p-6 rounded-2xl shadow-lg">
+                                <h3 class="text-xl font-bold text-blue-600 mb-3"><i class="fa-solid fa-book-open mr-2"></i>교육과정 연계 분석</h3>
+                                <textarea id="teacher-feedback-alignment" class="w-full p-2 border border-gray-300 rounded-md h-32"></textarea>
+                            </div>
+                            <div class="bg-white p-6 rounded-2xl shadow-lg">
+                                <h3 class="text-xl font-bold text-red-600 mb-3"><i class="fa-solid fa-exclamation-triangle mr-2"></i>개념 확인하기 (Misconceptions)</h3>
+                                <textarea id="teacher-feedback-misconceptions" class="w-full p-2 border border-gray-300 rounded-md h-32"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+
+    <script>
+        // --- Application State ---
+        let state = {
+            currentUser: null,
+            currentRole: 'student',
+            currentPage: 'login',
+            currentTeacherSelection: null,
+            database: {} // Simulates a backend database
+        };
+
+        const rubricLabels = ['A. 지식/이해', 'B. 탐구/모델링', 'C. 창의/융합', 'D. 소통/협업', 'E. 도구/표현', 'I. 흥미/태도'];
+        const rubricKeys = ['knowledge', 'inquiry', 'creativity', 'communication', 'tools', 'attitude'];
+
+        // --- DOM Elements ---
+        const pages = {
+            login: document.getElementById('login-page'),
+            student: document.getElementById('student-page'),
+            teacher: document.getElementById('teacher-page'),
+        };
+        const loginForm = document.getElementById('login-form');
+        const nameInput = document.getElementById('name-input');
+        const roleSelect = document.getElementById('role-select');
+        const passwordField = document.getElementById('password-field');
+        const passwordInput = document.getElementById('password-input');
+        const studentNameHeader = document.getElementById('student-name-header');
+        
+        const submissionSection = document.getElementById('submission-section');
+        const reportTextInput = document.getElementById('report-text-input');
+        const submitReportBtn = document.getElementById('submit-report-btn');
+
+        const loadingSection = document.getElementById('loading-section');
+        const feedbackSection = document.getElementById('feedback-section');
+        const studentList = document.getElementById('student-list');
+        const teacherFeedbackView = document.getElementById('teacher-feedback-view');
+        const teacherNoStudentSelected = document.getElementById('teacher-no-student-selected');
+        const teacherFeedbackContent = document.getElementById('teacher-feedback-content');
+        const teacherStudentName = document.getElementById('teacher-student-name');
+        const teacherScoreInputs = document.getElementById('teacher-score-inputs');
+        const saveChangesBtn = document.getElementById('save-changes-btn');
+        const logoutStudentBtn = document.getElementById('logout-btn-student');
+        const logoutTeacherBtn = document.getElementById('logout-btn-teacher');
+        
+        let studentRadarChart, teacherRadarChart;
+
+        // --- Functions ---
+
+        /**
+         * Controls which page is visible to the user.
+         * @param {string} pageId - The ID of the page to show ('login', 'student', 'teacher').
+         */
+        function showPage(pageId) {
+            state.currentPage = pageId;
+            Object.values(pages).forEach(page => page.classList.remove('active'));
+            pages[pageId].classList.add('active');
+        }
+        
+        /**
+         * Shows a toast message for feedback.
+         * @param {string} message - The message to display.
+         */
+        function showToast(message) {
+            const toast = document.getElementById("toast");
+            toast.textContent = message;
+            toast.classList.add("show");
+            setTimeout(() => { toast.classList.remove("show"); }, 3000);
+        }
+
+        /**
+         * Simulates a call to the Gemma 3 model.
+         * In a real application, this would be an async fetch call.
+         * @param {string} reportText - The student's report text.
+         * @returns {Promise<object>} A promise that resolves with the AI feedback object.
+         */
+        function getAIFeedback(reportText) {
+            console.log("AI 분석 시작...");
+            return new Promise(resolve => {
+                setTimeout(() => {
+                    // Simple logic to generate varied scores based on text length
+                    const baseScore = Math.min(5, 2 + reportText.length / 1000);
+                    
+                    const scores = {
+                        knowledge: Math.min(5, baseScore + Math.random() * 1.5),
+                        inquiry: Math.min(5, baseScore + Math.random() * 1.5 - 0.5),
+                        creativity: Math.min(5, baseScore + Math.random() * 2 - 1),
+                        communication: Math.min(5, baseScore + Math.random() * 1),
+                        tools: Math.min(5, baseScore + Math.random() * 2),
+                        attitude: 5 // Assume good attitude
+                    };
+
+                    const feedback = {
+                        scores: scores,
+                        strengths: "보고서의 탐구 동기가 매우 구체적이며, 자신의 진로와 연관 지어 설명한 점이 인상적입니다. 특히 3차원 모델링을 시도한 창의성이 돋보입니다. Python을 활용한 시뮬레이션 과정이 체계적으로 잘 나타나 있습니다.",
+                        improvements: "결과 분석 부분에서 그래프가 의미하는 바를 수학적 원리와 더 깊이 연결하여 설명하면 논리가 더욱 탄탄해질 것입니다. 예를 들어, '비대칭성이 발생했다'에서 그치지 않고, '입사 벡터의 z성분으로 인해 반사 지점별 광선 경로 길이가 달라져 시간 차이가 발생하며, 이것이 대칭성을 깨뜨리는 원인'과 같이 심층적으로 서술하면 좋습니다.",
+                        alignment: "<ul><li class='mt-2'><b>[미적분Ⅱ] 12미적Ⅱ-02-08 (다양한 곡선의 접선의 방정식):</b> 반사 광선을 접선의 일종으로 이해하고, 벡터를 이용해 공간상의 반사 경로를 모델링하며 성취기준을 충족했습니다.</li><li class='mt-2'><b>[수학과제 탐구] 12수과03-01 (탐구 주제 선정 및 계획 수립):</b> 2차원 모델의 한계를 인식하고 '3차원'이라는 새로운 탐구 주제를 주도적으로 설정하고 계획한 과정이 명확히 드러나 성취기준을 훌륭히 달성했습니다.</li></ul>",
+                        misconceptions: "보고서 내용 중 미분계수의 정의를 활용한 극한 계산 과정에서 삼각함수 덧셈정리를 적용하는 부분에 작은 오류가 있었습니다. 해당 부분의 전개를 다시 한번 확인하여 논리를 보강할 필요가 있습니다. 또한 벡터의 내적 계산에서 부호 실수가 발견되었습니다. 이 부분을 다시 확인해보세요."
+                    };
+                    console.log("AI 분석 완료.");
+                    resolve(feedback);
+                }, 2500); // Simulate network delay
+            });
+        }
+        
+        /**
+         * Renders or updates a radar chart.
+         * @param {string} canvasId - The ID of the canvas element.
+         * @param {Chart} chartInstance - The existing Chart.js instance (can be null).
+         * @param {object} scores - The scores object from the feedback.
+         * @returns {Chart} The new or updated Chart.js instance.
+         */
+        function renderRadarChart(canvasId, chartInstance, scores) {
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            const scoreData = rubricKeys.map(key => scores[key]);
+
+            if (chartInstance) {
+                chartInstance.data.datasets[0].data = scoreData;
+                chartInstance.update();
+                return chartInstance;
+            }
+
+            return new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: rubricLabels,
+                    datasets: [{
+                        label: '탐구 역량 점수',
+                        data: scoreData,
+                        backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 2,
+                        pointBackgroundColor: 'rgba(54, 162, 235, 1)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgba(54, 162, 235, 1)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    scales: {
+                        r: {
+                            angleLines: { display: true },
+                            suggestedMin: 0,
+                            suggestedMax: 5,
+                            pointLabels: {
+                                font: {
+                                    size: 13,
+                                    weight: '600'
+                                }
+                            },
+                            ticks: {
+                                stepSize: 1,
+                                backdropColor: 'rgba(255, 255, 255, 0.75)'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+        }
+
+        /**
+         * Populates the feedback UI with data for a student.
+         * @param {object} feedbackData - The feedback object containing scores and text.
+         */
+        function displayStudentFeedback(feedbackData) {
+            studentRadarChart = renderRadarChart('rubric-radar-chart', studentRadarChart, feedbackData.scores);
+            document.getElementById('feedback-strengths').textContent = feedbackData.strengths;
+            document.getElementById('feedback-improvements').textContent = feedbackData.improvements;
+            document.getElementById('feedback-alignment').innerHTML = feedbackData.alignment;
+            document.getElementById('feedback-misconceptions').textContent = feedbackData.misconceptions;
+        }
+        
+        /**
+         * Handles the report submission from the textarea.
+         */
+        async function handleReportSubmission() {
+            const reportText = reportTextInput.value.trim();
+            if (reportText.length < 100) {
+                showToast("보고서 내용이 너무 짧습니다. 충분한 내용을 입력해주세요.");
+                return;
+            }
+
+            submissionSection.classList.add('hidden');
+            loadingSection.classList.remove('hidden');
+            feedbackSection.classList.add('hidden'); // 분석 전 이전 결과 숨기기
+
+            const feedback = await getAIFeedback(reportText);
+            
+            // Save to database
+            state.database[state.currentUser] = {
+                reportText: reportText,
+                feedback: feedback
+            };
+
+            displayStudentFeedback(feedback);
+            loadingSection.classList.add('hidden');
+            feedbackSection.classList.remove('hidden');
+            updateTeacherStudentList();
+        }
+
+        // --- Teacher-specific Functions ---
+        
+        /**
+         * Renders the list of submitted students for the teacher.
+         */
+        function updateTeacherStudentList() {
+            studentList.innerHTML = '';
+            const students = Object.keys(state.database);
+            if (students.length === 0) {
+                 studentList.innerHTML = '<p class="text-gray-500">아직 제출한 학생이 없습니다.</p>';
+                 return;
+            }
+            students.sort().forEach(studentName => {
+                const button = document.createElement('button');
+                button.className = `w-full text-left p-3 rounded-lg transition ${state.currentTeacherSelection === studentName ? 'bg-indigo-200 text-indigo-800 font-bold' : 'hover:bg-gray-200'}`;
+                button.textContent = studentName;
+                button.onclick = () => selectStudentForReview(studentName);
+                studentList.appendChild(button);
+            });
+        }
+        
+        /**
+         * Handles selecting a student from the teacher's list.
+         * @param {string} studentName - The name of the student to review.
+         */
+        function selectStudentForReview(studentName) {
+            state.currentTeacherSelection = studentName;
+            const studentData = state.database[studentName];
+            if (!studentData) return;
+
+            teacherStudentName.textContent = studentName;
+            
+            // Render chart and populate textareas
+            teacherRadarChart = renderRadarChart('teacher-radar-chart', teacherRadarChart, studentData.feedback.scores);
+            document.getElementById('teacher-feedback-strengths').value = studentData.feedback.strengths;
+            document.getElementById('teacher-feedback-improvements').value = studentData.feedback.improvements;
+            document.getElementById('teacher-feedback-alignment').value = studentData.feedback.alignment;
+            document.getElementById('teacher-feedback-misconceptions').value = studentData.feedback.misconceptions;
+            
+            // Populate score inputs
+            teacherScoreInputs.innerHTML = '';
+            rubricKeys.forEach((key, index) => {
+                const score = studentData.feedback.scores[key];
+                const label = rubricLabels[index];
+                const inputGroup = document.createElement('div');
+                inputGroup.className = 'flex flex-col';
+                inputGroup.innerHTML = `
+                    <label for="score-${key}" class="text-sm font-medium text-gray-600 mb-1">${label}</label>
+                    <input type="number" id="score-${key}" value="${score.toFixed(1)}" min="0" max="5" step="0.1" class="w-full p-2 border border-gray-300 rounded-md">
+                `;
+                teacherScoreInputs.appendChild(inputGroup);
+            });
+
+            teacherNoStudentSelected.classList.add('hidden');
+            teacherFeedbackContent.classList.remove('hidden');
+            updateTeacherStudentList();
+        }
+
+        /**
+         * Saves the changes made by the teacher.
+         */
+        function handleSaveChanges() {
+            if (!state.currentTeacherSelection) return;
+
+            const studentData = state.database[state.currentTeacherSelection];
+            
+            // Update scores
+            rubricKeys.forEach(key => {
+                const input = document.getElementById(`score-${key}`);
+                studentData.feedback.scores[key] = parseFloat(input.value);
+            });
+
+            // Update text feedback
+            studentData.feedback.strengths = document.getElementById('teacher-feedback-strengths').value;
+            studentData.feedback.improvements = document.getElementById('teacher-feedback-improvements').value;
+            studentData.feedback.alignment = document.getElementById('teacher-feedback-alignment').value;
+            studentData.feedback.misconceptions = document.getElementById('teacher-feedback-misconceptions').value;
+
+            // Re-render chart with new scores
+            teacherRadarChart = renderRadarChart('teacher-radar-chart', teacherRadarChart, studentData.feedback.scores);
+            showToast(`${state.currentTeacherSelection} 학생의 평가 결과가 저장되었습니다.`);
+        }
+        
+        /**
+         * Resets the application to the login state.
+         */
+        function logout() {
+            state.currentUser = null;
+            state.currentRole = 'student';
+            state.currentTeacherSelection = null;
+            
+            nameInput.value = '';
+            passwordInput.value = '';
+            roleSelect.value = 'student';
+            passwordField.classList.add('hidden');
+            
+            // Reset student page
+            submissionSection.classList.remove('hidden');
+            loadingSection.classList.add('hidden');
+            feedbackSection.classList.add('hidden');
+            reportTextInput.value = '';
+
+            // Reset teacher page
+            teacherNoStudentSelected.classList.remove('hidden');
+            teacherFeedbackContent.classList.add('hidden');
+            
+            showPage('login');
+        }
+
+
+        // --- Event Listeners ---
+        roleSelect.addEventListener('change', (e) => {
+            if (e.target.value === 'teacher') {
+                passwordField.classList.remove('hidden');
+                passwordInput.setAttribute('required', 'true');
+            } else {
+                passwordField.classList.add('hidden');
+                passwordInput.removeAttribute('required');
+                passwordInput.value = '';
+            }
+        });
+
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const name = nameInput.value.trim();
+            const role = roleSelect.value;
+            
+            if (role === 'student') {
+                state.currentUser = name;
+                state.currentRole = 'student';
+                studentNameHeader.textContent = name;
+                showPage('student');
+                 if (state.database[name]) { // If student already submitted
+                    displayStudentFeedback(state.database[name].feedback);
+                    submissionSection.classList.add('hidden');
+                    feedbackSection.classList.remove('hidden');
+                }
+            } else if (role === 'teacher') {
+                if (passwordInput.value === '1234') { // Simple password check
+                    state.currentUser = 'Teacher';
+                    state.currentRole = 'teacher';
+                    updateTeacherStudentList();
+                    showPage('teacher');
+                } else {
+                    showToast('비밀번호가 올바르지 않습니다.');
+                }
+            }
+        });
+        
+        submitReportBtn.addEventListener('click', handleReportSubmission);
+        saveChangesBtn.addEventListener('click', handleSaveChanges);
+        logoutStudentBtn.addEventListener('click', logout);
+        logoutTeacherBtn.addEventListener('click', logout);
+        
+    </script>
+</body>
+</html>
+
