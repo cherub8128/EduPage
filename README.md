@@ -1,4 +1,4 @@
-# cherubj34.github.io
+# EduPage
 
 송도고등학교 차형준 선생님과 함께하는 강의 및 프로젝트 쇼케이스를 위한 GitHub Pages입니다.
 
