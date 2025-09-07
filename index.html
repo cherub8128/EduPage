@@ -4,54 +4,99 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pi's Digital Universe</title>
-    <link rel="stylesheet" href="main_style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Noto+Sans+KR:wght@300;400&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Poppins', sans-serif; background-color: #f0f2f5; }
+        .nav-link.active { background-color: #e5e7eb; }
+        body.dark { background-color: #111827; color: #f3f4f6; }
+        body.dark .nav-link.active { background-color: #374151; }
+    </style>
 </head>
-<body>
-    <canvas id="particle-canvas"></canvas>
+<body class="antialiased">
 
-    <div class="theme-switch-wrapper">
-        <label class="theme-switch" for="checkbox">
-            <input type="checkbox" id="checkbox" />
-            <div class="slider round"></div>
-        </label>
-    </div>
+    <nav class="bg-white shadow-md sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center">
+                    <span class="font-bold text-xl text-gray-800">Pi's Universe</span>
+                </div>
+                <div class="hidden md:block">
+                    <div class="ml-10 flex items-baseline space-x-4">
+                        <a href="#Reinforcement/index.html" class="nav-link text-gray-600 hover:bg-gray-200 px-3 py-2 rounded-md text-sm font-medium" data-page="Reinforcement/index.html">Reinforcement</a>
+                        <a href="#Game/index.html" class="nav-link text-gray-600 hover:bg-gray-200 px-3 py-2 rounded-md text-sm font-medium" data-page="Game/index.html">Game</a>
+                        <a href="#Math/index.html" class="nav-link text-gray-600 hover:bg-gray-200 px-3 py-2 rounded-md text-sm font-medium" data-page="Math/index.html">Math</a>
+                        <a href="#LaTeX/index.html" class="nav-link text-gray-600 hover:bg-gray-200 px-3 py-2 rounded-md text-sm font-medium" data-page="LaTeX/index.html">LaTeX</a>
+                        <a href="#Teacher/index.html" class="nav-link text-gray-600 hover:bg-gray-200 px-3 py-2 rounded-md text-sm font-medium" data-page="Teacher/index.html">Teacher</a>
+                        <a href="#Lab/index.html" class="nav-link text-gray-600 hover:bg-gray-200 px-3 py-2 rounded-md text-sm font-medium" data-page="Lab/index.html">Lab</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
 
-    <main class="container">
-        <header>
-            <h1 class="title">Pi's Digital Universe</h1>
-            <p class="subtitle">학생과 함께하는 프로젝트 및 강의 노트 모음 ⓒPi</p>
-        </header>
-
-        <nav class="project-grid">
-                        <a href="./Reinforcement" class="project-card">
-                <h2>Reinforcement</h2>
-                <p>강화학습 강의노트</p>
-            </a>
-            <a href="./Math" class="project-card">
-                <h2>수학 실험실</h2>
-                <p>인터렉티브한 수학</p>
-            </a>
-            <a href="./LaTeX" class="project-card">
-                <h2>LaTeX</h2>
-                <p>LaTeX 활용 가이드</p>
-            </a>
-            <a href="./Teacher" class="project-card">
-                <h2>전국교사연구회</h2>
-                <p>공학과 물리학을 읽는 수학</p>
-            </a>
-            <a href="./Game" class="project-card">
-                <h2>Game Lab</h2>
-                <p>교육용 웹게임</p>
-            </a>
-            </a>
-            <a href="./Lab" class="project-card">
-                <h2>Project Lab</h2>
-                <p>다양한 학생, 동아리 활동 프로젝트 자료 모음</p>
-            </a>
-        </nav>
+    <main id="content-container">
+        <!-- Dynamic content will be loaded here -->
     </main>
 
-    <script src="main_script.js"></script>
+    <script>
+        const contentContainer = document.getElementById('content-container');
+        const navLinks = document.querySelectorAll('.nav-link');
+
+        const fetchAndLoadContent = async (pageUrl) => {
+            try {
+                const response = await fetch(pageUrl);
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                
+                const text = await response.text();
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(text, 'text/html');
+                const newContent = doc.querySelector('body');
+
+                if (newContent) {
+                    // Fix relative links before injecting
+                    const baseUrl = pageUrl.substring(0, pageUrl.lastIndexOf('/') + 1);
+                    const links = newContent.querySelectorAll('a');
+                    links.forEach(link => {
+                        const href = link.getAttribute('href');
+                        if (href && !href.startsWith('http') && !href.startsWith('#')) {
+                            link.setAttribute('href', baseUrl + href);
+                        }
+                    });
+
+                    contentContainer.innerHTML = newContent.innerHTML;
+                    // Re-run tailwind script if needed, though it should apply automatically
+                } else {
+                    throw new Error('Content body not found in fetched page.');
+                }
+            } catch (error) {
+                console.error('Error loading page:', error);
+                contentContainer.innerHTML = `<div class="max-w-7xl mx-auto py-16 px-4 text-center"><h1>Error</h1><p>Could not load content.</p></div>`;
+            }
+        };
+
+        const handleNavigation = () => {
+            const path = location.hash.substring(1) || 'Reinforcement/index.html'; // Default page
+            fetchAndLoadContent(path);
+            navLinks.forEach(link => {
+                link.classList.toggle('active', link.dataset.page === path);
+            });
+        };
+
+        navLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                const path = e.currentTarget.dataset.page;
+                if (location.hash.substring(1) !== path) {
+                    location.hash = path;
+                }
+            });
+        });
+
+        window.addEventListener('hashchange', handleNavigation);
+        window.addEventListener('DOMContentLoaded', handleNavigation);
+    </script>
+
 </body>
 </html>

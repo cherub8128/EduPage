@@ -1,0 +1,189 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+
+:root {
+    --bg-light: #fdf6e3;
+    --text-light: #5d4037;
+    --card-bg-light: #fff;
+    --shadow-light: #d7ccc8;
+    --border-light: #8d6e63;
+    --accent-light: #a1887f;
+
+    --bg-dark: #37474f;
+    --text-dark: #eceff1;
+    --card-bg-dark: #455a64;
+    --shadow-dark: #263238;
+    --border-dark: #b0bec5;
+    --accent-dark: #90a4ae;
+}
+
+body {
+    --bg-color: var(--bg-light);
+    --text-color: var(--text-light);
+    --card-bg-color: var(--card-bg-light);
+    --shadow-color: var(--shadow-light);
+    --border-color: var(--border-light);
+    --accent-color: var(--accent-light);
+
+    font-family: 'Poppins', sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    margin: 0;
+    transition: background-color 0.4s ease, color 0.4s ease;
+}
+
+body.dark-mode {
+    --bg-color: var(--bg-dark);
+    --text-color: var(--text-dark);
+    --card-bg-color: var(--card-bg-dark);
+    --shadow-color: var(--shadow-dark);
+    --border-color: var(--border-dark);
+    --accent-color: var(--accent-dark);
+}
+
+.top-navbar {
+    padding: 1rem 2rem;
+    background: var(--card-bg-color);
+    border-bottom: 3px solid var(--border-color);
+    box-shadow: 0px 5px 0px var(--shadow-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    transition: background-color 0.4s ease, border-bottom 0.4s ease, box-shadow 0.4s ease;
+}
+
+.nav-links {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.nav-link {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    font-size: 1.1rem;
+    text-decoration: none;
+    color: var(--text-color);
+    padding: 0.5rem 1rem;
+    border-radius: 15px;
+    border: 3px solid transparent;
+    transition: all 0.2s ease-out;
+}
+
+.nav-link:hover, .nav-link.active {
+    border-color: var(--border-color);
+    background-color: var(--bg-color);
+    transform: translateY(-2px);
+}
+
+.theme-switcher-container {
+    position: relative;
+}
+
+#content-container {
+    padding: 2rem;
+}
+
+.container {
+    max-width: 1100px;
+    width: 100%;
+    margin: 0 auto;
+    text-align: center;
+}
+
+h1 {
+    font-size: 3rem;
+    font-weight: 700;
+    color: var(--text-color);
+    margin-bottom: 1rem;
+}
+
+.subtitle {
+    font-size: 1.2rem;
+    margin-bottom: 3rem;
+    color: var(--accent-color);
+}
+
+.card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 2.5rem;
+}
+
+.card {
+    background: var(--card-bg-color);
+    border-radius: 25px;
+    box-shadow: 5px 5px 0px var(--shadow-color);
+    text-decoration: none;
+    color: var(--text-color);
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    min-height: 180px;
+    transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+    border: 3px solid var(--border-color);
+}
+
+.card:hover {
+    transform: translate(-5px, -5px);
+    box-shadow: 10px 10px 0px var(--shadow-color);
+}
+
+.card-icon {
+    margin-bottom: 1rem;
+    color: var(--text-color);
+}
+
+.card-icon svg {
+    width: 50px;
+    height: 50px;
+    stroke-width: 2;
+}
+
+.card-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0;
+    color: var(--text-color);
+}
+
+.card-description {
+    font-size: 1rem;
+    margin-top: 0.5rem;
+}
+
+/* Theme switcher styles from previous design, adapted */
+.theme-switcher input { display: none; }
+.theme-switcher label {
+    cursor: pointer;
+    display: block;
+    width: 52px;
+    height: 28px;
+    background-color: var(--card-bg-color);
+    border: 3px solid var(--border-color);
+    border-radius: 16px;
+    position: relative;
+    box-shadow: 3px 3px 0px var(--shadow-color);
+    transition: all 0.2s ease-out;
+}
+.theme-switcher label:hover { transform: translate(-2px, -2px); box-shadow: 5px 5px 0px var(--shadow-color); }
+.theme-switcher label::after {
+    content: '';
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 16px;
+    height: 16px;
+    background-color: var(--border-color);
+    border-radius: 50%;
+    transition: transform 0.3s ease;
+}
+.theme-switcher input:checked + label { background-color: var(--card-bg-dark); }
+.theme-switcher input:checked + label::after { background-color: var(--text-dark); transform: translateX(24px); }

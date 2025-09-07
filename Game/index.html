@@ -3,29 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>게임 선택</title>
-    <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <title>Game Lab</title>
 </head>
-<body>
-    <div class="container">
-        <header>
-            <h1>SELECT GAME</h1>
-        </header>
-        <main class="game-grid">
-            <a href="OraphaMine/" class="game-card" id="orapha-mine">
-                <div class="card-content">
-                    <h2>Orapha Mine</h2>
-                    <p>A classic minesweeper style game.</p>
-                </div>
-            </a>
-            <a href="Pancake/" class="game-card" id="pancake">
-                <div class="card-content">
-                    <h2>Pancake Game</h2>
-                    <p>A fun and interactive pancake stacking game.</p>
-                </div>
-            </a>
-        </main>
+<body class="text-gray-800">
+
+    <div style="background: linear-gradient(135deg, #059669 0%, #065f46 100%)" class="text-white">
+        <div class="max-w-7xl mx-auto px-6 py-20 md:py-28 text-center">
+            <h1 class="text-4xl md:text-6xl font-black tracking-tight">Game Lab</h1>
+            <p class="mt-4 text-lg md:text-xl text-emerald-200 max-w-3xl mx-auto">
+                재미있게 배우는 인터랙티브 교육용 웹게임들을 만나보세요.
+            </p>
+        </div>
     </div>
+    
+    <main class="max-w-7xl mx-auto px-6 py-16">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+
+            <a href="OraphaMine/index.html" class="card-gradient-border block">
+                <div class="content-inner p-8">
+                    <div class="mb-4">
+                        <svg class="w-12 h-12 text-amber-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+                        </svg>
+                    </div>
+                    <h2 class="text-2xl font-bold mb-2">Orapha Mine</h2>
+                    <p class="text-gray-600 flex-grow">A classic minesweeper style game.</p>
+                    <div class="mt-6 font-bold text-amber-600 hover:text-amber-800 transition-colors">
+                        플레이하기 &rarr;
+                    </div>
+                </div>
+            </a>
+
+            <a href="Pancake/index.html" class="card-gradient-border block">
+                <div class="content-inner p-8">
+                    <div class="mb-4">
+                        <svg class="w-12 h-12 text-rose-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                           <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                    <h2 class="text-2xl font-bold mb-2">Pancake Game</h2>
+                    <p class="text-gray-600 flex-grow">A fun and interactive pancake stacking game.</p>
+                    <div class="mt-6 font-bold text-rose-600 hover:text-rose-800 transition-colors">
+                        플레이하기 &rarr;
+                    </div>
+                </div>
+            </a>
+
+        </div>
+    </main>
+
 </body>
 </html>
