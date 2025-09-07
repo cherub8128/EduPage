@@ -4,49 +4,80 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lab Projects</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
     <style>
         body {
-            font-family: sans-serif;
-            margin: 2em;
-            background-color: #f4f4f9;
+            font-family: 'Poppins', sans-serif;
+            background-color: #f0f2f5;
             color: #333;
+            margin: 0;
+            padding: 2rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+        .container {
+            max-width: 900px;
+            width: 100%;
+            text-align: center;
         }
         h1 {
-            text-align: center;
-            color: #4a4a4a;
+            font-size: 3rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 3rem;
         }
-        ul {
-            list-style-type: none;
-            padding: 0;
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+        }
+        .card {
+            background: #ffffff;
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.08);
+            text-decoration: none;
+            color: inherit;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
             display: flex;
             flex-direction: column;
-            align-items: center;
+            justify-content: center;
+            min-height: 150px;
         }
-        li {
-            margin: 0.8em 0;
-            width: 80%;
-            max-width: 400px;
+        .card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(44, 62, 80, 0.12);
         }
-        a {
-            display: block;
-            text-decoration: none;
-            color: #fff;
-            background-color: #007bff;
-            padding: 1em;
-            border-radius: 8px;
-            text-align: center;
-            transition: background-color 0.3s ease;
+        .card-content {
+            padding: 1.5rem;
         }
-        a:hover {
-            background-color: #0056b3;
+        .card-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin: 0;
+            color: #34495e;
         }
     </style>
 </head>
 <body>
-    <h1>Lab Projects</h1>
-    <ul>
-        <li><a href="KaylesAI">도슨의 케일스 미제르 게임 AI(임선우)</a></li>
-        <li><a href="haptik.html">공기 조형 프로젝트(김창연)</a></li>
-    </ul>
+    <div class="container">
+        <h1>Lab Projects</h1>
+        <div class="card-grid">
+            <a href="../KaylesAI/index.html" class="card">
+                <div class="card-content">
+                    <h2 class="card-title">도슨의 케일스 미제르 게임 AI(임선우)</h2>
+                </div>
+            </a>
+            <a href="haptik.html" class="card">
+                <div class="card-content">
+                    <h2 class="card-title">공기 조형 프로젝트(김창연)</h2>
+                </div>
+            </a>
+        </div>
+    </div>
 </body>
 </html>
