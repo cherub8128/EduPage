@@ -8,33 +8,37 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&family=Orbitron:wght@700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 새롭게 추가된 공유 스타일시트 링크 -->
+    <link rel="stylesheet" href="css/shared_style.css">
     <script>
         tailwind.config = {
             darkMode: 'class',
             theme: {
                 extend: {
                     colors: {
-                        'dark-bg': '#0a0a1a',
-                        'dark-particle': '#4a4a8a',
-                        'dark-text': '#e0e0e0',
-                        'dark-title': '#ffffff',
-                        'dark-subtitle': '#a0a0c0',
-                        'dark-card-bg': 'rgba(20, 20, 50, 0.5)',
-                        'dark-card-border': 'rgba(100, 100, 220, 0.5)',
-                        'dark-card-glow': 'rgba(150, 150, 255, 0.7)',
-                        'dark-card-text': '#d0d0ff',
-                        'dark-card-hover-bg': 'rgba(30, 30, 70, 0.7)',
+                        // --- 새로운 다크 테마 색상 ---
+                        'dark-bg': '#0b132b', // Deep navy
+                        'dark-particle': '#3a506b', // Muted slate blue for particles
+                        'dark-text': '#e0e0e0', // Light gray text
+                        'dark-title': '#ffffff', // White
+                        'dark-subtitle': '#94a3b8', // Slate 400
+                        'dark-card-bg': 'rgba(28, 39, 70, 0.6)', // Translucent dark indigo
+                        'dark-card-border': 'rgba(56, 189, 248, 0.5)', // Sky blue border
+                        'dark-card-glow': 'rgba(217, 70, 239, 0.6)', // Fuchsia glow
+                        'dark-card-text': '#e2e8f0', // Slate 200
+                        'dark-card-hover-bg': 'rgba(40, 54, 94, 0.8)', // Darker indigo on hover
                         
-                        'light-bg': '#f0f0f8',
-                        'light-particle': '#cccccc',
-                        'light-text': '#333333',
-                        'light-title': '#000000',
-                        'light-subtitle': '#555577',
-                        'light-card-bg': 'rgba(255, 255, 255, 0.85)',
-                        'light-card-border': 'rgba(150, 150, 200, 0.8)',
-                        'light-card-glow': 'rgba(100, 100, 255, 0.6)',
-                        'light-card-text': '#222255',
-                        'light-card-hover-bg': 'rgba(230, 230, 250, 0.8)',
+                        // --- 새로운 라이트 테마 색상 ---
+                        'light-bg': '#f1f5f9', // slate-100
+                        'light-particle': '#cbd5e1', // slate-300
+                        'light-text': '#1e293b', // slate-800
+                        'light-title': '#0f172a', // slate-900
+                        'light-subtitle': '#475569', // slate-600
+                        'light-card-bg': 'rgba(255, 255, 255, 0.9)',
+                        'light-card-border': 'rgba(203, 213, 225, 0.9)', // slate-300
+                        'light-card-glow': 'rgba(99, 102, 241, 0.5)', // indigo-500
+                        'light-card-text': '#334155', // slate-700
+                        'light-card-hover-bg': 'rgba(248, 250, 252, 1)', // slate-50
                     },
                     fontFamily: {
                         'orbitron': ['Orbitron', 'sans-serif'],
@@ -45,35 +49,19 @@
         }
     </script>
     <style>
-        :root { --particle-color: #4a4a8a; }
-        html.light { --particle-color: #cccccc; }
-        .text-glow { text-shadow: 0 0 8px rgba(150, 150, 255, 0.7), 0 0 16px rgba(150, 150, 255, 0.7); }
+        :root { --particle-color: #3a506b; }
+        html.light { --particle-color: #cbd5e1; }
+        .text-glow { text-shadow: 0 0 8px rgba(56, 189, 248, 0.7), 0 0 16px rgba(217, 70, 239, 0.5); }
         html.light .text-glow { text-shadow: none; }
         .card-glow-shadow { box-shadow: 0 0 25px var(--card-glow-color), 0 0 40px var(--card-glow-color); }
         .nav-link.active { background-color: rgba(255, 255, 255, 0.1); }
         html.light .nav-link.active { background-color: rgba(0, 0, 0, 0.1); }
-        #page-title-container { transition: background 0.3s ease; }
         
-        /* --- Global Overrides for Readability --- */
-        /* Force title colors for robustness */
-        #page-title-container h1 {
-            color: white !important;
-            font-family: 'Noto Sans KR', sans-serif;
-        }
-        #page-title-container p {
-            color: #e5e7eb !important; /* Corresponds to text-gray-200 */
-        }
-
-        /* Set default content colors for dark mode */
-        .dark #content-container {
-            color: #d1d5db; /* text-gray-300 */
-        }
-        .dark #content-container h2 {
-            color: #ffffff; /* white */
-        }
-        .dark #content-container a {
-            /* Let links inherit color by default in dark mode, unless specified otherwise */
-            color: inherit;
+        #page-title-container {
+            transition: all 0.3s ease;
+            width: 100%;
+            display: flex;
+            align-items: center;
         }
     </style>
 </head>
@@ -81,7 +69,7 @@
 
     <canvas id="particle-canvas" class="fixed top-0 left-0 w-full h-full z-[-1]"></canvas>
 
-    <nav class="sticky top-0 z-50 bg-light-card-bg/95 dark:bg-dark-card-bg/80 backdrop-blur-blur border-b border-light-card-border/50 dark:border-dark-card-border/50">
+    <nav class="sticky top-0 z-50 bg-light-card-bg/95 dark:bg-dark-card-bg/80 backdrop-blur-sm border-b border-light-card-border/50 dark:border-dark-card-border/50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-16">
                 <div class="flex items-center">
@@ -90,7 +78,6 @@
                 <div class="hidden md:block">
                     <div id="main-nav" class="ml-10 flex items-baseline space-x-1">
                         <a href="#Reinforcement/index.html" class="nav-link text-light-subtitle dark:text-dark-subtitle hover:bg-light-card-hover-bg dark:hover:bg-dark-card-hover-bg hover:text-light-text dark:hover:text-dark-text px-3 py-2 rounded-md text-sm font-medium" data-page="Reinforcement/index.html">Reinforcement</a>
-                        <a href="#Game/index.html" class="nav-link text-light-subtitle dark:text-dark-subtitle hover:bg-light-card-hover-bg dark:hover:bg-dark-card-hover-bg hover:text-light-text dark:hover:text-dark-text px-3 py-2 rounded-md text-sm font-medium" data-page="Game/index.html">Game</a>
                         <a href="#Math/index.html" class="nav-link text-light-subtitle dark:text-dark-subtitle hover:bg-light-card-hover-bg dark:hover:bg-dark-card-hover-bg hover:text-light-text dark:hover:text-dark-text px-3 py-2 rounded-md text-sm font-medium" data-page="Math/index.html">Math</a>
                         <a href="#LaTeX/index.html" class="nav-link text-light-subtitle dark:text-dark-subtitle hover:bg-light-card-hover-bg dark:hover:bg-dark-card-hover-bg hover:text-light-text dark:hover:text-dark-text px-3 py-2 rounded-md text-sm font-medium" data-page="LaTeX/index.html">LaTeX</a>
                         <a href="#Teacher/index.html" class="nav-link text-light-subtitle dark:text-dark-subtitle hover:bg-light-card-hover-bg dark:hover:bg-dark-card-hover-bg hover:text-light-text dark:hover:text-dark-text px-3 py-2 rounded-md text-sm font-medium" data-page="Teacher/index.html">Teacher</a>
@@ -113,7 +100,6 @@
         <div id="mobile-menu" class="md:hidden hidden">
             <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
                 <a href="#Reinforcement/index.html" class="nav-link text-light-subtitle dark:text-dark-subtitle hover:bg-light-card-hover-bg dark:hover:bg-dark-card-hover-bg hover:text-light-text dark:hover:text-dark-text block px-3 py-2 rounded-md text-base font-medium" data-page="Reinforcement/index.html">Reinforcement</a>
-                <a href="#Game/index.html" class="nav-link text-light-subtitle dark:text-dark-subtitle hover:bg-light-card-hover-bg dark:hover:bg-dark-card-hover-bg hover:text-light-text dark:hover:text-dark-text block px-3 py-2 rounded-md text-base font-medium" data-page="Game/index.html">Game</a>
                 <a href="#Math/index.html" class="nav-link text-light-subtitle dark:text-dark-subtitle hover:bg-light-card-hover-bg dark:hover:bg-dark-card-hover-bg hover:text-light-text dark:hover:text-dark-text block px-3 py-2 rounded-md text-base font-medium" data-page="Math/index.html">Math</a>
                 <a href="#LaTeX/index.html" class="nav-link text-light-subtitle dark:text-dark-subtitle hover:bg-light-card-hover-bg dark:hover:bg-dark-card-hover-bg hover:text-light-text dark:hover:text-dark-text block px-3 py-2 rounded-md text-base font-medium" data-page="LaTeX/index.html">LaTeX</a>
                 <a href="#Teacher/index.html" class="nav-link text-light-subtitle dark:text-dark-subtitle hover:bg-light-card-hover-bg dark:hover:bg-dark-card-hover-bg hover:text-light-text dark:hover:text-dark-text block px-3 py-2 rounded-md text-base font-medium" data-page="Teacher/index.html">Teacher</a>
@@ -122,11 +108,11 @@
         </div>
     </nav>
 
-    <div id="page-title-container" class="py-20 md:py-28">
+    <div id="page-title-container">
         <!-- Title will be injected here -->
     </div>
 
-    <main id="content-container" class="max-w-7xl mx-auto px-6 py-8">
+    <main id="content-container" class="max-w-7xl mx-auto px-6 py-12">
         <!-- Dynamic content will be loaded here -->
     </main>
 
@@ -180,6 +166,7 @@
         }
 
         function animateParticles() {
+            if(!particlesArray) return;
             ctx.clearRect(0, 0, innerWidth, innerHeight);
             for (let i = 0; i < particlesArray.length; i++) {
                 particlesArray[i].update();
@@ -199,7 +186,6 @@
             const themeIconDark = document.getElementById('theme-icon-dark');
             const html = document.documentElement;
 
-            // --- Theme Management ---
             const applyTheme = (theme) => {
                 if (theme === 'dark') {
                     html.classList.add('dark');
@@ -216,20 +202,14 @@
             };
 
             const toggleTheme = () => {
-                const currentTheme = html.classList.contains('dark') ? 'dark' : 'light';
-                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                const newTheme = html.classList.contains('dark') ? 'light' : 'dark';
                 localStorage.setItem('theme', newTheme);
                 applyTheme(newTheme);
             };
 
             themeToggle.addEventListener('click', toggleTheme);
-            
-            // --- Mobile Menu ---
-            mobileMenuButton.addEventListener('click', () => {
-                mobileMenu.classList.toggle('hidden');
-            });
+            mobileMenuButton.addEventListener('click', () => mobileMenu.classList.toggle('hidden'));
 
-            // --- SPA Navigation ---
             const fetchAndLoadContent = async (pageUrl) => {
                 try {
                     const response = await fetch(pageUrl);
@@ -238,31 +218,52 @@
                     const text = await response.text();
                     const parser = new DOMParser();
                     const doc = parser.parseFromString(text, 'text/html');
-                    
-                    const headerDiv = doc.body.querySelector('div[style*="background"]');
-                    const mainContent = doc.querySelector('main');
 
-                    if (headerDiv) {
-                        titleContainer.style.cssText = headerDiv.style.cssText;
-                        titleContainer.innerHTML = headerDiv.innerHTML;
-                    } else {
-                        titleContainer.style.cssText = '';
-                        titleContainer.innerHTML = '';
+                    // --- Script Handling ---
+                    const loadedScript = doc.querySelector('script');
+                    const oldScript = document.getElementById('page-script');
+                    if (oldScript) oldScript.remove();
+                    if (loadedScript) {
+                        const newScript = document.createElement('script');
+                        if (loadedScript.src) {
+                            newScript.src = loadedScript.src;
+                        } else {
+                            newScript.textContent = loadedScript.textContent;
+                        }
+                        newScript.id = 'page-script';
+                        document.body.appendChild(newScript);
+                        loadedScript.remove();
                     }
 
-                    if (mainContent) {
-                        const baseUrl = pageUrl.substring(0, pageUrl.lastIndexOf('/') + 1);
-                        mainContent.querySelectorAll('a, link, img, script').forEach(el => {
-                            const attr = el.hasAttribute('href') ? 'href' : 'src';
-                            const path = el.getAttribute(attr);
-                            if (path && !path.startsWith('http') && !path.startsWith('#') && !path.startsWith('data:')) {
-                                el.setAttribute(attr, baseUrl + path);
-                            }
-                        });
-                        contentContainer.innerHTML = mainContent.innerHTML;
+                    // --- Content Layout Handling ---
+                    const titleSection = doc.body.firstElementChild;
+                    const mainSection = doc.querySelector('main');
+                    const isTitlePage = mainSection && titleSection && titleSection.nextElementSibling === mainSection;
+
+                    // Reset title container styles before loading new content
+                    titleContainer.removeAttribute('style');
+                    titleContainer.className = '';
+                    
+                    if (isTitlePage) {
+                        // For pages with a title section, set a fixed height
+                        titleContainer.style.height = '500px';
+                        
+                        // Transfer background styles and classes from the loaded title section to our container
+                        if (titleSection.hasAttribute('style')) {
+                            titleContainer.style.cssText += titleSection.getAttribute('style');
+                        }
+                        titleContainer.className = titleSection.className;
+
+                        // Inject the *inner* content, allowing flexbox to center it
+                        titleContainer.innerHTML = titleSection.innerHTML;
+                        contentContainer.innerHTML = mainSection.outerHTML;
                     } else {
+                        // For content-only pages (like the game), collapse the title container
+                        titleContainer.style.height = '0';
+                        titleContainer.innerHTML = '';
                         contentContainer.innerHTML = doc.body.innerHTML;
                     }
+
                 } catch (error) {
                     console.error('Error loading page:', error);
                     contentContainer.innerHTML = `<div class="text-center"><h1>Error</h1><p>Could not load content.</p></div>`;
@@ -272,30 +273,21 @@
             const handleNavigation = () => {
                 const path = location.hash.substring(1) || 'Reinforcement/index.html';
                 fetchAndLoadContent(path);
-                navLinks.forEach(link => {
-                    link.classList.toggle('active', link.dataset.page === path);
-                });
+                navLinks.forEach(link => link.classList.toggle('active', link.dataset.page === path));
                 mobileMenu.classList.add('hidden');
             };
 
-            navLinks.forEach(link => {
-                link.addEventListener('click', (e) => {
-                    const path = e.currentTarget.dataset.page;
-                    location.hash = path;
-                });
-            });
-
+            navLinks.forEach(link => link.addEventListener('click', () => mobileMenu.classList.add('hidden')));
             window.addEventListener('hashchange', handleNavigation);
             
-            // Initial Load
             const savedTheme = localStorage.getItem('theme') || 'dark';
             applyTheme(savedTheme);
             handleNavigation();
             
-            // Particle animation start
             animateParticles();
             window.addEventListener('resize', initParticles);
         });
     </script>
 </body>
 </html>
+

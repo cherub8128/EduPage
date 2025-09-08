@@ -1,189 +1,195 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+/* * shared_style.css
+ * This stylesheet provides a unified design for content loaded into the main SPA.
+ * New "Theme-Aware Glassmorphism": Adapts to both light and dark modes.
+*/
 
-:root {
-    --bg-light: #fdf6e3;
-    --text-light: #5d4037;
-    --card-bg-light: #fff;
-    --shadow-light: #d7ccc8;
-    --border-light: #8d6e63;
-    --accent-light: #a1887f;
-
-    --bg-dark: #37474f;
-    --text-dark: #eceff1;
-    --card-bg-dark: #455a64;
-    --shadow-dark: #263238;
-    --border-dark: #b0bec5;
-    --accent-dark: #90a4ae;
-}
-
-body {
-    --bg-color: var(--bg-light);
-    --text-color: var(--text-light);
-    --card-bg-color: var(--card-bg-light);
-    --shadow-color: var(--shadow-light);
-    --border-color: var(--border-light);
-    --accent-color: var(--accent-light);
-
-    font-family: 'Poppins', sans-serif;
-    background-color: var(--bg-color);
-    color: var(--text-color);
-    margin: 0;
-    transition: background-color 0.4s ease, color 0.4s ease;
-}
-
-body.dark-mode {
-    --bg-color: var(--bg-dark);
-    --text-color: var(--text-dark);
-    --card-bg-color: var(--card-bg-dark);
-    --shadow-color: var(--shadow-dark);
-    --border-color: var(--border-dark);
-    --accent-color: var(--accent-dark);
-}
-
-.top-navbar {
-    padding: 1rem 2rem;
-    background: var(--card-bg-color);
-    border-bottom: 3px solid var(--border-color);
-    box-shadow: 0px 5px 0px var(--shadow-color);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    position: sticky;
-    top: 0;
-    z-index: 1000;
-    transition: background-color 0.4s ease, border-bottom 0.4s ease, box-shadow 0.4s ease;
-}
-
-.nav-links {
-    display: flex;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-}
-
-.nav-link {
-    font-family: 'Poppins', sans-serif;
-    font-weight: 600;
-    font-size: 1.1rem;
-    text-decoration: none;
-    color: var(--text-color);
-    padding: 0.5rem 1rem;
-    border-radius: 15px;
-    border: 3px solid transparent;
-    transition: all 0.2s ease-out;
-}
-
-.nav-link:hover, .nav-link.active {
-    border-color: var(--border-color);
-    background-color: var(--bg-color);
-    transform: translateY(-2px);
-}
-
-.theme-switcher-container {
-    position: relative;
-}
-
-#content-container {
-    padding: 2rem;
-}
-
-.container {
-    max-width: 1100px;
-    width: 100%;
-    margin: 0 auto;
-    text-align: center;
-}
-
-h1 {
-    font-size: 3rem;
-    font-weight: 700;
-    color: var(--text-color);
-    margin-bottom: 1rem;
-}
-
-.subtitle {
-    font-size: 1.2rem;
-    margin-bottom: 3rem;
-    color: var(--accent-color);
-}
-
-.card-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: 2.5rem;
-}
-
-.card {
-    background: var(--card-bg-color);
-    border-radius: 25px;
-    box-shadow: 5px 5px 0px var(--shadow-color);
-    text-decoration: none;
-    color: var(--text-color);
-    padding: 1.5rem;
+/* --- Base Structural Styles (Theme-Independent) --- */
+.game-container {
+    font-family: 'Noto Sans KR', sans-serif;
+    width: min(1100px, 96vw);
+    margin: 20px auto;
     display: flex;
     flex-direction: column;
+    gap: 20px;
+}
+
+.game-container .card {
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    transition: background 0.3s ease, border 0.3s ease;
+}
+
+.game-container .brand {
+    margin: 0;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 24px;
+    font-weight: 700;
+    transition: color 0.3s ease, text-shadow 0.3s ease;
+}
+
+.game-container .toolbar-top, .game-container .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+}
+.game-container .topbar { margin-bottom: 12px; font-size: 14px; }
+
+.game-container .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 500;
+    transition: background 0.3s ease, border 0.3s ease, color 0.3s ease;
+}
+
+.game-container .controls-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 14px;
+}
+
+.game-container .ctrl { display: flex; flex-direction: column; }
+
+.game-container .ctrl span {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    margin-bottom: 6px;
+    display: block;
+    transition: color 0.3s ease;
+}
+
+.game-container input[type="number"],
+.game-container select,
+.game-container .btn {
+    width: 100%;
+    border-radius: 10px;
+    min-height: 46px;
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+.game-container input[type="number"],
+.game-container select {
+    padding: 10px 12px;
+    font-size: 14px;
+}
+
+.game-container .btn {
+    padding: 10px 12px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.game-container .legend {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    font-size: 12px;
+    margin-top: 20px;
+    align-items: center;
+    transition: color 0.3s ease;
+}
+
+.game-container .swatch {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border-radius: 4px;
+    margin-right: 6px;
+    vertical-align: middle;
+}
+
+.game-container .pins {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+    gap: 12px;
+    padding: 16px;
+    border-radius: 14px;
+    min-height: 120px;
+    transition: background 0.3s ease, border 0.3s ease;
+}
+
+.game-container .pin {
+    height: 40px;
+    display: flex;
     align-items: center;
     justify-content: center;
-    text-align: center;
-    min-height: 180px;
-    transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
-    border: 3px solid var(--border-color);
-}
-
-.card:hover {
-    transform: translate(-5px, -5px);
-    box-shadow: 10px 10px 0px var(--shadow-color);
-}
-
-.card-icon {
-    margin-bottom: 1rem;
-    color: var(--text-color);
-}
-
-.card-icon svg {
-    width: 50px;
-    height: 50px;
-    stroke-width: 2;
-}
-
-.card-title {
-    font-size: 1.5rem;
+    border-radius: 8px;
     font-weight: 700;
-    margin: 0;
-    color: var(--text-color);
+    user-select: none;
+    transition: all .15s ease;
 }
 
-.card-description {
-    font-size: 1rem;
-    margin-top: 0.5rem;
+/* Unified style for selected pins to ensure hover state is consistent */
+.game-container .pin.selected,
+.game-container .pin.selected:hover {
+    background: #2563eb; /* Accessible Blue */
+    border-color: #3b82f6; /* Lighter Blue */
+    color: #ffffff; /* White text for high contrast */
+    transform: scale(1.05);
+    box-shadow: 0 0 15px rgba(37, 99, 235, 0.6);
 }
 
-/* Theme switcher styles from previous design, adapted */
-.theme-switcher input { display: none; }
-.theme-switcher label {
-    cursor: pointer;
-    display: block;
-    width: 52px;
-    height: 28px;
-    background-color: var(--card-bg-color);
-    border: 3px solid var(--border-color);
-    border-radius: 16px;
-    position: relative;
-    box-shadow: 3px 3px 0px var(--shadow-color);
-    transition: all 0.2s ease-out;
+/* Unified swatch color for selected state */
+.game-container .swatch.sel {
+    background: #2563eb; /* Accessible Blue */
+    border: 3px solid #3b82f6; /* Lighter Blue */
 }
-.theme-switcher label:hover { transform: translate(-2px, -2px); box-shadow: 5px 5px 0px var(--shadow-color); }
-.theme-switcher label::after {
-    content: '';
-    position: absolute;
-    top: 3px;
-    left: 3px;
-    width: 16px;
-    height: 16px;
-    background-color: var(--border-color);
-    border-radius: 50%;
-    transition: transform 0.3s ease;
+
+.game-container #gameMsg {
+    min-height: 24px;
+    font-weight: 500;
+    text-align: center;
+    transition: color 0.3s ease;
 }
-.theme-switcher input:checked + label { background-color: var(--card-bg-dark); }
-.theme-switcher input:checked + label::after { background-color: var(--text-dark); transform: translateX(24px); }
+
+/* --- Dark Mode Theme --- */
+html.dark .game-container .card { background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); }
+html.dark .game-container .brand { color: #ffffff; text-shadow: 0 0 10px rgba(255, 255, 255, 0.2); }
+html.dark .game-container .pill { background: rgba(0, 0, 0, 0.2); border: 1px solid rgba(255, 255, 255, 0.15); color: rgba(255, 255, 255, 0.8); }
+html.dark .game-container .ctrl span, html.dark .game-container .legend, html.dark .game-container .muted, html.dark .game-container #gameMsg { color: rgba(255, 255, 255, 0.7); }
+html.dark .game-container input[type="number"], html.dark .game-container select { background: rgba(0, 0, 0, 0.25); border: 1px solid rgba(255, 255, 255, 0.2); color: #ffffff; }
+html.dark .game-container input[type="number"]:focus, html.dark .game-container select:focus { border-color: rgba(66, 153, 225, 0.8); box-shadow: 0 0 8px rgba(66, 153, 225, 0.5); }
+html.dark .game-container .btn { background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); color: rgba(255, 255, 255, 0.9); }
+html.dark .game-container .btn:hover:not(:disabled) { background: rgba(255, 255, 255, 0.2); border-color: rgba(255, 255, 255, 0.3); }
+html.dark .game-container .btn.primary { background: #f7fafc; color: #1a202c; border: none; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); }
+html.dark .game-container .btn.primary:hover:not(:disabled) { background: #ffffff; transform: translateY(-1px); box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15); }
+html.dark .game-container .btn:disabled { background: rgba(255, 255, 255, 0.05); color: rgba(255, 255, 255, 0.4); border-color: rgba(255, 255, 255, 0.1); }
+html.dark .game-container .swatch.live { background: transparent; border: 3px solid rgba(255, 255, 255, 0.2); }
+html.dark .game-container .swatch.dead { background: rgba(255, 255, 255, 0.1); border: 3px solid rgba(255, 255, 255, 0.15); }
+html.dark .game-container .pins { background: rgba(0, 0, 0, 0.2); border: 1px solid rgba(255, 255, 255, 0.1); }
+html.dark .game-container .pin.alive { background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); color: rgba(255, 255, 255, 0.8); }
+html.dark .game-container .pin.alive:not(.selected):hover { transform: translateY(-3px); background: rgba(255, 255, 255, 0.2); border-color: rgba(255, 255, 255, 0.3); box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); }
+html.dark .game-container .pin.removed { background: transparent; border: 1px dashed rgba(255, 255, 255, 0.2); color: rgba(255, 255, 255, 0.2); opacity: 0.8; }
+
+/* --- Light Mode Theme --- */
+html.light .game-container .card { background: rgba(255, 255, 255, 0.6); border: 1px solid rgba(0, 0, 0, 0.1); }
+html.light .game-container .brand { color: #1a202c; text-shadow: none; }
+html.light .game-container .pill { background: rgba(0, 0, 0, 0.05); border: 1px solid rgba(0, 0, 0, 0.1); color: #475569; }
+html.light .game-container .ctrl span, html.light .game-container .legend, html.light .game-container .muted, html.light .game-container #gameMsg { color: #475569; }
+html.light .game-container input[type="number"], html.light .game-container select { background: rgba(255, 255, 255, 0.8); border: 1px solid rgba(0, 0, 0, 0.15); color: #1a202c; }
+html.light .game-container input[type="number"]:focus, html.light .game-container select:focus { border-color: rgba(66, 153, 225, 0.8); box-shadow: 0 0 8px rgba(66, 153, 225, 0.5); }
+html.light .game-container .btn { background: rgba(0, 0, 0, 0.05); border: 1px solid rgba(0, 0, 0, 0.1); color: #2d3748; }
+html.light .game-container .btn:hover:not(:disabled) { background: rgba(0, 0, 0, 0.1); border-color: rgba(0, 0, 0, 0.2); }
+html.light .game-container .btn.primary { background: #2d3748; color: #ffffff; border: none; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); }
+html.light .game-container .btn.primary:hover:not(:disabled) { background: #1a202c; transform: translateY(-1px); box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15); }
+html.light .game-container .btn:disabled { background: rgba(0, 0, 0, 0.02); color: rgba(0, 0, 0, 0.3); border-color: rgba(0, 0, 0, 0.05); }
+html.light .game-container .swatch.live { background: transparent; border: 3px solid rgba(0, 0, 0, 0.2); }
+html.light .game-container .swatch.sel { background: #4299e1; border: 3px solid #63b3ed; } /* User preferred color */
+html.light .game-container .swatch.dead { background: rgba(0, 0, 0, 0.05); border: 3px solid rgba(0, 0, 0, 0.1); }
+html.light .game-container .pins { background: rgba(0, 0, 0, 0.05); border: 1px solid rgba(0, 0, 0, 0.1); }
+html.light .game-container .pin.alive:not(.selected) { background: rgba(255, 255, 255, 0.7); border: 1px solid rgba(0, 0, 0, 0.15); color: #4a5568; } /* Bug Fix: Added :not(.selected) */
+html.light .game-container .pin.alive:not(.selected):hover { transform: translateY(-3px); background: #ffffff; border-color: rgba(0, 0, 0, 0.25); box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); }
+html.light .game-container .pin.removed { background: transparent; border: 1px dashed rgba(0, 0, 0, 0.2); color: rgba(0, 0, 0, 0.2); opacity: 0.8; }
+

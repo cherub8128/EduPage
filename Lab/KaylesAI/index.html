@@ -1,56 +1,59 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Misère 도슨의 케일스 게임</title>
-  <link rel="stylesheet" href="style.css"/>
-  <link rel="icon" href="./favicon.ico" type="image/x-icon">
-</head>
-<body>
-  <div class="app vstack">
+<!-- This file contains only the HTML content for the game -->
+<div class="game-container">
     <header class="toolbar card">
       <div class="toolbar-top">
-        <h1 class="brand">Misère Kayles</h1>
+        <h1 class="brand">도슨의 미제르 케일스 게임</h1>
         <div class="badges">
           <span id="modelBadge" class="pill">Mode: Exact DP (n ≤ 120)</span>
-          <span id="pnBadge" class="pill secondary">초기 포지션: —</span>
+          <span id="pnBadge" class="pill">Initial Position: —</span>
         </div>
       </div>
 
       <div class="controls-grid">
-        <label class="ctrl">
-          <span>핀 개수</span>
+        <div class="ctrl">
+          <span>Pins</span>
           <input id="nPins" type="number" min="2" max="120" value="60"/>
-        </label>
-        <label class="ctrl">
-          <span>선공</span>
+        </div>
+        <div class="ctrl">
+          <span>First Player</span>
           <select id="whoFirst">
             <option value="human" selected>Human</option>
             <option value="ai">AI</option>
           </select>
-        </label>
-        <button id="newGameBtn" class="btn primary">새 게임</button>
-        <button id="aiMoveBtn" class="btn">AI 수 두기</button>
-        <button id="theoryBtn" class="btn">이론 소개</button>
+        </div>
+        <div class="ctrl">
+            <span>&nbsp;</span>
+            <button id="newGameBtn" class="btn primary">New Game</button>
+        </div>
+        <div class="ctrl">
+             <span>&nbsp;</span>
+            <button id="aiMoveBtn" class="btn">AI Move</button>
+        </div>
+         <div class="ctrl">
+             <span>&nbsp;</span>
+            <button id="theoryBtn" class="btn">Theory</button>
+        </div>
       </div>
 
       <div class="legend">
-        <span><span class="swatch live"></span> 살아있는 핀</span>
-        <span><span class="swatch sel"></span> 선택됨</span>
-        <span><span class="swatch dead"></span> 제거됨</span>
+        <span><span class="swatch live"></span> Alive</span>
+        <span><span class="swatch sel"></span> Selected</span>
+        <span><span class="swatch dead"></span> Removed</span>
       </div>
     </header>
 
     <main class="board card">
       <div class="topbar">
-        <div>현재 턴: <b id="turnWho">-</b></div>
-        <div id="gameMsg" class="muted">정확 DP 모드입니다. 새 게임을 시작하세요.</div>
+        <div class="turn-info">
+          Current Turn: <strong id="turnWho">Human</strong>
+        </div>
+        <div id="gameMsg" class="muted">Start a new game.</div>
       </div>
-      <div id="pins" class="pins"></div>
+      <div id="pins" class="pins">
+        <!-- Pins will be rendered here by JavaScript -->
+      </div>
     </main>
-  </div>
-
-  <script src="script.js"></script>
-</body>
-</html>
+</div>
+<!-- The main page's router will load and execute this script. -->
+<!-- Make sure the path is correct based on your file structure. -->
+<script src="Lab/KaylesAI/script.js"></script>
