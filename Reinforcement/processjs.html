@@ -509,7 +509,7 @@ print("\nONNX model conversion and verification complete.")
         
         <section id="step6" class="step bg-white p-6 sm:p-8 rounded-2xl shadow-lg border border-slate-200 mb-10">
             <h2 class="text-2xl font-bold mb-4 border-b pb-3 text-slate-900">단계 6: 최종 AI 게임 테스트</h2>
-            <p class="mb-6 text-slate-700">이제 최종 단계입니다! `model.onnx` 파일이 `index.html`과 같은 폴더에 있는지 확인하고, 아래 명령어로 로컬 서버를 실행하여 브라우저에서 최종 결과물을 확인하세요.</p>
+            <p class="mb-6 text-slate-700">이제 거의 다왔습니다. `model.onnx` 파일이 `index.html`과 같은 폴더에 있는지 확인하고, 아래 명령어로 로컬 서버를 실행하여 브라우저에서 최종 결과물을 확인하세요.</p>
              <div class="space-y-4 text-slate-700">
                 <div>
                     <h3 class="font-semibold text-lg text-slate-800">1. 로컬 서버 실행</h3>
@@ -524,10 +524,41 @@ print("\nONNX model conversion and verification complete.")
         </section>
 
         <section id="step7" class="step bg-white p-6 sm:p-8 rounded-2xl shadow-lg border border-slate-200 mb-10">
-            <h2 class="text-2xl font-bold mb-4 border-b pb-3 text-slate-900">단계 7: GitHub Pages로 웹에 배포하기</h2>
-            <p class="mb-6 text-slate-700">완성된 AI 웹 게임(`index.html`, `style.css`, `main.js`, `model.onnx`)을 GitHub Pages를 통해 무료로 배포합니다.</p>
-            <div class="space-y-4 text-slate-700">
-                <p>Public 저장소를 만들고, 모든 파일을 업로드한 뒤, 저장소 Settings &rarr; Pages에서 'main' 브랜치를 소스로 선택하여 활성화하면 됩니다.</p>
+            <h2 class="text-2xl font-bold mb-4 border-b pb-3 text-slate-900">단계 7: VS Code와 Git으로 GitHub Pages에 배포하기</h2>
+            <p class="mb-6 text-slate-700">최종 단계입니다. 완성된 프로젝트를 VS Code에서 바로 GitHub에 올리고, GitHub Pages를 통해 전 세계에 배포합니다.</p>
+            
+            <div class="space-y-6 text-slate-700">
+                <div>
+                    <h3 class="font-semibold text-lg text-slate-800">1. 사전 준비: Git 설치 및 설정</h3>
+                    <p class="mt-1 ml-2">Git이 설치되어 있지 않다면 <a href="https://git-scm.com/" target="_blank" class="text-amber-600 underline">git-scm.com</a>에서 다운로드하여 설치합니다. 설치 후, Git Bash나 VS Code 터미널을 열어 아래 명령어를 입력하여 사용자 정보를 설정합니다 (최초 한 번만 필요).</p>
+                    <pre class="bg-slate-100 text-slate-800 p-2 mt-1 rounded-md text-sm"><code>git config --global user.name "Your Name"
+git config --global user.email "you@example.com"</code></pre>
+                </div>
+
+                <div>
+                    <h3 class="font-semibold text-lg text-slate-800">2. VS Code에서 GitHub 계정 연동</h3>
+                    <p class="mt-1 ml-2">VS Code 왼쪽 하단의 사람 모양 아이콘(계정)을 클릭하고, 'GitHub으로 로그인(Sign in with GitHub)'을 선택하여 브라우저의 안내에 따라 계정을 연동합니다.</p>
+                </div>
+
+                <div>
+                    <h3 class="font-semibold text-lg text-slate-800">3. Git 저장소 초기화 및 첫 커밋</h3>
+                    <p class="mt-1 ml-2">VS Code 왼쪽의 '소스 제어' 탭(가지 모양 아이콘)으로 이동하여 '리포지토리 초기화(Initialize Repository)' 버튼을 클릭합니다. 그 후, 상단의 메시지 입력란에 "Initial commit"과 같은 첫 커밋 메시지를 작성한 후 ✓ 커밋 버튼을 눌러 커밋합니다.</p>
+                </div>
+
+                <div>
+                    <h3 class="font-semibold text-lg text-slate-800">4. GitHub에 게시하기</h3>
+                    <p class="mt-1 ml-2">'소스 제어' 탭에 나타나는 '게시(Publish)' 버튼을 클릭합니다. VS Code가 GitHub에 저장소를 만드는 과정을 안내합니다. 저장소 이름을 정하고, <strong>반드시 '공개(Public)' 저장소로 설정</strong>해야 GitHub Pages를 무료로 사용할 수 있습니다.</p>
+                </div>
+
+                <div>
+                    <h3 class="font-semibold text-lg text-slate-800">5. GitHub Pages 활성화</h3>
+                    <p class="mt-1 ml-2">게시가 완료되면 GitHub 사이트에서 방금 생성한 저장소로 이동합니다. 'Settings' &rarr; 'Pages' 탭으로 이동하여 'Source'를 'Deploy from a branch'로, 브랜치를 'main' (또는 'master')으로 선택하고 'Save'를 클릭합니다.</p>
+                </div>
+
+                <div>
+                    <h3 class="font-semibold text-lg text-slate-800">6. 배포 확인 및 공유</h3>
+                    <p class="mt-1 ml-2">잠시 후 페이지 상단에 녹색으로 게시 주소(<code class="text-sm">https://&lt;사용자명&gt;.github.io/&lt;저장소명&gt;/</code>)가 나타납니다. 이 주소로 접속하여 게임을 확인하고 전 세계와 공유하세요!</p>
+                </div>
             </div>
         </section>
     </div>
