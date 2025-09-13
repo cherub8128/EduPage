@@ -103,33 +103,47 @@ Write the plan in Korean.</code></pre>
                 <button class="copy-button">복사</button>
                 <pre class="bg-slate-100 text-slate-800 p-4 rounded-lg overflow-x-auto text-sm"><code id="step2-prompt-code" class="language-text">You are an elite front-end developer and a top-tier visual designer, a master of creating high-quality, physics-based web games.
 
-Your task is to write the complete code for a **single, self-contained `index.html` file**. This file must integrate the HTML structure, all necessary CSS within `&lt;style&gt;` tags, and the complete game logic in JavaScript within `&lt;script&gt;` tags. No external CSS or JS files should be required, except for CDN libraries like Matter.js and ONNX Runtime.
+You are a world-renowned game designer, a hybrid of an elite front-end developer and an award-winning art director specializing in the minimalist hyper-casual genre. You are known for setting design trends with your impeccable taste, not just following them.
+Your task is to write the complete code for a single, self-contained index.html file. This file must integrate the HTML structure, all necessary CSS within &lt;style&gt; tags, and the complete game logic in JavaScript within &lt;script&gt; tags. No external CSS or JS files should be required, except for CDN libraries like Matter.js and ONNX Runtime.
 
-### Game Logic Plan:
+Game Logic Plan:
 [여기에 1단계에서 생성된 게임 기획안을 붙여넣으세요.]
 
-### JavaScript Implementation Details (CRITICAL):
-The entire game logic must be contained within the `&lt;script&gt;` tag. It must be structured to handle three modes (USER, AI, TRAINING) and expose a clear interface for the AI training environment. Specifically, you must implement the following core functions:
+JavaScript Implementation Details (CRITICAL):
 
-1.  **`setupGame()`**: This function initializes the Matter.js engine, renderer, world, and all game objects (player, obstacles, targets, etc.). It should be called once when the script loads.
-2.  **`resetGame()`**: This function resets the game to its initial state for a new episode. It must reposition all dynamic elements, reset scores, and clear any game-over states. It must return the initial observation array for the AI.
-3.  **`getObservation()`**: This function gathers the current state of the game (e.g., player position, velocity, target location) into a fixed-size array of numbers. This array is the AI's "eyes." The values should be normalized if possible, and the order of elements must always be consistent.
-4.  **`applyAction(action)`**: This function takes a single integer `action` from the user or AI and translates it into a game mechanic (e.g., 0 for 'do nothing', 1 for 'move left', 2 for 'move right').
-5.  **DUAL MODE LOGIC**: You must implement the logic to seamlessly switch between:
-    * **USER Mode:** Reads input from keyboard/mouse and calls `applyAction`.
-    * **AI (ONNX) Mode:** In the game loop, calls `getObservation()`, feeds it to the loaded ONNX model, gets an action, and calls `applyAction` with it.
-    * **TRAINING (WebSocket) Mode:** Listens for commands from the WebSocket server (`reset` or `action`) and calls the corresponding functions, sending back the observation data.
+The entire game logic must be contained within the &lt;script&gt; tag. It must be structured to handle three modes (USER, AI, TRAINING) and expose a clear interface for the AI training environment. Specifically, you must implement the following core functions:
+setupGame(): This function initializes the Matter.js engine, renderer, world, and all game objects (player, obstacles, targets, etc.). It should be called once when the script loads.
+resetGame(): This function resets the game to its initial state for a new episode. It must reposition all dynamic elements, reset scores, and clear any game-over states. It must return the initial observation array for the AI.
+getObservation(): This function gathers the current state of the game (e.g., player position, velocity, target location) into a fixed-size array of numbers. This array is the AI's "eyes." The values should be normalized if possible, and the order of elements must always be consistent.
+applyAction(action): This function takes a single integer action from the user or AI and translates it into a game mechanic (e.g., 0 for 'do nothing', 1 for 'move left', 2 for 'move right').
 
-### Visual & Quality Requirements (CRITICAL):
+DUAL MODE LOGIC: You must implement the logic to seamlessly switch between:
 
-1.  **Masterful Visual Design & UI/UX:** The game's design must be world-class, as if crafted by a professional visual designer with an exceptional eye for color and aesthetics. The UI/UX should be **minimalist, clean, and intuitive**, providing a seamless and enjoyable player experience. The overall style should be a polished, visually satisfying hyper-casual game of the highest quality.
-2.  **Realistic & 'Juicy' Physics:** All physics must be realistically and engagingly implemented using **Matter.js**. The game must feel **'juicy'**—include satisfying animations, bouncy effects, and responsive feedback to make interactions feel great.
-3.  **Intelligent Input Handling:**
-    * Based on the game concept, intelligently determine the best primary input method (keyboard or mouse/touch).
-    * **Keyboard:** If keyboard-based, implement smooth, responsive controls using `keydown` and `keyup` events. Crucially, use `event.preventDefault()` for arrow and space keys to prevent browser scrolling.
-    * **Mouse/Touch:** If mouse-based, ensure controls are intuitive and responsive on all devices.
+USER Mode: Reads input from keyboard/mouse and calls applyAction.
+AI (ONNX) Mode: In the game loop, calls getObservation(), feeds it to the loaded ONNX model, gets an action, and calls applyAction with it.
+TRAINING (WebSocket) Mode: Listens for commands from the WebSocket server (reset or action) and calls the corresponding functions, sending back the observation data.
 
-The final output must be a single, complete, and robust `index.html` file, ready to be run directly in a browser.</code></pre>
+Visual & Quality Requirements (CRITICAL):
+
+Exceptionally Refined Aesthetics: The design must be on par with award-winning minimalist hyper-casual games. It should feel premium, trendy, and polished. Think of the clean visual identity of top-tier mobile game publishers.
+Sophisticated Color Palette: Do not use simple, default colors. Instead, utilize a sophisticated and harmonious color palette.
+Base: Start with a soft, off-white or light pastel background.
+Palette: Choose a limited set of 2-3 primary colors that work well together (e.g., coral, teal, and navy). Use these for key game elements.
+Accents: Use a single, bright accent color for important feedback or highlights.
+Technique: Employ flat design. Subtle, soft gradients are highly encouraged for backgrounds or major objects to add depth, but avoid harsh or busy textures.
+
+Modern Typography & UI:
+
+Font: Use a clean, modern, and highly readable sans-serif web font (e.g., Google Fonts' 'Poppins', 'Montserrat', or 'Nunito').
+Hierarchy: Establish a clear visual hierarchy with font sizes and weights. The score should be prominent but elegant.
+Elements: UI elements like buttons and the AI toggle must be minimalist, geometric, and perfectly aligned. They should feel seamlessly integrated into the game's world, not like generic HTML elements placed on top.
+
+Layout & Composition:
+
+Negative Space: Embrace generous use of negative space. The layout must be uncluttered, focusing the player's attention only on essential information and gameplay.
+Balance: Every element on the screen should feel intentionally placed, creating a balanced and visually pleasing composition.
+'Juicy' & Polished Physics: All physics must be realistically and engagingly implemented using Matter.js. The game must feel 'juicy'—include satisfying animations, bouncy effects, and responsive feedback to make interactions feel great. Every visual element, from the player character to the smallest particle effect, must adhere to the cohesive and elegant design language.
+The final output must be a single, complete, and robust index.html file, ready to be run directly in a browser.</code></pre>
             </div>
         </section>
 
