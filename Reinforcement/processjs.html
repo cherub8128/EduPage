@@ -36,8 +36,7 @@
                 <button id="close-modal-btn" class="text-3xl font-light text-slate-500 hover:text-slate-800">&times;</button>
             </div>
             <div id="theme-grid" class="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 overflow-y-auto">
-                <!-- Modal content is loaded dynamically -->
-            </div>
+                </div>
         </div>
     </div>
 
@@ -170,6 +169,7 @@ import websockets
 import json
 import logging
 
+# 기본 로깅 설정
 logging.basicConfig(level=logging.INFO)
 
 class WebSocketEnv(gym.Env):
@@ -178,12 +178,18 @@ class WebSocketEnv(gym.Env):
         self.websocket = None
         self.loop = asyncio.get_event_loop()
         self.action_space = spaces.Discrete(action_n)
+        # --- 연속 행동 공간(Continuous Action Space) 사용 시 ---
+        # 위 줄을 주석 처리하고 아래 코드를 사용하세요.
+        # 여기서 shape의 첫 번째 값은 연속적인 행동의 개수(차원)입니다.
+        # 예를 들어, 좌/우 추력과 메인 추력 2개를 각각 -1과 1 사이의 값으로 제어한다면 shape=(2,)가 됩니다.
+        # self.action_space = spaces.Box(low=-1, high=1, shape=(2,), dtype=np.float32)
+
         self.observation_space = spaces.Box(low=-np.inf, high=np.inf, shape=observation_shape, dtype=np.float32)
 
-        print("Waiting for JavaScript client to connect...")
+        print("자바스크립트 클라이언트의 연결을 기다립니다...")
         self.server = self.loop.run_until_complete(websockets.serve(self._handler, "localhost", 8765))
         self.loop.run_until_complete(self._wait_for_connection())
-        print("Client connected!")
+        print("클라이언트가 연결되었습니다!")
 
     async def _handler(self, websocket, path):
         self.websocket = websocket
@@ -233,7 +239,7 @@ class WebSocketEnv(gym.Env):
         if self.server:
             self.server.close()
             self.loop.run_until_complete(self.server.wait_closed())
-        print("WebSocket server closed.")
+        print("웹소켓 서버가 종료되었습니다.")
 </code></pre>
             </div>
         </section>
@@ -273,9 +279,25 @@ from stable_baselines3.common.callbacks import CheckpointCallback
 from stable_baselines3.common.logger import configure
 from websocket_env import WebSocketEnv
 
-# --- CONFIGURATION ---
-OBSERVATION_SHAPE = (8,) # IMPORTANT: Match this to your JS game's observation array length
-ACTION_N = 4             # IMPORTANT: Match this to your JS game's number of actions
+# --- 설정 ---
+# 중요: 이 값을 JS 게임의 관측(observation)에 맞춰야 합니다.
+OBSERVATION_SHAPE = (8,) 
+# 예시:
+# 1. 벡터 관측 (Vector Observation, MlpPolicy 사용):
+#    - 플레이어 x, y 좌표, 속도 vx, vy, 목표물 x, y 좌표 등 6개 숫자 -> (6,)
+#    - 현재 코드처럼 8개의 숫자 배열 -> (8,)
+# 2. 이미지 관측 (Image Observation, CnnPolicy 사용):
+#    - 흑백 이미지 (채널 1개), 84x84 픽셀 -> (1, 84, 84)
+#    - 컬러 이미지 (채널 3개, RGB), 84x84 픽셀 -> (3, 84, 84)
+#    - (주의: SB3는 (채널, 높이, 너비) 순서를 사용합니다)
+
+# 중요: 이 값을 JS 게임의 행동(action) 개수에 맞춰야 합니다.
+# --- 연속 행동 공간(Continuous Action Space) 사용 시 ---
+# 1. 위의 ACTION_N은 행동의 차원 수를 의미하게 됩니다. (예: 2차원이면 2로 설정)
+# 2. websocket_env.py 파일에서 self.action_space를 spaces.Discrete가 아닌 spaces.Box로 변경해야 합니다.
+# 3. JS 게임의 applyAction(action) 함수는 이제 정수(0, 1, 2...)가 아닌 [-0.5, 0.8] 과 같은 숫자 배열을 받게 됩니다.
+#    따라서 JS 코드에서 이 배열 값을 실제 게임 조작(예: 힘의 크기, 각도)으로 변환하는 로직을 구현해야 합니다.
+ACTION_N = 4             
 
 LOG_DIR = "training_logs"
 TENSORBOARD_LOG_NAME = f"PPO_{int(time.time())}"
@@ -303,15 +325,15 @@ def main():
 
     if latest_run:
         run_path = os.path.join(LOG_DIR, latest_run)
-        print(f"Found existing run: {latest_run}")
+        print(f"기존 학습을 찾았습니다: {latest_run}")
     else:
         run_path = os.path.join(LOG_DIR, TENSORBOARD_LOG_NAME)
-        print(f"No existing run found. Starting a new one: {TENSORBOARD_LOG_NAME}")
+        print(f"기존 학습을 찾을 수 없습니다. 새로운 학습을 시작합니다: {TENSORBOARD_LOG_NAME}")
     
     checkpoint_path = os.path.join(run_path, "checkpoints")
     os.makedirs(checkpoint_path, exist_ok=True)
     
-    print(f"Log path: {run_path}")
+    print(f"로그 경로: {run_path}")
 
     webbrowser.open(f'file://{os.path.realpath("index.html")}')
 
@@ -321,11 +343,12 @@ def main():
     checkpoint_callback = CheckpointCallback(save_freq=CHECKPOINT_FREQ, save_path=checkpoint_path, name_prefix="rl_model")
 
     if latest_checkpoint:
-        print(f"Resuming training from: {latest_checkpoint}")
+        print(f"체크포인트에서 학습을 재개합니다: {latest_checkpoint}")
         model = PPO.load(latest_checkpoint, env=env)
         model.set_logger(custom_logger)
     else:
-        print("Starting new training session.")
+        print("새로운 학습 세션을 시작합니다.")
+        # 관측 형태에 따라 자동으로 정책을 선택합니다.
         policy = "MlpPolicy" if len(OBSERVATION_SHAPE) == 1 else "CnnPolicy"
         model = PPO(policy, env, verbose=1)
         model.set_logger(custom_logger)
@@ -333,7 +356,7 @@ def main():
     try:
         model.learn(total_timesteps=TOTAL_TIMESTEPS, callback=checkpoint_callback, reset_num_timesteps=False)
         model.save(os.path.join(run_path, "final_model.zip"))
-        print(f"Training finished. Model saved to {os.path.join(run_path, 'final_model.zip')}")
+        print(f"학습 완료. 모델이 {os.path.join(run_path, 'final_model.zip')}에 저장되었습니다.")
     finally:
         env.close()
 
@@ -359,8 +382,24 @@ from torchrl.objectives.value import GAE
 from torchrl.record import TensorBoardLogger
 from websocket_env import WebSocketEnv
 
-# --- CONFIGURATION ---
+# --- 설정 ---
+# 중요: 이 값을 JS 게임의 관측(observation)에 맞춰야 합니다.
 OBSERVATION_SHAPE = (8,) 
+# 예시:
+# 1. 벡터 관측 (Vector Observation, MlpPolicy 사용):
+#    - 플레이어 x, y 좌표, 속도 vx, vy, 목표물 x, y 좌표 등 6개 숫자 -> (6,)
+#    - 현재 코드처럼 8개의 숫자 배열 -> (8,)
+# 2. 이미지 관측 (Image Observation, CnnPolicy 사용):
+#    - 흑백 이미지 (채널 1개), 84x84 픽셀 -> (1, 84, 84)
+#    - 컬러 이미지 (채널 3개, RGB), 84x84 픽셀 -> (3, 84, 84)
+#    - (주의: PyTorch는 (채널, 높이, 너비) 순서를 사용합니다)
+
+# 중요: 이 값을 JS 게임의 행동(action) 개수에 맞춰야 합니다.
+# --- 연속 행동 공간(Continuous Action Space) 사용 시 ---
+# 1. 위의 ACTION_N은 행동의 차원 수를 의미하게 됩니다. (예: 2차원이면 2로 설정)
+# 2. websocket_env.py 파일에서 self.action_space를 spaces.Discrete가 아닌 spaces.Box로 변경해야 합니다.
+# 3. JS 게임의 applyAction(action) 함수는 이제 정수(0, 1, 2...)가 아닌 [-0.5, 0.8] 과 같은 숫자 배열을 받게 됩니다.
+#    따라서 JS 코드에서 이 배열 값을 실제 게임 조작(예: 힘의 크기, 각도)으로 변환하는 로직을 구현해야 합니다.
 ACTION_N = 4
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
@@ -374,11 +413,13 @@ def main():
     webbrowser.open(f'file://{os.path.realpath("index.html")}')
     env = GymWrapper(WebSocketEnv(observation_shape=OBSERVATION_SHAPE, action_n=ACTION_N), device=DEVICE)
 
+    # 액터와 크리틱 네트워크 정의
     actor_net = MLP(in_features=OBSERVATION_SHAPE[0], out_features=2 * ACTION_N, num_cells=[64, 64], activation_class=torch.nn.Tanh)
     policy_module = ProbabilisticActor(module=actor_net, in_keys=["observation"], out_keys=["loc", "scale"], distribution_class=TanhNormal)
     value_net = MLP(in_features=OBSERVATION_SHAPE[0], out_features=1, num_cells=[64, 64], activation_class=torch.nn.Tanh)
     value_module = ValueOperator(module=value_net, in_keys=["observation"])
 
+    # 데이터 수집기 설정
     collector = SyncDataCollector(
         env,
         policy_module,
@@ -387,15 +428,17 @@ def main():
         device=DEVICE,
     )
 
+    # 리플레이 버퍼, 어드밴티지 및 손실 함수 설정
     replay_buffer = TensorDictReplayBuffer(storage=LazyMemmapStorage(FRAMES_PER_BATCH))
     advantage_module = GAE(gamma=0.99, lmbda=0.95, value_network=value_module, average_gae=True)
     loss_module = ClipPPOLoss(actor=policy_module, critic=value_module, clip_epsilon=0.2, entropy_coef=0.01)
     optimizer = torch.optim.Adam(loss_module.parameters(), lr=3e-4)
     
+    # 로거 설정
     logger = TensorBoardLogger(log_dir="training_logs", exp_name=f"TorchRL_PPO_{int(time.time())}")
     
     total_frames_collected = 0
-    print("Starting training...")
+    print("학습을 시작합니다...")
     for i, tensordict_data in enumerate(collector):
         total_frames_collected += tensordict_data.numel()
         
@@ -414,15 +457,15 @@ def main():
                 loss_value.backward()
                 optimizer.step()
 
-        if i % 10 == 0: # Log every 10 batches
-            print(f"Step {total_frames_collected}: loss={loss_value.item()}")
+        if i % 10 == 0: # 10 배치마다 로그 기록
+            print(f"스텝 {total_frames_collected}: 손실={loss_value.item()}")
             for key, value in loss_vals.items():
                 logger.log_scalar(key.replace("loss_", ""), value.item(), step=total_frames_collected)
         
-        if i % 50 == 0:
+        if i % 50 == 0: # 50 배치마다 모델 저장
             torch.save(policy_module.state_dict(), "model_torchrl.pth")
 
-    print("Training finished.")
+    print("학습 완료.")
     collector.shutdown()
     torch.save(policy_module.state_dict(), "model_torchrl.pth")
 
@@ -450,14 +493,22 @@ import onnxruntime as ort
 from stable_baselines3 import PPO
 import os
 
-# --- CONFIGURATION ---
+# --- 설정 ---
+# 중요: 이 값은 학습 스크립트의 값과 정확히 일치해야 합니다.
 OBSERVATION_SHAPE = (8,) 
-# Find the latest model file to convert
+# 예시:
+# 1. 벡터 관측 (Vector Observation, MlpPolicy 사용):
+#    - (8,)
+# 2. 이미지 관측 (Image Observation, CnnPolicy 사용):
+#    - (1, 84, 84)  (흑백)
+#    - (3, 84, 84)  (컬러)
+
+# 변환할 최신 모델 파일을 자동으로 찾습니다.
 try:
     latest_run = max([d for d in os.listdir("training_logs") if os.path.isdir(os.path.join("training_logs", d))], key=lambda d: os.path.getmtime(os.path.join("training_logs", d)))
     MODEL_PATH = os.path.join("training_logs", latest_run, "final_model.zip")
 except (FileNotFoundError, ValueError):
-    MODEL_PATH = "final_model.zip" # Fallback
+    MODEL_PATH = "final_model.zip" # training_logs 폴더가 없을 경우의 대체 경로
     
 ONNX_PATH = "model.onnx"
 # ---------------------
@@ -468,20 +519,22 @@ class OnnxablePolicy(torch.nn.Module):
         self.policy = policy
 
     def forward(self, observation):
+        # 결정론적(deterministic) 행동을 예측합니다.
         action, _ = self.policy.predict(observation, deterministic=True)
         return torch.from_numpy(action)
 
 if not os.path.exists(MODEL_PATH):
-    print(f"Error: Model file not found at {MODEL_PATH}")
+    print(f"오류: {MODEL_PATH}에서 모델 파일을 찾을 수 없습니다.")
     exit()
 
-print(f"Loading model from {MODEL_PATH}...")
+print(f"{MODEL_PATH}에서 모델을 불러옵니다...")
 model = PPO.load(MODEL_PATH, device='cpu')
 onnxable_model = OnnxablePolicy(model.policy)
 
+# ONNX 변환을 위한 더미 입력 생성
 dummy_input = torch.randn(1, *OBSERVATION_SHAPE)
 
-print(f"Exporting to {ONNX_PATH}...")
+print(f"{ONNX_PATH}로 내보내는 중...")
 torch.onnx.export(
     onnxable_model,
     dummy_input,
@@ -490,19 +543,19 @@ torch.onnx.export(
     input_names=["observation"],
     output_names=["action"],
 )
-print("Export complete.")
+print("내보내기 완료.")
 
-print("\n--- Verification ---")
+print("\n--- 검증 단계 ---")
 dummy_observation_np = dummy_input.numpy().astype(np.float32)
 ort_session = ort.InferenceSession(ONNX_PATH)
 input_name = ort_session.get_inputs()[0].name
 output_name = ort_session.get_outputs()[0].name
 
-print(f"Running inference with dummy input...")
+print(f"더미 입력으로 추론을 실행합니다...")
 result = ort_session.run([output_name], {input_name: dummy_observation_np})
-print("Inference successful!")
-print(f"Output: {result[0]}")
-print("\nONNX model conversion and verification complete.")
+print("추론 성공!")
+print(f"출력: {result[0]}")
+print("\nONNX 모델 변환 및 검증이 완료되었습니다.")
 </code></pre>
             </div>
         </section>
@@ -578,7 +631,7 @@ git config --global user.email "you@example.com"</code></pre>
                             button.textContent = '복사';
                             button.classList.remove('copied');
                         }, 2000);
-                    }).catch(err => console.error('Copy failed', err));
+                    }).catch(err => console.error('복사 실패', err));
                 });
             });
 
@@ -645,7 +698,7 @@ git config --global user.email "you@example.com"</code></pre>
                     });
 
                 } catch (error) {
-                    console.error("Could not load themes:", error);
+                    console.error("테마를 불러올 수 없습니다:", error);
                     if (themeGrid) themeGrid.innerHTML = '<p class="text-red-500">테마를 불러오는 데 실패했습니다. themes.json 파일이 올바른 위치에 있는지 확인하세요.</p>';
                 }
             }
@@ -680,4 +733,3 @@ git config --global user.email "you@example.com"</code></pre>
     </script>
 </body>
 </html>
-
