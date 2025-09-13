@@ -331,8 +331,8 @@ from websocket_env import WebSocketEnv
 OBSERVATION_SHAPE = (4,)
 # OBSERVATION_SHAPE = (1, 84, 84) # CnnPolicy를 위한 이미지 관찰 예시
 # 2. 행동 공간 (Action Space) - AI의 '손'
-# ACTION_SPACE_CONFIG = {'type': 'discrete', 'n': 5}
-ACTION_SPACE_CONFIG = {'type': 'continuous', 'low': [-2.0], 'high': [2.0]} # 1차원 연속 행동 예시
+ACTION_SPACE_CONFIG = {'type': 'discrete', 'n': 5}
+# ACTION_SPACE_CONFIG = {'type': 'continuous', 'low': [-2.0], 'high': [2.0]} # 1차원 연속 행동 예시
 # ACTION_SPACE_CONFIG = {'type': 'continuous', 'low': [-1.0, -3.0], 'high': [1.0, 3.0]} # 2차원 연속 행동 예시
 
 # -----------------
@@ -429,13 +429,18 @@ if __name__ == '__main__':
 import os, time, torch, webbrowser, threading
 import http.server, socketserver
 from stable_baselines3 import PPO
-from stable_baselines3.common.callbacks import ProgressBarCallback
+from stable_baselines3.common.callbacks import CheckpointCallback, ProgressBarCallback, CallbackList
 from stable_baselines3.common.logger import configure
 from websocket_env import WebSocketEnv
 
 # --- 중요 설정 ---
+# 1. 관찰 공간 (Observation Space) - AI의 '눈'
 OBSERVATION_SHAPE = (8,)
+# OBSERVATION_SHAPE = (1, 84, 84) # CnnPolicy를 위한 이미지 관찰 예시
+# 2. 행동 공간 (Action Space) - AI의 '손'
 ACTION_SPACE_CONFIG = {'type': 'discrete', 'n': 5}
+# ACTION_SPACE_CONFIG = {'type': 'continuous', 'low': [-2.0], 'high': [2.0]} # 1차원 연속 행동 예시
+# ACTION_SPACE_CONFIG = {'type': 'continuous', 'low': [-1.0, -3.0], 'high': [1.0, 3.0]} # 2차원 연속 행동 예시
 # -----------------
 TOTAL_TRAINING_STEPS, STEPS_PER_ITERATION = 1_000_000, 50_000
 MODEL_DIR, LOG_DIR, PORT = "models", "training_logs", 8000
@@ -462,33 +467,59 @@ def export_to_onnx(model_path, onnx_path):
     torch.onnx.export(onnxable_model, dummy_input, onnx_path, opset_version=12, input_names=["observation"], output_names=["action"])
     print("ONNX 변환 완료.")
 
+def find_latest_log_dir():
+    if not os.path.isdir(LOG_DIR): return None
+    runs = [d for d in os.listdir(LOG_DIR) if os.path.isdir(os.path.join(LOG_DIR, d)) and d.startswith("PPO_SelfPlay")]
+    if not runs: return None
+    # 시간순으로 가장 최신 폴더 찾기
+    latest_run = max(runs, key=lambda d: os.path.getmtime(os.path.join(LOG_DIR, d)))
+    return latest_run
+
 def main():
     web_server = WebServerThread(PORT)
     web_server.start()
     time.sleep(1)
     webbrowser.open(f'http://localhost:{PORT}')
+    
     env = WebSocketEnv(observation_shape=OBSERVATION_SHAPE, action_space_config=ACTION_SPACE_CONFIG)
-    run_path = os.path.join(LOG_DIR, f"PPO_SelfPlay_{int(time.time())}")
-    custom_logger = configure(run_path, ["stdout", "tensorboard"])
+    
     latest_model_path = os.path.join(MODEL_DIR, "latest_model.zip")
+    
+    # TensorBoard 로깅 연속성을 위한 로그 디렉토리 설정
+    latest_run_name = find_latest_log_dir()
+    TENSORBOARD_LOG_NAME = latest_run_name if os.path.exists(latest_model_path) and latest_run_name else f"PPO_SelfPlay_{int(time.time())}"
+    run_path = os.path.join(LOG_DIR, TENSORBOARD_LOG_NAME)
+    
+    custom_logger = configure(run_path, ["stdout", "tensorboard"])
+    
+    # 체크포인트와 프로그레스 바를 위한 콜백 리스트 설정
+    checkpoint_path = os.path.join(run_path, "checkpoints")
+    os.makedirs(checkpoint_path, exist_ok=True)
+    checkpoint_callback = CheckpointCallback(save_freq=20000, save_path=checkpoint_path, name_prefix="rl_model")
+    callback_list = CallbackList([checkpoint_callback, ProgressBarCallback()])
+    
     policy_type = "CnnPolicy" if len(OBSERVATION_SHAPE) == 3 else "MlpPolicy"
+
     if os.path.exists(latest_model_path):
         print(f"저장된 모델 {latest_model_path}에서 학습을 재개합니다.")
-        model = PPO.load(latest_model_path, env=env, device='auto')
+        model = PPO.load(latest_model_path, env=env, device='auto') 
     else:
         print(f"{policy_type} 정책으로 새로운 학습을 시작합니다.")
         model = PPO(policy_type, env, verbose=0, device='auto')
+        
     model.set_logger(custom_logger)
+    
     if not os.path.exists("opponent.onnx"):
         print("'opponent.onnx' 파일이 없어 현재 에이전트로 초기 상대를 생성합니다.")
         model.save(os.path.join(MODEL_DIR, "initial_model.zip"))
         export_to_onnx(os.path.join(MODEL_DIR, "initial_model.zip"), "opponent.onnx")
     else:
         print("기존 'opponent.onnx' 파일을 초기 상대로 사용합니다.")
+    
     try:
         total_steps_done = model.num_timesteps
         while total_steps_done < TOTAL_TRAINING_STEPS:
-            model.learn(total_timesteps=total_steps_done + STEPS_PER_ITERATION, callback=ProgressBarCallback(), reset_num_timesteps=False)
+            model.learn(total_timesteps=total_steps_done + STEPS_PER_ITERATION, callback=callback_list, reset_num_timesteps=False)
             total_steps_done = model.num_timesteps
             model.save(latest_model_path)
             export_to_onnx(latest_model_path, "opponent.onnx")
@@ -498,6 +529,7 @@ def main():
     finally:
         env.close()
         web_server.stop()
+    
     export_to_onnx(latest_model_path, "model.onnx")
 
 if __name__ == '__main__':
