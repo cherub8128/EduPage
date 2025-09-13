@@ -97,10 +97,11 @@
 3.  **Robust Physics & Resets:** Use Matter.js collision categories to prevent bugs. Game resets must be stable. Use a state flag and a short `setTimeout`.
 4.  **Core RL Functions:** Implement `getObservation()`, `resetForTraining()`, and `stepGameForTraining(action)`.
 5.  **Visual Excellence:** The design must be minimalist and polished.
+6.  **Special Reset Protocol:** The `resetForTraining()` function must ONLY send back the initial observation. The full data packet `{observation, reward, done}` should only be sent from the `stepGameForTraining(action)` function. This is to adhere to standard reinforcement learning environment protocols.
 
 // --- For 2-Player / Self-Play Games ONLY ---
 /*
-6.  **Dual ONNX Model Support:**
+7.  **Dual ONNX Model Support:**
     * The game must load `model.onnx` and `opponent.onnx`. Use a cache-busting query (`?v=` + Date.now()) when loading `opponent.onnx`.
     * In `TRAINING` mode, the opponent must be controlled by `opponent.onnx`. Decouple the AI's async decision-making from the sync physics loop.
 */
@@ -118,10 +119,11 @@
 2.  **Inject WebSocket Interface:** Add `connectWebSocket()` to connect to `ws://localhost:8765`, handling `reset`/`action` commands.
 3.  **Create Core RL Functions:** Analyze the game and create `getObservation()`, `applyAction(action)`, `resetForTraining()`, and `stepGameForTraining(action)`.
 4.  **Inject ONNX Model Support:** Add logic to load `model.onnx`. In `AI` mode, the game loop should use the model to drive the player.
+5.  **Special Reset Protocol:** The `resetForTraining()` function must ONLY send back the initial observation. The full data packet `{observation, reward, done}` should only be sent from the `stepGameForTraining(action)` function. This is to adhere to standard reinforcement learning environment protocols.
 
 // --- For 2-Player / Self-Play Games ONLY ---
 /*
-5.  **Inject Dual ONNX Support:** Also load `opponent.onnx` (with cache-busting) and use it to control the opponent in `TRAINING` mode.
+6.  **Inject Dual ONNX Support:** Also load `opponent.onnx` (with cache-busting) and use it to control the opponent in `TRAINING` mode.
 */
 
 **Original Game Code:**
