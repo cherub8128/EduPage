@@ -80,272 +80,45 @@ Write the plan in Korean.</code></pre>
         </section>
 
         <section id="step2" class="step bg-white p-6 sm:p-8 rounded-2xl shadow-lg border border-slate-200 mb-10">
-            <h2 class="text-2xl font-bold mb-4 border-b pb-3 text-slate-900">단계 2: 프로젝트 설정 및 통합 웹 게임 제작</h2>
-            <p class="mb-6 text-slate-700">이제 실제 게임 개발을 시작합니다. 아래 안내에 따라 프로젝트 폴더와 파일들을 준비하세요.</p>
+            <h2 class="text-2xl font-bold mb-4 border-b pb-3 text-slate-900">단계 2: 통합 AI 웹 게임 제작</h2>
+            <p class="mb-6 text-slate-700">이제 실제 게임 개발을 시작합니다. 1단계에서 생성된 기획안을 아래 입력란에 붙여넣으면, AI가 HTML, CSS, JavaScript를 모두 포함한 **하나의 완성된 웹 게임 파일**을 생성하기 위한 프롬프트가 자동으로 완성됩니다.</p>
             
             <div class="user-input">
-                <h3 class="font-semibold text-lg text-slate-800 mb-2">프로젝트 폴더 및 파일 생성 (VS Code)</h3>
-                <ol class="list-decimal list-inside space-y-2 text-sm text-slate-700">
-                    <li>컴퓨터에 `ai-game`과 같은 이름으로 새 폴더를 만듭니다.</li>
-                    <li>Visual Studio Code를 열고, `파일 > 폴더 열기`를 통해 방금 만든 폴더를 엽니다.</li>
-                    <li>VS Code의 탐색기 패널에서 다음 4개의 빈 파일을 생성합니다:
-                        <ul class="list-disc list-inside ml-4 mt-1">
-                            <li><code>index.html</code></li>
-                            <li><code>style.css</code></li>
-                            <li><code>main.js</code></li>
-                        </ul>
-                    </li>
-                    <li>아래의 코드 블록 내용을 각 파일에 복사하여 붙여넣으세요.</li>
-                </ol>
-            </div>
-
-            <div class="code-block-provided mt-6">
-                <h3 class="font-semibold text-lg text-slate-800 mb-2">1. `index.html` 파일 내용</h3>
-                <div class="prompt-block">
-                    <button class="copy-button">복사</button>
-                    <pre class="bg-slate-100 text-slate-800 p-4 rounded-lg overflow-x-auto text-sm"><code class="language-html">&lt;!DOCTYPE html&gt;
-&lt;html lang="ko"&gt;
-&lt;head&gt;
-    &lt;meta charset="UTF-8"&gt;
-    &lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
-    &lt;title&gt;AI Game&lt;/title&gt;
-    &lt;link rel="stylesheet" href="style.css"&gt;
-&lt;/head&gt;
-&lt;body&gt;
-    &lt;div id="game-container"&gt;
-        &lt;!-- Matter.js Canvas will be created here by main.js --&gt;
-    &lt;/div&gt;
-    &lt;div id="ui-container"&gt;
-        &lt;div id="score"&gt;SCORE: 0&lt;/div&gt;
-        &lt;div class="toggle-container"&gt;
-            &lt;span class="mode-text"&gt;USER&lt;/span&gt;
-            &lt;label class="toggle-label"&gt;
-                &lt;input type="checkbox" id="ai-toggle" disabled&gt;
-                &lt;span class="slider"&gt;&lt;/span&gt;
-            &lt;/label&gt;
-            &lt;span class="mode-text"&gt;AI&lt;/span&gt;
-        &lt;/div&gt;
-    &lt;/div&gt;
-
-    &lt;script src="https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort.min.js"&gt;&lt;/script&gt;
-    &lt;script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"&gt;&lt;/script&gt;
-    &lt;script src="main.js"&gt;&lt;/script&gt;
-&lt;/body&gt;
-&lt;/html&gt;
-</code></pre>
-                </div>
-            </div>
-
-            <div class="code-block-provided mt-6">
-                <h3 class="font-semibold text-lg text-slate-800 mb-2">2. `style.css` 파일 내용</h3>
-                <div class="prompt-block">
-                    <button class="copy-button">복사</button>
-                    <pre class="bg-slate-100 text-slate-800 p-4 rounded-lg overflow-x-auto text-sm"><code class="language-css">/* General Body Styles */
-body {
-    margin: 0;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    background-color: #f0f4f8; /* Soft blue-gray background */
-    font-family: 'Noto Sans KR', sans-serif;
-    overflow: hidden;
-}
-
-/* Game and UI Container Styles */
-#game-container {
-    position: relative;
-    border-radius: 16px;
-    overflow: hidden;
-    box-shadow: 0 10px 20px rgba(0,0,0,0.1), 0 6px 6px rgba(0,0,0,0.1);
-}
-
-canvas {
-    display: block;
-    background-color: #ffffff;
-}
-
-#ui-container {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: 800px; /* Should match canvas width */
-    margin-top: 20px;
-    padding: 0 10px;
-    box-sizing: border-box;
-}
-
-#score {
-    font-size: 28px;
-    font-weight: 700;
-    color: #334155; /* Cool gray */
-    letter-spacing: 1px;
-}
-
-/* Toggle Switch Styles */
-.toggle-container {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.mode-text {
-    font-weight: 600;
-    font-size: 16px;
-    color: #64748b; /* Lighter gray */
-}
-
-.toggle-label {
-    position: relative;
-    display: inline-block;
-    width: 60px;
-    height: 34px;
-}
-
-.toggle-label input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-}
-
-.slider {
-    position: absolute;
-    cursor: pointer;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: #ccc;
-    transition: .4s;
-    border-radius: 34px;
-}
-
-.slider:before {
-    position: absolute;
-    content: "";
-    height: 26px;
-    width: 26px;
-    left: 4px;
-    bottom: 4px;
-    background-color: white;
-    transition: .4s;
-    border-radius: 50%;
-}
-
-input:checked + .slider {
-    background-color: #2563eb; /* A vibrant blue */
-}
-
-input:disabled + .slider {
-    background-color: #94a3b8;
-    cursor: not-allowed;
-}
-
-
-input:checked + .slider:before {
-    transform: translateX(26px);
-}
-</code></pre>
-                </div>
-            </div>
-            <div class="code-block-provided mt-6">
-                <h3 class="font-semibold text-lg text-slate-800 mb-2">`main.js` 템플릿 내용</h3>
-                <p class="text-sm text-slate-600 mb-4">다운로드한 `main.js` 파일에는 AI 통신을 위한 아래의 필수 함수들이 미리 정의되어 있습니다. Gemini는 이 구조 안에서 게임 로직을 구현하게 됩니다.</p>
-                <div class="prompt-block">
-                    <button class="copy-button">복사</button>
-                    <pre class="bg-slate-100 text-slate-800 p-4 rounded-lg overflow-x-auto text-sm"><code class="language-javascript">// main.js Template
-
-// --- Matter.js Modules ---
-// ... (Modules will be defined here) ...
-
-// --- Game & UI Elements ---
-// ... (DOM elements will be selected here) ...
-
-// --- Game State & Parameters ---
-// ... (Game variables will be defined here) ...
-
-// =================================================================================
-// ESSENTIAL INTERFACE FUNCTIONS FOR AI
-// Gemini will implement the logic inside these functions.
-// =================================================================================
-
-/**
- * Sets up the initial game state, objects, and physics engine.
- */
-function setupGame() {
-    // TODO: Create Matter.js engine, renderer, and game objects.
-}
-
-/**
- * Resets the game to its starting state for a new episode.
- * @returns {Array<number>} The initial observation array.
- */
-function resetGame() {
-    // TODO: Reset positions and velocities of all dynamic bodies.
-    return getObservation();
-}
-
-/**
- * Gathers the current state of the game into a numerical array for the AI.
- * @returns {Array<number>} The observation array.
- */
-function getObservation() {
-    // TODO: Collect all relevant data (positions, velocities, etc.).
-    // IMPORTANT: The order and normalization must be consistent.
-    return []; // Placeholder
-}
-
-/**
- * Applies an action received from the AI or user to the game.
- * @param {number} action - The integer action.
- */
-function applyAction(action) {
-    // TODO: Map the action integer to a game mechanic.
-}
-
-// ... The rest of the template includes WebSocket/ONNX/User control logic ...
-</code></pre>
-                </div>
-            </div>
-
-            <p class="mt-6 mb-6 text-slate-700">**중요:** 1단계에서 생성된 기획안을 아래 입력란에 붙여넣으면, `main.js` 생성을 위한 프롬프트가 자동으로 완성됩니다.</p>
-            <div class="user-input">
-                <h3 class="font-semibold text-lg text-slate-800 mb-2">게임 로직 기획</h3>
+                <h3 class="font-semibold text-lg text-slate-800 mb-2">게임 기획안 입력</h3>
                 <textarea id="game-logic-textarea" rows="8" class="w-full p-2 border border-amber-300 rounded-md bg-white text-sm" placeholder="이곳에 1단계에서 생성된 게임 기획안(콘셉트, 목표, 조작법, 성공/실패 조건)을 붙여넣으세요."></textarea>
             </div>
-            <div class="prompt-block">
-                <button class="copy-button">복사</button>
-                <pre class="bg-slate-100 text-slate-800 p-4 rounded-lg overflow-x-auto text-sm"><code id="step2-prompt-code" class="language-text">You are an expert front-end developer and a top-tier visual designer, specializing in creating high-quality, physics-based web games with Matter.js.
 
-I am attaching the `index.html` and `style.css` files that will be used. Your task is to write the complete JavaScript code for a file named `main.js`, which will be loaded by the `index.html`.
+            <div class="prompt-block mt-6">
+                <button class="copy-button">복사</button>
+                <pre class="bg-slate-100 text-slate-800 p-4 rounded-lg overflow-x-auto text-sm"><code id="step2-prompt-code" class="language-text">You are an elite front-end developer and a top-tier visual designer, a master of creating high-quality, physics-based web games.
+
+Your task is to write the complete code for a **single, self-contained `index.html` file**. This file must integrate the HTML structure, all necessary CSS within `&lt;style&gt;` tags, and the complete game logic in JavaScript within `&lt;script&gt;` tags. No external CSS or JS files should be required, except for CDN libraries like Matter.js and ONNX Runtime.
 
 ### Game Logic Plan:
 [여기에 1단계에서 생성된 게임 기획안을 붙여넣으세요.]
 
+### JavaScript Implementation Details (CRITICAL):
+The entire game logic must be contained within the `&lt;script&gt;` tag. It must be structured to handle three modes (USER, AI, TRAINING) and expose a clear interface for the AI training environment. Specifically, you must implement the following core functions:
+
+1.  **`setupGame()`**: This function initializes the Matter.js engine, renderer, world, and all game objects (player, obstacles, targets, etc.). It should be called once when the script loads.
+2.  **`resetGame()`**: This function resets the game to its initial state for a new episode. It must reposition all dynamic elements, reset scores, and clear any game-over states. It must return the initial observation array for the AI.
+3.  **`getObservation()`**: This function gathers the current state of the game (e.g., player position, velocity, target location) into a fixed-size array of numbers. This array is the AI's "eyes." The values should be normalized if possible, and the order of elements must always be consistent.
+4.  **`applyAction(action)`**: This function takes a single integer `action` from the user or AI and translates it into a game mechanic (e.g., 0 for 'do nothing', 1 for 'move left', 2 for 'move right').
+5.  **DUAL MODE LOGIC**: You must implement the logic to seamlessly switch between:
+    * **USER Mode:** Reads input from keyboard/mouse and calls `applyAction`.
+    * **AI (ONNX) Mode:** In the game loop, calls `getObservation()`, feeds it to the loaded ONNX model, gets an action, and calls `applyAction` with it.
+    * **TRAINING (WebSocket) Mode:** Listens for commands from the WebSocket server (`reset` or `action`) and calls the corresponding functions, sending back the observation data.
+
 ### Visual & Quality Requirements (CRITICAL):
-1.  **Masterful Design:** The game must be designed by a highly skilled professional visual designer with an excellent sense of color. The result should be a high-quality, superior game with impeccable polish.
-2.  **Aesthetics:** Aim for a minimalist, clean, and visually satisfying hyper-casual style, consistent with the provided CSS.
-3.  **Game Juice:** Animations must be smooth and satisfying. Implement "juice" like bouncy effects or small 'pop' animations for feedback.
 
-### User Controls & Input Handling (CRITICAL):
-1.  **Intelligent Input Design:** Based on the game concept, intelligently determine the best primary input method (keyboard or mouse/touch).
-2.  **Keyboard:** If keyboard-based, implement smooth, responsive controls using `keydown` and `keyup` events to handle continuous presses correctly. Crucially, use `event.preventDefault()` for arrow and space keys to prevent browser scrolling.
-3.  **Mouse/Touch:** If mouse-based, ensure controls are intuitive.
+1.  **Masterful Visual Design & UI/UX:** The game's design must be world-class, as if crafted by a professional visual designer with an exceptional eye for color and aesthetics. The UI/UX should be **minimalist, clean, and intuitive**, providing a seamless and enjoyable player experience. The overall style should be a polished, visually satisfying hyper-casual game of the highest quality.
+2.  **Realistic & 'Juicy' Physics:** All physics must be realistically and engagingly implemented using **Matter.js**. The game must feel **'juicy'**—include satisfying animations, bouncy effects, and responsive feedback to make interactions feel great.
+3.  **Intelligent Input Handling:**
+    * Based on the game concept, intelligently determine the best primary input method (keyboard or mouse/touch).
+    * **Keyboard:** If keyboard-based, implement smooth, responsive controls using `keydown` and `keyup` events. Crucially, use `event.preventDefault()` for arrow and space keys to prevent browser scrolling.
+    * **Mouse/Touch:** If mouse-based, ensure controls are intuitive and responsive on all devices.
 
-### DUAL MODE IMPLEMENTATION (CRITICAL):
-The game must seamlessly switch between three modes: USER, AI (ONNX), and TRAINING (WebSocket).
-
-1.  **Default Mode (USER):** The game must be playable by a human user from the start. The reward should be displayed as a "SCORE".
-2.  **AI (ONNX) Mode:**
-    * Attempt to load `model.onnx` using `onnxruntime-web`.
-    * If successful, enable the `#ai-toggle` switch.
-    * When the toggle is active, the game loop should get observations, run inference, and apply actions from the ONNX model.
-3.  **Training (WebSocket) Mode:**
-    * Attempt to connect to `ws://localhost:8765`.
-    * If the connection is successful, the game should cede control to the WebSocket server, responding to `reset` and `action` commands.
-
-The final code must be robust, handling all three modes gracefully.</code></pre>
+The final output must be a single, complete, and robust `index.html` file, ready to be run directly in a browser.</code></pre>
             </div>
         </section>
 
