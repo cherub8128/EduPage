@@ -145,8 +145,7 @@
             </div>
              <div class="code-block-provided">
                 <button class="copy-button">복사</button>
-                <pre class="bg-slate-100 text-slate-800 p-4 rounded-lg overflow-x-auto text-sm"><code class="language-python"># websocket_env.py
-import gymnasium as gym
+                <pre class="bg-slate-100 text-slate-800 p-4 rounded-lg overflow-x-auto text-sm"><code class="language-python">import gymnasium as gym
 from gymnasium import spaces
 import numpy as np
 import asyncio
@@ -156,16 +155,22 @@ import logging
 import threading
 import queue
 
+# Websockets 라이브러리의 상세 로그 비활성화
 logging.getLogger("websockets").setLevel(logging.ERROR)
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
 
 class ServerThread(threading.Thread):
+    """
+    백그라운드에서 웹소켓 서버를 실행하고 메인 스레드와 큐를 통해 통신하는
+    독립적인 스레드입니다.
+    """
     def __init__(self):
         super().__init__()
         self.loop = asyncio.new_event_loop()
         self.command_queue = queue.Queue()
         self.observation_queue = queue.Queue()
-        self.daemon = True
+        self.daemon = True # 메인 스레드가 종료되면 함께 종료
+
     async def handler(self, websocket, path):
         logging.info(f"새로운 클라이언트 연결됨: {websocket.remote_address}")
         consumer_task = asyncio.ensure_future(self.consumer(websocket))
@@ -173,26 +178,36 @@ class ServerThread(threading.Thread):
         done, pending = await asyncio.wait([consumer_task, producer_task], return_when=asyncio.FIRST_COMPLETED)
         for task in pending: task.cancel()
         logging.info(f"클라이언트 연결 종료: {websocket.remote_address}")
+
     async def consumer(self, websocket):
+        """메인 스레드로부터 명령을 받아 클라이언트로 전송"""
         while True:
             try:
                 command = await self.loop.run_in_executor(None, self.command_queue.get)
                 await websocket.send(json.dumps(command))
             except websockets.exceptions.ConnectionClosed: break
+
     async def producer(self, websocket):
+        """클라이언트로부터 관측 데이터를 받아 메인 스레드로 전송"""
         while True:
             try:
                 message = await websocket.recv()
                 data = json.loads(message)
-                if data.get("type") == "observation":
-                    self.observation_queue.put((np.array(data["observation"], dtype=np.float32), data["reward"], data["done"]))
+                # BUG FIX: CartPole의 reset 로직은 observation만 보내므로, reward/done이 없어도 처리
+                if "observation" in data:
+                    obs = np.array(data["observation"], dtype=np.float32)
+                    reward = data.get("reward", 0) # reward가 없으면 0으로 처리
+                    done = data.get("done", False) # done이 없으면 False로 처리
+                    self.observation_queue.put((obs, reward, done))
             except websockets.exceptions.ConnectionClosed: break
+
     def run(self):
         asyncio.set_event_loop(self.loop)
         start_server = websockets.serve(self.handler, "localhost", 8765)
         self.loop.run_until_complete(start_server)
         logging.info("웹소켓 서버가 8765 포트에서 시작되었습니다.")
         self.loop.run_forever()
+
     def stop(self):
         if self.loop.is_running(): self.loop.call_soon_threadsafe(self.loop.stop)
 
@@ -205,19 +220,28 @@ class WebSocketEnv(gym.Env):
         self.server_thread = ServerThread()
         self.server_thread.start()
         print("첫 클라이언트의 연결 및 데이터 수신을 기다립니다...")
+
     def reset(self, seed=None, options=None):
         super().reset(seed=seed)
-        with self.server_thread.observation_queue.mutex: self.server_thread.observation_queue.queue.clear()
+        
+        # --- BUG FIX: 큐를 비워 이전 세션의 '유령 데이터'를 제거합니다 ---
+        with self.server_thread.observation_queue.mutex:
+            self.server_thread.observation_queue.queue.clear()
+            
         self.server_thread.command_queue.put({"command": "reset"})
-        obs, _, _ = self.server_thread.observation_queue.get()
-        print("환경 리셋 완료. 다음 세대 학습을 시작합니다.")
+        obs, _, _ = self.server_thread.observation_queue.get() # 블로킹 호출로 새 데이터를 기다림
+        
+        # print("환경 리셋 완료. 다음 세대 학습을 시작합니다.")
         return obs, {}
+
     def step(self, action):
-        action_to_send = action.tolist() if isinstance(action, np.ndarray) else int(action)
+        action_to_send = action.tolist() if isinstance(action, np.ndarray) else float(action) # 연속 행동은 float
         self.server_thread.command_queue.put({"command": "action", "action": action_to_send})
-        obs, reward, done = self.server_thread.observation_queue.get()
+        obs, reward, done = self.server_thread.observation_queue.get() # 블로킹 호출
         return obs, reward, done, False, {}
+
     def render(self, mode='human'): pass
+    
     def close(self):
         self.server_thread.stop()
         print("웹소켓 서버가 종료되었습니다.")
