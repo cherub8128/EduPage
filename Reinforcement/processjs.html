@@ -453,33 +453,48 @@ if __name__ == '__main__':
             const themeGrid = document.getElementById('theme-grid');
             const step1PromptCodeElement = document.getElementById('step1-prompt-code');
 
-            async function loadThemes() {
+             async function loadThemes() {
                 try {
-                    // For demonstration, using a static array. In a real scenario, you'd fetch 'themes.json'.
-                    const themesData = [
-                        {"emoji":"🚀","title":"로켓 착륙","description":"추력을 조절해 로켓을 착륙 패드에 안착시키세요.","rl_concept":"A game about landing a rocket safely"},
-                        {"emoji":"🚗","title":"자율 주차","description":"AI가 장애물을 피해 주차 공간에 차를 넣도록 학습시키세요.","rl_concept":"A top-down car parking game"},
-                        {"emoji":"🏐","title":"2D 볼리볼","description":"물리 기반의 2D 배구 게임에서 상대방 AI와 대결하세요.","rl_concept":"A 2D physics-based volleyball game"},
-                        {"emoji":"🐍","title":"스네이크 게임","description":"먹이를 먹고 점점 길어지는 클래식 스네이크 게임입니다.","rl_concept":"The classic Snake game"}
-                    ];
-                    
-                    themeGrid.innerHTML = '';
-                    themesData.forEach(theme => {
+                    const response = await fetch('themes.json'); // themes.json 파일 요청
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    const themesData = await response.json(); // 응답을 JSON으로 파싱
+
+                    // 2. 가져온 데이터로 동적으로 테마 카드 생성
+                    themeGrid.innerHTML = ''; // 기존 콘텐츠 초기화
+                    themesData.sort((a, b) => a.title.localeCompare(b.title, 'ko')).forEach(theme => {
                         const card = document.createElement('div');
                         card.className = 'modal-card bg-slate-50 p-4 rounded-lg cursor-pointer border hover:border-amber-500 hover:bg-amber-50';
-                        card.innerHTML = `<div class="text-3xl mb-2">${theme.emoji}</div><h3 class="font-bold text-slate-800">${theme.title}</h3><p class="text-sm text-slate-600 mt-1">${theme.description}</p>`;
+                        card.innerHTML = `
+                            <div class="text-3xl mb-2">${theme.emoji}</div>
+                            <h3 class="font-bold text-slate-800">${theme.title}</h3>
+                            <p class="text-sm text-slate-600 mt-1">${theme.description}</p>
+                        `;
                         card.addEventListener('click', () => {
-                            const basePrompt = `You are a creative game designer. Based on the theme "[THEME_PLACEHOLDER]", please develop a detailed game plan...`;
+                            const basePrompt = `You are a creative game designer. Based on the theme "[THEME_PLACEHOLDER]", please develop a detailed and engaging game plan.\n\nThe plan must be structured with the following four sections:\n\n1.  **Game Concept:** A brief, exciting one-paragraph summary of the game.\n2.  **Player Objective:** A clear description of what the player needs to accomplish.\n3.  **Controls:** A simple and intuitive control scheme.\n4.  **Win/Loss Conditions:** Specific, measurable conditions for success and failure.\n\nWrite the plan in Korean.`;
                             const promptToCopy = basePrompt.replace('[THEME_PLACEHOLDER]', `"${theme.rl_concept}"`);
-                            if(step1PromptCodeElement) step1PromptCodeElement.textContent = promptToCopy;
+                            
+                            if (step1PromptCodeElement) {
+                                step1PromptCodeElement.textContent = basePrompt.replace(
+                                    `[여기에 선택한 게임 주제와 간단한 설명을 입력하세요. 예: 로켓 착륙시키기: 좌우 및 메인 추력을 사용해, 화면 상단에서 떨어지는 로켓이 정해진 착륙 지점에 부드럽게 착륙하는 게임]`,
+                                    `[${theme.rl_concept}]`
+                                );
+                            }
+
                             navigator.clipboard.writeText(promptToCopy).then(() => {
-                                 alert(`'${theme.title}' 주제의 프롬프트가 클립보드에 복사되었습니다.`);
+                                 alert(`'${theme.title}' 주제의 상세 프롬프트가 클립보드에 복사되었습니다. Gemini에게 바로 붙여넣어 사용하세요!`);
                             });
-                            if(modal) modal.classList.add('hidden');
+
+                            if (modal) modal.classList.add('hidden');
                         });
-                        themeGrid.appendChild(card);
+                        if (themeGrid) themeGrid.appendChild(card);
                     });
-                } catch (error) { console.error("Could not load themes:", error); }
+
+                } catch (error) {
+                    console.error("Could not load themes:", error);
+                    if (themeGrid) themeGrid.innerHTML = '<p class="text-red-500">테마를 불러오는 데 실패했습니다. themes.json 파일이 올바른 위치에 있는지 확인하세요.</p>';
+                }
             }
 
             if(modal && openModalBtn && closeModalBtn) {
