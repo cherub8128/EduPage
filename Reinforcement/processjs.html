@@ -151,7 +151,15 @@ The final output must be a single, complete, and robust index.html file, ready t
 
         <section id="step3" class="step bg-white p-6 sm:p-8 rounded-2xl shadow-lg border border-slate-200 mb-10">
             <h2 class="text-2xl font-bold mb-4 border-b pb-3 text-slate-900">단계 3: Python WebSocket 강화학습 환경 설정</h2>
-            <p class="mb-6 text-slate-700">프로젝트 폴더에 `websocket_env.py` 파일을 생성하고 아래 코드를 붙여넣으세요. 이 코드는 JS 게임을 Gymnasium 호환 환경으로 만들어줍니다.</p>
+            <p class="mb-6 text-slate-700">1. 프로젝트 폴더에 `websocket_env.py` 파일을 생성하고 아래 코드를 붙여넣으세요. 이 코드는 JS 게임을 Gymnasium 호환 환경으로 만들어줍니다.</p>
+            <div class="user-input mb-6">
+                <h3 class="font-semibold text-lg text-slate-800 mb-2">2. 필요 라이브러리 설치</h3>
+                <p class="text-sm text-slate-600 mb-4">터미널을 열고 다음 명령어를 실행하여 Gymnasium 등 필수 라이브러리를 설치하세요.</p>
+                <div class="prompt-block">
+                <button class="copy-button">복사</button>
+                <pre class="bg-slate-100 text-slate-800 p-4 rounded-lg overflow-x-auto text-sm"><code class="language-bash">pip install gymnasium numpy websockets</code></pre>
+            </div>
+            </div>
             <div class="prompt-block">
                 <button class="copy-button">복사</button>
                 <pre class="bg-slate-100 text-slate-800 p-4 rounded-lg overflow-x-auto text-sm"><code class="language-python">import gymnasium as gym
@@ -232,6 +240,26 @@ class WebSocketEnv(gym.Env):
 
         <section id="step4" class="step bg-white p-6 sm:p-8 rounded-2xl shadow-lg border border-slate-200 mb-10">
             <h2 class="text-2xl font-bold mb-4 border-b pb-3 text-slate-900">단계 4: AI 모델 학습 (SB3 / TorchRL)</h2>
+            <div class="user-input mb-6">
+                <h3 class="font-semibold text-lg text-slate-800 mb-2">1. 필요 라이브러리 설치</h3>
+                <p class="text-sm text-slate-600 mb-4">학습을 진행할 프레임워크에 맞춰 아래 명령어를 터미널에 실행하세요.</p>
+                
+                <div class="mb-4">
+                    <h4 class="font-semibold text-md text-slate-700">Stable-Baselines3 사용자:</h4>
+                    <div class="prompt-block mt-2">
+                    <button class="copy-button">복사</button>
+                    <pre class="bg-slate-100 text-slate-800 p-4 rounded-lg overflow-x-auto text-sm"><code class="language-bash">pip install stable-baselines3 torch tensorboard</code></pre>
+                </div>
+                </div>
+
+                <div>
+                    <h4 class="font-semibold text-md text-slate-700">TorchRL 사용자:</h4>
+                    <div class="prompt-block mt-2">
+                    <button class="copy-button">복사</button>
+                    <pre class="bg-slate-100 text-slate-800 p-4 rounded-lg overflow-x-auto text-sm"><code class="language-bash">pip install torch torchrl tensorboard</code></pre>
+                </div>
+                </div>
+            </div>
             <p class="mb-4 text-slate-700">선호하는 강화학습 프레임워크를 선택하여 AI 에이전트를 학습시킵니다. 학습 스크립트를 실행하면 **브라우저가 자동으로 열립니다.**</p>
             <div class="border-b border-slate-200"><nav class="flex -mb-px" aria-label="Tabs"><button class="tab-button active" data-tab="sb3">Stable-Baselines3</button><button class="tab-button" data-tab="torchrl">TorchRL</button></nav></div>
             <div id="tab-sb3" class="tab-content active mt-6">
@@ -412,7 +440,7 @@ if __name__ == "__main__":
         <section id="step5" class="step bg-white p-6 sm:p-8 rounded-2xl shadow-lg border border-slate-200 mb-10">
             <h2 class="text-2xl font-bold mb-4 border-b pb-3 text-slate-900">단계 5: ONNX 모델 변환</h2>
             <p class="mb-4 text-slate-700">필요한 라이브러리를 설치합니다:</p>
-            <pre class="bg-slate-100 text-slate-800 p-2 rounded-md text-sm"><code>pip install stable-baselines3==2.2.0 onnx onnxruntime torch</code></pre>
+            <pre class="bg-slate-100 text-slate-800 p-2 rounded-md text-sm"><code>pip install stable-baselines3 onnx onnxruntime torch</code></pre>
             <p class="mt-4 mb-4 text-slate-700">아래 코드를 `convert_onnx.py`로 저장하고 실행하여 SB3 모델을 ONNX 형식으로 변환하세요.</p>
             <div class="prompt-block">
                     <button class="copy-button">복사</button>
