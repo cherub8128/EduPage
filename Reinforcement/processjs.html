@@ -81,10 +81,21 @@ Write the plan in Korean.</code></pre>
 
         <section id="step2" class="step bg-white p-6 sm:p-8 rounded-2xl shadow-lg border border-slate-200 mb-10">
             <h2 class="text-2xl font-bold mb-4 border-b pb-3 text-slate-900">단계 2: 통합 AI 웹 게임 제작</h2>
-            <p class="mb-6 text-slate-700">이제 실제 게임 개발을 시작합니다. 1단계에서 생성된 기획안을 아래 입력란에 붙여넣으면, AI가 HTML, CSS, JavaScript를 모두 포함한 **하나의 완성된 웹 게임 파일**을 생성하기 위한 프롬프트가 자동으로 완성됩니다.</p>
+            <p class="mb-6 text-slate-700">이제 실제 게임 개발을 시작합니다. 아래 안내에 따라 프로젝트를 준비하고, 생성된 코드를 붙여넣을 파일을 만드세요.</p>
+
+            <div class="user-input mb-6">
+                <h3 class="font-semibold text-lg text-slate-800 mb-2">프로젝트 폴더 및 파일 생성 (VS Code)</h3>
+                <ol class="list-decimal list-inside space-y-2 text-sm text-slate-700">
+                    <li>컴퓨터에 <strong>`ai-game`</strong>과 같은 이름으로 새 폴더를 만듭니다.</li>
+                    <li>Visual Studio Code를 열고, `파일 > 폴더 열기`를 통해 방금 만든 폴더를 엽니다.</li>
+                    <li>VS Code의 탐색기 패널에서 <strong>`index.html`</strong>이라는 이름의 빈 파일을 하나 생성합니다.</li>
+                    <li>아래 프롬프트를 사용하여 AI로부터 전체 코드를 생성받은 뒤, 생성된 코드를 이 `index.html` 파일에 그대로 붙여넣으면 완성됩니다.</li>
+                </ol>
+            </div>
             
             <div class="user-input">
                 <h3 class="font-semibold text-lg text-slate-800 mb-2">게임 기획안 입력</h3>
+                <p class="text-sm text-slate-600 mb-2">1단계에서 생성된 기획안을 아래 입력란에 붙여넣으면, AI 웹 게임 생성을 위한 프롬프트가 자동으로 완성됩니다.</p>
                 <textarea id="game-logic-textarea" rows="8" class="w-full p-2 border border-amber-300 rounded-md bg-white text-sm" placeholder="이곳에 1단계에서 생성된 게임 기획안(콘셉트, 목표, 조작법, 성공/실패 조건)을 붙여넣으세요."></textarea>
             </div>
 
