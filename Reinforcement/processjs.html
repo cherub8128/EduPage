@@ -50,7 +50,7 @@
             <button id="open-modal-btn" class="mb-6 bg-amber-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-amber-600 transition-colors">🎮 추천 주제 보기 & 영감 얻기</button>
             <div class="prompt-block">
                 <button class="copy-button">복사</button>
-                <pre class="bg-slate-100 text-slate-800 p-4 rounded-lg overflow-x-auto text-sm"><code id="step1-prompt-code" class="language-text">You are a creative game designer...</code></pre>
+                <pre class="bg-slate-100 text-slate-800 p-4 rounded-lg overflow-x-auto text-sm"><code id="step1-prompt-code" class="language-text">You are a creative game designer. Based on the theme "[여기에 선택한 게임 주제를 입력하세요]", please develop a detailed game plan with these four sections: Game Concept, Player Objective, Controls, Win/Loss Conditions. Write in Korean.</code></pre>
             </div>
         </section>
 
@@ -62,7 +62,28 @@
             </div>
             <div class="prompt-block mt-6">
                 <button class="copy-button">복사</button>
-                <pre class="bg-slate-100 text-slate-800 p-4 rounded-lg overflow-x-auto text-sm"><code id="step2-prompt-code" class="language-text">You are an elite game developer, a master of Matter.js... (이전 답변의 프롬프트와 동일)</code></pre>
+                <pre class="bg-slate-100 text-slate-800 p-4 rounded-lg overflow-x-auto text-sm"><code id="step2-prompt-code" class="language-text">You are an elite game developer, a master of Matter.js, and an expert in creating robust, AI-ready web games. Your task is to write the complete code for a single, self-contained index.html file based on the provided game plan.
+
+**Game Logic Plan:**
+
+[여기에 1단계에서 생성된 게임 기획안을 붙여넣으세요.]
+
+**CRITICAL JavaScript Implementation Requirements:**
+
+1.  **Game Modes & State:** Must support `USER`, `AI`, `TRAINING` modes. Use `sessionStorage` to remember the current mode after a refresh, automatically re-entering `TRAINING` mode if it was active.
+2.  **WebSocket Interface:** Implement `connectWebSocket()` to connect to `ws://localhost:8765`. It must handle `reset` and `action` commands and send back `{observation, reward, done}` packets.
+3.  **Robust Physics & Resets:** Use Matter.js collision categories to prevent bugs. Game resets (after scoring, dying, etc.) must be stable. Use a state flag (e.g., `isRoundOver`) and a short `setTimeout` to prevent multiple resets.
+4.  **Core RL Functions:** Implement `getObservation()`, `resetForTraining()`, and `stepGameForTraining(action)`.
+5.  **Visual Excellence:** The design must be minimalist and polished.
+
+// --- For 2-Player / Self-Play Games ONLY ---
+// If you are making a 2-player game, also implement the following:
+/*
+6.  **Dual ONNX Model Support:**
+    * The game must load `model.onnx` and `opponent.onnx`. Use a cache-busting query (`?v=` + Date.now()) when loading `opponent.onnx`.
+    * In `TRAINING` mode, the opponent character must be controlled by the `opponent.onnx` model. Decouple the AI's async decision-making from the synchronous physics loop (e.g., using `setInterval` for decisions and applying the latest decision in the main loop).
+*/
+</code></pre>
             </div>
         </section>
 
@@ -89,14 +110,9 @@ class WebSocketEnv(gym.Env):
         self.loop = asyncio.get_event_loop()
         self.observation_space = spaces.Box(low=-np.inf, high=np.inf, shape=observation_shape, dtype=np.float32)
 
-        # --- 행동 공간(Action Space) 설정 ---
         if action_space_config['type'] == 'discrete':
-            # 1. 이산 행동 공간 (Discrete): 정해진 버튼 누르기 (예: 좌, 우, 점프)
             self.action_space = spaces.Discrete(action_space_config['n'])
-        
         elif action_space_config['type'] == 'continuous':
-            # 2. 연속 행동 공간 (Continuous): 세밀한 조작 (예: 조이스틱, 엑셀 강도)
-            # 사용하려면 train.py에서 config를 continuous로 변경하세요.
             self.action_space = spaces.Box(
                 low=np.array(action_space_config['low']),
                 high=np.array(action_space_config['high']),
@@ -104,26 +120,49 @@ class WebSocketEnv(gym.Env):
             )
 
         print("자바스크립트 클라이언트의 연결을 기다립니다...")
-        server = self.loop.run_until_complete(websockets.serve(self._handler, "localhost", 8765))
+        self.server = self.loop.run_until_complete(websockets.serve(self._handler, "localhost", 8765))
+        self.connection_future = self.loop.create_future()
         self.loop.run_until_complete(self._wait_for_connection())
         print("클라이언트가 연결되었습니다!")
 
     async def _handler(self, websocket, path):
         self.websocket = websocket
+        if not self.connection_future.done():
+            self.connection_future.set_result(True)
         try:
             await websocket.wait_closed()
         finally:
             self.websocket = None
+            if not self.loop.is_closed():
+                self.connection_future = self.loop.create_future()
 
     async def _wait_for_connection(self):
-        while self.websocket is None:
-            await asyncio.sleep(0.1)
+        await self.connection_future
+
+    async def _ensure_connection(self):
+        if self.websocket is None or not self.websocket.open:
+            print("클라이언트 연결 끊김. 재연결을 기다립니다...")
+            await self._wait_for_connection()
+            print("클라이언트 재연결됨.")
 
     async def _send_command(self, command):
-        if self.websocket: await self.websocket.send(json.dumps(command))
+        await self._ensure_connection()
+        try:
+            await self.websocket.send(json.dumps(command))
+        except websockets.exceptions.ConnectionClosed:
+            print("송신 중 연결 끊김 감지, 재연결 대기...")
+            await self._wait_for_connection()
+            await self.websocket.send(json.dumps(command))
 
     async def _receive_observation(self):
-        message = await self.websocket.recv()
+        await self._ensure_connection()
+        try:
+            message = await self.websocket.recv()
+        except websockets.exceptions.ConnectionClosed:
+            print("수신 중 연결 끊김 감지, 재연결 대기...")
+            await self._wait_for_connection()
+            message = await self.websocket.recv()
+        
         data = json.loads(message)
         if data.get("type") == "observation":
             return np.array(data["observation"], dtype=np.float32), data["reward"], data["done"]
@@ -160,26 +199,29 @@ class WebSocketEnv(gym.Env):
                 <div class="code-block-provided">
                     <button class="copy-button">복사</button>
                     <pre class="bg-slate-100 text-slate-800 p-4 rounded-lg overflow-x-auto text-sm"><code class="language-python"># train_simple.py
-import os, time
+import os, time, webbrowser, threading
+import http.server, socketserver
 from stable_baselines3 import PPO
 from stable_baselines3.common.callbacks import CheckpointCallback
 from stable_baselines3.common.logger import configure
 from websocket_env import WebSocketEnv
 
-# --- 중요 설정: 이 부분을 자신의 게임에 맞게 수정하세요 ---
-# 1. 관찰 공간 (Observation Space) - AI의 '눈'
+# --- 중요 설정 ---
 OBSERVATION_SHAPE = (8,)
-
-# 2. 행동 공간 (Action Space) - AI의 '손'
-# 이산/연속 행동 중 하나를 선택하고, 다른 하나는 주석 처리하세요.
 ACTION_SPACE_CONFIG = {'type': 'discrete', 'n': 5}
 # ACTION_SPACE_CONFIG = {'type': 'continuous', 'low': [-1.0], 'high': [1.0]}
-# ---------------------------------------------------------
+# -----------------
+LOG_DIR, TOTAL_TIMESTEPS, PORT = "training_logs", 1_000_000, 8000
 
-LOG_DIR = "training_logs"
-TENSORBOARD_LOG_NAME = f"PPO_{int(time.time())}"
-TOTAL_TIMESTEPS = 1_000_000
-CHECKPOINT_FREQ = 20_000
+class WebServerThread(threading.Thread):
+    def __init__(self, port):
+        super().__init__()
+        self.port, self.server, self.daemon = port, None, True
+    def run(self):
+        self.server = socketserver.TCPServer(("", self.port), http.server.SimpleHTTPRequestHandler)
+        self.server.serve_forever()
+    def stop(self):
+        if self.server: self.server.shutdown()
 
 def find_latest_run_and_checkpoint():
     if not os.path.isdir(LOG_DIR): return None, None
@@ -195,17 +237,19 @@ def find_latest_run_and_checkpoint():
     return None, None
 
 def main():
+    web_server = WebServerThread(PORT)
+    web_server.start()
+    time.sleep(1)
+    webbrowser.open(f'http://localhost:{PORT}')
+
     latest_run, latest_checkpoint = find_latest_run_and_checkpoint()
-    
-    if latest_run: run_path = os.path.join(LOG_DIR, latest_run)
-    else: run_path = os.path.join(LOG_DIR, TENSORBOARD_LOG_NAME)
-    
+    run_path = os.path.join(LOG_DIR, latest_run) if latest_run else os.path.join(LOG_DIR, f"PPO_{int(time.time())}")
     checkpoint_path = os.path.join(run_path, "checkpoints")
     os.makedirs(checkpoint_path, exist_ok=True)
     
     env = WebSocketEnv(observation_shape=OBSERVATION_SHAPE, action_space_config=ACTION_SPACE_CONFIG)
     custom_logger = configure(run_path, ["stdout", "tensorboard"])
-    checkpoint_callback = CheckpointCallback(save_freq=CHECKPOINT_FREQ, save_path=checkpoint_path, name_prefix="rl_model")
+    checkpoint_callback = CheckpointCallback(save_freq=20000, save_path=checkpoint_path, name_prefix="rl_model")
 
     policy_type = "CnnPolicy" if len(OBSERVATION_SHAPE) == 3 else "MlpPolicy"
     
@@ -222,6 +266,7 @@ def main():
         model.save(os.path.join(run_path, "final_model.zip"))
     finally:
         env.close()
+        web_server.stop()
 
 if __name__ == '__main__':
     main()
@@ -233,24 +278,30 @@ if __name__ == '__main__':
                  <div class="code-block-provided">
                     <button class="copy-button">복사</button>
                     <pre class="bg-slate-100 text-slate-800 p-4 rounded-lg overflow-x-auto text-sm"><code class="language-python"># train_selfplay.py
-import os, time, torch
+import os, time, torch, webbrowser, threading
+import http.server, socketserver
 from stable_baselines3 import PPO
 from stable_baselines3.common.logger import configure
 from websocket_env import WebSocketEnv
 
-# --- 중요 설정: 이 부분을 자신의 게임에 맞게 수정하세요 ---
+# --- 중요 설정 ---
 OBSERVATION_SHAPE = (8,)
 ACTION_SPACE_CONFIG = {'type': 'discrete', 'n': 5}
-# ACTION_SPACE_CONFIG = {'type': 'continuous', 'low': [-1.0, 0.0], 'high': [1.0, 1.0]}
-# ---------------------------------------------------------
-
-TOTAL_TRAINING_STEPS = 1_000_000
-STEPS_PER_ITERATION = 50_000
-MODEL_DIR = "models"
-LOG_DIR = "training_logs"
-TENSORBOARD_LOG_NAME = f"PPO_SelfPlay_{int(time.time())}"
+# -----------------
+TOTAL_TRAINING_STEPS, STEPS_PER_ITERATION = 1_000_000, 50_000
+MODEL_DIR, LOG_DIR, PORT = "models", "training_logs", 8000
 os.makedirs(MODEL_DIR, exist_ok=True)
 os.makedirs(LOG_DIR, exist_ok=True)
+
+class WebServerThread(threading.Thread):
+    def __init__(self, port):
+        super().__init__()
+        self.port, self.server, self.daemon = port, None, True
+    def run(self):
+        self.server = socketserver.TCPServer(("", self.port), http.server.SimpleHTTPRequestHandler)
+        self.server.serve_forever()
+    def stop(self):
+        if self.server: self.server.shutdown()
 
 class OnnxablePolicy(torch.nn.Module):
     def __init__(self, policy):
@@ -270,8 +321,14 @@ def export_to_onnx(model_path, onnx_path):
     print("ONNX 변환 완료.")
 
 def main():
+    web_server = WebServerThread(PORT)
+    web_server.start()
+    time.sleep(1)
+    webbrowser.open(f'http://localhost:{PORT}')
+    
     env = WebSocketEnv(observation_shape=OBSERVATION_SHAPE, action_space_config=ACTION_SPACE_CONFIG)
-    run_path = os.path.join(LOG_DIR, TENSORBOARD_LOG_NAME)
+    
+    run_path = os.path.join(LOG_DIR, f"PPO_SelfPlay_{int(time.time())}")
     custom_logger = configure(run_path, ["stdout", "tensorboard"])
     latest_model_path = os.path.join(MODEL_DIR, "latest_model.zip")
     
@@ -285,27 +342,33 @@ def main():
         model = PPO(policy_type, env, verbose=1, device='auto')
         
     model.set_logger(custom_logger)
+    
     if not os.path.exists("opponent.onnx"):
-        print("'opponent.onnx' 파일이 없어 초기 모델로 생성합니다.")
+        print("'opponent.onnx' 파일이 없어 현재 에이전트로 초기 상대를 생성합니다.")
         model.save(os.path.join(MODEL_DIR, "initial_model.zip"))
         export_to_onnx(os.path.join(MODEL_DIR, "initial_model.zip"), "opponent.onnx")
+    else:
+        print("기존 'opponent.onnx' 파일을 초기 상대로 사용합니다.")
     
-    total_steps_done = model.num_timesteps
-    while total_steps_done < TOTAL_TRAINING_STEPS:
-        model.learn(total_timesteps=total_steps_done + STEPS_PER_ITERATION, reset_num_timesteps=False)
+    try:
         total_steps_done = model.num_timesteps
-        model.save(latest_model_path)
-        export_to_onnx(latest_model_path, "opponent.onnx")
-        if total_steps_done < TOTAL_TRAINING_STEPS:
-            input(f"총 {total_steps_done}/{TOTAL_TRAINING_STEPS} 스텝 학습 완료. 브라우저 새로고침 후 Enter를 누르세요...")
-    env.close()
+        while total_steps_done < TOTAL_TRAINING_STEPS:
+            model.learn(total_timesteps=total_steps_done + STEPS_PER_ITERATION, reset_num_timesteps=False)
+            total_steps_done = model.num_timesteps
+            model.save(latest_model_path)
+            export_to_onnx(latest_model_path, "opponent.onnx")
+            if total_steps_done < TOTAL_TRAINING_STEPS:
+                input(f"--- CHECKPOINT ({total_steps_done}/{TOTAL_TRAINING_STEPS} steps) ---\n"
+                      f">>> 상대방 모델이 업데이트되었습니다. 브라우저를 새로고침(F5)한 뒤, 여기서 Enter를 누르세요...")
+    finally:
+        env.close()
+        web_server.stop()
 
 if __name__ == '__main__':
     main()
 </code></pre>
                 </div>
             </div>
-
             <div class="config-guide">
                 <h4 class="text-lg font-bold">AI 설정 가이드</h4>
                 <div class="mt-4">
@@ -329,7 +392,6 @@ if __name__ == '__main__':
 
         <section id="step5" class="step bg-white p-6 sm:p-8 rounded-2xl shadow-lg border border-slate-200 mb-10">
             <h2 class="text-2xl font-bold mb-4 border-b pb-3 text-slate-900">단계 5: 최종 모델 변환</h2>
-            <p class="mb-4 text-slate-700">학습이 완료된 모델 파일(`.zip`)을 웹에서 사용할 `model.onnx`로 변환합니다. `convert_onnx.py`로 저장하고 터미널에서 실행하세요.</p>
              <div class="code-block-provided">
                 <button class="copy-button">복사</button>
                 <pre class="bg-slate-100 text-slate-800 p-4 rounded-lg overflow-x-auto text-sm"><code class="language-python"># convert_onnx.py
@@ -337,10 +399,9 @@ import torch
 from stable_baselines3 import PPO
 import os, sys
 
-# --- 중요 설정: 이 부분을 자신의 게임에 맞게 수정하세요 ---
-# 학습 스크립트의 OBSERVATION_SHAPE과 동일해야 합니다.
-OBSERVATION_SHAPE = (8,)
-# ---------------------------------------------------------
+# --- 중요 설정 ---
+OBSERVATION_SHAPE = (8,) # 학습 스크립트와 동일해야 함
+# -----------------
 
 class OnnxablePolicy(torch.nn.Module):
     def __init__(self, policy):
@@ -364,9 +425,9 @@ def main(source_path, output_path):
     print(f"최종 모델 변환 완료! 이제 'AI 모드'에서 플레이할 수 있습니다.")
 
 if __name__ == '__main__':
-    # 터미널 실행 예시: python convert_onnx.py models/latest_model.zip model.onnx
     if len(sys.argv) != 3:
         print("사용법: python convert_onnx.py <입력_zip_경로> <출력_onnx_경로>")
+        print("예시: python convert_onnx.py models/latest_model.zip model.onnx")
     else:
         main(sys.argv[1], sys.argv[2])
 </code></pre>
@@ -375,9 +436,12 @@ if __name__ == '__main__':
 
         <section id="step6" class="step bg-white p-6 sm:p-8 rounded-2xl shadow-lg border border-slate-200 mb-10">
             <h2 class="text-2xl font-bold mb-4 border-b pb-3 text-slate-900">단계 6: 최종 AI 게임 테스트</h2>
+             <p class="mb-4 text-slate-700">웹 서버(`python -m http.server`)를 실행한 상태에서 `http://localhost:8000`에 접속하여 **'AI 모드'**를 클릭하고 최종 테스트합니다.</p>
         </section>
+
         <section id="step7" class="step bg-white p-6 sm:p-8 rounded-2xl shadow-lg border border-slate-200 mb-10">
             <h2 class="text-2xl font-bold mb-4 border-b pb-3 text-slate-900">단계 7: GitHub Pages 배포</h2>
+            <p class="mb-6 text-slate-700">`index.html`, `model.onnx` 파일 (+셀프플레이의 경우 `opponent.onnx`)이 모두 있는지 확인하고 GitHub에 업로드하여 전 세계에 공유하세요.</p>
         </section>
     </div>
 
@@ -426,7 +490,7 @@ if __name__ == '__main__':
                     });
                 });
             });
-
+            
             const modal = document.getElementById('theme-modal');
             const openModalBtn = document.getElementById('open-modal-btn');
             const closeModalBtn = document.getElementById('close-modal-btn');
@@ -435,8 +499,6 @@ if __name__ == '__main__':
 
             async function loadThemes() {
                 try {
-                    // In a real environment, you would fetch a themes.json file.
-                    // For this example, we'll use a static array.
                     const themesData = [
                         {"emoji":"🚀","title":"로켓 착륙","description":"추력을 조절해 로켓을 착륙 패드에 안착시키세요.","rl_concept":"A game about landing a rocket safely on a platform using thrusters."},
                         {"emoji":"🚗","title":"자율 주차","description":"AI가 장애물을 피해 주차 공간에 차를 넣도록 학습시키세요.","rl_concept":"A top-down car parking game where the AI must navigate obstacles."},
@@ -450,27 +512,23 @@ if __name__ == '__main__':
                         card.className = 'modal-card bg-slate-50 p-4 rounded-lg cursor-pointer border hover:border-amber-500 hover:bg-amber-50';
                         card.innerHTML = `<div class="text-3xl mb-2">${theme.emoji}</div><h3 class="font-bold text-slate-800">${theme.title}</h3><p class="text-sm text-slate-600 mt-1">${theme.description}</p>`;
                         card.addEventListener('click', () => {
-                            const basePrompt = `You are a creative game designer. Based on the theme "[THEME_PLACEHOLDER]", please develop a detailed and engaging game plan...`;
+                            const basePrompt = `You are a creative game designer. Based on the theme "[THEME_PLACEHOLDER]", please develop a detailed game plan...`;
                             const promptToCopy = basePrompt.replace('[THEME_PLACEHOLDER]', `"${theme.rl_concept}"`);
-                            step1PromptCodeElement.textContent = promptToCopy;
+                            if(step1PromptCodeElement) step1PromptCodeElement.textContent = promptToCopy;
                             navigator.clipboard.writeText(promptToCopy).then(() => {
                                  alert(`'${theme.title}' 주제의 프롬프트가 클립보드에 복사되었습니다.`);
                             });
-                            modal.classList.add('hidden');
+                            if(modal) modal.classList.add('hidden');
                         });
                         themeGrid.appendChild(card);
                     });
-                } catch (error) {
-                    console.error("테마를 불러올 수 없습니다:", error);
-                }
+                } catch (error) { console.error("Could not load themes:", error); }
             }
 
             if(modal && openModalBtn && closeModalBtn) {
                  openModalBtn.addEventListener('click', () => modal.classList.remove('hidden'));
                  closeModalBtn.addEventListener('click', () => modal.classList.add('hidden'));
-                 modal.addEventListener('click', (e) => {
-                    if (e.target.id === 'theme-modal') modal.classList.add('hidden');
-                });
+                 modal.addEventListener('click', (e) => { if (e.target.id === 'theme-modal') modal.classList.add('hidden'); });
                 loadThemes();
             }
         });
