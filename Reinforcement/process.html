@@ -9,61 +9,20 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
-        body {
-            font-family: 'Noto Sans KR', sans-serif;
-        }
-        .step {
-            scroll-margin-top: 80px;
-        }
-        .prompt-block {
-            position: relative;
-        }
-        .copy-button {
-            position: absolute;
-            top: 0.8rem;
-            right: 0.8rem;
-            background-color: #4A5568;
-            color: white;
-            padding: 0.25rem 0.6rem;
-            border-radius: 0.375rem;
-            font-size: 0.8rem;
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
-        .copy-button:hover {
-            background-color: #2D3748;
-        }
-        .copy-button.copied {
-            background-color: #2F855A;
-        }
-        .user-input {
-            background-color: #FEF3C7; /* A soft yellow */
-            border: 1px dashed #FBBF24; /* A dashed amber border */
-            padding: 1rem;
-            border-radius: 0.5rem;
-            margin-bottom: 1rem;
-        }
-        .highlight-note {
-            background-color: #E6FFFA;
-            border-left: 4px solid #38B2AC;
-            padding: 1rem;
-            margin-top: 1rem;
-            font-size: 0.9rem;
-            color: #234E52;
-        }
-        /* Modal Styles */
-        .modal-card {
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-        .modal-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-        }
+        body { font-family: 'Noto Sans KR', sans-serif; }
+        .step { scroll-margin-top: 80px; }
+        .prompt-block { position: relative; }
+        .copy-button { position: absolute; top: 0.8rem; right: 0.8rem; background-color: #4A5568; color: white; padding: 0.25rem 0.6rem; border-radius: 0.375rem; font-size: 0.8rem; cursor: pointer; transition: background-color 0.2s; }
+        .copy-button:hover { background-color: #2D3748; }
+        .copy-button.copied { background-color: #2F855A; }
+        .user-input { background-color: #FEF3C7; border: 1px dashed #FBBF24; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1rem; }
+        .highlight-note { background-color: #E6FFFA; border-left: 4px solid #38B2AC; padding: 1rem; margin-top: 1rem; font-size: 0.9rem; color: #234E52; }
+        .modal-card { transition: transform 0.2s, box-shadow 0.2s; }
+        .modal-card:hover { transform: translateY(-4px); box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1); }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800">
 
-    <!-- Theme Modal -->
     <div id="theme-modal" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50 hidden">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col">
             <div class="p-5 border-b flex justify-between items-center sticky top-0 bg-white rounded-t-2xl">
@@ -71,44 +30,51 @@
                 <button id="close-modal-btn" class="text-3xl font-light text-slate-500 hover:text-slate-800">&times;</button>
             </div>
             <div id="theme-grid" class="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 overflow-y-auto">
-                <!-- Theme cards will be injected here by JS -->
-            </div>
+                </div>
         </div>
     </div>
 
 
     <div class="container mx-auto p-4 sm:p-6 md:p-8 max-w-4xl">
-        <!-- Header -->
         <header class="text-center my-8 md:my-12">
             <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold text-slate-900">Gemini AI 물리 게임 제작 가이드</h1>
             <p class="mt-4 text-base sm:text-lg text-slate-600">Pygame부터 JavaScript 배포까지, Gemini와 함께하는 AI 게임 개발 여정</p>
         </header>
         
-        <!-- Overview Section (Modified to 10 steps) -->
         <section class="step bg-white p-6 sm:p-8 rounded-2xl shadow-lg border border-slate-200 mb-10">
             <h2 class="text-2xl font-bold mb-4 border-b pb-3 text-slate-900">전체 프로세스 개요</h2>
-            <p class="mb-6 text-slate-700">우리는 다음 10가지 단계를 거쳐 AI 물리 게임을 완성할 것입니다. 각 단계는 아이디어를 현실로 만드는 과정입니다.</p>
+            <p class="mb-6 text-slate-700">다음 10가지 단계로 아이디어를 현실로 만듭니다. 프로젝트 설정부터 시작하여 Git/VS Code를 이용한 배포까지 다룹니다.</p>
             <ol class="list-decimal list-inside space-y-3 text-slate-700">
-                <li><strong class="font-semibold text-slate-800">게임 아이디어 구체화:</strong> 추천 주제를 통해 영감을 얻고 상세한 게임 기획안 작성</li>
-                <li><strong class="font-semibold text-slate-800">Pygame 물리 게임 제작:</strong> 물리 로직이 적용된 미니멀하고 아름다운 2D 게임 제작</li>
-                <li><strong class="font-semibold text-slate-800">Gymnasium 강화학습 환경 설계:</strong> 게임을 AI가 학습할 수 있는 표준 환경으로 변환</li>
+                <li><strong class="font-semibold text-slate-800">프로젝트 설정:</strong> 개발을 시작할 폴더 생성 및 VS Code로 열기</li>
+                <li><strong class="font-semibold text-slate-800">게임 아이디어 구체화:</strong> 상세한 게임 기획안 작성</li>
+                <li><strong class="font-semibold text-slate-800">Pygame 게임 및 Gymnasium 환경 통합 제작:</strong> AI 학습과 사용자 플레이가 모두 가능한 통합 Python 파일 제작</li>
                 <li><strong class="font-semibold text-slate-800">SB3 모델 학습:</strong> Gymnasium 환경에서 강화학습 에이전트 학습</li>
                 <li><strong class="font-semibold text-slate-800">학습된 모델 테스트:</strong> Pygame 환경에서 학습된 에이전트의 성능 시각화</li>
                 <li><strong class="font-semibold text-slate-800">ONNX 모델 변환:</strong> 학습된 모델을 웹 환경에 맞는 ONNX 형식으로 변환</li>
                 <li><strong class="font-semibold text-slate-800">JavaScript 웹 게임 구현:</strong> ONNX 모델을 불러와 AI 플레이를 시각화하는 웹 게임 제작</li>
-                <li><strong class="font-semibold text-slate-800">로컬 환경에서 웹 게임 테스트:</strong> 배포 전, 내 컴퓨터에서 웹 게임이 잘 동작하는지 최종 확인</li>
-                <li><strong class="font-semibold text-slate-800">GitHub Pages 배포:</strong> 완성된 웹 게임을 전 세계에 무료로 배포</li>
+                <li><strong class="font-semibold text-slate-800">로컬 환경에서 웹 게임 테스트:</strong> 배포 전, 내 컴퓨터에서 웹 게임 최종 확인</li>
+                <li><strong class="font-semibold text-slate-800">VS Code와 Git으로 GitHub Pages에 배포:</strong> 완성된 웹 게임을 전 세계에 무료로 배포</li>
                 <li><strong class="font-semibold text-slate-800">마치며:</strong> 다음 단계로 나아가기</li>
             </ol>
         </section>
 
-        <!-- New Step 1: Brainstorming -->
         <section id="step1" class="step bg-white p-6 sm:p-8 rounded-2xl shadow-lg border border-slate-200 mb-10">
-            <h2 class="text-2xl font-bold mb-4 border-b pb-3 text-slate-900">단계 1: 게임 아이디어 구체화하기</h2>
-            <p class="mb-4 text-slate-700">좋은 게임은 좋은 아이디어에서 시작합니다. 만들고 싶은 게임의 주제가 명확하지 않다면, 아래 '추천 주제 보기' 버튼을 눌러 영감을 얻어보세요.</p>
+            <h2 class="text-2xl font-bold mb-4 border-b pb-3 text-slate-900">단계 1: 프로젝트 설정</h2>
+            <p class="mb-4 text-slate-700">모든 작업은 하나의 프로젝트 폴더 안에서 이루어집니다. 이 폴더는 앞으로 만들 모든 코드와 파일을 담는 공간이 됩니다.</p>
+            <div class="user-input">
+                <h3 class="font-semibold text-lg text-slate-800 mb-2">프로젝트 폴더 생성 및 열기</h3>
+                <ol class="list-decimal list-inside space-y-2 text-sm text-slate-700">
+                    <li>컴퓨터의 원하는 위치에 <code class="bg-amber-200 px-1 rounded">ai-game-project</code>와 같이 프로젝트를 알아보기 쉬운 이름으로 새 폴더를 만듭니다.</li>
+                    <li>Visual Studio Code를 실행하고, '파일(File)' &rarr; '폴더 열기(Open Folder)...' 메뉴를 통해 방금 만든 프로젝트 폴더를 엽니다.</li>
+                    <li>이제부터 생성하는 모든 파일(<code class="bg-amber-200 px-1 rounded">game_env.py</code>, <code class="bg-amber-200 px-1 rounded">index.html</code> 등)은 이 폴더 안에 저장됩니다.</li>
+                </ol>
+            </div>
+        </section>
+
+        <section id="step2" class="step bg-white p-6 sm:p-8 rounded-2xl shadow-lg border border-slate-200 mb-10">
+            <h2 class="text-2xl font-bold mb-4 border-b pb-3 text-slate-900">단계 2: 게임 아이디어 구체화하기</h2>
+            <p class="mb-4 text-slate-700">'추천 주제 보기' 버튼을 눌러 영감을 얻고, 마음에 드는 주제를 선택하여 상세 기획안을 요청하는 프롬프트를 복사하세요.</p>
             <button id="open-modal-btn" class="mb-6 bg-amber-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-amber-600 transition-colors">🎮 추천 주제 보기 & 영감 얻기</button>
-            <p class="mb-6 text-slate-700">주제를 정했다면, 아래 프롬프트를 이용해 Gemini에게 상세한 게임 기획을 요청하세요. 선택한 주제를 `[ ]` 안에 넣으면 됩니다.</p>
-            
             <div class="prompt-block">
                 <button class="copy-button">복사</button>
                 <pre class="bg-slate-100 text-slate-800 p-4 rounded-lg overflow-x-auto text-sm"><code id="step1-prompt-code" class="language-text">You are a creative game designer. Based on the theme "[여기에 선택한 게임 주제와 간단한 설명을 입력하세요. 예: 로켓 착륙시키기: 좌우 및 메인 추력을 사용해, 화면 상단에서 떨어지는 로켓이 정해진 착륙 지점에 부드럽게 착륙하는 게임]", please develop a detailed and engaging game plan.
@@ -122,497 +88,342 @@ The plan must be structured with the following four sections:
 
 Write the plan in Korean.</code></pre>
             </div>
-             <div class="user-input mt-6">
-                <h3 class="font-semibold text-lg text-slate-800 mb-2">다음 단계 준비</h3>
-                <p class="text-sm text-slate-600">Gemini가 생성한 상세 기획안을 복사하여, 다음 단계인 **단계 2**의 '게임 로직 기획' 입력란에 붙여넣을 준비를 하세요.</p>
-            </div>
         </section>
 
-        <!-- Step 2: Pygame & Pure Python Physics -->
-        <section id="step2" class="step bg-white p-6 sm:p-8 rounded-2xl shadow-lg border border-slate-200 mb-10">
-            <h2 class="text-2xl font-bold mb-4 border-b pb-3 text-slate-900">단계 2: Pygame 물리 게임 제작 (순수 Python)</h2>
-            <p class="mb-6 text-slate-700">이제 구체화된 게임 기획안을 바탕으로 실제 플레이가 가능한 Pygame 게임을 제작할 차례입니다. 1단계에서 생성된 기획안을 아래 입력란에 붙여넣으면, 프롬프트가 자동으로 완성됩니다.</p>
-            
+        <section id="step3" class="step bg-white p-6 sm:p-8 rounded-2xl shadow-lg border border-slate-200 mb-10">
+            <h2 class="text-2xl font-bold mb-4 border-b pb-3 text-slate-900">단계 3: Pygame 게임 및 Gymnasium 환경 통합 제작</h2>
+            <p class="mb-6 text-slate-700">게임 기획안을 바탕으로 AI 학습과 사용자 플레이가 모두 가능한 통합 Python 파일을 제작합니다. 2단계 기획안을 아래에 붙여넣으면 프롬프트가 완성됩니다.</p>
             <div class="user-input">
                 <h3 class="font-semibold text-lg text-slate-800 mb-2">게임 로직 기획</h3>
-                <textarea id="game-logic-textarea" rows="8" class="w-full p-2 border border-amber-300 rounded-md bg-white text-sm" placeholder="이곳에 1단계에서 생성된 게임 기획안(콘셉트, 목표, 조작법, 성공/실패 조건)을 붙여넣으세요."></textarea>
+                <textarea id="game-logic-textarea" rows="8" class="w-full p-2 border border-amber-300 rounded-md bg-white text-sm" placeholder="이곳에 2단계에서 생성된 게임 기획안(콘셉트, 목표, 조작법, 성공/실패 조건)을 붙여넣으세요."></textarea>
             </div>
-
             <div class="prompt-block">
                 <button class="copy-button">복사</button>
-                <pre class="bg-slate-100 text-slate-800 p-4 rounded-lg overflow-x-auto text-sm"><code id="step2-prompt-code" class="language-text">You are an expert Python game developer and a top-tier digital artist, specializing in creating visually stunning, minimalist games with Pygame.
+                <pre class="bg-slate-100 text-slate-800 p-4 rounded-lg overflow-x-auto text-sm"><code id="step2-prompt-code" class="language-text">You are an expert Python developer specializing in both game development with Pygame and Reinforcement Learning with Gymnasium.
 
-Your task is to create a complete, single-file Python script for a 2D game that feels like a modern, hyper-casual masterpiece.
+Your task is to create a single, complete Python script based on the provided game plan. This file must serve two purposes: be a playable game for humans when run directly, and be an importable, AI-trainable environment for RL agents.
 
 ### Game Logic Plan
 [여기에 위 '게임 로직 기획' 입력란의 내용을 붙여넣으세요.]
 
-### Technical Requirements (Strict)
-1.  **Python Version:** 3.12
-2.  **Libraries:** `pygame` (latest)
-3.  **Physics Implementation (VERY IMPORTANT):** Do NOT use any external physics libraries. Implement all physics from scratch using pure Python, including movement (position, velocity, acceleration), gravity, controls, and simple AABB collision detection.
+### MANDATORY REQUIREMENTS:
 
-### Visual Design (CRITICAL - Emulate a Hyper-Casual Hit Game)
-1.  **Aesthetics:** The game must be minimalist, clean, and visually satisfying. Think of popular mobile games known for their simple yet addictive art style. The focus is on clarity and satisfying player feedback.
-2.  **Color Palette:** Use a bright, inviting, and harmonious color palette. For example, a soft pastel background (like #F0F4F8) with a single, vibrant accent color (like #FF6B6B or #4ECDC4) for the main character and interactive elements.
-3.  **Shapes and Style:** Use simple geometric shapes (circles, squares, rounded rectangles). All visuals must be clean and flat-shaded. Avoid complex textures or realistic shading.
-4.  **Animations & Feedback ("Game Juice"):** Animations should be smooth, bouncy, and satisfying. Implement subtle visual feedback for actions, like a small 'pop' or scale animation when a successful action occurs.
-5.  **Rendering & Effects:**
-    * **Anti-aliasing:** This is mandatory for all shapes to ensure silky-smooth edges.
-    * **Particle System:** If particles are needed (e.g., for thrusters or effects), they must be simple, clean, and add to the satisfying feel.
-6.  **Typography & UI:** Any text (like a "Game Over" screen) should use a clean, modern, sans-serif font. Keep UI elements to an absolute minimum, ideally non-existent during gameplay.
-7.  **Window:** Create a window of size 800x600 pixels.
+1.  **Single File Structure:** All code (Pygame logic, Gymnasium environment) must be in one single Python file.
 
-### Code Quality
-* The code must be in a **single, runnable file**, be well-commented, and follow Python best practices.</code></pre>
+2.  **Standardized Naming (CRITICAL):**
+    * The Gymnasium environment class **MUST** be named `GameEnv`. This ensures compatibility with subsequent training scripts.
+
+3.  **Dual-Mode Execution (CRITICAL):**
+    * The script must use an `if __name__ == "__main__":` block.
+    * When the script is run directly (`python your_file_name.py`), this block should execute a "human player" mode.
+    * This mode should instantiate `GameEnv(render_mode='human')` and run a game loop where a human can play using the keyboard, allowing for immediate testing of the game mechanics.
+
+4.  **Gymnasium `GameEnv` Class:**
+    * **Observation/Action Spaces:** Analyze the game logic to define the most effective `observation_space` (Box) and `action_space` (Discrete).
+    * **Reward Function:** Design a precise reward function that strongly incentivizes the desired agent behavior.
+    * **Core Methods:** Correctly implement `__init__`, `reset`, `step`, `render`, and `close`.
+    * **No Physics Libraries:** Implement all physics from scratch (position, velocity, gravity, collision) using pure Python.
+
+5.  **Visual Design (Hyper-Casual Aesthetic):**
+    * The game must be minimalist, clean, and visually satisfying with a bright, harmonious color palette.
+    * Use anti-aliased geometric shapes and smooth, "juicy" animations for feedback. The window size should be 800x600.
+
+6.  **Code Quality:**
+    * The code must be well-commented, follow Python best practices, and be fully runnable without errors.</code></pre>
             </div>
-            <div class="user-input mt-6">
-                <h3 class="font-semibold text-lg text-slate-800 mb-2">다음 단계 준비</h3>
-                <p class="text-sm text-slate-600">Gemini가 생성한 Python 코드를 <code class="bg-amber-200 px-1 rounded">game.py</code> 라는 이름으로 저장하세요. 이 파일은 다음 단계에서 사용됩니다.</p>
-            </div>
-        </section>
-
-        <!-- Step 3: Gymnasium Env -->
-        <section id="step3" class="step bg-white p-6 sm:p-8 rounded-2xl shadow-lg border border-slate-200 mb-10">
-            <h2 class="text-2xl font-bold mb-4 border-b pb-3 text-slate-900">단계 3: Gymnasium 강화학습 환경 설계</h2>
-            <p class="mb-6 text-slate-700">Pygame 코드를 AI가 학습할 수 있는 `Gymnasium` 환경으로 변환합니다. 아래 프롬프트는 Gemini가 게임 코드를 분석하여 최적의 RL 환경을 자동으로 설계하도록 지시합니다.</p>
-            
-            <div class="user-input">
-                <h3 class="font-semibold text-lg text-slate-800 mb-2">필요한 파일 정보</h3>
-                <p class="text-sm text-slate-600">이 단계에서는 이전 단계에서 생성한 <code>game.py</code> 파일이 필요합니다. 이 파일을 첨부하여 아래 프롬프트를 실행하세요.</p>
-            </div>
-
-            <div class="prompt-block">
-                <button class="copy-button">복사</button>
-                <pre class="bg-slate-100 text-slate-800 p-4 rounded-lg overflow-x-auto text-sm"><code class="language-text">You are an expert Reinforcement Learning Engineer specializing in creating custom Gymnasium environments.
-
-I am attaching the Pygame game script (`game.py`). Your task is to analyze its code and create an optimal `gymnasium.Env` wrapper class for it. The final output must be a single Python file containing both the original game logic and the new environment class.
-
-### Environment Design Requirements:
-
-Based on your analysis of the `game.py` script, you must define and implement the following components. Provide a clear explanation for your design choices in the code comments.
-
-1.  **Observation Space (`observation_space`):**
-    * Analyze the game's state variables (e.g., positions, velocities, etc.) and propose a suitable `Box` observation space.
-    * If the observation is vector-based, normalize the values to a standard range (e.g., -1 to 1).
-    * If the observation is image-based (pixels), define the correct shape (H, W, C) and data type (`uint8`).
-
-2.  **Action Space (`action_space`):**
-    * Analyze the game's control scheme and define an appropriate `Discrete` action space.
-    * Clearly map each discrete action to a specific game control.
-
-3.  **Reward Function (CRITICAL & PRECISE):**
-    * Design a sophisticated and precise reward function that encourages the agent to achieve the game's objective.
-    * Include shaping rewards, terminal rewards, and efficiency penalties.
-
-4.  **Implement Core Methods:**
-    * Correctly implement `__init__()`, `reset()`, `step()`, `render()`, and `close()` according to the Gymnasium API.
-    * The `render()` method should support a 'human' mode for visualization.</code></pre>
-            </div>
-            <div class="user-input mt-6">
-                <h3 class="font-semibold text-lg text-slate-800 mb-2">다음 단계 준비</h3>
-                <p class="text-sm text-slate-600">생성된 강화학습 환경 코드를 <code class="bg-amber-200 px-1 rounded">environment.py</code> 라는 이름으로 저장하세요. 이 파일은 모델 학습 및 변환에 사용됩니다.</p>
-            </div>
-        </section>
-
-        <!-- Step 4: SB3 Training (Upgraded Prompt) -->
-        <section id="step4" class="step bg-white p-6 sm:p-8 rounded-2xl shadow-lg border border-slate-200 mb-10">
-            <h2 class="text-2xl font-bold mb-4 border-b pb-3 text-slate-900">단계 4: SB3로 모델 학습</h2>
-            <p class="mb-6 text-slate-700">`Gymnasium` 환경을 사용하여 강화학습 에이전트를 학습시킵니다. 아래 프롬프트는 CNN 정책 자동 지원, 고속 학습, 연속 로깅 등 고급 기능이 포함된 학습 코드를 생성합니다.</p>
-            
-            <div class="user-input">
-                <h3 class="font-semibold text-lg text-slate-800 mb-2">파일 준비 및 실행 안내</h3>
-                <p class="text-sm text-slate-600">이전 단계에서 생성된 <code>environment.py</code> 파일을 준비하세요.</p>
-                <p class="text-sm text-slate-600 mt-2">아래 프롬프트로 생성된 코드를 <code class="bg-amber-200 px-1 rounded">train.py</code>로 저장하고, <code class="bg-amber-200 px-1 rounded">environment.py</code>와 같은 폴더에 넣은 후 터미널에서 <code class="bg-amber-200 px-1 rounded">python train.py</code> 명령어로 실행하여 학습을 시작하세요.</p>
-            </div>
-
-            <div class="prompt-block">
-                <button class="copy-button">복사</button>
-                <pre class="bg-slate-100 text-slate-800 p-4 rounded-lg overflow-x-auto text-sm"><code class="language-text">You are a Machine Learning Engineer with deep expertise in Stable Baselines3 (SB3).
-
-Your task is to write a robust and professional Python script (`train.py`) for training a `PPO` agent on a custom Gymnasium environment defined in `environment.py`.
-
-### Script Requirements (Mandatory and Strict):
-
-1.  **Environment Handling:**
-    * Import the custom environment class (e.g., `GameEnv`) from `environment.py`.
-    * **For training, instantiate the environment in headless mode (no window rendering) to maximize speed.**
-
-2.  **Smart Policy Selection:**
-    * Before creating the model, inspect the instantiated environment's `observation_space`.
-    * If the space is a 1D `Box` (vector observation), set `policy = "MlpPolicy"`.
-    * If the space is a 3D `Box` (image observation), set `policy = "CnnPolicy"`.
-
-3.  **Logging and Checkpoints:**
-    * **TensorBoard:** Configure logging to a `tensorboard_logs/` directory.
-    * **Checkpoints:** Use a `CheckpointCallback` to save the model every 10,000 steps into a `checkpoints/` directory.
-
-4.  **Seamless Resume Functionality (CRITICAL):**
-    * The script must automatically find the latest checkpoint in `checkpoints/`.
-    * If a checkpoint exists:
-        * Load the model from that checkpoint.
-        * **Crucially, ensure the TensorBoard logs continue in the SAME run directory without creating a new one.**
-        * **The `.learn()` call must NOT reset the total timestep counter (`reset_num_timesteps=False`).**
-    * If no checkpoint exists, create a new `PPO` model from scratch.
-
-5.  **Training Execution:**
-    * Train the agent for a total of 1,000,000 timesteps.
-    * **Utilize the default SB3 progress bar** to show training progress in the console.
-
-6.  **Final Model Saving:**
-    * After training is complete, save the final, fully trained model as `final_model.zip`.</code></pre>
-            </div>
-        </section>
-
-        <!-- Step 5: Test Trained Model -->
-        <section id="step5" class="step bg-white p-6 sm:p-8 rounded-2xl shadow-lg border border-slate-200 mb-10">
-            <h2 class="text-2xl font-bold mb-4 border-b pb-3 text-slate-900">단계 5: 학습된 모델 테스트</h2>
-            <p class="mb-6 text-slate-700">TensorBoard의 수치만으로는 모델의 실제 성능을 파악하기 어렵습니다. 학습된 에이전트가 Pygame 환경에서 어떻게 행동하는지 직접 눈으로 확인합니다.</p>
-            
-            <div class="user-input">
-                <h3 class="font-semibold text-lg text-slate-800 mb-2">파일 준비 및 실행 안내</h3>
-                <p class="text-sm text-slate-600">이 단계에서는 <code>environment.py</code> (3단계 산출물)와 학습을 통해 생성된 <code>final_model.zip</code> (4단계 산출물) 파일이 필요합니다.</p>
-                <p class="text-sm text-slate-600 mt-2">아래 프롬프트로 생성된 코드를 <code class="bg-amber-200 px-1 rounded">test_model.py</code>로 저장하고, 필요한 파일들과 같은 폴더에 넣은 후 터미널에서 <code class="bg-amber-200 px-1 rounded">python test_model.py</code> 명령어로 실행하여 테스트를 시작하세요.</p>
-            </div>
-
-            <div class="prompt-block">
-                <button class="copy-button">복사</button>
-                <pre class="bg-slate-100 text-slate-800 p-4 rounded-lg overflow-x-auto text-sm"><code class="language-text">You are an ML Engineer who needs to visually verify a trained agent's performance.
-
-Your task is to write a Python script (`test_model.py`) to load a trained Stable Baselines3 model and run it in its custom Gymnasium environment for visual inspection.
-
-### Script Requirements:
-
-1.  **Import Environment:** Import the custom environment class (e.g., `GameEnv`) from the local file `environment.py`.
-2.  **Load Model:** Load the pre-trained agent from `final_model.zip`.
-3.  **Evaluation Loop:**
-    * Run the agent for 10 separate episodes.
-    * For each episode:
-        * Reset the environment with `render_mode='human'`.
-        * Loop until the episode is done (`terminated` or `truncated`).
-        * In the loop, use the model to predict the action from the current observation (with `deterministic=True`).
-        * Pass the action to the environment's `step` method.
-    * Print the total reward for each episode to the console.
-4.  **Cleanup:** Close the environment properly after the loop finishes.</code></pre>
-            </div>
-        </section>
-
-        <!-- Step 6: ONNX Conversion -->
-        <section id="step6" class="step bg-white p-6 sm:p-8 rounded-2xl shadow-lg border border-slate-200 mb-10">
-            <h2 class="text-2xl font-bold mb-4 border-b pb-3 text-slate-900">단계 6: ONNX 모델 변환</h2>
-            <p class="mb-6 text-slate-700">학습된 SB3 모델(`.zip`)을 웹 브라우저에서 사용할 수 있는 ONNX 형식으로 변환합니다. 웹 AI 실행을 위한 필수 단계입니다.</p>
-            
-            <div class="user-input">
-                <h3 class="font-semibold text-lg text-slate-800 mb-2">필요한 파일 정보</h3>
-                <p class="text-sm text-slate-600">이 단계에서는 <code>environment.py</code>와 <code>final_model.zip</code> 파일이 필요합니다. 이 두 파일을 첨부하여 아래 프롬프트를 실행하세요.</p>
-            </div>
-
-            <div class="prompt-block">
-                <button class="copy-button">복사</button>
-                <pre class="bg-slate-100 text-slate-800 p-4 rounded-lg overflow-x-auto text-sm"><code class="language-text">You are an expert in ML model deployment.
-
-I am attaching the Python script (`environment.py`) which contains the Gymnasium environment definition, and the trained model (`final_model.zip`).
-
-Your task is to write a new Python script that converts the attached `final_model.zip` into the ONNX format.
-
-### Conversion Script Requirements:
-1.  **Load SB3 Model:** Load `final_model.zip`.
-2.  **Import Environment:** Import the environment class from `environment.py` and create an instance to access the `observation_space`.
-3.  **Create Dummy Input:** Create a dummy observation tensor matching the shape and type of the environment's `observation_space`.
-4.  **Export to ONNX:** Use `torch.onnx.export()` to convert the model, saving it as `model.onnx`.
-    * `input_names`: `['observation']`
-    * `output_names`: `['action']`
-    * `opset_version`: 12
-5.  **Verification:** Add a section to verify the `model.onnx` using `onnxruntime` in Python. Run inference with the dummy input and print the result to confirm it works.</code></pre>
-            </div>
-
             <div class="user-input mt-6">
                 <h3 class="font-semibold text-lg text-slate-800 mb-2">실행 및 다음 단계 준비</h3>
-                <p class="text-sm text-slate-600">생성된 변환 코드를 <code class="bg-amber-200 px-1 rounded">convert_onnx.py</code>로 저장하세요. 이 파일을 <code>environment.py</code> 및 <code>final_model.zip</code>과 같은 폴더에 위치시킨 후, 터미널에서 <code class="bg-amber-200 px-1 rounded">python convert_onnx.py</code>를 실행하면 최종 산출물인 <code class="bg-amber-200 px-1 rounded">model.onnx</code> 파일이 생성됩니다.</p>
+                <p class="text-sm text-slate-600">Gemini가 생성한 코드를 <code class="bg-amber-200 px-1 rounded">game_env.py</code> 라는 이름으로 저장하세요. 터미널에서 <code class="bg-amber-200 px-1 rounded">python game_env.py</code>를 실행하여 사람 플레이 모드로 게임을 직접 테스트해볼 수 있습니다.</p>
+            </div>
+        </section>
+
+        <section id="step4" class="step bg-white p-6 sm:p-8 rounded-2xl shadow-lg border border-slate-200 mb-10">
+            <h2 class="text-2xl font-bold mb-4 border-b pb-3 text-slate-900">단계 4: SB3로 모델 학습</h2>
+            <p class="mb-6 text-slate-700">`game_env.py` 파일을 사용하여 강화학습 에이전트를 학습시킵니다. 아래 코드를 <code class="bg-amber-200 px-1 rounded">train.py</code> 파일로 저장하고 실행하세요. 코드 수정이 필요 없습니다.</p>
+            <div class="prompt-block">
+                <button class="copy-button">복사</button>
+                <pre class="bg-slate-100 text-slate-800 p-4 rounded-lg overflow-x-auto text-sm"><code class="language-python"># train.py
+import os, time
+from stable_baselines3 import PPO
+from stable_baselines3.common.callbacks import CheckpointCallback
+from stable_baselines3.common.logger import configure
+from stable_baselines3.common.vec_env import DummyVecEnv
+from gymnasium import spaces
+from game_env import GameEnv 
+
+TOTAL_TIMESTEPS = 1_000_000
+CHECKPOINT_FREQ = 10_000
+LOG_DIR = "sb3_logs"
+CHECKPOINT_DIR = os.path.join(LOG_DIR, "checkpoints")
+
+def find_latest_checkpoint():
+    if not os.path.exists(CHECKPOINT_DIR): return None
+    checkpoints = [f for f in os.listdir(CHECKPOINT_DIR) if f.startswith("rl_model_") and f.endswith(".zip")]
+    if not checkpoints: return None
+    latest_checkpoint = max(checkpoints, key=lambda f: int(f.split("_")[2].replace(".zip", "")))
+    return os.path.join(CHECKPOINT_DIR, latest_checkpoint)
+
+def main():
+    os.makedirs(CHECKPOINT_DIR, exist_ok=True)
+    env = DummyVecEnv([lambda: GameEnv(render_mode=None)])
+    obs_space = env.observation_space
+    policy = "CnnPolicy" if isinstance(obs_space, spaces.Box) and len(obs_space.shape) == 3 else "MlpPolicy"
+    print(f"자동 선택된 정책: {policy}")
+    latest_checkpoint = find_latest_checkpoint()
+    if latest_checkpoint:
+        print(f"최신 체크포인트에서 학습을 재개합니다: {latest_checkpoint}")
+        model = PPO.load(latest_checkpoint, env=env)
+        log_name = os.path.basename(os.path.dirname(os.path.dirname(latest_checkpoint)))
+        run_path = os.path.join(LOG_DIR, log_name)
+        custom_logger = configure(run_path, ["stdout", "tensorboard"])
+        model.set_logger(custom_logger)
+    else:
+        print("새로운 학습을 시작합니다.")
+        log_name = f"PPO_{int(time.time())}"
+        run_path = os.path.join(LOG_DIR, log_name)
+        custom_logger = configure(run_path, ["stdout", "tensorboard"])
+        model = PPO(policy, env, verbose=1, tensorboard_log=None)
+        model.set_logger(custom_logger)
+    checkpoint_callback = CheckpointCallback(save_freq=CHECKPOINT_FREQ, save_path=CHECKPOINT_DIR, name_prefix="rl_model")
+    try:
+        model.learn(total_timesteps=TOTAL_TIMESTEPS, callback=checkpoint_callback, reset_num_timesteps=False)
+        model.save(os.path.join(LOG_DIR, "final_model.zip"))
+        print(f"학습 완료! 최종 모델이 {os.path.join(LOG_DIR, 'final_model.zip')}에 저장되었습니다.")
+    finally:
+        env.close()
+
+if __name__ == '__main__': main()
+</code></pre>
+            </div>
+        </section>
+
+        <section id="step5" class="step bg-white p-6 sm:p-8 rounded-2xl shadow-lg border border-slate-200 mb-10">
+            <h2 class="text-2xl font-bold mb-4 border-b pb-3 text-slate-900">단계 5: 학습된 모델 테스트</h2>
+            <p class="mb-6 text-slate-700">학습된 에이전트의 성능을 시각적으로 확인합니다. 아래 코드를 <code class="bg-amber-200 px-1 rounded">test_model.py</code>로 저장하고 실행하세요.</p>
+            <div class="prompt-block">
+                <button class="copy-button">복사</button>
+                <pre class="bg-slate-100 text-slate-800 p-4 rounded-lg overflow-x-auto text-sm"><code class="language-python"># test_model.py
+from stable_baselines3 import PPO
+from game_env import GameEnv
+
+MODEL_PATH = "sb3_logs/final_model.zip"
+NUM_EPISODES = 10
+
+def main():
+    env = GameEnv(render_mode='human')
+    model = PPO.load(MODEL_PATH, env=env)
+    print(f"{MODEL_PATH} 모델 테스트 시작.")
+    for episode in range(1, NUM_EPISODES + 1):
+        obs, info = env.reset()
+        done, total_reward = False, 0
+        while not done:
+            action, _ = model.predict(obs, deterministic=True)
+            obs, reward, terminated, truncated, info = env.step(action)
+            total_reward += reward
+            done = terminated or truncated
+        print(f"에피소드 {episode}: 총 보상 = {total_reward:.2f}")
+    env.close()
+    print("테스트 완료.")
+
+if __name__ == '__main__': main()
+</code></pre>
+            </div>
+        </section>
+
+        <section id="step6" class="step bg-white p-6 sm:p-8 rounded-2xl shadow-lg border border-slate-200 mb-10">
+            <h2 class="text-2xl font-bold mb-4 border-b pb-3 text-slate-900">단계 6: ONNX 모델 변환</h2>
+            <p class="mb-6 text-slate-700">학습된 모델을 웹에서 사용 가능한 ONNX 형식으로 변환합니다. 아래 코드를 <code class="bg-amber-200 px-1 rounded">convert_onnx.py</code>로 저장하고 실행하세요.</p>
+            <div class="prompt-block">
+                <button class="copy-button">복사</button>
+                <pre class="bg-slate-100 text-slate-800 p-4 rounded-lg overflow-x-auto text-sm"><code class="language-python"># convert_onnx.py
+import torch, onnxruntime as ort, numpy as np
+from stable_baselines3 import PPO
+from game_env import GameEnv
+
+MODEL_PATH = "sb3_logs/final_model.zip"
+ONNX_PATH = "model.onnx"
+
+class OnnxablePolicy(torch.nn.Module):
+    def __init__(self, policy): super().__init__(); self.policy = policy
+    def forward(self, observation): action, _ = self.policy.predict(observation, deterministic=True); return torch.from_numpy(action)
+
+def main():
+    model = PPO.load(MODEL_PATH, device='cpu')
+    onnxable_model = OnnxablePolicy(model.policy)
+    env = GameEnv(render_mode=None)
+    dummy_input = torch.randn(1, *env.observation_space.shape)
+    env.close()
+    torch.onnx.export(onnxable_model, dummy_input, ONNX_PATH, opset_version=12, input_names=["observation"], output_names=["action"])
+    print(f"ONNX 변환 완료: {ONNX_PATH}")
+    print("\n--- ONNX 모델 검증 ---")
+    try:
+        ort_session = ort.InferenceSession(ONNX_PATH)
+        input_name, output_name = ort_session.get_inputs()[0].name, ort_session.get_outputs()[0].name
+        result = ort_session.run([output_name], {input_name: dummy_input.numpy().astype(np.float32)})
+        print(f"검증 성공! 입력 shape: {dummy_input.numpy().shape}, 출력 action: {result[0]}")
+    except Exception as e: print(f"검증 실패: {e}")
+
+if __name__ == '__main__': main()
+</code></pre>
             </div>
         </section>
         
-        <!-- Step 7: JavaScript Game (Upgraded Prompt) -->
         <section id="step7" class="step bg-white p-6 sm:p-8 rounded-2xl shadow-lg border border-slate-200 mb-10">
             <h2 class="text-2xl font-bold mb-4 border-b pb-3 text-slate-900">단계 7: JavaScript 웹 게임 구현</h2>
-            <p class="mb-6 text-slate-700">AI의 플레이를 직접 볼 수 있는 웹 페이지를 만듭니다. Python 게임의 시각적 디자인을 재현하고, `onnxruntime-web`을 사용해 AI 모델을 실행합니다.</p>
-            
+            <p class="mb-6 text-slate-700">AI의 플레이를 볼 수 있는 웹 페이지를 만듭니다. `game_env.py`의 시각적 디자인을 재현하고 AI 모델을 실행합니다.</p>
              <div class="user-input">
                 <h3 class="font-semibold text-lg text-slate-800 mb-2">필요한 정보 준비</h3>
-                <p class="text-sm text-slate-600">단계 3의 결과물인 `environment.py` 파일을 열어, Gemini가 정의한 `observation_space`의 구조와 순서를 확인하고 복사해두세요. 이 정보는 아래 프롬프트의 `[ ]` 안에 정확하게 붙여넣어야 합니다.</p>
+                <p class="text-sm text-slate-600">`game_env.py` 파일을 열어 `GameEnv` 클래스에 정의된 `observation_space`의 구조와 순서를 복사한 후, 아래 프롬프트의 `[ ]` 안에 정확히 붙여넣으세요.</p>
             </div>
-
             <div class="prompt-block">
                 <button class="copy-button">복사</button>
-                <pre class="bg-slate-100 text-slate-800 p-4 rounded-lg overflow-x-auto text-sm"><code class="language-text">You are a senior front-end developer and a top-tier digital artist, skilled in JavaScript, HTML5 Canvas, and AI model integration.
-
-Your task is to create a **single, self-contained `index.html` file** that is a visually stunning, minimalist web game powered by a local `model.onnx` file.
+                <pre class="bg-slate-100 text-slate-800 p-4 rounded-lg overflow-x-auto text-sm"><code class="language-text">You are a senior front-end developer and a top-tier digital artist, skilled in JavaScript, HTML5 Canvas, and AI model integration. Your task is to create a single, self-contained `index.html` file that is a visually stunning, minimalist web game powered by a local `model.onnx` file.
 
 ### Reference Information
 * **Artistic Vision:** Replicate the artistic vision of the Python game: a clean, minimalist, and visually satisfying hyper-casual aesthetic.
 * **Observation Space Structure:** [여기에 단계 3에서 Gemini가 정의한 관측 공간의 구조와 순서를 정확히 붙여넣으세요. (예: `[pos_x, pos_y, vel_x, vel_y, angle, ang_vel, dist_to_pad]`)]
 
 ### Requirements:
-
-1.  **Game Replication:**
-    * Recreate the game's core mechanics and visuals using HTML5 Canvas and plain JavaScript. Do not use a physics library.
-    * **Pay close attention to the coordinate system.** The game logic (physics, positions) must be consistent between the Python implementation and the HTML5 Canvas coordinate system (typically top-left origin).
-
-2.  **Visual Design (CRITICAL - Emulate a Hyper-Casual Hit Game):**
-    * Center the canvas perfectly on the page.
-    * Replicate the sophisticated visual style: a bright, inviting color palette; simple, anti-aliased geometric shapes; and bouncy, satisfying animations for feedback.
-    * Animations must be fluid and smooth, powered by `requestAnimationFrame`.
-    * Implement a clean, non-intrusive loading indicator while the ONNX model loads.
-
-3.  **AI Integration with onnxruntime-web:**
-    * Include `onnxruntime-web` via CDN.
-    * Asynchronously load the local `model.onnx`.
-    * In each step of the game loop, perform the AI inference with absolute precision.
-
-### CRITICAL IMPLEMENTATION DETAIL: State and Action Fidelity
-To prevent logic errors, the connection between the JS game and the ONNX model must be perfect.
-1.  **State Vector:** The observation passed to the model MUST be a `Float32Array`.
-2.  **Vector Order:** The ORDER of elements in the JS observation array MUST EXACTLY MATCH the Python environment's `observation_space` structure you pasted above.
-3.  **Normalization:** The normalization method used in JS (e.g., mapping game coordinates to a -1 to 1 range) MUST BE IDENTICAL to the normalization logic in the Python `step()` function.
-4.  **Action Mapping:** The mapping of the model's output index (e.g., 0, 1, 2) to a game action in JavaScript MUST PERFECTLY MIRROR the `action_space` definition in the Python environment.
-
-Before finishing, double-check your code, focusing on these four critical fidelity points.</code></pre>
+1.  **Game Replication:** Recreate the game's core mechanics and visuals using HTML5 Canvas and plain JavaScript. Do not use a physics library. The logic must be consistent with the Python implementation's coordinate system.
+2.  **Visual Design:** Center the canvas. Replicate the sophisticated visual style: a bright, inviting color palette; simple, anti-aliased geometric shapes; and bouncy, satisfying animations for feedback, powered by `requestAnimationFrame`. Implement a clean loading indicator.
+3.  **AI Integration:** Include `onnxruntime-web` via CDN and asynchronously load the local `model.onnx`.
+4.  **State and Action Fidelity (CRITICAL):**
+    * The observation passed to the model MUST be a `Float32Array`.
+    * The ORDER of elements in the JS observation array MUST EXACTLY MATCH the Python environment's `observation_space`.
+    * The normalization method used in JS MUST BE IDENTICAL to the normalization logic in the Python `step()` function.
+    * The mapping of the model's output to a game action in JavaScript MUST PERFECTLY MIRROR the `action_space` definition in the Python environment.</code></pre>
             </div>
         </section>
 
-        <!-- New Step 8: Local Testing -->
         <section id="step8" class="step bg-white p-6 sm:p-8 rounded-2xl shadow-lg border border-slate-200 mb-10">
             <h2 class="text-2xl font-bold mb-4 border-b pb-3 text-slate-900">단계 8: 로컬 환경에서 웹 게임 테스트하기</h2>
-            <p class="mb-6 text-slate-700">웹 게임을 인터넷에 올리기 전, 내 컴퓨터에서 먼저 실행하여 문제가 없는지 확인합니다. 웹 브라우저의 보안 정책으로 인해, `index.html` 파일을 직접 열면 `model.onnx` 같은 외부 파일을 불러오지 못할 수 있습니다. 간단한 로컬 서버를 사용하면 이 문제를 해결할 수 있습니다.</p>
+            <p class="mb-6 text-slate-700">웹 게임을 인터넷에 올리기 전, 내 컴퓨터에서 먼저 실행하여 문제가 없는지 확인합니다. 간단한 로컬 서버를 사용하면 `model.onnx` 같은 외부 파일을 정상적으로 불러올 수 있습니다.</p>
             <div class="space-y-4 text-slate-700">
-                <div>
-                    <h3 class="font-semibold text-lg text-slate-800">1. 프로젝트 폴더로 이동</h3>
-                    <p class="mt-1 ml-2">터미널(명령 프롬프트, PowerShell 등)을 열고, <code>cd</code> 명령어를 사용하여 <code>index.html</code>과 <code>model.onnx</code> 파일이 있는 폴더로 이동합니다.</p>
-                    <pre class="bg-slate-100 text-slate-800 p-2 mt-1 rounded-md text-sm"><code>cd C:\path\to\your\project_folder</code></pre>
-                </div>
-                <div>
-                    <h3 class="font-semibold text-lg text-slate-800">2. 로컬 서버 실행 (Python 필요)</h3>
-                    <p class="mt-1 ml-2">해당 폴더에서 아래 명령어를 입력하여 간단한 웹 서버를 실행합니다.</p>
-                    <pre class="bg-slate-100 text-slate-800 p-2 mt-1 rounded-md text-sm"><code>python -m http.server</code></pre>
-                    <p class="mt-1 ml-2 text-sm">터미널에 `Serving HTTP on 0.0.0.0 port 8000 ...` 과 같은 메시지가 나타나면 성공입니다.</p>
-                </div>
-                <div>
-                    <h3 class="font-semibold text-lg text-slate-800">3. 브라우저에서 확인</h3>
-                    <p class="mt-1 ml-2">웹 브라우저를 열고 주소창에 <a href="http://localhost:8000" target="_blank" class="text-amber-600 underline">http://localhost:8000</a> 을 입력하여 접속합니다. AI가 플레이하는 웹 게임이 정상적으로 실행되는지 확인하세요.</p>
-                </div>
+                <div><h3 class="font-semibold text-lg text-slate-800">1. 로컬 서버 실행 (Python 필요)</h3><p class="mt-1 ml-2">VS Code의 터미널(보기 &rarr; 터미널)에서 아래 명령어를 실행합니다.</p><pre class="bg-slate-100 text-slate-800 p-2 mt-1 rounded-md text-sm"><code>python -m http.server</code></pre></div>
+                <div><h3 class="font-semibold text-lg text-slate-800">2. 브라우저에서 확인</h3><p class="mt-1 ml-2">웹 브라우저에서 <a href="http://localhost:8000" target="_blank" class="text-amber-600 underline">http://localhost:8000</a> 으로 접속하여 AI 웹 게임이 정상 실행되는지 확인하세요.</p></div>
             </div>
         </section>
 
-        <!-- Step 9: GitHub Pages (Renumbered) -->
         <section id="step9" class="step bg-white p-6 sm:p-8 rounded-2xl shadow-lg border border-slate-200 mb-10">
-            <h2 class="text-2xl font-bold mb-4 border-b pb-3 text-slate-900">단계 9: GitHub Pages로 웹에 배포하기</h2>
-            <p class="mb-6 text-slate-700">로컬 테스트를 마친 AI 웹 게임(`index.html`, `model.onnx`)을 GitHub Pages를 통해 무료로 배포하는 가장 간단한 방법입니다.</p>
-            <div class="space-y-4 text-slate-700">
+            <h2 class="text-2xl font-bold mb-4 border-b pb-3 text-slate-900">단계 9: VS Code와 Git으로 GitHub Pages에 배포하기</h2>
+            <p class="mb-6 text-slate-700">이제 완성된 프로젝트를 VS Code에서 바로 GitHub에 올리고, GitHub Pages를 통해 전 세계에 배포합니다.</p>
+            
+            <div class="space-y-6 text-slate-700">
                 <div>
-                    <h3 class="font-semibold text-lg text-slate-800">1. GitHub 저장소 생성</h3>
-                    <p class="mt-1 ml-2">GitHub에 로그인 후, 'New repository'를 클릭하여 저장소를 'Public'으로 생성합니다.</p>
+                    <h3 class="font-semibold text-lg text-slate-800">1. 사전 준비: Git 설치 및 설정</h3>
+                    <p class="mt-1 ml-2">Git이 설치되어 있지 않다면 <a href="https://git-scm.com/" target="_blank" class="text-amber-600 underline">git-scm.com</a>에서 다운로드하여 설치합니다. 설치 후, Git Bash나 VS Code 터미널을 열어 아래 명령어를 입력하여 사용자 정보를 설정합니다 (최초 한 번만 필요).</p>
+                    <pre class="bg-slate-100 text-slate-800 p-2 mt-1 rounded-md text-sm"><code>git config --global user.name "Your Name"
+git config --global user.email "you@example.com"</code></pre>
                 </div>
+
                 <div>
-                    <h3 class="font-semibold text-lg text-slate-800">2. 파일 업로드</h3>
-                    <p class="mt-1 ml-2">생성된 저장소에서 'Add file' &rarr; 'Upload files'를 클릭하여 `index.html`과 `model.onnx` 파일을 업로드합니다.</p>
+                    <h3 class="font-semibold text-lg text-slate-800">2. VS Code에서 GitHub 계정 연동</h3>
+                    <p class="mt-1 ml-2">VS Code 왼쪽 하단의 사람 모양 아이콘(계정)을 클릭하고, 'GitHub으로 로그인(Sign in with GitHub)'을 선택하여 브라우저의 안내에 따라 계정을 연동합니다.</p>
                 </div>
+
                 <div>
-                    <h3 class="font-semibold text-lg text-slate-800">3. GitHub Pages 활성화</h3>
-                    <p class="mt-1 ml-2">저장소 'Settings' &rarr; 'Pages' 탭으로 이동하여 'Source'를 'Deploy from a branch'로, 브랜치를 'main'으로 선택하고 저장합니다.</p>
+                    <h3 class="font-semibold text-lg text-slate-800">3. Git 저장소 초기화 및 첫 커밋</h3>
+                    <p class="mt-1 ml-2">VS Code 왼쪽의 '소스 제어' 탭(가지 모양 아이콘)으로 이동하여 '리포지토리 초기화(Initialize Repository)' 버튼을 클릭합니다. 그 후, 상단의 메시지 입력란에 "Initial commit"과 같은 첫 커밋 메시지를 작성한 후 ✓ 커밋 버튼을 눌러 커밋합니다.</p>
                 </div>
+
                 <div>
-                    <h3 class="font-semibold text-lg text-slate-800">4. 배포 확인 및 공유</h3>
-                    <p class="mt-1 ml-2">잠시 후 나타나는 `https://&lt;사용자명&gt;.github.io/&lt;저장소명&gt;/` 주소로 접속하여 게임을 확인하고 공유합니다.</p>
+                    <h3 class="font-semibold text-lg text-slate-800">4. GitHub에 게시하기</h3>
+                    <p class="mt-1 ml-2">'소스 제어' 탭에 나타나는 'Github 게시(Publish Branch)' 버튼을 클릭합니다. VS Code가 GitHub에 저장소를 만드는 과정을 안내합니다. 저장소 이름을 정하고, **반드시 '공개(Public)' 저장소로 설정**해야 GitHub Pages를 무료로 사용할 수 있습니다.</p>
+                </div>
+
+                <div>
+                    <h3 class="font-semibold text-lg text-slate-800">5. GitHub Pages 활성화</h3>
+                    <p class="mt-1 ml-2">게시가 완료되면 GitHub 사이트에서 방금 생성한 저장소로 이동합니다. 'Settings' &rarr; 'Pages' 탭으로 이동하여 'Source'를 'Deploy from a branch'로, 브랜치를 'main' (또는 'master')으로 선택하고 'Save'를 클릭합니다.</p>
+                </div>
+
+                <div>
+                    <h3 class="font-semibold text-lg text-slate-800">6. 배포 확인 및 공유</h3>
+                    <p class="mt-1 ml-2">잠시 후 페이지 상단에 녹색으로 게시 주소(<code class="text-sm">https://&lt;사용자명&gt;.github.io/&lt;저장소명&gt;/</code>)가 나타납니다. 이 주소로 접속하여 게임을 확인하고 전 세계와 공유하세요!</p>
                 </div>
             </div>
         </section>
 
-        <!-- Step 10: Conclusion (Renumbered) -->
         <section id="step10" class="step bg-white p-6 sm:p-8 rounded-2xl shadow-lg border border-slate-200 mb-10">
             <h2 class="text-2xl font-bold mb-4 border-b pb-3 text-slate-900">마치며</h2>
-            <p class="mb-6 text-slate-700">축하합니다! 이 가이드의 프롬프트를 따라 Gemini와 함께 아이디어를 구체화하고, 파이썬으로 게임과 AI를 개발한 뒤, 최종적으로는 전 세계와 공유할 수 있는 인터랙티브 웹 애플리케이션까지 완성하셨습니다.</p>
+            <p class="mb-6 text-slate-700">축하합니다! 이 가이드를 통해 아이디어 구체화, 파이썬 AI 개발, 그리고 최종 웹 배포까지의 전 과정을 완료하셨습니다.</p>
             <h3 class="font-semibold text-lg text-slate-800 mb-2">이제 여러분의 차례입니다:</h3>
             <ul class="list-disc list-inside space-y-2 text-slate-700">
-                <li><strong>게임 아이디어 확장:</strong> 게임에 새로운 규칙, 장애물, 또는 더 어려운 단계를 추가하여 발전시켜 보세요.</li>
-                <li><strong>보상 함수 실험:</strong> 다른 보상 체계를 설계하여 AI의 행동 패턴이 어떻게 바뀌는지 관찰해보세요.</li>
-                <li><strong>모델 아키텍처 변경:</strong> SB3에서 다른 알고リズム(예: DQN)을 사용하거나 신경망의 크기를 조절해보세요.</li>
+                <li><strong>게임 아이디어 확장:</strong> 새로운 규칙이나 장애물을 추가하여 게임을 발전시켜 보세요.</li>
+                <li><strong>보상 함수 실험:</strong> 다른 보상 체계를 설계하여 AI의 행동 패턴 변화를 관찰해보세요.</li>
+                <li><strong>모델 아키텍처 변경:</strong> SB3에서 다른 알고리즘(예: DQN)을 사용해보세요.</li>
             </ul>
-            <p class="mt-6 text-center text-slate-600 font-medium">이 프로세스는 다양한 프로젝트에 적용할 수 있는 강력한 파이프라인입니다. 즐겁게 실험하고 창조하세요!</p>
         </section>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const copyButtons = document.querySelectorAll('.copy-button');
-
             copyButtons.forEach(button => {
                 button.addEventListener('click', () => {
                     const codeBlock = button.nextElementSibling.querySelector('code');
                     const codeText = codeBlock.innerText;
-
-                    const textArea = document.createElement('textarea');
-                    textArea.value = codeText;
-                    document.body.appendChild(textArea);
-                    textArea.select();
-
-                    try {
-                        const successful = document.execCommand('copy');
-                        if (successful) {
-                            button.textContent = '복사 완료!';
-                            button.classList.add('copied');
-                            setTimeout(() => {
-                                button.textContent = '복사';
-                                button.classList.remove('copied');
-                            }, 2000);
-                        }
-                    } catch (err) {
-                        console.error('Fallback: Error copying text: ', err);
-                    }
-                    document.body.removeChild(textArea);
+                    navigator.clipboard.writeText(codeText).then(() => {
+                        button.textContent = '복사 완료!';
+                        button.classList.add('copied');
+                        setTimeout(() => {
+                            button.textContent = '복사';
+                            button.classList.remove('copied');
+                        }, 2000);
+                    }).catch(err => console.error('Copy failed', err));
                 });
             });
-            
-            const themes = [
-                { emoji: "🍾", title: "병 세우기 챌린지", description: "로봇팔이 물병을 던져 똑바로 세우는 '병 세우기' 챌린지를 성공시키도록 학습합니다.", rl_concept: "병 세우기 챌린지: 로봇팔의 각도와 힘을 조절하여, 테이블 위의 물병을 던졌을 때 바닥에 똑바로 서도록 만드는 게임" },
-                { emoji: "🤹", title: "단검 저글링", description: "두 개의 손이 아슬아슬하게 단검 2~3개를 저글링하도록 학습합니다. (그래픽으로 안전하게 구현)", rl_concept: "단검 저글링: 두 개의 손(막대)을 좌우로 움직여, 떨어지는 단검 2개를 받아내어 떨어뜨리지 않고 계속 띄우는 게임" },
-                { emoji: "🔑", title: "열쇠 구멍에 열쇠 넣기", description: "미세하게 떨리는 로봇 손이 열쇠의 각도와 위치를 정확하게 조절하여 열쇠 구멍에 넣도록 학습합니다.", rl_concept: "열쇠 구멍에 열쇠 넣기: 떨리는 손(커서)을 상하좌우로 미세하게 움직여, 정해진 시간 안에 열쇠 끝을 열쇠 구멍에 정확히 위치시키는 게임" },
-                { emoji: "🛹", title: "외발자전거 타기", description: "캐릭터가 넘어지지 않고 균형을 잡으며 외발자전거를 타도록 학습합니다.", rl_concept: "외발자전거 타기: 캐릭터가 좌우로만 움직여 균형을 잡고, 넘어지지 않고 최대한 오래 버티는 게임" },
-                { emoji: "🥞", title: "팬케이크 뒤집기", description: "로봇팔이 타이밍과 힘을 조절해 팬케이크를 완벽하게 뒤집도록 학습합니다.", rl_concept: "팬케이크 뒤집기: 프라이팬의 각도와 상하 움직임을 조절하여, 팬케이크를 공중으로 띄웠다가 다시 팬 위에 안착시키는 게임" },
-                { emoji: "🪨", title: "돌탑 쌓기", description: "울퉁불퉁하고 각기 다른 모양의 돌멩이들을 아슬아슬하게 쌓아 올리도록 학습합니다.", rl_concept: "돌탑 쌓기: 모양이 다른 5개의 돌을, 로봇팔로 하나씩 집어 무게 중심을 맞춰 무너뜨리지 않고 모두 쌓는 게임" },
-                { emoji: "🗑️", title: "휴지통에 종이 던져넣기", description: "바람(팬)의 영향을 계산하여 뭉친 종이를 휴지통에 골인시키도록 학습합니다.", rl_concept: "휴지통에 종이 던져넣기: 매번 세기와 방향이 바뀌는 바람의 영향을 고려하여, 종이 뭉치를 던지는 각도와 힘을 조절해 휴지통에 넣는 게임" },
-                { emoji: "🏹", title: "움직이는 과녁 맞히기", description: "좌우로 움직이거나 크기가 변하는 과녁에 화살을 명중시키도록 학습합니다.", rl_concept: "움직이는 과녁 맞히기: 활의 각도와 당기는 힘을 조절하여, 좌우로 일정하게 움직이는 과녁의 중앙을 맞히는 게임" },
-                { emoji: "🤸", title: "그네 높이 타기", description: "사람이 그네를 타듯, 타이밍에 맞춰 몸을 움츠렸다 펴는 동작으로 그네를 점점 더 높이 올리도록 학습합니다.", rl_concept: "그네 높이 타기: 그네가 특정 지점에 도달했을 때 '앉기/서기' 동작을 타이밍에 맞춰 실행하여, 그네의 최고 도달 각도를 높이는 게임" },
-                { emoji: "🧑‍🤝‍🧑", title: "아슬아슬 쟁반 나르기", description: "웨이터 캐릭터가 음료가 담긴 쟁반을 들고 걸어갈 때, 균형을 잡아 음료를 쏟지 않도록 학습합니다.", rl_concept: "아슬아슬 쟁반 나르기: 좌우로 기울어지는 쟁반을, 반대 방향으로 움직여 수평을 유지하고, 쏟지 않고 목표 지점까지 도달하는 게임" },
-                { emoji: "🚀", title: "로켓 착륙시키기", description: "제한된 연료를 사용하여 행성 표면의 착륙 지점에 부드럽게 안착하도록 추진체를 제어합니다.", rl_concept: "로켓 착륙시키기: 좌우 및 메인 추력을 사용해, 화면 상단에서 떨어지는 로켓이 정해진 착륙 지점에 부드럽게 착륙하는 게임" },
-                { emoji: "🍭", title: "통통 튀는 포고 스틱", description: "포고 스틱을 탄 캐릭터가 균형을 잡으며 장애물을 넘어가도록 학습합니다.", rl_concept: "포고 스틱 타기: 캐릭터의 좌우 기울기를 조절하여 균형을 잡고, 제자리에서 넘어지지 않고 최대한 오래 버티는 게임" },
-                { emoji: "🧗", title: "젤리 등반가", description: "흐물거리는 젤리 캐릭터가 벽에 몸의 일부를 붙이고, 나머지 부분을 끌어당기는 방식으로 벽을 타도록 학습합니다.", rl_concept: "젤리 등반가: 캐릭터의 팔(점)을 마우스 클릭 위치로 뻗어 벽에 붙이고, 몸을 끌어당겨 더 높은 곳으로 이동하는 것을 반복하는 게임" },
-                { emoji: "🏏", title: "공 쳐서 벽돌 깨기", description: "막대(Paddle)를 움직여 튀는 공을 받아내고, 상단의 벽돌을 가장 효율적으로 깨도록 학습합니다.", rl_concept: "벽돌 깨기: 화면 하단의 막대를 좌우로 움직여, 떨어지는 공을 받아내어 상단의 모든 벽돌을 제거하는 게임" },
-                { emoji: "🍇", title: "인간 대포알", description: "대포의 발사 각도와 힘을 조절하여 사람을 날려 보내, 멀리 있는 목표 지점에 정확히 떨어뜨리도록 학습합니다.", rl_concept: "인간 대포알: 대포의 발사 각도와 힘을 조절하여, 포물선으로 날아가는 캐릭터가 목표 지점(예: 수영장)에 안착하도록 하는 게임" },
-                { emoji: "🎳", title: "볼링 마스터", description: "볼링공의 출발 위치와 파워, 스핀을 조절하여 스트라이크를 치도록 학습합니다.", rl_concept: "볼링 마스터: 볼링공의 출발 위치와 던지는 힘을 조절하여, 10개의 핀을 모두 쓰러뜨리는 게임 (스핀 제외)" },
-                { emoji: "🦘", title: "트램폴린 묘기", description: "트램폴린 위에서 점프하는 캐릭터가 공중회전을 성공시키도록 타이밍을 학습합니다.", rl_concept: "트램폴린 묘기: 트램폴린에서 캐릭터가 최고점에 도달했을 때 '몸 접기' 액션을 취해, 공중에서 1바퀴 회전 후 안정적으로 착지하는 게임" },
-                { emoji: "🩺", title: "수술 게임", description: "로봇팔이 벽에 닿지 않고 조심스럽게 물체를 꺼내도록 학습합니다.", rl_concept: "수술 게임: 로봇팔을 상하좌우로 움직여, 구불구불한 경로의 벽에 닿지 않고 시작점에서 목표점까지 도달하는 게임" },
-                { emoji: "🔵", title: "눈덩이 굴리기", description: "언덕을 굴러 내려오는 작은 눈덩이를 점프시켜 장애물을 피하게 합니다. 눈덩이는 점점 커집니다.", rl_concept: "눈덩이 굴리기: 언덕을 굴러 내려오는 눈덩이를, 타이밍에 맞춰 점프시켜 경로 상의 나무나 돌 같은 장애물을 피하는 게임" },
-                { emoji: "🚑", title: "들것으로 환자 옮기기", description: "2인 1조의 캐릭터가 들것 위의 환자를 떨어뜨리지 않고, 울퉁불퉁한 길을 통과하도록 학습합니다.", rl_concept: "들것 옮기기: 두 캐릭터의 상하 위치를 각각 조절하여 들것의 수평을 맞추고, 환자(공)를 떨어뜨리지 않고 목표점까지 가는 게임" },
-                { emoji: "🕷️", title: "거미줄 스윙", description: "거미처럼 천장에 거미줄을 쏘고, 줄의 탄성을 이용해 스윙하며 앞으로 나아가도록 학습합니다.", rl_concept: "거미줄 스윙: 캐릭터가 스윙하는 동안 클릭하여 다음 지점으로 거미줄을 발사하고, 줄을 놓는 타이밍을 조절해 최대한 멀리 가는 게임" },
-                { emoji: "🔥", title: "소방 호스로 불 끄기", description: "소방 호스의 방향을 조절하여 물줄기(입자)를 쏘아, 건물의 여러 창문에서 발생하는 불을 끄도록 학습합니다.", rl_concept: "불 끄기: 고정된 위치에서 소방 호스의 각도만 조절하여, 화면의 여러 위치에 생성되는 불씨를 모두 끄는 게임" },
-                { emoji: "🔨", title: "두더지 잡기", description: "여러 구멍에서 무작위로 튀어나오는 두더지를 망치로 정확하고 빠르게 내려치도록 학습합니다.", rl_concept: "두더지 잡기: 9개의 구멍 중 하나에서 무작위로 튀어나오는 두더지를, 해당하는 구멍 번호를 선택하여 잡는 순발력 게임" },
-                { emoji: "✈️", title: "종이비행기 조종하기", description: "날아가는 종이비행기의 꼬리 날개만 조절하여, 상승기류를 타고 최대한 오래 비행하도록 학습합니다.", rl_concept: "종이비행기 조종하기: 좌에서 우로 날아가는 종이비행기의 상하 움직임만 조절하여, 화면 위아래의 장애물에 닿지 않고 최대한 멀리 가는 게임" },
-                { emoji: "🏀", title: "농구공 드리블", description: "손을 조절하여 농구공을 일정한 높이로 계속 튕기도록 학습합니다.", rl_concept: "농구공 드리블: 손(막대)의 상하 움직임 타이밍을 조절하여, 바닥으로 떨어지는 농구공을 계속 튕겨내 떨어뜨리지 않는 게임" },
-                { emoji: "🤸", title: "줄넘기", description: "돌아가는 줄에 걸리지 않도록, 캐릭터가 완벽한 타이밍에 점프하도록 학습합니다.", rl_concept: "줄넘기: 화면을 가로지르는 줄이 다가올 때, 타이밍에 맞춰 점프하여 걸리지 않고 최대한 많이 넘는 게임" },
-                { emoji: "🔨", title: "투석기로 성 부수기", description: "'앵그리버드'처럼 투석기의 각도와 힘을 조절하여 돌을 날려, 성의 약한 부분을 무너뜨리도록 학습합니다.", rl_concept: "투석기 게임: 투석기의 발사 각도와 힘을 조절하여, 멀리 있는 목표물(상자 더미)을 무너뜨리는 게임" },
-                { emoji: "🚧", title: "무너지는 다리 건너기", description: "캐릭터가 밟으면 잠시 후 떨어지는 발판으로 이루어진 다리를 건너도록 학습합니다.", rl_concept: "다리 건너기: 여러 개의 발판 중, 밟으면 떨어지는 가짜 발판을 피해 진짜 발판만 밟고 건너가는 게임" },
-                { emoji: "🤹", title: "켄다마", description: "줄에 매달린 공을 막대의 뾰족한 부분이나 컵 부분에 올리도록 막대를 컨트롤하는 법을 학습합니다.", rl_concept: "켄다마: 막대의 상하 움직임 타이밍을 조절하여, 매달린 공을 위로 띄웠다가 컵 부분에 받아내는 게임" },
-                { emoji: "⏹️", title: "도미노 세우기", description: "로봇팔이 일정한 간격으로 도미노를 세우도록 학습합니다. 이미 세운 도미노를 건드리면 실패입니다.", rl_concept: "도미노 세우기: 로봇팔을 좌우로 움직여, 정해진 위치에 도미노를 하나씩 떨어뜨려 세우는 게임. 이미 세운 도미노를 건드리면 안 됨." },
-                { emoji: "💧", title: "물길 그려 물 채우기", description: "화면에 선을 하나 그어, 위에서 떨어지는 물(입자)의 경로를 만들어 컵에 물을 가득 채우도록 학습합니다.", rl_concept: "물길 그리기: 화면의 시작점과 끝점을 선택하여 선분을 그리고, 위에서 떨어지는 공들이 선분을 따라 흘러 컵에 들어가도록 하는 게임" },
-                { emoji: "👣", title: "외줄타기", description: "외줄을 타는 캐릭터가 긴 장대를 좌우로 기울이며 무게 중심을 잡아 앞으로 나아가도록 학습합니다.", rl_concept: "외줄타기: 좌우로 흔들리는 막대(캐릭터)를, 반대 방향으로 움직여 균형을 잡고 최대한 오래 버티는 게임" },
-                { emoji: "🐸", title: "개구리 릴리패드 점프", description: "개구리가 점프의 파워를 조절하여, 간격이 다른 여러 개의 연잎 위로 정확히 착지하도록 학습합니다.", rl_concept: "개구리 점프: 점프 게이지가 차오를 때 버튼을 눌러, 개구리가 다음 연잎에 정확히 착지하도록 힘을 조절하는 게임" },
-                { emoji: "🥷", title: "벽타기 닌자", description: "좁은 통로에서 닌자가 양쪽 벽을 번갈아 점프하며 위로 올라가도록 학습합니다.", rl_concept: "벽타기 닌자: 벽에 붙어 미끄러지는 캐릭터를, 타이밍에 맞춰 점프시켜 반대편 벽으로 이동하며 최대한 높이 올라가는 게임" },
-                { emoji: "🧲", title: "자석으로 쇠구슬 옮기기", description: "자석을 컨트롤하여, 장애물로 가득한 미로 속 쇠구슬을 목적지까지 옮기도록 학습합니다.", rl_concept: "자석 미로: 자석(커서)을 움직여 쇠구슬을 끌어당기고, 쇠구슬이 벽에 닿지 않게 미로를 통과해 목표 지점까지 옮기는 게임" },
-                { emoji: "🐑", title: "양떼 몰이", description: "목축견 한 마리를 조종하여, 제멋대로 흩어지는 양 떼를 울타리 안으로 몰아넣도록 학습합니다.", rl_concept: "양떼 몰이: 목축견(플레이어)을 움직여, 화면에 흩어져 있는 양(공)들을 지정된 울타리 영역 안으로 모두 몰아넣는 게임" },
-                { emoji: "🍉", title: "과일 닌자", description: "화면에 날아오르는 여러 과일을 칼(선)으로 베어 자르도록 학습합니다. 폭탄을 베면 실패입니다.", rl_concept: "과일 자르기: 화면 아래에서 위로 날아오르는 과일(원)들을, 정해진 높이의 칼(선)을 좌우로 움직여 베어내는 게임. 폭탄은 피해야 함." },
-                { emoji: "🚁", title: "헬리콥터 구조 작전", description: "헬리콥터를 조종하여, 좁고 위험한 지형에 있는 사람을 구출한 뒤 안전한 착륙장으로 옮기도록 학습합니다.", rl_concept: "헬리콥터 구조: 헬리콥터의 상하 움직임만 조절하여, 동굴의 천장과 바닥에 부딪히지 않고 목표 지점까지 도달하는 게임" },
-                { emoji: "⚙️", title: "톱니바퀴 점프", description: "서로 다른 속도로 돌아가는 톱니바퀴들을 발판 삼아, 캐릭터가 타이밍에 맞춰 점프하여 목표 지점까지 도달하도록 학습합니다.", rl_concept: "톱니바퀴 점프: 회전하는 톱니바퀴 위에서, 타이밍에 맞춰 점프하여 다음 톱니바퀴로 안전하게 건너가는 게임" },
-                { emoji: "🐳", title: "변신 슬라임", description: "다양한 형태의 구멍을 통과하기 위해, 슬라임 캐릭터가 자신의 몸 모양을 구멍에 맞게 바꾸도록 학습합니다.", rl_concept: "모양 맞추기: 다가오는 벽의 구멍(원, 네모, 세모) 모양을 보고, 캐릭터의 모양을 해당 버튼을 눌러 일치시켜 통과하는 게임" },
-                { emoji: "🔦", title: "그림자 숨기", description: "움직이는 감시탑의 서치라이트를 피해, 그림자 속에만 숨어서 목표 지점까지 도달하도록 학습합니다.", rl_concept: "그림자 숨기: 회전하는 서치라이트(부채꼴)의 빛을 피해, 엄폐물 뒤에 숨는 타이밍을 학습하여 목표 지점까지 도달하는 게임" },
-                { emoji: "🐜", title: "개미굴 파기", description: "개미를 조종하여 땅(파괴 가능한 타일)을 파고, 땅속 깊은 곳에 있는 먹이까지 최단 경로의 터널을 만들도록 학습합니다.", rl_concept: "개미굴 파기: 개미를 상하좌우로 움직여 흙(타일)을 파고, 땅속의 먹이까지 길을 만드는 게임. 단단한 돌은 피해야 함." },
-                { emoji: "🌊", title: "잠수함 동굴 탐험", description: "잠수함의 부력과 추진력을 조절하여, 좁고 복잡한 해저 동굴을 벽에 부딪히지 않고 탐험하도록 학습합니다.", rl_concept: "잠수함 탐험: 잠수함의 상하 부력만 조절하여, 해저 동굴의 천장과 바닥에 부딪히지 않고 최대한 멀리 가는 게임" },
-                { emoji: "🎶", title: "리듬 점프", description: "음악의 비트에 맞춰 나타나는 발판들을, 캐릭터가 리듬에 맞게 점프하여 건너가도록 학습합니다.", rl_concept: "리듬 점프: 일정한 비트로 다가오는 발판에 맞춰, 타이밍 좋게 점프하여 떨어지지 않고 계속 나아가는 게임" },
-                { emoji: "💣", title: "대포알 릴레이", description: "첫 번째 대포만 조절하여, 발사된 대포알이 다음 대포로 이어져 최종 목표물을 맞히도록 학습합니다.", rl_concept: "대포알 릴레이: 첫 대포의 각도만 조절하여 공을 쏘고, 공이 다음 대포에 들어갈 때 타이밍 맞춰 발사 버튼을 눌러 목표물을 맞히는 게임" },
-                { emoji: "🏈", title: "쿼터백 챌린지", description: "로봇팔이 움직이는 리시버(목표)의 미래 위치를 예측하여 정확한 포물선으로 공을 던지도록 학습합니다.", rl_concept: "쿼터백 챌린지: 투척기의 각도와 힘을 조절하여, 좌우로 움직이는 목표물에 공을 던져 맞히는 게임" },
-                { emoji: "📦", title: "지게차 운전 마스터", description: "지게차를 조종하여 좁은 창고에서 상자를 들어 올리고, 지정된 선반에 부딪히지 않고 정확히 쌓도록 학습합니다.", rl_concept: "지게차 운전: 지게차를 전진/후진하고 지게발을 상/하로 움직여, 바닥의 상자를 선반 위 목표 지점으로 옮기는 게임" },
-                { emoji: "🐟", title: "고양이 낚시", description: "고양이의 앞발(막대)을 조종하여, 수면 아래를 빠르게 헤엄쳐 다니는 물고기를 정확한 타이밍에 낚아채도록 학습합니다.", rl_concept: "고양이 낚시: 물고기가 특정 영역을 지나갈 때, 타이밍에 맞춰 버튼을 눌러 낚싯대를 내려 물고기를 잡는 게임" },
-                { emoji: "🚁", title: "드론 배달", description: "드론을 조종하여 바람의 영향을 이겨내고, 빌딩 숲 사이의 장애물을 피해 옥상의 목표 지점까지 배터리를 아끼며 도달하도록 학습합니다.", rl_concept: "드론 배달: 드론의 상하좌우 추력만 조절하여, 고정된 장애물을 피해 출발점에서 목표점까지 도달하는 게임" },
-                { emoji: "🤖", title: "로봇 청소기", description: "복잡한 가구 배치를 가진 방 안에서, 벽이나 장애물에 부딪힘을 최소화하며 가장 효율적인 경로로 모든 바닥을 청소하도록 학습합니다.", rl_concept: "로봇 청소기: 로봇 청소기를 상하좌우로 조종하여, 방 안의 모든 먼지 아이템을 먹는 게임. 벽에 부딪히면 감점." },
-                { emoji: "🍿", title: "팝콘 만들기", description: "옥수수 알갱이가 담긴 팬의 온도를 미세하게 조절합니다. 너무 약하면 팝콘이 되지 않고, 너무 강하면 타버립니다. 최적의 팝콘을 만들도록 학습합니다.", rl_concept: "팝콘 만들기: 버튼을 눌러 온도를 올리고 떼서 내리면서, 온도 게이지를 타지 않는 '최적' 구간에 최대한 오래 머무르게 하는 게임" },
-                { emoji: "⛳", title: "미니 골프", description: "단 한 번의 퍼팅으로, 복잡한 경사와 장애물을 가진 미니 골프 코스에서 홀인원을 하도록 힘과 각도를 학습합니다.", rl_concept: "미니 골프: 골프채의 방향과 힘 조절만으로, 공을 쳐서 홀컵에 넣는 게임. 최소 타수가 목표." },
-                { emoji: "🎂", title: "케이크 장식하기", description: "로봇팔이 회전하는 케이크 위에, 정해진 패턴(예: 하트, 별)을 따라 정확한 위치에 크림을 짜도록 학습합니다.", rl_concept: "케이크 장식: 로봇팔을 좌우로, 크림 짜는 것을 온/오프하여, 컨베이어 벨트를 따라 움직이는 케이크 위에 정해진 패턴을 그리는 게임" },
-                { emoji: "🥪", title: "샌드위치 쌓기", description: "위에서 무작위 순서로 떨어지는 빵, 채소, 패티 등의 재료를, 순서에 맞게 받아내어 완벽한 샌드위치 탑을 쌓도록 학습합니다.", rl_concept: "샌드위치 쌓기: 접시를 좌우로 움직여, 위에서 떨어지는 재료(빵-패티-채소-빵 순)를 순서에 맞게 모두 받아내는 게임" },
-                { emoji: "🚗", title: "자동 주차", description: "자동차가 후진과 핸들 조작만으로, 좁은 평행 주차 공간에 한 번에 완벽하게 주차하도록 학습합니다.", rl_concept: "자동 주차: 전진/후진과 핸들 좌/우 꺾기만 조종하여, 탑뷰 시점의 자동차를 주차 공간에 정확히 넣는 게임" },
-                { emoji: "🏓", title: "퐁 (Pong)", description: "고전 명작! 날아오는 공을 받아쳐 상대방을 이겨보세요. AI와의 치열한 랠리가 펼쳐집니다.", rl_concept: "퐁 (Pong): 플레이어는 마우스로 막대를 상하로만 움직여, 날아오는 공을 받아쳐 상대방이 놓치게 만드는 게임. 먼저 11점을 내면 승리." },
-                { emoji: "🏒", title: "에어하키", description: "빠르고 경쾌한 하키 게임에서 AI의 수비벽을 뚫어보세요. 시원한 타격감을 느낄 수 있습니다.", rl_concept: "에어하키: 플레이어는 마우스로 막대를 상하로만 움직여, 상대방 골대에 퍽을 넣는 게임. 먼저 7점을 내면 승리." },
-                { emoji: "🏐", title: "2D 볼리볼", description: "간단한 조작으로 공을 넘겨 AI와 랠리를 펼쳐보세요. 타이밍이 중요합니다.", rl_concept: "2D 볼리볼: 플레이어는 캐릭터를 좌우로만 움직이고 타이밍에 맞춰 점프하여, 공을 상대방 코트로 넘기는 게임. 공이 자기 코트에 떨어지면 실점." },
-                { emoji: "🟥", title: "세상에서 가장 어려운 게임", description: "격자 맵에서 점멸하거나 움직이는 장애물을 피해 시작점에서 도착점까지 도달하는 게임입니다.", rl_concept: "세상에서 가장 어려운 게임: 플레이어(네모)를 상하좌우로 움직여, 정해진 패턴으로 움직이는 장애물(동그라미)들을 피해 도착 지점까지 도달하는 게임" },
-                { emoji: "🎯", title: "죽림고수 (화살 피하기)", description: "원형 경기장에서 사방에서 날아오는 화살을 피하며 최대한 오래 살아남는 게임입니다.", rl_concept: "화살 피하기: 원형 경기장 중앙의 캐릭터를 상하좌우로 움직여, 경기장 외곽에서 날아오는 화살들을 피하며 최대한 오래 버티는 게임" },
-                { emoji: "🐔", title: "길 건너기", description: "캐릭터를 조종하여 차들이 쌩쌩 달리는 도로와 통나무가 떠다니는 강을 건너 최대한 멀리 전진하는 게임입니다.", rl_concept: "길 건너기: 캐릭터를 상하좌우로 한 칸씩 움직여, 좌우로 움직이는 자동차 장애물을 피하며 최대한 멀리 전진하는 게임" },
-                { emoji: "🐦", title: "파이프 피하기", description: "화면을 탭하여 새를 날아오르게 하고, 위아래로 솟은 파이프 사이를 통과하며 최대한 멀리 나아가는 게임입니다.", rl_concept: "파이프 피하기: 탭(점프) 액션만으로 중력의 영향을 받는 캐릭터를 조종하여, 다가오는 파이프 기둥 사이의 틈을 통과하는 게임" }
-            ];
 
             const modal = document.getElementById('theme-modal');
             const openModalBtn = document.getElementById('open-modal-btn');
             const closeModalBtn = document.getElementById('close-modal-btn');
             const themeGrid = document.getElementById('theme-grid');
             const step1PromptCodeElement = document.getElementById('step1-prompt-code');
-            
-            // Populate modal with themes
-            themes.sort((a, b) => a.title.localeCompare(b.title, 'ko')).forEach(theme => {
-                const card = document.createElement('div');
-                card.className = 'modal-card bg-slate-50 p-4 rounded-lg cursor-pointer border hover:border-amber-500 hover:bg-amber-50';
-                card.innerHTML = `
-                    <div class="text-3xl mb-2">${theme.emoji}</div>
-                    <h3 class="font-bold text-slate-800">${theme.title}</h3>
-                    <p class="text-sm text-slate-600 mt-1">${theme.description}</p>
-                `;
-                card.addEventListener('click', () => {
-                    const basePrompt = `You are a creative game designer. Based on the theme "[THEME_PLACEHOLDER]", please develop a detailed and engaging game plan.
 
-The plan must be structured with the following four sections:
+            async function loadThemes() {
+                try {
+                    const response = await fetch('themes.json');
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                    const themes = await response.json();
 
-1.  **Game Concept:** A brief, exciting one-paragraph summary of the game.
-2.  **Player Objective:** A clear description of what the player needs to accomplish.
-3.  **Controls:** A simple and intuitive control scheme.
-4.  **Win/Loss Conditions:** Specific, measurable conditions for success and failure.
+                    themeGrid.innerHTML = '';
+                    themes.sort((a, b) => a.title.localeCompare(b.title, 'ko')).forEach(theme => {
+                        const card = document.createElement('div');
+                        card.className = 'modal-card bg-slate-50 p-4 rounded-lg cursor-pointer border hover:border-amber-500 hover:bg-amber-50';
+                        card.innerHTML = `<div class="text-3xl mb-2">${theme.emoji}</div><h3 class="font-bold text-slate-800">${theme.title}</h3><p class="text-sm text-slate-600 mt-1">${theme.description}</p>`;
+                        card.addEventListener('click', () => {
+                            const basePrompt = `You are a creative game designer. Based on the theme "[THEME_PLACEHOLDER]", please develop a detailed and engaging game plan.\n\nThe plan must be structured with the following four sections:\n\n1.  **Game Concept:** A brief, exciting one-paragraph summary of the game.\n2.  **Player Objective:** A clear description of what the player needs to accomplish.\n3.  **Controls:** A simple and intuitive control scheme.\n4.  **Win/Loss Conditions:** Specific, measurable conditions for success and failure.\n\nWrite the plan in Korean.`;
+                            const promptToCopy = basePrompt.replace('[THEME_PLACEHOLDER]', `"${theme.rl_concept}"`);
+                            
+                            step1PromptCodeElement.textContent = basePrompt.replace(`[여기에 선택한 게임 주제와 간단한 설명을 입력하세요. 예: 로켓 착륙시키기: 좌우 및 메인 추력을 사용해, 화면 상단에서 떨어지는 로켓이 정해진 착륙 지점에 부드럽게 착륙하는 게임]`, `[${theme.rl_concept}]`);
 
-Write the plan in Korean.`;
-                    
-                    const promptToCopy = basePrompt.replace('[THEME_PLACEHOLDER]', `"${theme.rl_concept}"`);
-                    
-                    step1PromptCodeElement.textContent = basePrompt.replace(
-                        `[여기에 선택한 게임 주제와 간단한 설명을 입력하세요. 예: 로켓 착륙시키기: 좌우 및 메인 추력을 사용해, 화면 상단에서 떨어지는 로켓이 정해진 착륙 지점에 부드럽게 착륙하는 게임]`,
-                        `[${theme.rl_concept}]`
-                    );
+                            navigator.clipboard.writeText(promptToCopy).then(() => {
+                                alert(`'${theme.title}' 주제의 상세 프롬프트가 클립보드에 복사되었습니다. Gemini에게 바로 붙여넣어 사용하세요!`);
+                            }).catch(err => console.error('Failed to copy: ', err));
+                            modal.classList.add('hidden');
+                        });
+                        themeGrid.appendChild(card);
+                    });
+                } catch (error) {
+                    console.error("Could not load themes:", error);
+                    if (themeGrid) themeGrid.innerHTML = '<p class="text-red-500">테마를 불러오는 데 실패했습니다. themes.json 파일이 올바른 위치에 있는지 확인하세요.</p>';
+                }
+            }
 
-                    const textArea = document.createElement('textarea');
-                    textArea.value = promptToCopy;
-                    document.body.appendChild(textArea);
-                    textArea.select();
-                    try {
-                        document.execCommand('copy');
-                        alert(`'${theme.title}' 주제의 상세 프롬프트가 클립보드에 복사되었습니다. Gemini에게 바로 붙여넣어 사용하세요!`);
-                    } catch (err) {
-                        console.error('Failed to copy text: ', err);
-                    }
-                    document.body.removeChild(textArea);
-
-                    modal.classList.add('hidden');
-                });
-                themeGrid.appendChild(card);
-            });
-
-            // Modal open/close logic
             openModalBtn.addEventListener('click', () => modal.classList.remove('hidden'));
             closeModalBtn.addEventListener('click', () => modal.classList.add('hidden'));
-            modal.addEventListener('click', (e) => {
-                if (e.target.id === 'theme-modal') {
-                    modal.classList.add('hidden');
-                }
-            });
-            
-            // Auto-fill prompt logic
+            modal.addEventListener('click', (e) => { if (e.target.id === 'theme-modal') modal.classList.add('hidden'); });
+
             const gameLogicTextarea = document.getElementById('game-logic-textarea');
             const step2PromptCodeElement = document.getElementById('step2-prompt-code');
             const baseStep2Prompt = step2PromptCodeElement.innerText;
 
             gameLogicTextarea.addEventListener('input', () => {
                 const userInput = gameLogicTextarea.value;
-                if (userInput.trim() !== '') {
-                    step2PromptCodeElement.innerText = baseStep2Prompt.replace("[여기에 위 '게임 로직 기획' 입력란의 내용을 붙여넣으세요.]", userInput);
-                } else {
-                    step2PromptCodeElement.innerText = baseStep2Prompt;
-                }
+                step2PromptCodeElement.innerText = userInput.trim() !== '' ? baseStep2Prompt.replace("[여기에 위 '게임 로직 기획' 입력란의 내용을 붙여넣으세요.]", userInput) : baseStep2Prompt;
             });
+            
+            loadThemes();
         });
     </script>
 </body>
 </html>
-
-
