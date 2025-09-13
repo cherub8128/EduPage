@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>범용 JS/AI 게임 제작 가이드 (v3.3)</title>
+    <title>범용 JS/AI 게임 제작 가이드 (v3.4)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -40,7 +40,7 @@
 
     <div class="container mx-auto p-4 sm:p-6 md:p-8 max-w-4xl">
         <header class="text-center my-8 md:my-12">
-            <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold text-slate-900">범용 JS/AI 게임 제작 가이드 (v3.3)</h1>
+            <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold text-slate-900">범용 JS/AI 게임 제작 가이드 (v3.4)</h1>
             <p class="mt-4 text-base sm:text-lg text-slate-600">초보자부터 전문가까지, 자신만의 AI 게임을 만들 수 있는 최종 워크플로우</p>
         </header>
         
@@ -50,7 +50,7 @@
             <button id="open-modal-btn" class="mb-6 bg-amber-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-amber-600 transition-colors">🎮 추천 주제 보기 & 영감 얻기</button>
             <div class="prompt-block">
                 <button class="copy-button">복사</button>
-                <pre class="bg-slate-100 text-slate-800 p-4 rounded-lg overflow-x-auto text-sm"><code id="step1-prompt-code" class="language-text">You are a creative game designer. Based on the theme "[여기에 선택한 게임 주제를 입력하세요]", please develop a detailed game plan with these four sections: Game Concept, Player Objective, Controls, Win/Loss Conditions. Write in Korean.</code></pre>
+                <pre class="bg-slate-100 text-slate-800 p-4 rounded-lg overflow-x-auto text-sm"><code id="step1-prompt-code" class="language-text">You are a creative game designer. Based on the theme "[여기에 선택한 게임 주제와 간단한 설명을 입력하세요.]", please develop a detailed and engaging game plan with these four sections: Game Concept, Player Objective, Controls, Win/Loss Conditions. Write in Korean.</code></pre>
             </div>
         </section>
 
@@ -89,8 +89,7 @@
 
         <section id="step3" class="step bg-white p-6 sm:p-8 rounded-2xl shadow-lg border border-slate-200 mb-10">
             <h2 class="text-2xl font-bold mb-4 border-b pb-3 text-slate-900">단계 3: Python WebSocket 강화학습 환경 설정</h2>
-            <p class="mb-4 text-slate-700">`websocket_env.py` 파일은 AI의 조작 방식에 따라 코드 내의 주석을 수정하여 **행동 공간**을 선택할 수 있습니다.</p>
-             <div class="code-block-provided">
+            <div class="code-block-provided">
                 <button class="copy-button">복사</button>
                 <pre class="bg-slate-100 text-slate-800 p-4 rounded-lg overflow-x-auto text-sm"><code class="language-python"># websocket_env.py
 import gymnasium as gym
@@ -100,89 +99,73 @@ import asyncio
 import websockets
 import json
 import logging
+import threading
+import queue
 
-logging.basicConfig(level=logging.INFO)
+logging.getLogger("websockets").setLevel(logging.ERROR)
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
+
+class ServerThread(threading.Thread):
+    def __init__(self):
+        super().__init__()
+        self.loop = asyncio.new_event_loop()
+        self.command_queue = queue.Queue()
+        self.observation_queue = queue.Queue()
+        self.daemon = True
+    async def handler(self, websocket, path):
+        logging.info(f"새로운 클라이언트 연결됨: {websocket.remote_address}")
+        consumer_task = asyncio.ensure_future(self.consumer(websocket))
+        producer_task = asyncio.ensure_future(self.producer(websocket))
+        done, pending = await asyncio.wait([consumer_task, producer_task], return_when=asyncio.FIRST_COMPLETED)
+        for task in pending: task.cancel()
+        logging.info(f"클라이언트 연결 종료: {websocket.remote_address}")
+    async def consumer(self, websocket):
+        while True:
+            try:
+                command = await self.loop.run_in_executor(None, self.command_queue.get)
+                await websocket.send(json.dumps(command))
+            except websockets.exceptions.ConnectionClosed: break
+    async def producer(self, websocket):
+        while True:
+            try:
+                message = await websocket.recv()
+                data = json.loads(message)
+                if data.get("type") == "observation":
+                    self.observation_queue.put((np.array(data["observation"], dtype=np.float32), data["reward"], data["done"]))
+            except websockets.exceptions.ConnectionClosed: break
+    def run(self):
+        asyncio.set_event_loop(self.loop)
+        start_server = websockets.serve(self.handler, "localhost", 8765)
+        self.loop.run_until_complete(start_server)
+        logging.info("웹소켓 서버가 8765 포트에서 시작되었습니다.")
+        self.loop.run_forever()
+    def stop(self):
+        if self.loop.is_running(): self.loop.call_soon_threadsafe(self.loop.stop)
 
 class WebSocketEnv(gym.Env):
     def __init__(self, observation_shape, action_space_config):
         super(WebSocketEnv, self).__init__()
-        self.websocket = None
-        self.loop = asyncio.get_event_loop()
         self.observation_space = spaces.Box(low=-np.inf, high=np.inf, shape=observation_shape, dtype=np.float32)
-
-        if action_space_config['type'] == 'discrete':
-            self.action_space = spaces.Discrete(action_space_config['n'])
-        elif action_space_config['type'] == 'continuous':
-            self.action_space = spaces.Box(
-                low=np.array(action_space_config['low']),
-                high=np.array(action_space_config['high']),
-                dtype=np.float32
-            )
-
-        print("자바스크립트 클라이언트의 연결을 기다립니다...")
-        self.server = self.loop.run_until_complete(websockets.serve(self._handler, "localhost", 8765))
-        self.connection_future = self.loop.create_future()
-        self.loop.run_until_complete(self._wait_for_connection())
-        print("클라이언트가 연결되었습니다!")
-
-    async def _handler(self, websocket, path):
-        self.websocket = websocket
-        if not self.connection_future.done():
-            self.connection_future.set_result(True)
-        try:
-            await websocket.wait_closed()
-        finally:
-            self.websocket = None
-            if not self.loop.is_closed():
-                self.connection_future = self.loop.create_future()
-
-    async def _wait_for_connection(self):
-        await self.connection_future
-
-    async def _ensure_connection(self):
-        if self.websocket is None or not self.websocket.open:
-            print("클라이언트 연결 끊김. 재연결을 기다립니다...")
-            await self._wait_for_connection()
-            print("클라이언트 재연결됨.")
-
-    async def _send_command(self, command):
-        await self._ensure_connection()
-        try:
-            await self.websocket.send(json.dumps(command))
-        except websockets.exceptions.ConnectionClosed:
-            print("송신 중 연결 끊김 감지, 재연결 대기...")
-            await self._wait_for_connection()
-            await self.websocket.send(json.dumps(command))
-
-    async def _receive_observation(self):
-        await self._ensure_connection()
-        try:
-            message = await self.websocket.recv()
-        except websockets.exceptions.ConnectionClosed:
-            print("수신 중 연결 끊김 감지, 재연결 대기...")
-            await self._wait_for_connection()
-            message = await self.websocket.recv()
-        
-        data = json.loads(message)
-        if data.get("type") == "observation":
-            return np.array(data["observation"], dtype=np.float32), data["reward"], data["done"]
-        return None, None, None
-
+        if action_space_config['type'] == 'discrete': self.action_space = spaces.Discrete(action_space_config['n'])
+        elif action_space_config['type'] == 'continuous': self.action_space = spaces.Box(low=np.array(action_space_config['low']), high=np.array(action_space_config['high']), dtype=np.float32)
+        self.server_thread = ServerThread()
+        self.server_thread.start()
+        print("첫 클라이언트의 연결 및 데이터 수신을 기다립니다...")
     def reset(self, seed=None, options=None):
         super().reset(seed=seed)
-        self.loop.run_until_complete(self._send_command({"command": "reset"}))
-        obs, _, _ = self.loop.run_until_complete(self._receive_observation())
+        with self.server_thread.observation_queue.mutex: self.server_thread.observation_queue.queue.clear()
+        self.server_thread.command_queue.put({"command": "reset"})
+        obs, _, _ = self.server_thread.observation_queue.get()
+        print("환경 리셋 완료. 다음 세대 학습을 시작합니다.")
         return obs, {}
-
     def step(self, action):
         action_to_send = action.tolist() if isinstance(action, np.ndarray) else int(action)
-        self.loop.run_until_complete(self._send_command({"command": "action", "action": action_to_send}))
-        obs, reward, done = self.loop.run_until_complete(self._receive_observation())
+        self.server_thread.command_queue.put({"command": "action", "action": action_to_send})
+        obs, reward, done = self.server_thread.observation_queue.get()
         return obs, reward, done, False, {}
-
     def render(self, mode='human'): pass
     def close(self):
-        if self.server: self.server.close()
+        self.server_thread.stop()
         print("웹소켓 서버가 종료되었습니다.")
 </code></pre>
             </div>
@@ -194,7 +177,6 @@ class WebSocketEnv(gym.Env):
                 <button class="tab-button active" data-tab="simple">기본 학습 (1인용 게임)</button>
                 <button class="tab-button" data-tab="selfplay">셀프 플레이 학습 (2인용 게임)</button>
             </nav></div>
-
             <div id="tab-simple" class="tab-content active mt-6">
                 <div class="code-block-provided">
                     <button class="copy-button">복사</button>
@@ -209,7 +191,6 @@ from websocket_env import WebSocketEnv
 # --- 중요 설정 ---
 OBSERVATION_SHAPE = (8,)
 ACTION_SPACE_CONFIG = {'type': 'discrete', 'n': 5}
-# ACTION_SPACE_CONFIG = {'type': 'continuous', 'low': [-1.0], 'high': [1.0]}
 # -----------------
 LOG_DIR, TOTAL_TIMESTEPS, PORT = "training_logs", 1_000_000, 8000
 
@@ -241,25 +222,20 @@ def main():
     web_server.start()
     time.sleep(1)
     webbrowser.open(f'http://localhost:{PORT}')
-
     latest_run, latest_checkpoint = find_latest_run_and_checkpoint()
     run_path = os.path.join(LOG_DIR, latest_run) if latest_run else os.path.join(LOG_DIR, f"PPO_{int(time.time())}")
     checkpoint_path = os.path.join(run_path, "checkpoints")
     os.makedirs(checkpoint_path, exist_ok=True)
-    
     env = WebSocketEnv(observation_shape=OBSERVATION_SHAPE, action_space_config=ACTION_SPACE_CONFIG)
     custom_logger = configure(run_path, ["stdout", "tensorboard"])
     checkpoint_callback = CheckpointCallback(save_freq=20000, save_path=checkpoint_path, name_prefix="rl_model")
-
     policy_type = "CnnPolicy" if len(OBSERVATION_SHAPE) == 3 else "MlpPolicy"
-    
     if latest_checkpoint:
         print(f"체크포인트에서 학습을 재개합니다: {latest_checkpoint}")
         model = PPO.load(latest_checkpoint, env=env, device='auto')
     else:
         print(f"{policy_type} 정책으로 새로운 학습 세션을 시작합니다.")
         model = PPO(policy_type, env, verbose=1, device='auto')
-    
     model.set_logger(custom_logger)
     try:
         model.learn(total_timesteps=TOTAL_TIMESTEPS, callback=checkpoint_callback, reset_num_timesteps=not bool(latest_checkpoint))
@@ -325,31 +301,24 @@ def main():
     web_server.start()
     time.sleep(1)
     webbrowser.open(f'http://localhost:{PORT}')
-    
     env = WebSocketEnv(observation_shape=OBSERVATION_SHAPE, action_space_config=ACTION_SPACE_CONFIG)
-    
     run_path = os.path.join(LOG_DIR, f"PPO_SelfPlay_{int(time.time())}")
     custom_logger = configure(run_path, ["stdout", "tensorboard"])
     latest_model_path = os.path.join(MODEL_DIR, "latest_model.zip")
-    
     policy_type = "CnnPolicy" if len(OBSERVATION_SHAPE) == 3 else "MlpPolicy"
-
     if os.path.exists(latest_model_path):
         print(f"저장된 모델 {latest_model_path}에서 학습을 재개합니다.")
         model = PPO.load(latest_model_path, env=env, device='auto')
     else:
         print(f"{policy_type} 정책으로 새로운 학습을 시작합니다.")
         model = PPO(policy_type, env, verbose=1, device='auto')
-        
     model.set_logger(custom_logger)
-    
     if not os.path.exists("opponent.onnx"):
         print("'opponent.onnx' 파일이 없어 현재 에이전트로 초기 상대를 생성합니다.")
         model.save(os.path.join(MODEL_DIR, "initial_model.zip"))
         export_to_onnx(os.path.join(MODEL_DIR, "initial_model.zip"), "opponent.onnx")
     else:
         print("기존 'opponent.onnx' 파일을 초기 상대로 사용합니다.")
-    
     try:
         total_steps_done = model.num_timesteps
         while total_steps_done < TOTAL_TRAINING_STEPS:
@@ -373,18 +342,16 @@ if __name__ == '__main__':
                 <h4 class="text-lg font-bold">AI 설정 가이드</h4>
                 <div class="mt-4">
                     <h5 class="font-semibold">관찰 공간(Observation Space) - AI의 '눈'</h5>
-                    <p class="text-sm text-slate-700">AI가 게임 세상을 보는 방식을 결정합니다. SB3는 이 형태를 보고 AI의 뇌(정책)를 자동으로 결정합니다.</p>
                     <ul class="list-disc pl-5 mt-2 space-y-2 text-sm">
-                        <li><strong>벡터 관찰:</strong> `(숫자,)` 형태 (예: `(8,)`). AI는 `[좌표, 속도, 거리]` 등 숫자 리스트로 상태를 인식합니다. 이때 SB3는 자동으로 **MlpPolicy** (표준 신경망)를 사용합니다.</li>
-                        <li><strong>이미지 관찰:</strong> `(채널, 높이, 너비)` 형태 (예: `(1, 84, 84)`). AI는 게임 화면 픽셀 자체를 보고 학습합니다. JS에서 `canvas`의 픽셀 데이터를 추출해 Python으로 보내야 합니다. 이때 SB3는 자동으로 **CnnPolicy** (이미지 처리용 신경망)를 사용합니다.</li>
+                        <li><strong>벡터 관찰:</strong> `(숫자,)` 형태 (예: `(8,)`). AI는 `[좌표, 속도]` 등 숫자 리스트로 상태를 인식합니다. 이때 SB3는 자동으로 **MlpPolicy**를 사용합니다.</li>
+                        <li><strong>이미지 관찰:</strong> `(채널, 높이, 너비)` 형태 (예: `(1, 84, 84)`). AI는 게임 화면 픽셀 자체를 보고 학습합니다. 이때 SB3는 자동으로 **CnnPolicy**를 사용합니다.</li>
                     </ul>
                 </div>
                 <div class="mt-4">
                     <h5 class="font-semibold">행동 공간(Action Space) - AI의 '손'</h5>
-                    <p class="text-sm text-slate-700">AI의 조작 방식을 결정합니다.</p>
                     <ul class="list-disc pl-5 mt-2 space-y-2 text-sm">
-                        <li><strong>이산(Discrete) 행동:</strong> "점프", "왼쪽" 같이 버튼처럼 딱딱 끊어지는 행동입니다. JS의 `applyAction` 함수는 `0, 1, 2...` 같은 정수 하나를 받습니다.</li>
-                        <li><strong>연속(Continuous) 행동:</strong> 로켓 추진력(-1.0 ~ 1.0)처럼 세밀하고 연속적인 값으로 조작합니다. JS의 `applyAction` 함수는 `[-0.5, 0.88]` 과 같은 숫자 배열을 받습니다.</li>
+                        <li><strong>이산(Discrete) 행동:</strong> "점프", "왼쪽" 같이 버튼처럼 딱딱 끊어지는 행동입니다. JS의 `applyAction`은 정수(`0, 1, 2...`)를 받습니다.</li>
+                        <li><strong>연속(Continuous) 행동:</strong> 로켓 추진력(-1.0 ~ 1.0)처럼 세밀하고 연속적인 값으로 조작합니다. JS의 `applyAction`은 숫자 배열(`[-0.5, 0.88]`)을 받습니다.</li>
                     </ul>
                 </div>
             </div>
@@ -415,14 +382,12 @@ def main(source_path, output_path):
     if not os.path.exists(source_path):
         print(f"오류: {source_path}에서 원본 모델을 찾을 수 없습니다.")
         return
-    print(f"{source_path}에서 최종 모델을 불러옵니다...")
     model = PPO.load(source_path, device='cpu')
     onnxable_model = OnnxablePolicy(model.policy)
     dummy_input = torch.randn(1, *OBSERVATION_SHAPE)
-    print(f"{output_path} 파일로 내보내는 중...")
     torch.onnx.export(onnxable_model, dummy_input, output_path, opset_version=12,
                       input_names=["observation"], output_names=["action"])
-    print(f"최종 모델 변환 완료! 이제 'AI 모드'에서 플레이할 수 있습니다.")
+    print(f"최종 모델 변환 완료! '{output_path}' 파일이 생성되었습니다.")
 
 if __name__ == '__main__':
     if len(sys.argv) != 3:
@@ -441,22 +406,19 @@ if __name__ == '__main__':
 
         <section id="step7" class="step bg-white p-6 sm:p-8 rounded-2xl shadow-lg border border-slate-200 mb-10">
             <h2 class="text-2xl font-bold mb-4 border-b pb-3 text-slate-900">단계 7: GitHub Pages 배포</h2>
-            <p class="mb-6 text-slate-700">`index.html`, `model.onnx` 파일 (+셀프플레이의 경우 `opponent.onnx`)이 모두 있는지 확인하고 GitHub에 업로드하여 전 세계에 공유하세요.</p>
         </section>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            document.querySelectorAll('.copy-button').forEach(button => {
+            const copyButtons = document.querySelectorAll('.copy-button');
+            copyButtons.forEach(button => {
                 button.addEventListener('click', () => {
                     const code = button.parentElement.querySelector('code').innerText;
                     navigator.clipboard.writeText(code).then(() => {
                         button.textContent = '복사 완료!';
                         button.classList.add('copied');
-                        setTimeout(() => {
-                            button.textContent = '복사';
-                            button.classList.remove('copied');
-                        }, 2000);
+                        setTimeout(() => { button.textContent = '복사'; button.classList.remove('copied'); }, 2000);
                     });
                 });
             });
@@ -467,11 +429,8 @@ if __name__ == '__main__':
                 const baseStep2Prompt = step2PromptCodeElement.innerText;
                 gameLogicTextarea.addEventListener('input', () => {
                     const userInput = gameLogicTextarea.value;
-                    if (userInput.trim() !== '') {
-                        step2PromptCodeElement.innerText = baseStep2Prompt.replace("[여기에 1단계에서 생성된 게임 기획안을 붙여넣으세요.]", userInput);
-                    } else {
-                        step2PromptCodeElement.innerText = baseStep2Prompt;
-                    }
+                    const placeholder = "[여기에 1단계에서 생성된 게임 기획안을 붙여넣으세요.]";
+                    step2PromptCodeElement.innerText = userInput.trim() !== '' ? baseStep2Prompt.replace(placeholder, userInput) : baseStep2Prompt;
                 });
             }
 
@@ -483,14 +442,11 @@ if __name__ == '__main__':
                     button.classList.add('active');
                     const tabId = button.getAttribute('data-tab');
                     tabContents.forEach(content => {
-                        content.classList.remove('active');
-                        if (content.id === `tab-${tabId}`) {
-                            content.classList.add('active');
-                        }
+                        content.classList.toggle('active', content.id === `tab-${tabId}`);
                     });
                 });
             });
-            
+
             const modal = document.getElementById('theme-modal');
             const openModalBtn = document.getElementById('open-modal-btn');
             const closeModalBtn = document.getElementById('close-modal-btn');
@@ -499,11 +455,12 @@ if __name__ == '__main__':
 
             async function loadThemes() {
                 try {
+                    // For demonstration, using a static array. In a real scenario, you'd fetch 'themes.json'.
                     const themesData = [
-                        {"emoji":"🚀","title":"로켓 착륙","description":"추력을 조절해 로켓을 착륙 패드에 안착시키세요.","rl_concept":"A game about landing a rocket safely on a platform using thrusters."},
-                        {"emoji":"🚗","title":"자율 주차","description":"AI가 장애물을 피해 주차 공간에 차를 넣도록 학습시키세요.","rl_concept":"A top-down car parking game where the AI must navigate obstacles."},
-                        {"emoji":"🏐","title":"2D 볼리볼","description":"물리 기반의 2D 배구 게임에서 상대방 AI와 대결하세요.","rl_concept":"A 2D physics-based volleyball game."},
-                        {"emoji":"🐍","title":"스네이크 게임","description":"먹이를 먹고 점점 길어지는 클래식 스네이크 게임입니다.","rl_concept":"The classic Snake game where the agent learns to eat food and avoid collisions."}
+                        {"emoji":"🚀","title":"로켓 착륙","description":"추력을 조절해 로켓을 착륙 패드에 안착시키세요.","rl_concept":"A game about landing a rocket safely"},
+                        {"emoji":"🚗","title":"자율 주차","description":"AI가 장애물을 피해 주차 공간에 차를 넣도록 학습시키세요.","rl_concept":"A top-down car parking game"},
+                        {"emoji":"🏐","title":"2D 볼리볼","description":"물리 기반의 2D 배구 게임에서 상대방 AI와 대결하세요.","rl_concept":"A 2D physics-based volleyball game"},
+                        {"emoji":"🐍","title":"스네이크 게임","description":"먹이를 먹고 점점 길어지는 클래식 스네이크 게임입니다.","rl_concept":"The classic Snake game"}
                     ];
                     
                     themeGrid.innerHTML = '';
@@ -535,3 +492,4 @@ if __name__ == '__main__':
     </script>
 </body>
 </html>
+
