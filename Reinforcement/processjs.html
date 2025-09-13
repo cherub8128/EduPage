@@ -63,6 +63,7 @@
         <section id="step1" class="step bg-white p-6 sm:p-8 rounded-2xl shadow-lg border border-slate-200 mb-10">
             <h2 class="text-2xl font-bold mb-4 border-b pb-3 text-slate-900">단계 1: 게임 아이디어 구체화하기</h2>
             <p class="mb-4 text-slate-700">'추천 주제 보기' 버튼을 눌러 영감을 얻고, 마음에 드는 주제를 선택하여 상세 기획안을 요청하는 프롬프트를 복사하세요.</p>
+            <p class="mb-4 text-slate-700">다음의 AI를 추천합니다: VSCode Copliot(Gemini 2.5 Pro, Claude, GPT 5 mini), Gemini Cli, Gemini 2.5 pro, ChatGPT 5,  <a href="https://chat.qwen.ai/" target="_blank" class="text-amber-600 underline">Qwen 3 Coder</a></p>
             <button id="open-modal-btn" class="mb-6 bg-amber-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-amber-600 transition-colors">🎮 추천 주제 보기 & 영감 얻기</button>
             <div class="prompt-block">
                 <button class="copy-button">복사</button>
@@ -103,22 +104,23 @@ Write the plan in Korean.</code></pre>
                 <button class="copy-button">복사</button>
                 <pre class="bg-slate-100 text-slate-800 p-4 rounded-lg overflow-x-auto text-sm"><code id="step2-prompt-code" class="language-text">You are an elite front-end developer and a top-tier visual designer, a master of creating high-quality, physics-based web games.
 
-You are a world-renowned game designer, a hybrid of an elite front-end developer and an award-winning art director specializing in the minimalist hyper-casual genre. You are known for setting design trends with your impeccable taste, not just following them.
+You are a world-renowned game designer, a hybrid of an elite front-end developer and an award-winning art director specializing in the minimalist hyper-casual genre. You are celebrated for creating games with an incredibly natural and intuitive 'game feel,' whether they use complex physics or clever animation.
 Your task is to write the complete code for a single, self-contained index.html file. This file must integrate the HTML structure, all necessary CSS within &lt;style&gt; tags, and the complete game logic in JavaScript within &lt;script&gt; tags. No external CSS or JS files should be required, except for CDN libraries like Matter.js and ONNX Runtime.
 
 Game Logic Plan:
+
 [여기에 1단계에서 생성된 게임 기획안을 붙여넣으세요.]
 
 JavaScript Implementation Details (CRITICAL):
 
 The entire game logic must be contained within the &lt;script&gt; tag. It must be structured to handle three modes (USER, AI, TRAINING) and expose a clear interface for the AI training environment. Specifically, you must implement the following core functions:
-setupGame(): This function initializes the Matter.js engine, renderer, world, and all game objects (player, obstacles, targets, etc.). It should be called once when the script loads.
+setupGame(): This function initializes the game's environment and all necessary objects. If the game concept requires physics, this is where you would set up the Matter.js engine, world, and bodies. Otherwise, it prepares the initial state of all game elements for a non-physics-based implementation.
 resetGame(): This function resets the game to its initial state for a new episode. It must reposition all dynamic elements, reset scores, and clear any game-over states. It must return the initial observation array for the AI.
 getObservation(): This function gathers the current state of the game (e.g., player position, velocity, target location) into a fixed-size array of numbers. This array is the AI's "eyes." The values should be normalized if possible, and the order of elements must always be consistent.
+
 applyAction(action): This function takes a single integer action from the user or AI and translates it into a game mechanic (e.g., 0 for 'do nothing', 1 for 'move left', 2 for 'move right').
 
 DUAL MODE LOGIC: You must implement the logic to seamlessly switch between:
-
 USER Mode: Reads input from keyboard/mouse and calls applyAction.
 AI (ONNX) Mode: In the game loop, calls getObservation(), feeds it to the loaded ONNX model, gets an action, and calls applyAction with it.
 TRAINING (WebSocket) Mode: Listens for commands from the WebSocket server (reset or action) and calls the corresponding functions, sending back the observation data.
@@ -142,7 +144,7 @@ Layout & Composition:
 
 Negative Space: Embrace generous use of negative space. The layout must be uncluttered, focusing the player's attention only on essential information and gameplay.
 Balance: Every element on the screen should feel intentionally placed, creating a balanced and visually pleasing composition.
-'Juicy' & Polished Physics: All physics must be realistically and engagingly implemented using Matter.js. The game must feel 'juicy'—include satisfying animations, bouncy effects, and responsive feedback to make interactions feel great. Every visual element, from the player character to the smallest particle effect, must adhere to the cohesive and elegant design language.
+'Juicy' & Polished Interactions: The game must feel incredibly satisfying to play. If physics are used (with Matter.js), they must be engaging and well-tuned. Regardless of the engine, all interactions must be 'juicy'—include smooth animations, responsive visual feedback (like scaling, color changes, or particle effects), and satisfying sounds (even if just placeholders) to make every player action feel impactful and rewarding.
 The final output must be a single, complete, and robust index.html file, ready to be run directly in a browser.</code></pre>
             </div>
         </section>
