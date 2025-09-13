@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>범용 JS/AI 게임 제작 가이드 (v3.4)</title>
+    <title>범용 JS/AI 게임 제작 가이드 (v3.6)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -40,10 +40,22 @@
 
     <div class="container mx-auto p-4 sm:p-6 md:p-8 max-w-4xl">
         <header class="text-center my-8 md:my-12">
-            <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold text-slate-900">범용 JS/AI 게임 제작 가이드 (v3.4)</h1>
+            <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold text-slate-900">범용 JS/AI 게임 제작 가이드 (v3.6)</h1>
             <p class="mt-4 text-base sm:text-lg text-slate-600">초보자부터 전문가까지, 자신만의 AI 게임을 만들 수 있는 최종 워크플로우</p>
         </header>
         
+        <section class="step bg-white p-6 sm:p-8 rounded-2xl shadow-lg border border-slate-200 mb-10">
+            <h2 class="text-2xl font-bold mb-4 border-b pb-3 text-slate-900">전체 프로세스 개요</h2>
+            <ol class="list-decimal list-inside space-y-3 text-slate-700">
+                <li><strong class="font-semibold text-slate-800">게임 아이디어 구체화:</strong> 만들고 싶은 게임의 상세 기획안 작성</li>
+                <li><strong class="font-semibold text-slate-800">통합 AI 웹 게임 제작:</strong> AI 학습과 플레이가 모두 가능한 JS 게임 로직 개발</li>
+                <li><strong class="font-semibold text-slate-800">Python WebSocket 환경 설정:</strong> JS 게임을 제어하는 Gymnasium 호환 RL 환경 설정</li>
+                <li><strong class="font-semibold text-slate-800">AI 모델 학습 및 변환:</strong> 게임 종류에 맞는 방식으로 AI 모델을 학습하고 ONNX 파일로 자동 변환</li>
+                <li><strong class="font-semibold text-slate-800">최종 AI 게임 테스트:</strong> 로컬 서버로 완성된 게임 테스트</li>
+                <li><strong class="font-semibold text-slate-800">GitHub Pages 배포:</strong> 완성된 AI 웹 게임을 전 세계에 무료로 배포</li>
+            </ol>
+        </section>
+
         <section id="step1" class="step bg-white p-6 sm:p-8 rounded-2xl shadow-lg border border-slate-200 mb-10">
             <h2 class="text-2xl font-bold mb-4 border-b pb-3 text-slate-900">단계 1: 게임 아이디어 구체화하기</h2>
             <p class="mb-4 text-slate-700">'추천 주제 보기' 버튼을 눌러 영감을 얻고, 상세 기획안을 요청하는 프롬프트를 복사하세요.</p>
@@ -56,13 +68,23 @@
 
         <section id="step2" class="step bg-white p-6 sm:p-8 rounded-2xl shadow-lg border border-slate-200 mb-10">
             <h2 class="text-2xl font-bold mb-4 border-b pb-3 text-slate-900">단계 2: 통합 AI 웹 게임 제작</h2>
-            <div class="user-input">
-                <h3 class="font-semibold text-lg text-slate-800 mb-2">게임 기획안 입력</h3>
-                <textarea id="game-logic-textarea" rows="8" class="w-full p-2 border border-amber-300 rounded-md bg-white text-sm" placeholder="이곳에 1단계에서 생성된 게임 기획안을 붙여넣으세요."></textarea>
+            <div class="user-input mb-6">
+                <h3 class="font-semibold text-lg text-slate-800 mb-2">파일 생성 안내</h3>
+                <ol class="list-decimal list-inside space-y-2 text-sm text-slate-700">
+                    <li>프로젝트 폴더(예: `my-ai-game`)를 만들고 코드 에디터로 엽니다.</li>
+                    <li>폴더 안에 `index.html`이라는 빈 파일을 생성합니다.</li>
+                    <li>아래 탭에서 원하는 작업을 선택하고 프롬프트를 복사하여 AI에게 요청한 뒤, 생성된 전체 코드를 `index.html` 파일에 붙여넣으세요.</li>
+                </ol>
             </div>
-            <div class="prompt-block mt-6">
-                <button class="copy-button">복사</button>
-                <pre class="bg-slate-100 text-slate-800 p-4 rounded-lg overflow-x-auto text-sm"><code id="step2-prompt-code" class="language-text">You are an elite game developer, a master of Matter.js, and an expert in creating robust, AI-ready web games. Your task is to write the complete code for a single, self-contained index.html file based on the provided game plan.
+            <div class="border-b border-slate-200"><nav class="flex -mb-px" aria-label="Tabs">
+                <button class="tab-button active" data-tab="new-game">새 게임 생성</button>
+                <button class="tab-button" data-tab="modify-game">기존 게임 수정</button>
+            </nav></div>
+
+            <div id="tab-new-game" class="tab-content active mt-6">
+                <div class="prompt-block">
+                    <button class="copy-button">복사</button>
+                    <pre class="bg-slate-100 text-slate-800 p-4 rounded-lg overflow-x-auto text-sm"><code id="step2-new-game-prompt" class="language-text">You are an elite game developer, a master of Matter.js, and an expert in creating robust, AI-ready web games. Your task is to write the complete code for a single, self-contained index.html file based on the provided game plan.
 
 **Game Logic Plan:**
 
@@ -70,26 +92,56 @@
 
 **CRITICAL JavaScript Implementation Requirements:**
 
-1.  **Game Modes & State:** Must support `USER`, `AI`, `TRAINING` modes. Use `sessionStorage` to remember the current mode after a refresh, automatically re-entering `TRAINING` mode if it was active.
+1.  **Game Modes & State:** Must support `USER`, `AI`, `TRAINING` modes. Use `sessionStorage` to remember the current mode after a refresh.
 2.  **WebSocket Interface:** Implement `connectWebSocket()` to connect to `ws://localhost:8765`. It must handle `reset` and `action` commands and send back `{observation, reward, done}` packets.
-3.  **Robust Physics & Resets:** Use Matter.js collision categories to prevent bugs. Game resets (after scoring, dying, etc.) must be stable. Use a state flag (e.g., `isRoundOver`) and a short `setTimeout` to prevent multiple resets.
+3.  **Robust Physics & Resets:** Use Matter.js collision categories to prevent bugs. Game resets must be stable. Use a state flag and a short `setTimeout`.
 4.  **Core RL Functions:** Implement `getObservation()`, `resetForTraining()`, and `stepGameForTraining(action)`.
 5.  **Visual Excellence:** The design must be minimalist and polished.
 
 // --- For 2-Player / Self-Play Games ONLY ---
-// If you are making a 2-player game, also implement the following:
 /*
 6.  **Dual ONNX Model Support:**
     * The game must load `model.onnx` and `opponent.onnx`. Use a cache-busting query (`?v=` + Date.now()) when loading `opponent.onnx`.
-    * In `TRAINING` mode, the opponent character must be controlled by the `opponent.onnx` model. Decouple the AI's async decision-making from the synchronous physics loop (e.g., using `setInterval` for decisions and applying the latest decision in the main loop).
+    * In `TRAINING` mode, the opponent must be controlled by `opponent.onnx`. Decouple the AI's async decision-making from the sync physics loop.
 */
 </code></pre>
+                </div>
+            </div>
+            <div id="tab-modify-game" class="tab-content mt-6">
+                 <div class="prompt-block">
+                    <button class="copy-button">복사</button>
+                    <pre class="bg-slate-100 text-slate-800 p-4 rounded-lg overflow-x-auto text-sm"><code id="step2-modify-game-prompt" class="language-text">You are an expert reinforcement learning engineer. Your task is to modify the provided HTML game code to make it compatible with a Python-based training environment. You MUST inject the following features without breaking the original game's functionality.
+
+**CRITICAL Integration Requirements:**
+
+1.  **Inject Game Modes:** Add UI and logic to switch between `USER`, `AI`, `TRAINING` modes. Use `sessionStorage` to remember the mode after a refresh.
+2.  **Inject WebSocket Interface:** Add `connectWebSocket()` to connect to `ws://localhost:8765`, handling `reset`/`action` commands.
+3.  **Create Core RL Functions:** Analyze the game and create `getObservation()`, `applyAction(action)`, `resetForTraining()`, and `stepGameForTraining(action)`.
+4.  **Inject ONNX Model Support:** Add logic to load `model.onnx`. In `AI` mode, the game loop should use the model to drive the player.
+
+// --- For 2-Player / Self-Play Games ONLY ---
+/*
+5.  **Inject Dual ONNX Support:** Also load `opponent.onnx` (with cache-busting) and use it to control the opponent in `TRAINING` mode.
+*/
+
+**Original Game Code:**
+
+[여기에 사용자의 기존 게임 코드를 붙여넣으세요.]
+</code></pre>
+                </div>
             </div>
         </section>
 
         <section id="step3" class="step bg-white p-6 sm:p-8 rounded-2xl shadow-lg border border-slate-200 mb-10">
             <h2 class="text-2xl font-bold mb-4 border-b pb-3 text-slate-900">단계 3: Python WebSocket 강화학습 환경 설정</h2>
-            <div class="code-block-provided">
+            <div class="user-input mb-6">
+                <h3 class="font-semibold text-lg text-slate-800 mb-2">파일 생성 및 라이브러리 설치</h3>
+                <ol class="list-decimal list-inside space-y-2 text-sm text-slate-700">
+                    <li>프로젝트 폴더에 `websocket_env.py` 파일을 생성하고 아래 코드를 붙여넣습니다.</li>
+                    <li>터미널을 열고 `pip install gymnasium numpy websockets` 명령어로 라이브러리를 설치합니다.</li>
+                </ol>
+            </div>
+             <div class="code-block-provided">
                 <button class="copy-button">복사</button>
                 <pre class="bg-slate-100 text-slate-800 p-4 rounded-lg overflow-x-auto text-sm"><code class="language-python"># websocket_env.py
 import gymnasium as gym
@@ -170,39 +222,63 @@ class WebSocketEnv(gym.Env):
 </code></pre>
             </div>
         </section>
-
+        
         <section id="step4" class="step bg-white p-6 sm:p-8 rounded-2xl shadow-lg border border-slate-200 mb-10">
-            <h2 class="text-2xl font-bold mb-4 border-b pb-3 text-slate-900">단계 4: AI 모델 학습</h2>
+            <h2 class="text-2xl font-bold mb-4 border-b pb-3 text-slate-900">단계 4: AI 모델 학습 및 ONNX 변환</h2>
+            <div class="user-input mb-6">
+                <h3 class="font-semibold text-lg text-slate-800 mb-2">파일 생성 및 라이브러리 설치</h3>
+                <ol class="list-decimal list-inside space-y-2 text-sm text-slate-700">
+                    <li>아래 탭에서 자신의 게임 종류에 맞는 스크립트 코드를 복사하고 프로젝트 폴더에 파일로 저장합니다.</li>
+                    <li>터미널에서 `pip install stable-baselines3[extra] torch onnx onnxruntime tensorboard` 명령어로 라이브러리를 설치합니다.</li>
+                </ol>
+            </div>
             <div class="border-b border-slate-200"><nav class="flex -mb-px" aria-label="Tabs">
-                <button class="tab-button active" data-tab="simple">기본 학습 (1인용 게임)</button>
-                <button class="tab-button" data-tab="selfplay">셀프 플레이 학습 (2인용 게임)</button>
+                <button class="tab-button active" data-tab="simple">기본 학습 (1인용)</button>
+                <button class="tab-button" data-tab="selfplay">셀프 플레이 학습 (2인용)</button>
             </nav></div>
             <div id="tab-simple" class="tab-content active mt-6">
                 <div class="code-block-provided">
                     <button class="copy-button">복사</button>
                     <pre class="bg-slate-100 text-slate-800 p-4 rounded-lg overflow-x-auto text-sm"><code class="language-python"># train_simple.py
-import os, time, webbrowser, threading
+import os, time, torch, webbrowser, threading
 import http.server, socketserver
 from stable_baselines3 import PPO
-from stable_baselines3.common.callbacks import CheckpointCallback
+from stable_baselines3.common.callbacks import CheckpointCallback, ProgressBarCallback
 from stable_baselines3.common.logger import configure
 from websocket_env import WebSocketEnv
 
 # --- 중요 설정 ---
+# 1. 관찰 공간 (Observation Space) - AI의 '눈'
 OBSERVATION_SHAPE = (8,)
+# OBSERVATION_SHAPE = (1, 84, 84) # CnnPolicy를 위한 이미지 관찰 예시
+# 2. 행동 공간 (Action Space) - AI의 '손'
 ACTION_SPACE_CONFIG = {'type': 'discrete', 'n': 5}
+# ACTION_SPACE_CONFIG = {'type': 'continuous', 'low': [-1.0], 'high': [1.0]} # 1차원 연속 행동 예시
+# ACTION_SPACE_CONFIG = {'type': 'continuous', 'low': [-1.0, -3.0], 'high': [1.0, 3.0]} # 2차원 연속 행동 예시
+
 # -----------------
 LOG_DIR, TOTAL_TIMESTEPS, PORT = "training_logs", 1_000_000, 8000
+os.makedirs(LOG_DIR, exist_ok=True)
 
 class WebServerThread(threading.Thread):
-    def __init__(self, port):
-        super().__init__()
-        self.port, self.server, self.daemon = port, None, True
-    def run(self):
-        self.server = socketserver.TCPServer(("", self.port), http.server.SimpleHTTPRequestHandler)
-        self.server.serve_forever()
+    def __init__(self, port): super().__init__(); self.port, self.server, self.daemon = port, None, True
+    def run(self): self.server = socketserver.TCPServer(("", self.port), http.server.SimpleHTTPRequestHandler); self.server.serve_forever()
     def stop(self):
         if self.server: self.server.shutdown()
+
+class OnnxablePolicy(torch.nn.Module):
+    def __init__(self, policy): super().__init__(); self.policy = policy
+    def forward(self, observation):
+        action, _ = self.policy.predict(observation.cpu().numpy(), deterministic=True)
+        return torch.from_numpy(action).to(observation.device)
+
+def export_to_onnx(model_path, onnx_path):
+    print(f"\n모델 {model_path}를 ONNX 형식({onnx_path})으로 변환합니다...")
+    model = PPO.load(model_path, device='cpu')
+    onnxable_model = OnnxablePolicy(model.policy)
+    dummy_input = torch.randn(1, *OBSERVATION_SHAPE)
+    torch.onnx.export(onnxable_model, dummy_input, onnx_path, opset_version=12, input_names=["observation"], output_names=["action"])
+    print("ONNX 변환 완료.")
 
 def find_latest_run_and_checkpoint():
     if not os.path.isdir(LOG_DIR): return None, None
@@ -223,26 +299,36 @@ def main():
     time.sleep(1)
     webbrowser.open(f'http://localhost:{PORT}')
     latest_run, latest_checkpoint = find_latest_run_and_checkpoint()
-    run_path = os.path.join(LOG_DIR, latest_run) if latest_run else os.path.join(LOG_DIR, f"PPO_{int(time.time())}")
+    
+    TENSORBOARD_LOG_NAME = latest_run if latest_run else f"PPO_{int(time.time())}"
+    run_path = os.path.join(LOG_DIR, TENSORBOARD_LOG_NAME)
+    
     checkpoint_path = os.path.join(run_path, "checkpoints")
     os.makedirs(checkpoint_path, exist_ok=True)
     env = WebSocketEnv(observation_shape=OBSERVATION_SHAPE, action_space_config=ACTION_SPACE_CONFIG)
     custom_logger = configure(run_path, ["stdout", "tensorboard"])
     checkpoint_callback = CheckpointCallback(save_freq=20000, save_path=checkpoint_path, name_prefix="rl_model")
     policy_type = "CnnPolicy" if len(OBSERVATION_SHAPE) == 3 else "MlpPolicy"
+    
     if latest_checkpoint:
         print(f"체크포인트에서 학습을 재개합니다: {latest_checkpoint}")
         model = PPO.load(latest_checkpoint, env=env, device='auto')
     else:
         print(f"{policy_type} 정책으로 새로운 학습 세션을 시작합니다.")
-        model = PPO(policy_type, env, verbose=1, device='auto')
+        model = PPO(policy_type, env, verbose=0, device='auto')
     model.set_logger(custom_logger)
+    final_model_path = ""
     try:
-        model.learn(total_timesteps=TOTAL_TIMESTEPS, callback=checkpoint_callback, reset_num_timesteps=not bool(latest_checkpoint))
-        model.save(os.path.join(run_path, "final_model.zip"))
+        model.learn(total_timesteps=TOTAL_TIMESTEPS, callback=[checkpoint_callback, ProgressBarCallback()], reset_num_timesteps=not bool(latest_checkpoint))
+        final_model_path = os.path.join(run_path, "final_model.zip")
+        model.save(final_model_path)
+        print(f"최종 모델 저장 완료: {final_model_path}")
     finally:
         env.close()
         web_server.stop()
+
+    if os.path.exists(final_model_path):
+        export_to_onnx(final_model_path, "model.onnx")
 
 if __name__ == '__main__':
     main()
@@ -257,6 +343,7 @@ if __name__ == '__main__':
 import os, time, torch, webbrowser, threading
 import http.server, socketserver
 from stable_baselines3 import PPO
+from stable_baselines3.common.callbacks import ProgressBarCallback
 from stable_baselines3.common.logger import configure
 from websocket_env import WebSocketEnv
 
@@ -270,19 +357,13 @@ os.makedirs(MODEL_DIR, exist_ok=True)
 os.makedirs(LOG_DIR, exist_ok=True)
 
 class WebServerThread(threading.Thread):
-    def __init__(self, port):
-        super().__init__()
-        self.port, self.server, self.daemon = port, None, True
-    def run(self):
-        self.server = socketserver.TCPServer(("", self.port), http.server.SimpleHTTPRequestHandler)
-        self.server.serve_forever()
+    def __init__(self, port): super().__init__(); self.port, self.server, self.daemon = port, None, True
+    def run(self): self.server = socketserver.TCPServer(("", self.port), http.server.SimpleHTTPRequestHandler); self.server.serve_forever()
     def stop(self):
         if self.server: self.server.shutdown()
 
 class OnnxablePolicy(torch.nn.Module):
-    def __init__(self, policy):
-        super().__init__()
-        self.policy = policy
+    def __init__(self, policy): super().__init__(); self.policy = policy
     def forward(self, observation):
         action, _ = self.policy.predict(observation.cpu().numpy(), deterministic=True)
         return torch.from_numpy(action).to(observation.device)
@@ -292,8 +373,7 @@ def export_to_onnx(model_path, onnx_path):
     model = PPO.load(model_path, device='cpu')
     onnxable_model = OnnxablePolicy(model.policy)
     dummy_input = torch.randn(1, *OBSERVATION_SHAPE)
-    torch.onnx.export(onnxable_model, dummy_input, onnx_path, opset_version=12,
-                      input_names=["observation"], output_names=["action"])
+    torch.onnx.export(onnxable_model, dummy_input, onnx_path, opset_version=12, input_names=["observation"], output_names=["action"])
     print("ONNX 변환 완료.")
 
 def main():
@@ -311,7 +391,7 @@ def main():
         model = PPO.load(latest_model_path, env=env, device='auto')
     else:
         print(f"{policy_type} 정책으로 새로운 학습을 시작합니다.")
-        model = PPO(policy_type, env, verbose=1, device='auto')
+        model = PPO(policy_type, env, verbose=0, device='auto')
     model.set_logger(custom_logger)
     if not os.path.exists("opponent.onnx"):
         print("'opponent.onnx' 파일이 없어 현재 에이전트로 초기 상대를 생성합니다.")
@@ -322,7 +402,7 @@ def main():
     try:
         total_steps_done = model.num_timesteps
         while total_steps_done < TOTAL_TRAINING_STEPS:
-            model.learn(total_timesteps=total_steps_done + STEPS_PER_ITERATION, reset_num_timesteps=False)
+            model.learn(total_timesteps=total_steps_done + STEPS_PER_ITERATION, callback=ProgressBarCallback(), reset_num_timesteps=False)
             total_steps_done = model.num_timesteps
             model.save(latest_model_path)
             export_to_onnx(latest_model_path, "opponent.onnx")
@@ -332,6 +412,7 @@ def main():
     finally:
         env.close()
         web_server.stop()
+    export_to_onnx(latest_model_path, "model.onnx")
 
 if __name__ == '__main__':
     main()
@@ -358,54 +439,49 @@ if __name__ == '__main__':
         </section>
 
         <section id="step5" class="step bg-white p-6 sm:p-8 rounded-2xl shadow-lg border border-slate-200 mb-10">
-            <h2 class="text-2xl font-bold mb-4 border-b pb-3 text-slate-900">단계 5: 최종 모델 변환</h2>
-             <div class="code-block-provided">
-                <button class="copy-button">복사</button>
-                <pre class="bg-slate-100 text-slate-800 p-4 rounded-lg overflow-x-auto text-sm"><code class="language-python"># convert_onnx.py
-import torch
-from stable_baselines3 import PPO
-import os, sys
-
-# --- 중요 설정 ---
-OBSERVATION_SHAPE = (8,) # 학습 스크립트와 동일해야 함
-# -----------------
-
-class OnnxablePolicy(torch.nn.Module):
-    def __init__(self, policy):
-        super().__init__()
-        self.policy = policy
-    def forward(self, observation):
-        action, _ = self.policy.predict(observation.cpu().numpy(), deterministic=True)
-        return torch.from_numpy(action).to(observation.device)
-
-def main(source_path, output_path):
-    if not os.path.exists(source_path):
-        print(f"오류: {source_path}에서 원본 모델을 찾을 수 없습니다.")
-        return
-    model = PPO.load(source_path, device='cpu')
-    onnxable_model = OnnxablePolicy(model.policy)
-    dummy_input = torch.randn(1, *OBSERVATION_SHAPE)
-    torch.onnx.export(onnxable_model, dummy_input, output_path, opset_version=12,
-                      input_names=["observation"], output_names=["action"])
-    print(f"최종 모델 변환 완료! '{output_path}' 파일이 생성되었습니다.")
-
-if __name__ == '__main__':
-    if len(sys.argv) != 3:
-        print("사용법: python convert_onnx.py <입력_zip_경로> <출력_onnx_경로>")
-        print("예시: python convert_onnx.py models/latest_model.zip model.onnx")
-    else:
-        main(sys.argv[1], sys.argv[2])
-</code></pre>
+            <h2 class="text-2xl font-bold mb-4 border-b pb-3 text-slate-900">단계 5: 최종 AI 게임 테스트</h2>
+             <div class="workflow-guide">
+                <h4 class="text-lg">AI 플레이 감상하기</h4>
+                <p class="mt-2 text-sm text-slate-700">이제 모든 준비가 끝났습니다. 학습의 최종 결과물인 `model.onnx`가 얼마나 똑똑해졌는지 확인해볼 시간입니다.</p>
+                <ol class="list-decimal list-inside space-y-2 text-sm text-slate-700 mt-3">
+                    <li>프로젝트 폴더에서 터미널을 열고 <code>python -m http.server</code> 명령어로 로컬 서버를 실행합니다.</li>
+                     <li>웹 브라우저에서 <a href="http://localhost:8000" target="_blank" class="text-teal-600 underline">http://localhost:8000</a> 으로 접속합니다.</li>
+                     <li>게임이 로드되면, **'AI 모드'** 버튼을 클릭하여 학습된 모델의 플레이를 감상하세요!</li>
+                </ol>
             </div>
         </section>
 
         <section id="step6" class="step bg-white p-6 sm:p-8 rounded-2xl shadow-lg border border-slate-200 mb-10">
-            <h2 class="text-2xl font-bold mb-4 border-b pb-3 text-slate-900">단계 6: 최종 AI 게임 테스트</h2>
-             <p class="mb-4 text-slate-700">웹 서버(`python -m http.server`)를 실행한 상태에서 `http://localhost:8000`에 접속하여 **'AI 모드'**를 클릭하고 최종 테스트합니다.</p>
-        </section>
-
-        <section id="step7" class="step bg-white p-6 sm:p-8 rounded-2xl shadow-lg border border-slate-200 mb-10">
-            <h2 class="text-2xl font-bold mb-4 border-b pb-3 text-slate-900">단계 7: GitHub Pages 배포</h2>
+            <h2 class="text-2xl font-bold mb-4 border-b pb-3 text-slate-900">단계 6: GitHub Pages 배포</h2>
+            <p class="mb-6 text-slate-700">최종 단계입니다. 완성된 프로젝트를 VS Code에서 바로 GitHub에 올리고, GitHub Pages를 통해 전 세계에 배포합니다.</p>
+            <div class="space-y-6 text-slate-700">
+                <div>
+                    <h3 class="font-semibold text-lg text-slate-800">1. 사전 준비: Git 설치 및 설정</h3>
+                    <p class="mt-1 ml-2">Git이 설치되어 있지 않다면 <a href="https://git-scm.com/" target="_blank" class="text-teal-600 underline">git-scm.com</a>에서 다운로드하여 설치합니다. 설치 후, 터미널을 열어 아래 명령어를 입력하여 사용자 정보를 설정합니다 (최초 한 번만 필요).</p>
+                    <pre class="bg-slate-100 text-slate-800 p-2 mt-1 rounded-md text-sm"><code>git config --global user.name "Your Name"
+git config --global user.email "you@example.com"</code></pre>
+                </div>
+                <div>
+                    <h3 class="font-semibold text-lg text-slate-800">2. VS Code에서 GitHub 계정 연동</h3>
+                    <p class="mt-1 ml-2">VS Code 왼쪽 하단의 사람 모양 아이콘(계정)을 클릭하고, 'GitHub으로 로그인(Sign in with GitHub)'을 선택하여 브라우저의 안내에 따라 계정을 연동합니다.</p>
+                </div>
+                <div>
+                    <h3 class="font-semibold text-lg text-slate-800">3. Git 저장소 초기화 및 첫 커밋</h3>
+                    <p class="mt-1 ml-2">VS Code 왼쪽의 '소스 제어' 탭(가지 모양 아이콘)으로 이동하여 '리포지토리 초기화(Initialize Repository)' 버튼을 클릭합니다. 그 후, 상단의 메시지 입력란에 "Initial commit"과 같은 첫 커밋 메시지를 작성한 후 ✓ 커밋 버튼을 눌러 프로젝트 파일(`index.html`, `model.onnx` 등)을 커밋합니다.</p>
+                </div>
+                <div>
+                    <h3 class="font-semibold text-lg text-slate-800">4. GitHub에 게시하기</h3>
+                    <p class="mt-1 ml-2">'소스 제어' 탭에 나타나는 'GitHub에 게시(Publish to GitHub)' 버튼을 클릭합니다. VS Code가 GitHub에 저장소를 만드는 과정을 안내합니다. 저장소 이름을 정하고, <strong>반드시 '공개(Public)' 저장소로 설정</strong>해야 GitHub Pages를 무료로 사용할 수 있습니다.</p>
+                </div>
+                <div>
+                    <h3 class="font-semibold text-lg text-slate-800">5. GitHub Pages 활성화</h3>
+                    <p class="mt-1 ml-2">게시가 완료되면 GitHub 사이트에서 방금 생성한 저장소로 이동합니다. 'Settings' &rarr; 'Pages' 탭으로 이동하여 'Source'를 'Deploy from a branch'로, 브랜치를 'main' (또는 'master')으로 선택하고 'Save'를 클릭합니다.</p>
+                </div>
+                <div>
+                    <h3 class="font-semibold text-lg text-slate-800">6. 배포 확인 및 공유</h3>
+                    <p class="mt-1 ml-2">잠시 후 페이지 상단에 녹색으로 게시 주소(<code class="text-sm">https://&lt;사용자명&gt;.github.io/&lt;저장소명&gt;/</code>)가 나타납니다. 이 주소로 접속하여 게임을 확인하고 전 세계와 공유하세요!</p>
+                </div>
+            </div>
         </section>
     </div>
 
@@ -424,13 +500,24 @@ if __name__ == '__main__':
             });
 
             const gameLogicTextarea = document.getElementById('game-logic-textarea');
-            const step2PromptCodeElement = document.getElementById('step2-prompt-code');
-            if (gameLogicTextarea && step2PromptCodeElement) {
-                const baseStep2Prompt = step2PromptCodeElement.innerText;
+            const step2NewGamePrompt = document.getElementById('step2-new-game-prompt');
+            if (gameLogicTextarea && step2NewGamePrompt) {
+                const base = step2NewGamePrompt.innerText;
                 gameLogicTextarea.addEventListener('input', () => {
                     const userInput = gameLogicTextarea.value;
                     const placeholder = "[여기에 1단계에서 생성된 게임 기획안을 붙여넣으세요.]";
-                    step2PromptCodeElement.innerText = userInput.trim() !== '' ? baseStep2Prompt.replace(placeholder, userInput) : baseStep2Prompt;
+                    step2NewGamePrompt.innerText = userInput.trim() !== '' ? base.replace(placeholder, userInput) : base;
+                });
+            }
+
+            const existingGameTextarea = document.getElementById('existing-game-textarea');
+            const step2ModifyGamePrompt = document.getElementById('step2-modify-game-prompt');
+            if (existingGameTextarea && step2ModifyGamePrompt) {
+                const base = step2ModifyGamePrompt.innerText;
+                existingGameTextarea.addEventListener('input', () => {
+                    const userInput = existingGameTextarea.value;
+                    const placeholder = "[여기에 사용자의 기존 게임 코드를 붙여넣으세요.]";
+                    step2ModifyGamePrompt.innerText = userInput.trim() !== '' ? base.replace(placeholder, userInput) : base;
                 });
             }
 
@@ -453,47 +540,35 @@ if __name__ == '__main__':
             const themeGrid = document.getElementById('theme-grid');
             const step1PromptCodeElement = document.getElementById('step1-prompt-code');
 
-             async function loadThemes() {
+            async function loadThemes() {
                 try {
-                    const response = await fetch('themes.json'); // themes.json 파일 요청
+                    // In a real environment, you would fetch a themes.json file.
+                    // For this example, we'll use a static array.
+                    const response = await fetch('themes.json');
                     if (!response.ok) {
                         throw new Error(`HTTP error! status: ${response.status}`);
                     }
-                    const themesData = await response.json(); // 응답을 JSON으로 파싱
-
-                    // 2. 가져온 데이터로 동적으로 테마 카드 생성
-                    themeGrid.innerHTML = ''; // 기존 콘텐츠 초기화
+                    const themesData = await response.json();
+                    
+                    themeGrid.innerHTML = '';
                     themesData.sort((a, b) => a.title.localeCompare(b.title, 'ko')).forEach(theme => {
                         const card = document.createElement('div');
                         card.className = 'modal-card bg-slate-50 p-4 rounded-lg cursor-pointer border hover:border-amber-500 hover:bg-amber-50';
-                        card.innerHTML = `
-                            <div class="text-3xl mb-2">${theme.emoji}</div>
-                            <h3 class="font-bold text-slate-800">${theme.title}</h3>
-                            <p class="text-sm text-slate-600 mt-1">${theme.description}</p>
-                        `;
+                        card.innerHTML = `<div class="text-3xl mb-2">${theme.emoji}</div><h3 class="font-bold text-slate-800">${theme.title}</h3><p class="text-sm text-slate-600 mt-1">${theme.description}</p>`;
                         card.addEventListener('click', () => {
-                            const basePrompt = `You are a creative game designer. Based on the theme "[THEME_PLACEHOLDER]", please develop a detailed and engaging game plan.\n\nThe plan must be structured with the following four sections:\n\n1.  **Game Concept:** A brief, exciting one-paragraph summary of the game.\n2.  **Player Objective:** A clear description of what the player needs to accomplish.\n3.  **Controls:** A simple and intuitive control scheme.\n4.  **Win/Loss Conditions:** Specific, measurable conditions for success and failure.\n\nWrite the plan in Korean.`;
+                            const basePrompt = `You are a creative game designer. Based on the theme "[THEME_PLACEHOLDER]", please develop a detailed and engaging game plan...`;
                             const promptToCopy = basePrompt.replace('[THEME_PLACEHOLDER]', `"${theme.rl_concept}"`);
-                            
-                            if (step1PromptCodeElement) {
-                                step1PromptCodeElement.textContent = basePrompt.replace(
-                                    `[여기에 선택한 게임 주제와 간단한 설명을 입력하세요. 예: 로켓 착륙시키기: 좌우 및 메인 추력을 사용해, 화면 상단에서 떨어지는 로켓이 정해진 착륙 지점에 부드럽게 착륙하는 게임]`,
-                                    `[${theme.rl_concept}]`
-                                );
-                            }
-
+                            if(step1PromptCodeElement) step1PromptCodeElement.textContent = promptToCopy;
                             navigator.clipboard.writeText(promptToCopy).then(() => {
-                                 alert(`'${theme.title}' 주제의 상세 프롬프트가 클립보드에 복사되었습니다. Gemini에게 바로 붙여넣어 사용하세요!`);
+                                 alert(`'${theme.title}' 주제의 프롬프트가 클립보드에 복사되었습니다.`);
                             });
-
-                            if (modal) modal.classList.add('hidden');
+                            if(modal) modal.classList.add('hidden');
                         });
-                        if (themeGrid) themeGrid.appendChild(card);
+                        themeGrid.appendChild(card);
                     });
-
-                } catch (error) {
-                    console.error("Could not load themes:", error);
-                    if (themeGrid) themeGrid.innerHTML = '<p class="text-red-500">테마를 불러오는 데 실패했습니다. themes.json 파일이 올바른 위치에 있는지 확인하세요.</p>';
+                } catch (error) { 
+                    console.error("Could not load themes.json:", error); 
+                    if(themeGrid) themeGrid.innerHTML = '<p class="text-red-500 col-span-3">themes.json 파일을 찾을 수 없습니다.</p>';
                 }
             }
 
