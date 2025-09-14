@@ -246,7 +246,6 @@ class ServerThread(threading.Thread):
             try:
                 message = await websocket.recv()
                 data = json.loads(message)
-                # BUG FIX: CartPole의 reset 로직은 observation만 보내므로, reward/done이 없어도 처리
                 if "observation" in data:
                     obs = np.array(data["observation"], dtype=np.float32)
                     reward = data.get("reward", 0) # reward가 없으면 0으로 처리
@@ -331,8 +330,8 @@ from websocket_env import WebSocketEnv
 OBSERVATION_SHAPE = (4,)
 # OBSERVATION_SHAPE = (1, 84, 84) # CnnPolicy를 위한 이미지 관찰 예시
 # 2. 행동 공간 (Action Space) - AI의 '손'
-ACTION_SPACE_CONFIG = {'type': 'discrete', 'n': 5}
-# ACTION_SPACE_CONFIG = {'type': 'continuous', 'low': [-2.0], 'high': [2.0]} # 1차원 연속 행동 예시
+# ACTION_SPACE_CONFIG = {'type': 'discrete', 'n': 5}
+ACTION_SPACE_CONFIG = {'type': 'continuous', 'low': [-2.0], 'high': [2.0]} # 1차원 연속 행동 예시
 # ACTION_SPACE_CONFIG = {'type': 'continuous', 'low': [-1.0, -3.0], 'high': [1.0, 3.0]} # 2차원 연속 행동 예시
 
 # -----------------
@@ -346,17 +345,30 @@ class WebServerThread(threading.Thread):
         if self.server: self.server.shutdown()
 
 class OnnxablePolicy(torch.nn.Module):
-    def __init__(self, policy): super().__init__(); self.policy = policy
-    def forward(self, observation):
-        action, _ = self.policy.predict(observation.cpu().numpy(), deterministic=True)
-        return torch.from_numpy(action).to(observation.device)
+    def __init__(self, policy):
+        super().__init__()
+        self.policy = policy.eval()
 
-def export_to_onnx(model_path, onnx_path):
-    print(f"\n모델 {model_path}를 ONNX 형식({onnx_path})으로 변환합니다...")
+    def forward(self, observation: torch.Tensor):
+        with torch.no_grad():
+            return self.policy._predict(observation, deterministic=True)
+
+def export_to_onnx(model_path, onnx_path, obs_shape=(4,)):
+    print(f"\n모델 {model_path}를 ONNX({onnx_path})로 변환합니다...")
     model = PPO.load(model_path, device='cpu')
-    onnxable_model = OnnxablePolicy(model.policy)
-    dummy_input = torch.randn(1, *OBSERVATION_SHAPE)
-    torch.onnx.export(onnxable_model, dummy_input, onnx_path, opset_version=12, input_names=["observation"], output_names=["action"])
+    onnxable = OnnxablePolicy(model.policy)
+
+    dummy = torch.randn(1, *obs_shape, dtype=torch.float32)   # [1, 4]
+    torch.onnx.export(
+        onnxable, dummy, onnx_path,
+        opset_version=14,
+        input_names=["observation"],
+        output_names=["action"],
+        dynamic_axes={
+            "observation": {0: "batch"},
+            "action": {0: "batch"},
+        }
+    )
     print("ONNX 변환 완료.")
 
 def find_latest_run_and_checkpoint():
@@ -454,17 +466,30 @@ class WebServerThread(threading.Thread):
         if self.server: self.server.shutdown()
 
 class OnnxablePolicy(torch.nn.Module):
-    def __init__(self, policy): super().__init__(); self.policy = policy
-    def forward(self, observation):
-        action, _ = self.policy.predict(observation.cpu().numpy(), deterministic=True)
-        return torch.from_numpy(action).to(observation.device)
+    def __init__(self, policy):
+        super().__init__()
+        self.policy = policy.eval()
 
-def export_to_onnx(model_path, onnx_path):
-    print(f"\n모델 {model_path}를 ONNX 형식({onnx_path})으로 변환합니다...")
+    def forward(self, observation: torch.Tensor):
+        with torch.no_grad():
+            return self.policy._predict(observation, deterministic=True)
+
+def export_to_onnx(model_path, onnx_path, obs_shape=(4,)):
+    print(f"\n모델 {model_path}를 ONNX({onnx_path})로 변환합니다...")
     model = PPO.load(model_path, device='cpu')
-    onnxable_model = OnnxablePolicy(model.policy)
-    dummy_input = torch.randn(1, *OBSERVATION_SHAPE)
-    torch.onnx.export(onnxable_model, dummy_input, onnx_path, opset_version=12, input_names=["observation"], output_names=["action"])
+    onnxable = OnnxablePolicy(model.policy)
+
+    dummy = torch.randn(1, *obs_shape, dtype=torch.float32)   # [1, 4]
+    torch.onnx.export(
+        onnxable, dummy, onnx_path,
+        opset_version=14,
+        input_names=["observation"],
+        output_names=["action"],
+        dynamic_axes={
+            "observation": {0: "batch"},
+            "action": {0: "batch"},
+        }
+    )
     print("ONNX 변환 완료.")
 
 def find_latest_log_dir():
@@ -610,6 +635,10 @@ git config --global user.email "you@example.com"</code></pre>
                 <a href="/Reinforcement/Source/CartPole.zip" download="CartPole.zip" 
                 class="inline-block bg-teal-500 text-white font-bold py-3 px-6 rounded-lg hover:bg-teal-600 transition-colors no-underline text-base shadow-md hover:shadow-lg transform hover:-translate-y-1">
                     📂 CartPole 예제 다운로드
+                </a>
+                <a href="/Game/CartPole"
+                class="inline-block bg-cyan-500 text-white font-bold py-3 px-6 rounded-lg hover:bg-cyan-600 transition-colors no-underline text-base shadow-md hover:shadow-lg transform hover:-translate-y-1">
+                    🚌 CartPole 완성 페이지
                 </a>
             </div>
         </section>
