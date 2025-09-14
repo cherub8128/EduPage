@@ -335,7 +335,7 @@ ACTION_SPACE_CONFIG = {'type': 'continuous', 'low': [-2.0], 'high': [2.0]} # 1�
 # ACTION_SPACE_CONFIG = {'type': 'continuous', 'low': [-1.0, -3.0], 'high': [1.0, 3.0]} # 2차원 연속 행동 예시
 
 # -----------------
-LOG_DIR, TOTAL_TIMESTEPS, PORT = "training_logs", 1_000_000, 8000
+LOG_DIR, TOTAL_TIMESTEPS, PORT = "training_logs", 200_000, 8000
 os.makedirs(LOG_DIR, exist_ok=True)
 
 class WebServerThread(threading.Thread):
@@ -454,7 +454,7 @@ ACTION_SPACE_CONFIG = {'type': 'discrete', 'n': 5}
 # ACTION_SPACE_CONFIG = {'type': 'continuous', 'low': [-2.0], 'high': [2.0]} # 1차원 연속 행동 예시
 # ACTION_SPACE_CONFIG = {'type': 'continuous', 'low': [-1.0, -3.0], 'high': [1.0, 3.0]} # 2차원 연속 행동 예시
 # -----------------
-TOTAL_TRAINING_STEPS, STEPS_PER_ITERATION = 1_000_000, 50_000
+TOTAL_TRAINING_STEPS, STEPS_PER_ITERATION = 200_000, 50_000
 MODEL_DIR, LOG_DIR, PORT = "models", "training_logs", 8000
 os.makedirs(MODEL_DIR, exist_ok=True)
 os.makedirs(LOG_DIR, exist_ok=True)
