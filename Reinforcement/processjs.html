@@ -102,7 +102,6 @@
 3.  **WebSocket Interface & RL Protocol:**
     * Implement `connectWebSocket()` to connect to `ws://localhost:8765`.
     * The interface must handle a `reset` command (which triggers `resetForTraining`) and an `action` command (which triggers `stepGameForTraining`).
-    * The `stepGameForTraining(action)` function must be designed to accept a **continuous floating-point value** (e.g., from -1.0 to 1.0) and translate that into a proportionally scaled force or velocity within the game.
     * **Strict RL Protocol:**
         * The `resetForTraining()` function must ONLY send back the initial observation packet: `{observation: getObservation()}`.
         * The `stepGameForTraining(action)` function must send the complete data packet: `{observation, reward, done}`.
@@ -110,19 +109,31 @@
 4.  **Robust Physics & World Design:**
     * Use Matter.js collision categories to prevent unintended physical interactions.
     * Game resets must be stable. Use a state flag (e.g., `isRoundOver`) to prevent multiple simultaneous resets.
-    * The game world (e.g., the ground or play area) must be significantly larger than the visible screen area.
-    * The game viewport must smoothly track the primary player-controlled object to allow for unrestricted movement.
+    * The game world (e.g., the ground or play area) should be significantly larger than the visible screen area, and the camera should track the player to allow for unrestricted movement.
 
 5.  **Core RL Functions & State Management:**
     * Implement the core functions: `getObservation()`, `resetForTraining()`, and `stepGameForTraining(action)`.
-    * **Meaningful Resets:** The `resetGame()` function must always initialize the environment in a **non-trivial, randomized state** that requires immediate and skillful action from the player or agent. Avoid starting in a perfectly stable "solved" state.
-    * **High-Throughput Training:** In `TRAINING` mode, reaching a terminal state (`done: true`) must trigger an **immediate** call to `resetForTraining()` to maximize training speed, bypassing any delays used for visual effect in other modes.
+    * **Meaningful Resets:** The `resetGame()` function must always initialize the environment in a **non-trivial, randomized state** that requires immediate action. Avoid starting in a perfectly stable "solved" state.
+    * **High-Throughput Training:** In `TRAINING` mode, reaching a terminal state (`done: true`) must trigger an **immediate** call to `resetForTraining()` to maximize training speed.
+
+6.  **Robust Asynchronous Model Loading & State Handling:**
+    * The ONNX model must be loaded asynchronously. The AI's decision-making loop (`setInterval`) **must not start** until the `ort.InferenceSession` object and its internal metadata (e.g., `ortSession.inputNames`) are confirmed to be fully loaded and ready.
+    * Implement a state flag (e.g., `isModelReady`) that is set to `true` only after the model is verified. The AI decision loop should only be initiated if `isModelReady` is true. This logic must robustly handle cases where the user selects `AI` mode either before or after the model has finished loading.
+
+7.  **Strict Environment Consistency:**
+    * The physics of the training environment (`stepGameForTraining`) and the AI inference environment (`gameLoop` AI logic) must be identical.
+    * Specifically, the mathematical formula and all associated constants used to convert the model's output `action` into a physical `Force` or velocity **must be 100% identical** across both the training and AI inference modes to ensure the agent behaves as it was trained.
+
+8.  **Decoupled AI Inference Loop:**
+    * For the real-time `AI` mode, the model inference (the "brain") must be decoupled from the physics loop (the "body").
+    * The inference should run on a fixed, slower interval (e.g., `setInterval` at 20Hz / 50ms) to make decisions.
+    * The physics engine, however, should run at maximum speed (e.g., via `Runner` or `requestAnimationFrame`). On every physics tick, it should apply the single, most recent action decided upon by the "brain" (e.g., `latestAiAction`). This ensures that asynchronous inference does not block or interfere with the smooth rendering of the physics simulation.
 
 // --- For 2-Player / Self-Play Games ONLY ---
 /*
-6.  **Dual ONNX Model Support:**
+9.  **Dual ONNX Model Support:**
     * The game must load `model.onnx` and `opponent.onnx`. Use a cache-busting query (`?v=` + Date.now()) when loading `opponent.onnx`.
-    * In `TRAINING` mode, the opponent character must be controlled by the `opponent.onnx` model. Decouple the AI's async decision-making from the synchronous physics loop (e.g., using `setInterval` for decisions and applying the latest decision in the main loop).
+    * In `TRAINING` mode, the opponent character must be controlled by the `opponent.onnx` model.
 */
 </code></pre>
                 </div>
@@ -134,49 +145,54 @@
 
 You are an expert AI integration specialist and a master of JavaScript game engineering. Your task is to intelligently modify an existing single-file HTML game to make it a robust environment for reinforcement learning. You must analyze the provided game code and inject the necessary logic without breaking the original gameplay.
 
-**CRITICAL Integration Requirements:**
+**Game Logic Plan:**
 
-1.  **Inject Game Modes & State Management:**
-    * Introduce UI elements (e.g., a modal on startup) and the underlying logic to switch between three distinct modes: `USER` (original human play), `AI` (inference with a model), and `TRAINING` (for the RL agent).
-    * Use `sessionStorage` to persist the current mode across page refreshes, automatically re-entering `TRAINING` mode if it was the last active state.
+[Insert the game design document for the new game here.]
 
-2.  **Implement Reinforcement Learning Deadlock Prevention:**
-    * Analyze the game's main loop (e.g., `requestAnimationFrame`, `setInterval`, or a physics engine's `Runner`).
-    * In `USER` and `AI` modes, this main loop must run in real-time as originally intended.
-    * **Crucially, upon entering `TRAINING` mode, the game's automatic, real-time loop MUST be stopped or disabled.**
-    * The game's state should only advance when a manual `step` command is received from the training agent.
+**CRITICAL JavaScript Implementation Requirements:**
 
-3.  **Inject WebSocket Interface & Strict RL Protocol:**
-    * Implement a `connectWebSocket()` function to establish a connection with the Python training server at `ws://localhost:8765`.
-    * The WebSocket listener must correctly handle two primary commands from the server: `reset` (which triggers the `resetForTraining` function) and `action` (which triggers the `stepGameForTraining` function).
-    * **Adhere to the standard RL communication protocol:**
-        * The `resetForTraining()` function's ONLY responsibility is to reset the environment and send back the initial observation packet: `{observation: getObservation()}`.
-        * The `stepGameForTraining(action)` function must execute the action, advance the game state by a single discrete step (e.g., one physics tick or one frame), and then send back the complete data packet: `{observation: getObservation(), reward: calculatedReward, done: isDone}`.
+1.  **Game Modes & State:** Must support `USER`, `AI`, `TRAINING` modes. Use `sessionStorage` to remember the current mode after a refresh, automatically re-entering `TRAINING` mode if it was active.
 
-4.  **Create and Adapt Core RL Functions:**
-    * Analyze the existing game variables to create a `getObservation()` function that returns a meaningful, numeric state representation (e.g., positions, velocities, angles) as an array.
-    * Create a `stepGameForTraining(action)` function. This function must:
-        a.  Accept an `action` (ideally a continuous floating-point value for versatility).
-        b.  Translate this action into a force, velocity, or other control input in the game.
-        c.  Manually advance the game simulation by exactly one tick/frame.
-        d.  Calculate the `reward` and the `done` status based on the new game state.
-        e.  Send the complete data packet back via WebSocket.
-    * Create a `resetForTraining()` function that resets the game to a **non-trivial, randomized starting state** to ensure effective learning.
-    * **High-Throughput Training:** In `TRAINING` mode, when a `done` state is reached, the environment must trigger an **immediate** reset to maximize training episodes, bypassing any animations or delays used in other modes.
+2.  **Reinforcement Learning Deadlock Prevention:**
+    * In `USER` and `AI` modes, the Matter.js `Runner` must be enabled (`runner.enabled = true`) for smooth, real-time gameplay.
+    * **Crucially, upon entering `TRAINING` mode, the automatic `Runner` MUST be disabled (`runner.enabled = false`).**
+    * In `TRAINING` mode, the physics simulation must only advance a single step via a manual call to `Engine.update(engine, 1000 / 60)` from within the `stepGameForTraining` function. This gives the Python RL agent absolute control over the game loop and prevents race conditions or deadlocks.
 
-5.  **Inject ONNX Model Support (for AI Mode):**
-    * Add the necessary scripts (e.g., `onnxruntime-web`) to load an ONNX model.
-    * Implement logic to load `model.onnx`.
-    * In `AI` mode, the game loop should continuously:
-        a.  Get the current observation using `getObservation()`.
-        b.  Feed the observation into the loaded ONNX model to get an action.
-        c.  Apply the action to control the player character.
+3.  **WebSocket Interface & RL Protocol:**
+    * Implement `connectWebSocket()` to connect to `ws://localhost:8765`.
+    * The interface must handle a `reset` command (which triggers `resetForTraining`) and an `action` command (which triggers `stepGameForTraining`).
+    * **Strict RL Protocol:**
+        * The `resetForTraining()` function must ONLY send back the initial observation packet: `{observation: getObservation()}`.
+        * The `stepGameForTraining(action)` function must send the complete data packet: `{observation, reward, done}`.
+
+4.  **Robust Physics & World Design:**
+    * Use Matter.js collision categories to prevent unintended physical interactions.
+    * Game resets must be stable. Use a state flag (e.g., `isRoundOver`) to prevent multiple simultaneous resets.
+    * The game world (e.g., the ground or play area) should be significantly larger than the visible screen area, and the camera should track the player to allow for unrestricted movement.
+
+5.  **Core RL Functions & State Management:**
+    * Implement the core functions: `getObservation()`, `resetForTraining()`, and `stepGameForTraining(action)`.
+    * **Meaningful Resets:** The `resetGame()` function must always initialize the environment in a **non-trivial, randomized state** that requires immediate action. Avoid starting in a perfectly stable "solved" state.
+    * **High-Throughput Training:** In `TRAINING` mode, reaching a terminal state (`done: true`) must trigger an **immediate** call to `resetForTraining()` to maximize training speed.
+
+6.  **Robust Asynchronous Model Loading & State Handling:**
+    * The ONNX model must be loaded asynchronously. The AI's decision-making loop (`setInterval`) **must not start** until the `ort.InferenceSession` object and its internal metadata (e.g., `ortSession.inputNames`) are confirmed to be fully loaded and ready.
+    * Implement a state flag (e.g., `isModelReady`) that is set to `true` only after the model is verified. The AI decision loop should only be initiated if `isModelReady` is true. This logic must robustly handle cases where the user selects `AI` mode either before or after the model has finished loading.
+
+7.  **Strict Environment Consistency:**
+    * The physics of the training environment (`stepGameForTraining`) and the AI inference environment (`gameLoop` AI logic) must be identical.
+    * Specifically, the mathematical formula and all associated constants used to convert the model's output `action` into a physical `Force` or velocity **must be 100% identical** across both the training and AI inference modes to ensure the agent behaves as it was trained.
+
+8.  **Decoupled AI Inference Loop:**
+    * For the real-time `AI` mode, the model inference (the "brain") must be decoupled from the physics loop (the "body").
+    * The inference should run on a fixed, slower interval (e.g., `setInterval` at 20Hz / 50ms) to make decisions.
+    * The physics engine, however, should run at maximum speed (e.g., via `Runner` or `requestAnimationFrame`). On every physics tick, it should apply the single, most recent action decided upon by the "brain" (e.g., `latestAiAction`). This ensures that asynchronous inference does not block or interfere with the smooth rendering of the physics simulation.
 
 // --- For 2-Player / Self-Play Games ONLY ---
 /*
-6.  **Inject Dual ONNX Support:**
-    * In addition to `model.onnx`, load an `opponent.onnx` model. Use a cache-busting query string (e.g., `?v=${Date.now()}`) when fetching `opponent.onnx` to ensure the latest version is always loaded during self-play training.
-    * In `TRAINING` mode, the opponent entity must be controlled by the `opponent.onnx` model.
+9.  **Dual ONNX Model Support:**
+    * The game must load `model.onnx` and `opponent.onnx`. Use a cache-busting query (`?v=` + Date.now()) when loading `opponent.onnx`.
+    * In `TRAINING` mode, the opponent character must be controlled by the `opponent.onnx` model.
 */
 
 **Original Game Code:**
