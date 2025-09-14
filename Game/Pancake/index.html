@@ -65,7 +65,7 @@
       <p>강화학습(RL) 팬케이크 뒤집기 게임입니다. 공중으로 띄워 뒤집으면 점수 획득</p>
       <div id="score">점수: 0</div>
       <div id="legend">
-        <span class="kbd">방향키</span> 이동 <span class="kbd">w/d</span> 회전 <span class="kbd">Space</span> 살짝 치기 <span class="kbd">R</span> 리셋 <span class="kbd">G</span> 중력
+        <span class="kbd">방향키</span> 이동 <span class="kbd">w/s</span> 회전 <span class="kbd">Space</span> 살짝 치기 <span class="kbd">R</span> 리셋 <span class="kbd">G</span> 중력
       </div>
       <div id="rl-controls">
           <button id="mode-user">사용자</button>
@@ -219,8 +219,8 @@
         window.addEventListener('keydown', (e) => {
           if (gameMode === 'USER') {
               if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Space'].includes(e.code)) { e.preventDefault(); keys[e.code] = true; }
-              if (e.code === 'KeyZ') { e.preventDefault(); keys['RotateLeft'] = true; }
-              if (e.code === 'KeyX') { e.preventDefault(); keys['RotateRight'] = true; }
+              if (e.code === 'KeyW') { e.preventDefault(); keys['RotateLeft'] = true; }
+              if (e.code === 'KeyS') { e.preventDefault(); keys['RotateRight'] = true; }
               if (e.code === 'Space') toss();
           }
           if (e.code === 'KeyR') resetGame();
@@ -232,7 +232,7 @@
             if (gameMode === 'USER') { 
                 keys[e.code] = false; 
                 if (e.code === 'KeyW') keys['RotateLeft'] = false;
-                if (e.code === 'KeyD') keys['RotateRight'] = false;
+                if (e.code === 'KeyS') keys['RotateRight'] = false;
             } 
         });
 
