@@ -1,0 +1,358 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>부침개 뒤집기 – 안정화 & 리디자인</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+      :root{
+        --bg-0:#f7fbff; /* 밝은 아이스 블루 */
+        --bg-1:#eef5ff; /* 라이트 블루 그라데이션 */
+        --bg-2:rgba(10,22,40,.18); /* 비네트 다크 에지 */
+        --glass:rgba(255,255,255,.65);
+        --stroke:rgba(15,23,42,.15);
+        --text:#0f172a;
+        --muted:#334155;
+        --accent:#e6b15a; /* 팬케이크 골드 */
+        --accent-strong:#c48a34;
+        --pan:#3a4250;
+        --pan-edge:#1f2937;
+        --handle:#8b5e3c;
+        --handle-edge:#3b2a1a;
+      }
+      *{box-sizing:border-box}
+      html, body { height: 100%; margin: 0; color: var(--text); font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Noto Sans, sans-serif; }
+      body{
+        background:
+          radial-gradient(1200px 800px at 70% 20%, rgba(255,255,255,.06), transparent 60%),
+          radial-gradient(1200px 800px at 0% 100%, rgba(118,168,255,.06), transparent 60%),
+          linear-gradient(120deg, var(--bg-0), var(--bg-1));
+        position:relative;
+      }
+      body::before{
+        content:""; position:fixed; inset:0; pointer-events:none; z-index:0;
+        background:
+          repeating-linear-gradient( to right, rgba(0,0,0,.04) 0 1px, transparent 1px 40px),
+          repeating-linear-gradient( to bottom, rgba(0,0,0,.04) 0 1px, transparent 1px 40px);
+        mix-blend-mode:multiply; opacity:.20;
+      }
+      body::after{
+        content:""; position:fixed; inset:0; background: radial-gradient(80% 70% at 50% 50%, transparent 60%, var(--bg-2)); pointer-events:none; z-index:0;
+      }
+      #ui { position: fixed; left: 18px; top: 18px; padding: 14px 16px; background: var(--glass); border:1px solid var(--stroke); border-radius: 14px; backdrop-filter: blur(8px); z-index:5; box-shadow: 0 6px 24px rgba(0,0,0,.25); }
+      #ui h1 { margin: 0 0 6px; font-size: 18px; font-weight: 800; letter-spacing:.1px }
+      #ui p { margin: 6px 0; font-size: 13px; line-height: 1.55; color: var(--muted); }
+      #score { margin: 12px 0 0; font-size: 20px; font-weight: 800; color: var(--accent-strong); } /* 점수판 스타일 */
+      #legend { margin-top:8px; display:flex; gap:8px; flex-wrap:wrap }
+      .kbd{ padding:2px 6px; border-radius:8px; background:rgba(255,255,255,.65); border:1px solid rgba(15,23,42,.18); font-size:12px; color:var(--text) }
+      #footer { position: fixed; right: 14px; bottom: 10px; font-size: 12px; color: var(--muted); opacity: .9; z-index:5; }
+      canvas { outline: none; display: block; position:relative; z-index:1; }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/matter-js@0.19.0/build/matter.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/poly-decomp@0.3.0/build/decomp.min.js"></script>
+  </head>
+  <body>
+    <div id="ui">
+      <h1>부침개 뒤집기</h1>
+      <p>견고한 바닥 보정(CCD 보완), 컬러/타이포 리프레시, 미세한 글래스 UI.</p>
+      <h2 id="score">Score: 0</h2> <div id="legend">
+        <span class="kbd">←/→</span> 좌우 이동
+        <span class="kbd">↑/↓</span> 회전(−80°~80°)
+        <span class="kbd">Space</span> 짧은 이징 리프트
+        <span class="kbd">R</span> 리셋
+        <span class="kbd">G</span> 중력 토글
+      </div>
+    </div>
+    <div id="footer">Matter.js • 안정화 & 리디자인</div>
+
+    <script>
+      const { Engine, Render, Runner, World, Bodies, Body, Constraint, Events, Composite, Vector } = Matter;
+
+      // ===== 엔진/렌더러 =====
+      const engine = Engine.create();
+      engine.positionIterations = 24;
+      engine.velocityIterations = 10;
+      engine.constraintIterations = 6;
+      engine.gravity.y = 1.2;
+
+      const W = window.innerWidth;
+      const H = window.innerHeight;
+
+      const render = Render.create({
+        element: document.body,
+        engine,
+        options: { width: W, height: H, wireframes: false, background: 'transparent' }
+      });
+      Render.run(render);
+      const runner = Runner.create({ isFixed: true, delta: 1000 / 120 });
+      Runner.run(runner, engine);
+
+      const world = engine.world;
+
+      // ===== 월드 경계 =====
+      const thickness = 80;
+      const ground = Bodies.rectangle(W/2, H + thickness/2, W * 2, thickness, { isStatic: true, render: { fillStyle: '#0e1424' } });
+      const ceil   = Bodies.rectangle(W/2, -thickness/2, W * 2, thickness, { isStatic: true, render: { fillStyle: '#0e1424' } });
+      const wallL  = Bodies.rectangle(-thickness/2, H/2, thickness, H * 2, { isStatic: true, render: { fillStyle: '#0e1424' } });
+      const wallR  = Bodies.rectangle(W + thickness/2, H/2, thickness, H * 2, { isStatic: true, render: { fillStyle: '#0e1424' } });
+      World.add(world, [ground, ceil, wallL, wallR]);
+
+      // ===== 프라이팬(합성 바디) + 시각 요소 =====
+      const anchor = { x: W * 0.5, y: H * 0.65 };
+      
+      const panVertices = [
+        { x: -140, y: -26 }, { x: -120, y: -10 }, { x: -120, y: 10 },
+        { x: 120, y: 10 },   { x: 120, y: -10 },  { x: 140, y: -26 },
+        { x: 140, y: -50 },  { x: -140, y: -50 }
+      ];
+
+      const panBody = Bodies.fromVertices(anchor.x, anchor.y, [panVertices], {
+        render: {
+          fillStyle: getComputedStyle(document.documentElement).getPropertyValue('--pan').trim(),
+          strokeStyle: getComputedStyle(document.documentElement).getPropertyValue('--pan-edge').trim(),
+          lineWidth: 1
+        }
+      });
+      
+      const handleLen = 140, handleThick = 18;
+      const handleX = anchor.x - 130 - handleLen / 2;
+      const handleY = anchor.y - 4;
+      const panHandle = Bodies.rectangle(handleX, handleY, handleLen, handleThick, {
+        chamfer: { radius: 9 }, isSensor: true, collisionFilter: { category: 0x0002, mask: 0 },
+        render: { fillStyle: getComputedStyle(document.documentElement).getPropertyValue('--handle').trim(), strokeStyle:getComputedStyle(document.documentElement).getPropertyValue('--handle-edge').trim(), lineWidth: 1 }
+      });
+
+      let pan = Body.create({ parts: [panBody, panHandle], friction: 0.4, frictionStatic: 0.8, frictionAir: 0.02, restitution: 0.08, });
+      Body.setStatic(pan, true);
+
+      const handleLocal = { x: panHandle.position.x - pan.position.x, y: panHandle.position.y - pan.position.y };
+      World.add(world, [pan]);
+      const panSolids = pan.parts.filter(part => part !== pan && !part.isSensor);
+
+      {
+        const pivotInit = { x: anchor.x, y: anchor.y };
+        const offsetInit = Matter.Vector.rotate(handleLocal, 0);
+        const centerInit = Matter.Vector.sub(pivotInit, offsetInit);
+        Body.setPosition(pan, centerInit);
+        Body.setAngle(pan, 0);
+      }
+      
+      // ▼▼▼▼▼ 점수 및 뒤집기 판정 로직 수정 ▼▼▼▼▼
+      let score = 0;
+      let orientationInPan = 1; // 팬 안에 있을 때의 안정된 방향. 1: 정상, -1: 뒤집힘
+      let flipState = 'in_pan'; // 'in_pan', 'in_air'
+      const scoreUI = document.getElementById('score');
+
+      function updateScoreUI() {
+        scoreUI.textContent = `Score: ${score}`;
+      }
+      // ▲▲▲▲▲ 점수 및 뒤집기 판정 로직 수정 ▲▲▲▲▲
+
+      // ===== 컨트롤 상태 =====
+      let anchorTargetX = anchor.x;
+      const baseAnchorY = anchor.y;
+      let anchorYOffset = 0;
+      const DEG2RAD = Math.PI / 180;
+      let desiredAngle = 0;
+      const MIN_ANGLE = -80 * DEG2RAD;
+      const MAX_ANGLE = 80 * DEG2RAD;
+      const MOVE_SPEED = 8;
+      const ROT_SPEED = 1.8 * DEG2RAD;
+
+      // ===== 부침개(한 줄 체인) =====
+      const PANCAKE_CONF = { length: 160, segments: 8, particleRadius: 6, density: 0.0012, friction: 0.9, frictionStatic: 1.0, linkStiffness: 0.98, linkDamping: 0.28, bendStiffness: 0.9, bendDamping: 0.25, thirdStiffness: 0.7, thirdDamping: 0.22 };
+      let pancake = { nodes: [], constraints: [] };
+      const chainGroup = Body.nextGroup(true);
+
+      function buildPancake() {
+        teardownPancake();
+        const cfg = PANCAKE_CONF;
+        const n = cfg.segments + 1;
+        const step = cfg.length / cfg.segments;
+        const y = pan.position.y - 140;
+        const startX = pan.position.x - cfg.length / 2;
+        const nodes = [];
+        for (let i = 0; i < n; i++) {
+          const node = Bodies.circle(startX + i * step, y, cfg.particleRadius, {
+            density: cfg.density, friction: cfg.friction, frictionStatic: cfg.frictionStatic, frictionAir: 0.012, restitution: 0,
+            collisionFilter: { group: chainGroup },
+            render: { fillStyle: '#f0c27b', strokeStyle: '#8a5a2f', lineWidth: 1 }
+          });
+          nodes.push(node);
+        }
+        const cons = [];
+        for (let i = 0; i < n - 1; i++) { cons.push(Constraint.create({ bodyA: nodes[i], bodyB: nodes[i + 1], length: step, stiffness: cfg.linkStiffness, damping: cfg.linkDamping, render: { visible: false } })); }
+        for (let i = 0; i < n - 2; i++) { cons.push(Constraint.create({ bodyA: nodes[i], bodyB: nodes[i + 2], length: step * 2, stiffness: cfg.bendStiffness, damping: cfg.bendDamping, render: { visible: false } })); }
+        for (let i = 0; i < n - 3; i++) { cons.push(Constraint.create({ bodyA: nodes[i], bodyB: nodes[i + 3], length: step * 3, stiffness: cfg.thirdStiffness, damping: cfg.thirdDamping, render: { visible: false } })); }
+        pancake.nodes = nodes;
+        pancake.constraints = cons;
+        World.add(world, nodes);
+        World.add(world, cons);
+      }
+
+      function teardownPancake() {
+        if (pancake.nodes.length) World.remove(world, pancake.nodes);
+        if (pancake.constraints.length) World.remove(world, pancake.constraints);
+        pancake.nodes = []; pancake.constraints = [];
+      }
+
+      function resetPancake() { buildPancake(); }
+      buildPancake();
+      
+      const keys = Object.create(null);
+      window.addEventListener('keydown', (e) => {
+        keys[e.code] = true;
+        if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Space'].includes(e.code)) e.preventDefault();
+        if (e.code === 'Space') toss();
+        if (e.code === 'KeyR') resetAll();
+        if (e.code === 'KeyG') toggleGravity();
+      });
+      window.addEventListener('keyup', (e) => { keys[e.code] = false; });
+      
+      Events.on(engine, 'beforeUpdate', () => {
+        if (keys['ArrowLeft'] || keys['KeyA']) anchorTargetX -= MOVE_SPEED;
+        if (keys['ArrowRight'] || keys['KeyD']) anchorTargetX += MOVE_SPEED;
+        const margin = 120;
+        anchorTargetX = Math.max(margin, Math.min(W - margin, anchorTargetX));
+        anchor.x = anchorTargetX;
+        const pivotPos = { x: anchorTargetX, y: baseAnchorY + anchorYOffset };
+        const offset = Matter.Vector.rotate(handleLocal, desiredAngle);
+        const center = Matter.Vector.sub(pivotPos, offset);
+        Body.setPosition(pan, center);
+        if (keys['ArrowUp'] || keys['KeyW']) desiredAngle -= ROT_SPEED;
+        if (keys['ArrowDown'] || keys['KeyS']) desiredAngle += ROT_SPEED;
+        if (desiredAngle < MIN_ANGLE) desiredAngle = MIN_ANGLE;
+        if (desiredAngle > MAX_ANGLE) desiredAngle = MAX_ANGLE;
+        Body.setAngle(pan, desiredAngle);
+      });
+      
+      let lastToss = 0, bumping = false;
+      function easeOutCubic(t) { return 1 - Math.pow(1 - t, 3); }
+      function easeInCubic(t) { return t * t * t; }
+      function toss() {
+        const now = performance.now();
+        if (now - lastToss < 180) return;
+        lastToss = now;
+        if (bumping) return;
+        bumping = true;
+        const upMs = 90, downMs = 140; const lift = -24;
+        let phase = 'up'; let t0 = performance.now(); const startYOffset = 0;
+        function step() {
+          const t = performance.now();
+          if (phase === 'up') {
+            const p = Math.min(1, (t - t0) / upMs);
+            anchorYOffset = startYOffset + (lift - startYOffset) * easeOutCubic(p);
+            if (p >= 1) { phase = 'down'; t0 = performance.now(); }
+            requestAnimationFrame(step);
+          } else {
+            const p = Math.min(1, (t - t0) / downMs);
+            anchorYOffset = lift + (0 - lift) * easeInCubic(p);
+            if (p < 1) { requestAnimationFrame(step); } else { anchorYOffset = 0; bumping = false; }
+          }
+        }
+        requestAnimationFrame(step);
+      }
+
+      function resetAll() {
+        anchorTargetX = W * 0.5;
+        anchor.x = anchorTargetX;
+        anchorYOffset = 0;
+        desiredAngle = 0;
+        const pivotPos = { x: anchor.x, y: baseAnchorY };
+        const offset = Matter.Vector.rotate(handleLocal, desiredAngle);
+        const center = Matter.Vector.sub(pivotPos, offset);
+        Body.setPosition(pan, center);
+        Body.setAngle(pan, 0);
+        resetPancake();
+        
+        score = 0;
+        orientationInPan = 1; // 리셋 시 방향 초기화
+        flipState = 'in_pan';
+        updateScoreUI();
+      }
+
+      function toggleGravity() { engine.gravity.y = engine.gravity.y !== 0 ? 0 : 1.2; }
+      window.addEventListener('resize', () => {
+        render.canvas.width = window.innerWidth;
+        render.canvas.height = window.innerHeight;
+        render.options.width = window.innerWidth;
+        render.options.height = window.innerHeight;
+      });
+      
+      Events.on(render, 'afterRender', () => {
+        const ctx = render.context; const pts = pancake.nodes.map(n => n.position);
+        if (pts.length < 2) return;
+        const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
+        const border = getComputedStyle(document.documentElement).getPropertyValue('--accent-strong').trim();
+        ctx.save();
+        ctx.lineJoin = 'round'; ctx.lineCap = 'round'; ctx.globalAlpha = 1.0; ctx.shadowBlur = 0;
+        ctx.beginPath();
+        ctx.moveTo(pts[0].x, pts[0].y);
+        for (let i = 1; i < pts.length - 1; i++) {
+          const midX = (pts[i].x + pts[i + 1].x) / 2;
+          const midY = (pts[i].y + pts[i + 1].y) / 2;
+          ctx.quadraticCurveTo(pts[i].x, pts[i].y, midX, midY);
+        }
+        ctx.lineTo(pts[pts.length - 1].x, pts[pts.length - 1].y);
+        ctx.strokeStyle = border; ctx.lineWidth = 26; ctx.stroke();
+        ctx.strokeStyle = accent; ctx.lineWidth = 22; ctx.stroke();
+        ctx.restore();
+      });
+      
+      const GROUND_Y = H; const EPS = 0.5;
+      Events.on(engine, 'afterUpdate', () => {
+        const r = PANCAKE_CONF.particleRadius;
+        let isContact = false;
+
+        if (pancake.nodes.length > 1) { // 부침개가 존재할 때만 로직 실행
+          for (const node of pancake.nodes) {
+            const p = node.position;
+            if (p.y > GROUND_Y - r - EPS) { Body.setPosition(node, { x: p.x, y: GROUND_Y - r - EPS }); if (node.velocity.y > 0) node.velocity.y = 0; }
+            for (const part of panSolids) {
+              const c = Matter.SAT.collides(node, part);
+              if (c.collided) {
+                isContact = true;
+                if (c.depth > 0) {
+                  const push = Matter.Vector.mult(c.normal, -(c.depth + 0.6));
+                  Body.setPosition(node, { x: p.x + push.x, y: p.y + push.y });
+                  const vn = node.velocity.x * c.normal.x + node.velocity.y * c.normal.y;
+                  if (vn > 0) { node.velocity.x -= vn * c.normal.x; node.velocity.y -= vn * c.normal.y; }
+                }
+              }
+            }
+          }
+
+          // ▼▼▼▼▼ 수정된 뒤집기 상태 머신 로직 ▼▼▼▼▼
+          const pancakeCenterY = pancake.nodes.reduce((sum, node) => sum + node.position.y, 0) / pancake.nodes.length;
+          const panY = pan.position.y;
+          
+          if (flipState === 'in_pan') {
+            // 팬 안에 있을 때: 일정 높이 이상 던져졌는지 확인
+            if (panY - pancakeCenterY > 30) { // 팬 중심보다 60px 이상 높이 떴을 때
+              flipState = 'in_air';
+            }
+          } else if (flipState === 'in_air') {
+            // 공중에 있을 때: 팬과 다시 접촉했는지 확인
+            if (isContact) {
+              const firstNodeX = pancake.nodes[0].position.x;
+              const lastNodeX = pancake.nodes[pancake.nodes.length - 1].position.x;
+              const currentOrientation = Math.sign(lastNodeX - firstNodeX);
+
+              if (currentOrientation !== 0 && currentOrientation !== orientationInPan) {
+                // 이전에 팬에 있던 방향과 현재 방향이 다르면 성공
+                score += 10;
+                updateScoreUI();
+                orientationInPan = currentOrientation; // 현재 방향을 새로운 기준으로 저장
+              }
+              flipState = 'in_pan'; // 다시 '팬 안' 상태로 변경
+            }
+          }
+          // ▲▲▲▲▲ 수정된 뒤집기 상태 머신 로직 ▲▲▲▲▲
+        }
+      });
+    </script>
+  </body>
+</html>

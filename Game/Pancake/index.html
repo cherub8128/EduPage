@@ -2,279 +2,466 @@
 <html lang="ko">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>부침개 뒤집기 – Matter.js 데모</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+    <title>부침개 뒤집기</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
-      html, body { height: 100%; margin: 0; background:#0b1020; color:#e8ecf1; font-family: system-ui, -apple-system, Segoe UI, Roboto, Noto Sans, sans-serif; }
-      #ui { position: fixed; left: 16px; top: 16px; padding: 12px 14px; background: rgba(0,0,0,.45); border:1px solid rgba(255,255,255,.12); border-radius: 12px; backdrop-filter: blur(6px); }
-      #ui h1 { margin: 0 0 6px; font-size: 18px; font-weight: 700; }
-      #ui p { margin: 6px 0; font-size: 13px; line-height: 1.5; opacity: .9; }
-      #footer { position: fixed; right: 12px; bottom: 8px; font-size: 12px; opacity: .6; }
-      canvas { outline: none; display: block; }
+      :root{
+        --bg-0:#f7fbff; --bg-1:#eef5ff; --bg-2:rgba(10,22,40,.18);
+        --glass:rgba(255,255,255,.65); --stroke:rgba(15,23,42,.15);
+        --text:#0f172a; --muted:#334155; --accent:#e6b15a; --accent-strong:#c48a34;
+        --pan:#3a4250; --pan-edge:#1f2937; --handle:#8b5e3c; --handle-edge:#3b2a1a;
+        --success: #22c55e; --fail: #ef4444; --info: #3b82f6;
+      }
+      *{box-sizing:border-box}
+      html, body { height: 100%; margin: 0; color: var(--text); font-family: 'Noto Sans KR', system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
+      body{
+        background:
+          radial-gradient(1200px 800px at 70% 20%, rgba(255,255,255,.06), transparent 60%),
+          radial-gradient(1200px 800px at 0% 100%, rgba(118,168,255,.06), transparent 60%),
+          linear-gradient(120deg, var(--bg-0), var(--bg-1));
+        position:relative;
+        overflow: hidden; /* 모바일에서 스크롤 방지 */
+      }
+      body::before{
+        content:""; position:fixed; inset:0; pointer-events:none; z-index:0;
+        background:
+          repeating-linear-gradient( to right, rgba(0,0,0,.04) 0 1px, transparent 1px 40px),
+          repeating-linear-gradient( to bottom, rgba(0,0,0,.04) 0 1px, transparent 1px 40px);
+        mix-blend-mode:multiply; opacity:.20;
+      }
+      body::after{
+        content:""; position:fixed; inset:0; background: radial-gradient(80% 70% at 50% 50%, transparent 60%, var(--bg-2)); pointer-events:none; z-index:0;
+      }
+      #ui { position: fixed; left: 18px; top: 18px; padding: 14px 16px; background: var(--glass); border:1px solid var(--stroke); border-radius: 14px; backdrop-filter: blur(8px); z-index:5; box-shadow: 0 6px 24px rgba(0,0,0,.25); min-width: 280px; }
+      #ui h1 { margin: 0 0 6px; font-size: 18px; font-weight: 700; letter-spacing:.1px }
+      #ui p { margin: 6px 0; font-size: 13px; line-height: 1.55; color: var(--muted); }
+      #score { margin: 12px 0 0; font-size: 20px; font-weight: 700; color: var(--accent-strong); }
+      #legend { margin-top:8px; display:flex; gap:8px; flex-wrap:wrap }
+      .kbd{ padding:2px 6px; border-radius:8px; background:rgba(255,255,255,.65); border:1px solid rgba(15,23,42,.18); font-size:12px; color:var(--text); font-weight: 500; }
+      #footer { position: fixed; right: 14px; bottom: 10px; font-size: 12px; color: var(--muted); opacity: .9; z-index:5; }
+      canvas { outline: none; display: block; position:relative; z-index:1; }
+      
+      #rl-controls { margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--stroke); }
+      #rl-controls button { padding: 5px 10px; border: 1px solid var(--stroke); background: rgba(255,255,255,.5); border-radius: 8px; font-family: inherit; cursor: pointer; font-weight: 500; }
+      #rl-controls button.active { background: var(--accent); color: white; border-color: var(--accent-strong); }
+      #status-panel { margin-top: 12px; font-size: 12px; }
+      #status-panel div { margin-bottom: 4px; }
+      #status-panel .status-label { font-weight: 500; display: inline-block; width: 90px; }
+      #status-panel .status-value.ok { color: var(--success); }
+      #status-panel .status-value.err { color: var(--fail); }
+      #status-panel .status-value.wait { color: var(--info); }
+      
+      /* --- [추가] 모바일 터치 컨트롤 UI --- */
+      #touch-controls {
+        position: fixed;
+        bottom: 30px;
+        width: 100%;
+        display: none; /* 기본 숨김 */
+        justify-content: space-between;
+        align-items: flex-end;
+        padding: 0 30px;
+        z-index: 10;
+        pointer-events: none;
+      }
+      /* 터치 기기이고, 컨트롤러가 active 상태일 때만 표시 */
+      body.touch-enabled #touch-controls.active {
+        display: flex;
+      }
+      .d-pad, .action-buttons {
+        pointer-events: auto; /* 버튼은 상호작용 가능해야 함 */
+      }
+      .d-pad {
+        display: grid;
+        grid-template-areas:
+            ". up ."
+            "left . right"
+            ". down .";
+        gap: 12px;
+      }
+      #touch-up { grid-area: up; }
+      #touch-left { grid-area: left; }
+      #touch-right { grid-area: right; }
+      #touch-down { grid-area: down; }
+
+      .touch-btn {
+        width: 60px;
+        height: 60px;
+        background: rgba(255, 255, 255, 0.35);
+        border: 1px solid rgba(15, 23, 42, 0.15);
+        border-radius: 50%;
+        font-size: 24px;
+        color: var(--text);
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+        transition: transform 0.1s ease, background-color 0.1s ease;
+        user-select: none;
+        -webkit-user-select: none; /* 터치 시 텍스트 선택 방지 */
+        -webkit-tap-highlight-color: transparent; /* 터치 시 하이라이트 제거 */
+      }
+      .touch-btn:active {
+        transform: scale(0.92);
+        background: rgba(255, 255, 255, 0.55);
+      }
+      #touch-space {
+        width: 90px;
+        height: 90px;
+        border-radius: 30px;
+        font-weight: 700;
+        font-size: 18px;
+        font-family: 'Noto Sans KR', sans-serif;
+      }
+
     </style>
-    <!-- Matter.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/matter-js@0.19.0/build/matter.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/poly-decomp@0.3.0/build/decomp.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort.min.js"></script>
   </head>
   <body>
     <div id="ui">
-      <h1>부침개 뒤집기 (2D 사이드뷰)</h1>
-      <p>←/→: 팬 좌우 이동 · ↑/↓: 팬 회전(−80°~80°)<br/>
-         Space: 팬을 위로 살짝 들었다가 원위치(빠른 탭)<br/>
-         R: 리셋, G: 중력 토글</p>
-      <p>부침개: 1열 체인(입자+조인트), 탄성 0, 굽힘 보강(i–i+2 & i–i+3)</p>
-      <p>Tip: 각도를 살짝 주고 Space를 짧게 탭!</p>
+      <h1>부침개 뒤집기 <span style="font-weight:400;">(RL)</span></h1>
+      <p>강화학습(RL) 프로젝트 - 부침개 뒤집기 게임입니다.</p>
+      <div id="score">점수: 0</div>
+      <div id="legend">
+        <span class="kbd">←/→</span> 이동 <span class="kbd">↑/↓</span> 회전 <span class="kbd">Space</span> 뒤집기 <span class="kbd">R</span> 리셋 <span class="kbd">G</span> 중력
+      </div>
+      <div id="rl-controls">
+          <button id="mode-user">사용자</button>
+          <button id="mode-ai">인공지능</button>
+      </div>
+      <div id="status-panel">
+          <div><span class="status-label">게임 모드:</span><span id="game-mode-status" class="status-value"></span></div>
+          <div><span class="status-label">WebSocket:</span><span id="ws-status" class="status-value err">연결 끊김</span></div>
+          <div><span class="status-label">ONNX 모델:</span><span id="model-status" class="status-value wait">로딩 중...</span></div>
+      </div>
     </div>
-    <div id="footer">Matter.js 물리 시뮬레이션 • 최종 버전</div>
+    <div id="footer">Matter.js • RL Environment by Google Gemini</div>
+
+    <div id="touch-controls">
+        <div class="d-pad">
+            <button class="touch-btn" id="touch-up">▲</button>
+            <button class="touch-btn" id="touch-left">◀</button>
+            <button class="touch-btn" id="touch-right">▶</button>
+            <button class="touch-btn" id="touch-down">▼</button>
+        </div>
+        <div class="action-buttons">
+            <button class="touch-btn" id="touch-space">TOSS</button>
+        </div>
+    </div>
 
     <script>
-      const { Engine, Render, Runner, World, Bodies, Body, Constraint, Events } = Matter;
+      let gameMode = 'USER';
+      let ws, ortSession, isModelReady = false, latestAiAction = [0, 0, 0], aiLoopInterval = null;
+      let isRoundOver = false, potentialReward = 0;
 
-      // ===== 엔진/렌더러 =====
+      const { Engine, Render, Runner, World, Bodies, Body, Constraint, Events, Vector } = Matter;
       const engine = Engine.create();
-      engine.positionIterations = 12; // 안정성 ↑ (기본 6)
-      engine.velocityIterations = 8;  // 안정성 ↑ (기본 4)
-      engine.constraintIterations = 4; // 0.19+에서 동작 (없어도 무해)
-      engine.gravity.y = 1.2; // 사이드뷰 느낌
+      engine.positionIterations = 24;
+      engine.velocityIterations = 10;
+      engine.constraintIterations = 6;
+      engine.gravity.y = 1.2;
 
-      const W = window.innerWidth;
-      const H = window.innerHeight;
-
-      const render = Render.create({
-        element: document.body,
-        engine,
-        options: {
-          width: W,
-          height: H,
-          wireframes: false,
-          background: '#0b1020'
-        }
-      });
+      const W = window.innerWidth, H = window.innerHeight;
+      const render = Render.create({ element: document.body, engine, options: { width: W, height: H, wireframes: false, background: 'transparent' } });
       Render.run(render);
-      const runner = Runner.create();
+      const runner = Runner.create({ isFixed: true, delta: 1000 / 120 });
       Runner.run(runner, engine);
 
       const world = engine.world;
-
-      // ===== 월드 경계 =====
       const thickness = 80;
-      const ground = Bodies.rectangle(W/2, H + thickness/2, W * 2, thickness, { isStatic: true, render: { fillStyle: '#0f172a' } });
-      const ceil   = Bodies.rectangle(W/2, -thickness/2, W * 2, thickness, { isStatic: true, render: { fillStyle: '#0f172a' } });
-      const wallL  = Bodies.rectangle(-thickness/2, H/2, thickness, H * 2, { isStatic: true, render: { fillStyle: '#0f172a' } });
-      const wallR  = Bodies.rectangle(W + thickness/2, H/2, thickness, H * 2, { isStatic: true, render: { fillStyle: '#0f172a' } });
-      World.add(world, [ground, ceil, wallL, wallR]);
-
-      // ===== 프라이팬(합성 바디) + 피벗 =====
+      const ground = Bodies.rectangle(W/2, H + thickness/2, W * 2, thickness, { isStatic: true, render: { fillStyle: '#0e1424' } });
+      const wallL  = Bodies.rectangle(-thickness/2, H/2, thickness, H * 2, { isStatic: true, render: { fillStyle: '#0e1424' } });
+      const wallR  = Bodies.rectangle(W + thickness/2, H/2, thickness, H * 2, { isStatic: true, render: { fillStyle: '#0e1424' } });
+      World.add(world, [ground, wallL, wallR]);
+      
       const anchor = { x: W * 0.5, y: H * 0.65 };
+      const panVertices = [ { x: -140, y: -26 }, { x: -120, y: -10 }, { x: -120, y: 10 }, { x: 120, y: 10 }, { x: 120, y: -10 }, { x: 140, y: -26 }, { x: 140, y: -50 }, { x: -140, y: -50 } ];
+      const panBody = Bodies.fromVertices(anchor.x, anchor.y, [panVertices], { collisionFilter: { category: 0x0001, mask: 0x0002 }, render: { fillStyle: getComputedStyle(document.documentElement).getPropertyValue('--pan').trim(), strokeStyle: getComputedStyle(document.documentElement).getPropertyValue('--pan-edge').trim(), lineWidth: 1 } });
+      const handleLen = 140, handleThick = 18;
+      const panHandle = Bodies.rectangle(anchor.x - 130 - handleLen / 2, anchor.y - 4, handleLen, handleThick, { chamfer: { radius: 9 }, isSensor: true, collisionFilter: { category: 0, mask: 0 }, render: { fillStyle: getComputedStyle(document.documentElement).getPropertyValue('--handle').trim(), strokeStyle:getComputedStyle(document.documentElement).getPropertyValue('--handle-edge').trim(), lineWidth: 1 } });
+      let pan = Body.create({ parts: [panBody, panHandle], friction: 0.4, frictionStatic: 0.8, frictionAir: 0.02, restitution: 0.08 });
+      const handleLocal = { x: panHandle.position.x - pan.position.x, y: panHandle.position.y - pan.position.y };
+      World.add(world, [pan]);
+      Body.setStatic(pan, true);
 
-      const panBottom = Bodies.rectangle(anchor.x, anchor.y, 260, 20, {
-        chamfer: { radius: 10 },
-        render: { fillStyle: '#2d2d2d' }
-      });
-      const panSideL = Bodies.rectangle(anchor.x - 130, anchor.y - 36, 20, 100, {
-        angle: -0.6,
-        chamfer: { radius: 10 },
-        render: { fillStyle: '#2d2d2d' }
-      });
-      const panSideR = Bodies.rectangle(anchor.x + 130, anchor.y - 36, 20, 100, {
-        angle: 0.6,
-        chamfer: { radius: 10 },
-        render: { fillStyle: '#2d2d2d' }
-      });
+      let score = 0, orientationInPan = 1, flipState = 'in_pan';
+      const scoreUI = document.getElementById('score');
+      function updateScoreUI() { scoreUI.textContent = `점수: ${score}`; }
 
-      let pan = Body.create({
-        parts: [panBottom, panSideL, panSideR],
-        friction: 0.4,
-        frictionStatic: 0.8,
-        frictionAir: 0.02,
-        restitution: 0.08,
-        render: { fillStyle: '#262626', strokeStyle:'#111', lineWidth: 1 }
-      });
-
-      const pivot = Constraint.create({
-        pointA: { x: anchor.x, y: anchor.y },
-        bodyB: pan,
-        pointB: { x: 0, y: 0 },
-        length: 0,
-        stiffness: 1.0,
-        damping: 0.25
-      });
-      World.add(world, [pan, pivot]);
-
-      // ===== 컨트롤 상태 =====
       let anchorTargetX = anchor.x;
       const baseAnchorY = anchor.y;
-      let anchorYOffset = 0; // Space 들기
-
+      let anchorYOffset = 0;
       const DEG2RAD = Math.PI / 180;
-      let desiredAngle = 0; // 라디안
-      const MIN_ANGLE = -80 * DEG2RAD;
-      const MAX_ANGLE =  80 * DEG2RAD;
+      let desiredAngle = 0;
+      const MIN_ANGLE = -80 * DEG2RAD, MAX_ANGLE = 80 * DEG2RAD;
+      const USER_MOVE_SPEED = 8, USER_ROT_SPEED = 1.8 * DEG2RAD;
+      const AI_MOVE_FORCE = 12, AI_ROT_FORCE = 2.5 * DEG2RAD;
+      const keys = Object.create(null);
 
-      const MOVE_SPEED = 8;             // 좌우 이동 속도(px/틱)
-      const ROT_SPEED  = 1.8 * DEG2RAD; // 회전 속도(rad/틱)
-
-      // ===== 부침개(한 줄 체인) =====
-      const PANCAKE_CONF = {
-        length: 260,
-        segments: 18,          // 자유도↓ → 덜 휘어짐
-        particleRadius: 6,
-        density: 0.0012,
-        friction: 0.9,
-        frictionStatic: 1.0,
-        linkStiffness: 0.98,
-        linkDamping: 0.28,
-        bendStiffness: 0.9,    // i–i+2 보강
-        bendDamping: 0.25,
-        thirdStiffness: 0.7,   // i–i+3 추가 보강
-        thirdDamping: 0.22
-      };
-
+      const PANCAKE_CONF = { length: 160, segments: 8, particleRadius: 6, density: 0.0012, friction: 0.9, frictionStatic: 1.0, linkStiffness: 0.98, linkDamping: 0.28, bendStiffness: 0.9, bendDamping: 0.25, thirdStiffness: 0.7, thirdDamping: 0.22 };
       let pancake = { nodes: [], constraints: [] };
-      // 체인 내부 자가충돌 비활성화(음수 그룹)
-      const chainGroup = Body.nextGroup(true);
 
       function buildPancake() {
         teardownPancake();
-        const cfg = PANCAKE_CONF;
-        const n = cfg.segments + 1;
-        const step = cfg.length / cfg.segments;
-        const y = anchor.y - 52;
-        const startX = anchor.x - cfg.length / 2;
-
+        const cfg = PANCAKE_CONF, n = cfg.segments + 1, step = cfg.length / cfg.segments;
+        const startY = pan.position.y - 140 + (Math.random() - 0.5) * 20, startX = pan.position.x - cfg.length / 2 + (Math.random() - 0.5) * 30;
         const nodes = [];
         for (let i = 0; i < n; i++) {
-          const node = Bodies.circle(startX + i * step, y, cfg.particleRadius, {
-            density: cfg.density,
-            friction: cfg.friction,
-            frictionStatic: cfg.frictionStatic,
-            frictionAir: 0.012, // 진동 억제
-            restitution: 0,     // 튀지 않음
-            collisionFilter: { group: chainGroup },
-            render: { fillStyle: '#d6a86e', strokeStyle: '#8a5a2f', lineWidth: 1 }
-          });
-          nodes.push(node);
+          nodes.push(Bodies.circle(startX + i * step, startY, cfg.particleRadius, { density: cfg.density, friction: cfg.friction, frictionStatic: cfg.frictionStatic, frictionAir: 0.012, restitution: 0, collisionFilter: { category: 0x0002, mask: 0x0001 }, render: { fillStyle: '#f0c27b', strokeStyle: '#8a5a2f', lineWidth: 1 } }));
         }
-
         const cons = [];
-        // 1) 인접 링크 (i - i+1)
-        for (let i = 0; i < n - 1; i++) {
-          cons.push(Constraint.create({
-            bodyA: nodes[i], bodyB: nodes[i + 1],
-            length: step,
-            stiffness: cfg.linkStiffness,
-            damping: cfg.linkDamping,
-            render: { visible: false }
-          }));
-        }
-        // 2) 굽힘 보강 (i - i+2)
-        for (let i = 0; i < n - 2; i++) {
-          cons.push(Constraint.create({
-            bodyA: nodes[i], bodyB: nodes[i + 2],
-            length: step * 2,
-            stiffness: cfg.bendStiffness,
-            damping: cfg.bendDamping,
-            render: { visible: false }
-          }));
-        }
-        // 3) 추가 보강 (i - i+3)
-        for (let i = 0; i < n - 3; i++) {
-          cons.push(Constraint.create({
-            bodyA: nodes[i], bodyB: nodes[i + 3],
-            length: step * 3,
-            stiffness: cfg.thirdStiffness,
-            damping: cfg.thirdDamping,
-            render: { visible: false }
-          }));
-        }
-
-        pancake.nodes = nodes;
-        pancake.constraints = cons;
-        World.add(world, nodes);
-        World.add(world, cons);
+        for (let i = 0; i < n - 1; i++) { cons.push(Constraint.create({ bodyA: nodes[i], bodyB: nodes[i + 1], length: step, stiffness: cfg.linkStiffness, damping: cfg.linkDamping, render: { visible: false } })); }
+        for (let i = 0; i < n - 2; i++) { cons.push(Constraint.create({ bodyA: nodes[i], bodyB: nodes[i + 2], length: step * 2, stiffness: cfg.bendStiffness, damping: cfg.bendDamping, render: { visible: false } })); }
+        for (let i = 0; i < n - 3; i++) { cons.push(Constraint.create({ bodyA: nodes[i], bodyB: nodes[i + 3], length: step * 3, stiffness: cfg.thirdStiffness, damping: cfg.thirdDamping, render: { visible: false } })); }
+        pancake.nodes = nodes; pancake.constraints = cons;
+        World.add(world, [...nodes, ...cons]);
       }
-
       function teardownPancake() {
         if (pancake.nodes.length) World.remove(world, pancake.nodes);
         if (pancake.constraints.length) World.remove(world, pancake.constraints);
         pancake.nodes = []; pancake.constraints = [];
       }
 
-      function resetPancake() { buildPancake(); }
-      buildPancake();
-
-      // ===== 입력 처리 =====
-      const keys = Object.create(null);
-      window.addEventListener('keydown', (e) => {
-        keys[e.code] = true;
-        if (['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Space'].includes(e.code)) e.preventDefault();
-        if (e.code === 'Space') toss();
-        if (e.code === 'KeyR') resetAll();
-        if (e.code === 'KeyG') toggleGravity();
-      });
-      window.addEventListener('keyup', (e) => { keys[e.code] = false; });
-
-      // ===== 업데이트 루프 =====
-      Events.on(engine, 'beforeUpdate', () => {
-        // 좌우 이동 (Anchor 이동 → 피벗이 따라감)
-        if (keys['ArrowLeft'] || keys['KeyA'])  anchorTargetX -= MOVE_SPEED;
-        if (keys['ArrowRight']|| keys['KeyD'])  anchorTargetX += MOVE_SPEED;
-        const margin = 120; // 화면 가장자리 여유
-        anchorTargetX = Math.max(margin, Math.min(W - margin, anchorTargetX));
-        anchor.x = anchorTargetX;
-        pivot.pointA.x = anchorTargetX;
-        pivot.pointA.y = baseAnchorY + anchorYOffset;
-
-        // 회전 (−80° ~ 80°로 클램프)
-        if (keys['ArrowUp']   || keys['KeyW']) desiredAngle -= ROT_SPEED;
-        if (keys['ArrowDown'] || keys['KeyS']) desiredAngle += ROT_SPEED;
-        if (desiredAngle < MIN_ANGLE) desiredAngle = MIN_ANGLE;
-        if (desiredAngle > MAX_ANGLE) desiredAngle = MAX_ANGLE;
-        Body.setAngle(pan, desiredAngle);
-        Body.setAngularVelocity(pan, 0); // 드리프트 억제
-      });
-
-      // ===== 액션 =====
       let lastToss = 0, bumping = false;
+      function easeOutCubic(t) { return 1 - Math.pow(1 - t, 3); }
+      function easeInCubic(t) { return t * t * t; }
       function toss() {
         const now = performance.now();
-        if (now - lastToss < 180) return; // 쿨다운 (ms)
-        lastToss = now;
-        if (bumping) return;
-        bumping = true;
-        anchorYOffset = -24; // 위로 살짝 들기
-        setTimeout(() => { anchorYOffset = 0; bumping = false; }, 120); // 원위치
+        if (now - lastToss < 180 || bumping) return;
+        lastToss = now; bumping = true;
+        const upMs = 90, downMs = 140, lift = -24;
+        let phase = 'up', t0 = performance.now(), startYOffset = 0;
+        function step() {
+          const t = performance.now();
+          if (phase === 'up') {
+            const p = Math.min(1, (t - t0) / upMs);
+            anchorYOffset = startYOffset + (lift - startYOffset) * easeOutCubic(p);
+            if (p >= 1) { phase = 'down'; t0 = performance.now(); }
+            requestAnimationFrame(step);
+          } else {
+            const p = Math.min(1, (t - t0) / downMs);
+            anchorYOffset = lift + (0 - lift) * easeInCubic(p);
+            if (p < 1) requestAnimationFrame(step); else { anchorYOffset = 0; bumping = false; }
+          }
+        }
+        requestAnimationFrame(step);
+      }
+      
+      function applyAction(action) {
+        const [move, rotate, doToss] = action;
+        anchorTargetX += move * AI_MOVE_FORCE;
+        desiredAngle += rotate * AI_ROT_FORCE;
+        if (doToss > 0.5) toss();
       }
 
-      function resetAll() {
-        // 팬 리셋
-        anchorTargetX = W * 0.5;
+      Events.on(engine, 'beforeUpdate', () => {
+        if (isRoundOver) return;
+        if (gameMode === 'USER') {
+            if (keys['ArrowLeft']) anchorTargetX -= USER_MOVE_SPEED;
+            if (keys['ArrowRight']) anchorTargetX += USER_MOVE_SPEED;
+            if (keys['ArrowUp']) desiredAngle -= USER_ROT_SPEED;
+            if (keys['ArrowDown']) desiredAngle += USER_ROT_SPEED;
+        } else if (gameMode === 'AI') {
+            applyAction(latestAiAction);
+        }
+        const margin = 140;
+        anchorTargetX = Math.max(margin, Math.min(W - margin, anchorTargetX));
         anchor.x = anchorTargetX;
-        pivot.pointA.x = anchorTargetX;
-        anchorYOffset = 0;
-
-        desiredAngle = 0;
-        Body.setPosition(pan, { x: anchor.x, y: baseAnchorY });
-        Body.setVelocity(pan, { x: 0, y: 0 });
-        Body.setAngularVelocity(pan, 0);
-        Body.setAngle(pan, 0);
-
-        // 부침개 리셋 (소프트바디 재구성)
-        resetPancake();
-      }
-
-      function toggleGravity() {
-        engine.gravity.y = engine.gravity.y !== 0 ? 0 : 1.2;
-      }
-
-      // ===== 리사이즈 대응(간단) =====
-      window.addEventListener('resize', () => {
-        render.canvas.width = window.innerWidth;
-        render.canvas.height = window.innerHeight;
-        render.options.width = window.innerWidth;
-        render.options.height = window.innerHeight;
+        desiredAngle = Math.max(MIN_ANGLE, Math.min(MAX_ANGLE, desiredAngle));
+        const pivotPos = { x: anchor.x, y: baseAnchorY + anchorYOffset }, offset = Vector.rotate(handleLocal, desiredAngle), center = Vector.sub(pivotPos, offset);
+        Body.setStatic(pan, false); Body.setPosition(pan, center); Body.setAngle(pan, desiredAngle); Body.setStatic(pan, true);
       });
 
-      // (옵션) 향후: 슬라이더 UI로 강성/감쇠/세그먼트 조절 가능
+      Events.on(render, 'afterRender', () => {
+        const ctx = render.context, pts = pancake.nodes.map(n => n.position);
+        if (pts.length < 2) return;
+        const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim(), border = getComputedStyle(document.documentElement).getPropertyValue('--accent-strong').trim();
+        ctx.save(); ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+        ctx.beginPath(); ctx.moveTo(pts[0].x, pts[0].y);
+        for (let i = 1; i < pts.length - 1; i++) {
+          const midX = (pts[i].x + pts[i + 1].x) / 2, midY = (pts[i].y + pts[i + 1].y) / 2;
+          ctx.quadraticCurveTo(pts[i].x, pts[i].y, midX, midY);
+        }
+        ctx.lineTo(pts[pts.length - 1].x, pts[pts.length - 1].y);
+        ctx.strokeStyle = border; ctx.lineWidth = 26; ctx.stroke();
+        ctx.strokeStyle = accent; ctx.lineWidth = 22; ctx.stroke();
+        ctx.restore();
+      });
+
+      function getObservation() {
+        if (!pancake.nodes.length) return new Array(20).fill(0);
+        const obs = [], panPos = pan.position, panAngle = pan.angle;
+        obs.push(panPos.x / W, (panPos.y - H/2) / (H/2), panAngle / MAX_ANGLE, desiredAngle / MAX_ANGLE);
+        let comX = 0, comY = 0, comVelX = 0, comVelY = 0;
+        pancake.nodes.forEach(node => { comX += node.position.x; comY += node.position.y; comVelX += node.velocity.x; comVelY += node.velocity.y; });
+        const n = pancake.nodes.length;
+        comX /= n; comY /= n; comVelX /= n; comVelY /= n;
+        obs.push((comX - panPos.x) / (W / 2), (comY - panPos.y) / (H / 2), comVelX / 10, comVelY / 10);
+        const keyNodes = [pancake.nodes[0], pancake.nodes[Math.floor(n/2)], pancake.nodes[n-1]];
+        keyNodes.forEach(node => {
+            const relPos = Vector.sub(node.position, panPos), rotatedRelPos = Vector.rotate(relPos, -panAngle), relVel = Vector.sub(node.velocity, pan.velocity);
+            obs.push(rotatedRelPos.x / 140, rotatedRelPos.y / 50, relVel.x / 10, relVel.y / 10);
+        });
+        return obs;
+      }
+      
+      function calculateRewardAndDone() {
+          let reward = -0.05, done = false;
+          if (!pancake.nodes.length) return { reward, done: true };
+          const pancakeMinY = Math.min(...pancake.nodes.map(n => n.position.y));
+          if (pancakeMinY > ground.position.y - thickness/2 - 20) {
+              reward = -10.0; done = true; isRoundOver = true; return { reward, done };
+          }
+          let isContact = false;
+          const panSolids = pan.parts.filter(part => part !== pan && !part.isSensor);
+          for (const node of pancake.nodes) {
+              for (const part of panSolids) { if (Matter.SAT.collides(node, part).collided) { isContact = true; break; } }
+              if (isContact) break;
+          }
+          const n = pancake.nodes.length, pancakeCOMX = pancake.nodes.reduce((sum, node) => sum + node.position.x, 0) / n, pancakeCenterY = pancake.nodes.reduce((sum, node) => sum + node.position.y, 0) / n, panY = pan.position.y;
+          if(isContact){
+              const horizontalOffset = Math.abs(pancakeCOMX - pan.position.x), maxOffset = 140;
+              reward += 0.2 * (1 - Math.min(1, horizontalOffset / maxOffset));
+          }
+          if (flipState === 'in_pan') {
+              if (panY - pancakeCenterY > 40) { flipState = 'in_air'; potentialReward = 0; }
+          } else if (flipState === 'in_air') {
+              if (isContact) {
+                  const firstNodeX = pancake.nodes[0].position.x, lastNodeX = pancake.nodes[n - 1].position.x, currentOrientation = Math.sign(lastNodeX - firstNodeX);
+                  if (currentOrientation !== 0 && currentOrientation !== orientationInPan) {
+                      score += 10; updateScoreUI(); reward += 20.0; reward += potentialReward; orientationInPan = currentOrientation;
+                  } else { reward -= 5.0; reward -= potentialReward; }
+                  flipState = 'in_pan'; potentialReward = 0;
+              } else { reward += 0.05; potentialReward += 0.1; }
+          }
+          isRoundOver = done; return { reward, done };
+      }
+      
+      Events.on(engine, 'afterUpdate', () => {
+        if (gameMode === 'TRAINING' || isRoundOver || !pancake.nodes.length) return;
+        let isContact = false;
+        const panSolids = pan.parts.filter(part => part !== pan && !part.isSensor);
+        for (const node of pancake.nodes) { for (const part of panSolids) { if (Matter.SAT.collides(node, part).collided) { isContact = true; break; } } if (isContact) break; }
+        const pancakeCenterY = pancake.nodes.reduce((sum, node) => sum + node.position.y, 0) / pancake.nodes.length, panY = pan.position.y;
+        if (flipState === 'in_pan' && panY - pancakeCenterY > 40) { flipState = 'in_air';
+        } else if (flipState === 'in_air' && isContact) {
+            const firstNodeX = pancake.nodes[0].position.x, lastNodeX = pancake.nodes[pancake.nodes.length - 1].position.x, currentOrientation = Math.sign(lastNodeX - firstNodeX);
+            if (currentOrientation !== 0 && currentOrientation !== orientationInPan) { score += 10; updateScoreUI(); orientationInPan = currentOrientation; }
+            flipState = 'in_pan';
+        }
+        const pancakeMinY = Math.min(...pancake.nodes.map(n => n.position.y));
+        if (pancakeMinY > ground.position.y - thickness/2 - 20) isRoundOver = true;
+      });
+      
+      function resetGame() {
+        isRoundOver = false; anchorTargetX = W * 0.5; anchor.x = anchorTargetX; anchorYOffset = 0; desiredAngle = 0; potentialReward = 0;
+        const pivotPos = { x: anchor.x, y: baseAnchorY }, offset = Vector.rotate(handleLocal, desiredAngle), center = Vector.sub(pivotPos, offset);
+        Body.setStatic(pan, false); Body.setPosition(pan, center); Body.setAngle(pan, 0); Body.setStatic(pan, true);
+        buildPancake();
+        score = 0; orientationInPan = 1; flipState = 'in_pan';
+        updateScoreUI();
+      }
+
+      function resetForTraining() { resetGame(); if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ observation: getObservation() })); }
+      function stepGameForTraining(action) {
+          if (isRoundOver) return; applyAction(action); Engine.update(engine, 1000 / 60);
+          const { reward, done } = calculateRewardAndDone(), observation = getObservation();
+          if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ observation, reward, done }));
+          if (done) setTimeout(resetForTraining, 50); 
+      }
+
+      function setGameMode(newMode) {
+          gameMode = newMode; sessionStorage.setItem('gameMode', gameMode); console.log(`게임 모드 변경: ${gameMode}`);
+          document.getElementById('mode-user').classList.toggle('active', newMode === 'USER');
+          document.getElementById('mode-ai').classList.toggle('active', newMode === 'AI');
+          document.getElementById('game-mode-status').textContent = newMode;
+          
+          const touchControls = document.getElementById('touch-controls');
+          if (touchControls) { touchControls.classList.toggle('active', newMode === 'USER'); }
+
+          if (newMode === 'TRAINING') {
+              runner.enabled = false; if(aiLoopInterval) clearInterval(aiLoopInterval); aiLoopInterval = null;
+          } else {
+              runner.enabled = true;
+              if (newMode === 'AI') { if (isModelReady && !aiLoopInterval) startAiLoop(); } 
+              else { if(aiLoopInterval) clearInterval(aiLoopInterval); aiLoopInterval = null; }
+          }
+      }
+
+      async function loadOnnxModel() {
+        const modelStatusUI = document.getElementById('model-status');
+        try {
+            ortSession = await ort.InferenceSession.create('./model.onnx');
+            if (!ortSession || !ortSession.inputNames || ortSession.inputNames.length === 0) throw new Error("ONNX 세션이 유효하지 않습니다.");
+            isModelReady = true; modelStatusUI.textContent = '로드 완료'; modelStatusUI.className = 'status-value ok';
+            if (gameMode === 'AI') startAiLoop();
+        } catch (e) { isModelReady = false; modelStatusUI.textContent = '로드 실패'; modelStatusUI.className = 'status-value err'; console.error('ONNX 모델 로드 실패:', e); }
+      }
+
+      function startAiLoop() {
+        if (aiLoopInterval) clearInterval(aiLoopInterval);
+        aiLoopInterval = setInterval(async () => {
+            if (!isModelReady || gameMode !== 'AI' || isRoundOver) return;
+            const obs = getObservation(), tensor = new ort.Tensor('float32', obs, [1, obs.length]), feeds = { [ortSession.inputNames[0]]: tensor };
+            try {
+                const results = await ortSession.run(feeds);
+                latestAiAction = Array.from(results[ortSession.outputNames[0]].data);
+            } catch(e) { console.error("AI 추론 오류:", e); clearInterval(aiLoopInterval); aiLoopInterval = null; }
+        }, 50);
+      }
+
+      function connectWebSocket() {
+        const wsStatusUI = document.getElementById('ws-status');
+        ws = new WebSocket('ws://localhost:8765');
+        ws.onopen = () => { wsStatusUI.textContent = '연결됨'; wsStatusUI.className = 'status-value ok'; setGameMode('TRAINING'); };
+        ws.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            if(data.command === 'reset') resetForTraining(); else if(data.command === 'action') stepGameForTraining(data.action);
+        };
+        ws.onclose = () => { wsStatusUI.textContent = '연결 끊김'; wsStatusUI.className = 'status-value err'; if (gameMode === 'TRAINING') setGameMode('USER'); };
+        ws.onerror = () => { wsStatusUI.textContent = '오류'; wsStatusUI.className = 'status-value err'; };
+      }
+
+      window.addEventListener('DOMContentLoaded', () => {
+          document.getElementById('mode-user').addEventListener('click', () => setGameMode('USER'));
+          document.getElementById('mode-ai').addEventListener('click', () => setGameMode('AI'));
+          
+          const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+          if (isTouchDevice) document.body.classList.add('touch-enabled');
+          
+          function setupTouchControls() {
+              const controls = { 'touch-up': 'ArrowUp', 'touch-down': 'ArrowDown', 'touch-left': 'ArrowLeft', 'touch-right': 'ArrowRight' };
+              for (const [btnId, key] of Object.entries(controls)) {
+                  const btn = document.getElementById(btnId);
+                  if(!btn) continue;
+                  btn.addEventListener('touchstart', (e) => { e.preventDefault(); keys[key] = true; }, { passive: false });
+                  btn.addEventListener('touchend', (e) => { e.preventDefault(); keys[key] = false; });
+              }
+              const spaceBtn = document.getElementById('touch-space');
+              if(spaceBtn) spaceBtn.addEventListener('touchstart', (e) => { e.preventDefault(); if (gameMode === 'USER') toss(); }, { passive: false });
+          }
+          setupTouchControls();
+
+          loadOnnxModel(); connectWebSocket();
+          const savedMode = sessionStorage.getItem('gameMode');
+          setGameMode((savedMode && savedMode !== 'TRAINING') ? savedMode : 'USER');
+          resetGame();
+      });
+
+      window.addEventListener('keydown', (e) => {
+        if (gameMode === 'USER') {
+            keys[e.code] = true;
+            if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Space'].includes(e.code)) e.preventDefault();
+            if (e.code === 'Space') toss();
+        }
+        if (e.code === 'KeyR') resetGame();
+        if (e.code === 'KeyG') engine.gravity.y = engine.gravity.y !== 0 ? 0 : 1.2;
+      });
+      window.addEventListener('keyup', (e) => { if (gameMode === 'USER') keys[e.code] = false; });
+      window.addEventListener('resize', () => { render.canvas.width = window.innerWidth; render.canvas.height = window.innerHeight; });
+
     </script>
   </body>
 </html>
