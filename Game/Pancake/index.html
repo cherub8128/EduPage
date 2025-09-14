@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, viewport-fit=cover" />
-    <title>팬케이크 뒤집기 (자동 리셋)</title>
+    <title>팬케이크 뒤집기</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
@@ -64,7 +64,7 @@
       <p>강화학습(RL) 팬케이크 뒤집기 게임입니다. 공중으로 띄워 뒤집으면 점수 획득</p>
       <div id="score">점수: 0</div>
       <div id="legend">
-        <span class="kbd">방향키</span> 이동 <span class="kbd">z/x</span> 회전 <span class="kbd">Space</span> 살짝 치기 <span class="kbd">R</span> 리셋 <span class="kbd">G</span> 중력
+        <span class="kbd">방향키</span> 이동 <span class="kbd">w/s</span> 회전 <span class="kbd">Space</span> 살짝 치기 <span class="kbd">R</span> 리셋 <span class="kbd">G</span> 중력
       </div>
       <div id="rl-controls">
           <button id="mode-user">사용자</button>
@@ -169,7 +169,8 @@
 
         Events.on(render, 'afterRender', () => { const ctx = render.context, pts = pancake.nodes.map(n => n.position); if (pts.length < 2) return; const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim(), border = getComputedStyle(document.documentElement).getPropertyValue('--accent-strong').trim(); ctx.save(); ctx.lineJoin = 'round'; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(pts[0].x, pts[0].y); for (let i = 1; i < pts.length - 1; i++) { const midX = (pts[i].x + pts[i + 1].x) / 2, midY = (pts[i].y + pts[i + 1].y) / 2; ctx.quadraticCurveTo(pts[i].x, pts[i].y, midX, midY); } ctx.lineTo(pts[pts.length - 1].x, pts[pts.length - 1].y); ctx.strokeStyle = border; ctx.lineWidth = 26 * scale; ctx.stroke(); ctx.strokeStyle = accent; ctx.lineWidth = 22 * scale; ctx.stroke(); ctx.restore(); });
         function getObservation() { if (!pancake.nodes.length) return new Array(20).fill(0); const obs = [], panPos = pan.position, panAngle = pan.angle; obs.push(panPos.x / W, (panPos.y - H/2) / (H/2), panAngle / MAX_ANGLE, desiredAngle / MAX_ANGLE); let comX = 0, comY = 0, comVelX = 0, comVelY = 0; pancake.nodes.forEach(node => { comX += node.position.x; comY += node.position.y; comVelX += node.velocity.x; comVelY += node.velocity.y; }); const n = pancake.nodes.length; comX /= n; comY /= n; comVelX /= n; comVelY /= n; obs.push((comX - panPos.x) / (W / 2), (comY - panPos.y) / (H / 2), comVelX / 10, comVelY / 10); const keyNodes = [pancake.nodes[0], pancake.nodes[Math.floor(n/2)], pancake.nodes[n-1]]; keyNodes.forEach(node => { const relPos = Vector.sub(node.position, panPos), rotatedRelPos = Vector.rotate(relPos, -panAngle), relVel = Vector.sub(node.velocity, pan.velocity); obs.push(rotatedRelPos.x / (140 * scale), rotatedRelPos.y / (50 * scale), relVel.x / 10, relVel.y / 10); }); return obs; }
-        function calculateRewardAndDone() { let reward = -0.05, done = false; if (!pancake.nodes.length) return { reward, done: true }; const pancakeMinY = Math.min(...pancake.nodes.map(n => n.position.y)); if (pancakeMinY > ground.position.y - thickness/2 - (20 * scale)) { reward = -10.0; done = true; isRoundOver = true; return { reward, done }; } let isContact = false; const panSolids = pan.parts.filter(part => part !== pan && !part.isSensor); for (const node of pancake.nodes) { for (const part of panSolids) { if (Matter.SAT.collides(node, part).collided) { isContact = true; break; } } if (isContact) break; } const n = pancake.nodes.length, pancakeCOMX = pancake.nodes.reduce((sum, node) => sum + node.position.x, 0) / n, pancakeCenterY = pancake.nodes.reduce((sum, node) => sum + node.position.y, 0) / n, panY = pan.position.y; if(isContact){ const horizontalOffset = Math.abs(pancakeCOMX - pan.position.x), maxOffset = 140 * scale; reward += 0.2 * (1 - Math.min(1, horizontalOffset / maxOffset)); } if (flipState === 'in_pan') { if (panY - pancakeCenterY > 40 * scale) { flipState = 'in_air'; potentialReward = 0; } } else if (flipState === 'in_air') { if (isContact) { const firstNodeX = pancake.nodes[0].position.x, lastNodeX = pancake.nodes[n - 1].position.x, currentOrientation = Math.sign(lastNodeX - firstNodeX); if (currentOrientation !== 0 && currentOrientation !== orientationInPan) { score += 10; updateScoreUI(); reward += 20.0; reward += potentialReward; orientationInPan = currentOrientation; } else { reward -= 5.0; reward -= potentialReward; } flipState = 'in_pan'; potentialReward = 0; } else { reward += 0.05; potentialReward += 0.1; } } isRoundOver = done; return { reward, done }; }
+        
+        function calculateRewardAndDone() { let reward = -0.05, done = false; if (!pancake.nodes.length) return { reward, done: true }; const pancakeMinY = Math.min(...pancake.nodes.map(n => n.position.y)); if (pancakeMinY > ground.position.y - thickness/2 - (20 * scale)) { reward = -10.0; done = true; isRoundOver = true; return { reward, done }; } let isContact = false; const panSolids = pan.parts.filter(part => part !== pan && !part.isSensor); for (const node of pancake.nodes) { for (const part of panSolids) { const collision = Matter.SAT.collides(node, part); if (collision && collision.collided) { isContact = true; break; } } if (isContact) break; } const n = pancake.nodes.length, pancakeCOMX = pancake.nodes.reduce((sum, node) => sum + node.position.x, 0) / n, pancakeCenterY = pancake.nodes.reduce((sum, node) => sum + node.position.y, 0) / n, panY = pan.position.y; if(isContact){ const horizontalOffset = Math.abs(pancakeCOMX - pan.position.x), maxOffset = 140 * scale; reward += 0.2 * (1 - Math.min(1, horizontalOffset / maxOffset)); } if (flipState === 'in_pan') { if (panY - pancakeCenterY > 40 * scale) { flipState = 'in_air'; potentialReward = 0; } } else if (flipState === 'in_air') { if (isContact) { const firstNodeX = pancake.nodes[0].position.x, lastNodeX = pancake.nodes[n - 1].position.x, currentOrientation = Math.sign(lastNodeX - firstNodeX); if (currentOrientation !== 0 && currentOrientation !== orientationInPan) { score += 10; updateScoreUI(); reward += 20.0; reward += potentialReward; orientationInPan = currentOrientation; } else { reward -= 5.0; reward -= potentialReward; } flipState = 'in_pan'; potentialReward = 0; } else { reward += 0.05; potentialReward += 0.1; } } isRoundOver = done; return { reward, done }; }
         
         Events.on(engine, 'afterUpdate', () => { 
             if (gameMode === 'TRAINING' || isRoundOver || !pancake.nodes.length) return; 
@@ -177,7 +178,8 @@
             const panSolids = pan.parts.filter(part => part !== pan && !part.isSensor); 
             for (const node of pancake.nodes) { 
                 for (const part of panSolids) { 
-                    if (Matter.SAT.collides(node, part).collided) { isContact = true; break; } 
+                    const collision = Matter.SAT.collides(node, part);
+                    if (collision && collision.collided) { isContact = true; break; } 
                 } 
                 if (isContact) break; 
             } 
@@ -191,9 +193,10 @@
             } 
             const pancakeMinY = Math.min(...pancake.nodes.map(n => n.position.y)); 
             if (pancakeMinY > ground.position.y - thickness/2 - 20 * scale) {
-                isRoundOver = true;
-                // [수정] USER, AI 모드에서도 바닥에 닿으면 0.5초 후 자동 리셋
-                setTimeout(resetGame, 500);
+                if (!isRoundOver) {
+                    isRoundOver = true;
+                    setTimeout(resetGame, 500);
+                }
             }
         });
         
@@ -245,9 +248,14 @@
 
         window.addEventListener('keydown', (e) => {
           if (gameMode === 'USER') {
-              if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Space'].includes(e.code)) { e.preventDefault(); keys[e.code] = true; }
-              if (e.code === 'KeyZ') { e.preventDefault(); keys['RotateLeft'] = true; }
-              if (e.code === 'KeyX') { e.preventDefault(); keys['RotateRight'] = true; }
+              if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Space', 'KeyW', 'KeyS'].includes(e.code)) {
+                  e.preventDefault();
+              }
+              if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.code)) {
+                  keys[e.code] = true;
+              }
+              if (e.code === 'KeyW') keys['RotateLeft'] = true;
+              if (e.code === 'KeyS') keys['RotateRight'] = true;
               if (e.code === 'Space') toss();
           }
           if (e.code === 'KeyR') resetGame();
@@ -257,8 +265,8 @@
         window.addEventListener('keyup', (e) => { 
             if (gameMode === 'USER') { 
                 if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Space'].includes(e.code)) keys[e.code] = false;
-                if (e.code === 'KeyZ') keys['RotateLeft'] = false;
-                if (e.code === 'KeyX') keys['RotateRight'] = false;
+                if (e.code === 'KeyW') keys['RotateLeft'] = false;
+                if (e.code === 'KeyS') keys['RotateRight'] = false;
             } 
         });
 
