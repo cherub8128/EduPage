@@ -76,6 +76,11 @@
                     <li>아래 탭에서 원하는 작업을 선택하고 프롬프트를 복사하여 AI에게 요청한 뒤, 생성된 전체 코드를 `index.html` 파일에 붙여넣으세요.</li>
                 </ol>
             </div>
+            <div class="user-input">
+                <h3 class="font-semibold text-lg text-slate-800 mb-2">게임 기획안 입력</h3>
+                <p class="text-sm text-slate-600 mb-2">1단계에서 생성된 기획안을 아래 입력란에 붙여넣으면, AI 웹 게임 생성을 위한 프롬프트가 자동으로 완성됩니다.</p>
+                <textarea id="game-logic-textarea" rows="8" class="w-full p-2 border border-amber-300 rounded-md bg-white text-sm" placeholder="이곳에 1단계에서 생성된 게임 기획안(콘셉트, 목표, 조작법, 성공/실패 조건)을 붙여넣으세요."></textarea>
+            </div>
             <div class="border-b border-slate-200"><nav class="flex -mb-px" aria-label="Tabs">
                 <button class="tab-button active" data-tab="new-game">새 게임 생성</button>
                 <button class="tab-button" data-tab="modify-game">기존 게임 수정</button>
