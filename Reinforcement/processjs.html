@@ -369,33 +369,6 @@ class WebServerThread(threading.Thread):
     def stop(self):
         if self.server: self.server.shutdown()
 
-class OnnxablePolicy(torch.nn.Module):
-    def __init__(self, policy):
-        super().__init__()
-        self.policy = policy.eval()
-
-    def forward(self, observation: torch.Tensor):
-        with torch.no_grad():
-            return self.policy._predict(observation, deterministic=True)
-
-def export_to_onnx(model_path, onnx_path, obs_shape=(4,)):
-    print(f"\n모델 {model_path}를 ONNX({onnx_path})로 변환합니다...")
-    model = PPO.load(model_path, device='cpu')
-    onnxable = OnnxablePolicy(model.policy)
-
-    dummy = torch.randn(1, *obs_shape, dtype=torch.float32)   # [1, 4]
-    torch.onnx.export(
-        onnxable, dummy, onnx_path,
-        opset_version=14,
-        input_names=["observation"],
-        output_names=["action"],
-        dynamic_axes={
-            "observation": {0: "batch"},
-            "action": {0: "batch"},
-        }
-    )
-    print("ONNX 변환 완료.")
-
 def find_latest_run_and_checkpoint():
     if not os.path.isdir(LOG_DIR): return None, None
     runs = sorted([d for d in os.listdir(LOG_DIR) if os.path.isdir(os.path.join(LOG_DIR, d))], reverse=True)
@@ -450,9 +423,6 @@ def main():
         env.close()
         web_server.stop()
 
-    if os.path.exists(final_model_path):
-        export_to_onnx(final_model_path, "model.onnx")
-
 if __name__ == '__main__':
     main()
 </code></pre>
@@ -463,124 +433,183 @@ if __name__ == '__main__':
                  <div class="code-block-provided">
                     <button class="copy-button">복사</button>
                     <pre class="bg-slate-100 text-slate-800 p-4 rounded-lg overflow-x-auto text-sm"><code class="language-python"># train_selfplay.py
-import os, time, torch, webbrowser, threading
-import http.server, socketserver
+# train_selfplay.py
+import os
+import time
+import torch
+import webbrowser
+import threading
+import http.server
+import socketserver
+import shutil
 from stable_baselines3 import PPO
-from stable_baselines3.common.callbacks import CheckpointCallback, ProgressBarCallback, CallbackList
+from stable_baselines3.common.callbacks import ProgressBarCallback
 from stable_baselines3.common.logger import configure
 from websocket_env import WebSocketEnv
 
 # --- 중요 설정 ---
 # 1. 관찰 공간 (Observation Space) - AI의 '눈'
-OBSERVATION_SHAPE = (8,)
-# OBSERVATION_SHAPE = (1, 84, 84) # CnnPolicy를 위한 이미지 관찰 예시
+#    (예: 플레이어1 위치,속도 + 플레이어2 위치,속도 + 공 위치,속도 등)
+OBSERVATION_SHAPE = (10,) 
+
 # 2. 행동 공간 (Action Space) - AI의 '손'
-ACTION_SPACE_CONFIG = {'type': 'discrete', 'n': 5}
-# ACTION_SPACE_CONFIG = {'type': 'continuous', 'low': [-2.0], 'high': [2.0]} # 1차원 연속 행동 예시
-# ACTION_SPACE_CONFIG = {'type': 'continuous', 'low': [-1.0, -3.0], 'high': [1.0, 3.0]} # 2차원 연속 행동 예시
+#    (예: 위, 아래, 가만히 있기)
+ACTION_SPACE_CONFIG = {'type': 'discrete', 'n': 3}
+
+# 3. 셀프 플레이 설정
+TOTAL_TRAINING_ITERATIONS = 20  # 총 학습 반복 횟수
+STEPS_PER_ITERATION = 50_000    # 한 반복 당 학습할 타임스텝 수 (이 값마다 상대방 모델이 업데이트됨)
+TOTAL_TIMESTEPS = TOTAL_TRAINING_ITERATIONS * STEPS_PER_ITERATION
+
+# 4. 기타 설정
+LOG_DIR = "training_logs_selfplay"
+PORT = 8000
 # -----------------
-TOTAL_TRAINING_STEPS, STEPS_PER_ITERATION = 200_000, 50_000
-MODEL_DIR, LOG_DIR, PORT = "models", "training_logs", 8000
-os.makedirs(MODEL_DIR, exist_ok=True)
+
 os.makedirs(LOG_DIR, exist_ok=True)
 
 class WebServerThread(threading.Thread):
-    def __init__(self, port): super().__init__(); self.port, self.server, self.daemon = port, None, True
-    def run(self): self.server = socketserver.TCPServer(("", self.port), http.server.SimpleHTTPRequestHandler); self.server.serve_forever()
-    def stop(self):
-        if self.server: self.server.shutdown()
-
-class OnnxablePolicy(torch.nn.Module):
-    def __init__(self, policy):
+    """백그라운드에서 로컬 웹 서버를 실행하는 스레드"""
+    def __init__(self, port):
         super().__init__()
-        self.policy = policy.eval()
+        self.port = port
+        self.server = None
+        self.daemon = True
+    def run(self):
+        handler = http.server.SimpleHTTPRequestHandler
+        self.server = socketserver.TCPServer(("", self.port), handler)
+        print(f"로컬 서버가 http://localhost:{self.port} 에서 시작되었습니다.")
+        self.server.serve_forever()
+    def stop(self):
+        if self.server:
+            self.server.shutdown()
+            print("로컬 서버가 종료되었습니다.")
 
-    def forward(self, observation: torch.Tensor):
-        with torch.no_grad():
-            return self.policy._predict(observation, deterministic=True)
+def update_opponent_model(model_zip_path, observation_shape):
+    """
+    주어진 PPO 모델(.zip)을 'opponent.onnx'로 변환하여 루트 폴더에 저장합니다.
+    JS 게임은 이 파일을 상대방 AI로 사용합니다.
+    """
+    if not os.path.exists(model_zip_path):
+        print(f"경고: 상대방 모델로 업데이트할 '{model_zip_path}' 파일을 찾을 수 없습니다. 건너뜁니다.")
+        return
+        
+    print(f"\n--- 상대방 모델 업데이트 시작 ---")
+    print(f"'{model_zip_path}' 모델을 ONNX로 변환합니다...")
 
-def export_to_onnx(model_path, onnx_path, obs_shape=(4,)):
-    print(f"\n모델 {model_path}를 ONNX({onnx_path})로 변환합니다...")
-    model = PPO.load(model_path, device='cpu')
-    onnxable = OnnxablePolicy(model.policy)
+    try:
+        model = PPO.load(model_zip_path, device='cpu')
+        model.policy.eval()
 
-    dummy = torch.randn(1, *obs_shape, dtype=torch.float32)   # [1, 4]
-    torch.onnx.export(
-        onnxable, dummy, onnx_path,
-        opset_version=14,
-        input_names=["observation"],
-        output_names=["action"],
-        dynamic_axes={
-            "observation": {0: "batch"},
-            "action": {0: "batch"},
-        }
-    )
-    print("ONNX 변환 완료.")
+        # ONNX 변환을 위한 더미 입력 데이터 생성
+        # (배치 크기 1을 추가하여 [1, obs_dim] 형태로 만듦)
+        dummy_input = torch.randn((1, *observation_shape), dtype=torch.float32)
+        output_path = "opponent.onnx"
 
-def find_latest_log_dir():
-    if not os.path.isdir(LOG_DIR): return None
-    runs = [d for d in os.listdir(LOG_DIR) if os.path.isdir(os.path.join(LOG_DIR, d)) and d.startswith("PPO_SelfPlay")]
-    if not runs: return None
-    # 시간순으로 가장 최신 폴더 찾기
-    latest_run = max(runs, key=lambda d: os.path.getmtime(os.path.join(LOG_DIR, d)))
-    return latest_run
+        torch.onnx.export(
+            model.policy,
+            dummy_input,
+            output_path,
+            opset_version=11,
+            input_names=['input'],
+            output_names=['output'],
+            dynamic_axes={'input': {0: 'batch_size'}, 'output': {0: 'batch_size'}}
+        )
+        print(f"✅ 성공! '{output_path}' 파일이 업데이트 되었습니다.")
+        print(f"다음 학습부터 에이전트는 더 강해진 자신과 대결합니다.")
+        print(f"---------------------------------\n")
+
+    except Exception as e:
+        print(f"❌ 상대방 모델 업데이트 중 오류 발생: {e}")
+
+def find_latest_model_and_opponent():
+    """가장 최근에 학습된 모델과 상대방 모델을 찾습니다."""
+    if not os.path.isdir(LOG_DIR):
+        return None, None
+
+    # 가장 최근의 학습 세션 폴더 찾기
+    runs = sorted([d for d in os.listdir(LOG_DIR) if d.startswith("PPO_SelfPlay")], reverse=True)
+    if not runs:
+        return None, None
+    
+    latest_run_path = os.path.join(LOG_DIR, runs[0])
+    
+    # 해당 세션의 최종 모델과 최종 상대방 모델 찾기
+    latest_model = os.path.join(latest_run_path, "latest_model.zip")
+    latest_opponent = os.path.join(latest_run_path, "latest_opponent.onnx")
+
+    if os.path.exists(latest_model):
+        # 프로젝트 루트에 이전 상대방 모델 복사
+        if os.path.exists(latest_opponent):
+            shutil.copyfile(latest_opponent, "opponent.onnx")
+        return latest_model, latest_opponent
+        
+    return None, None
 
 def main():
+    # 1. 웹서버 시작 및 브라우저 열기
     web_server = WebServerThread(PORT)
     web_server.start()
     time.sleep(1)
-    webbrowser.open(f'http://localhost:{PORT}')
+    webbrowser.open(f'http://localhost:{PORT}/?mode=TRAINING') # TRAINING 모드로 바로 진입
     
+    # 2. 학습 환경 및 모델 설정
     env = WebSocketEnv(observation_shape=OBSERVATION_SHAPE, action_space_config=ACTION_SPACE_CONFIG)
     
-    latest_model_path = os.path.join(MODEL_DIR, "latest_model.zip")
-    
-    # TensorBoard 로깅 연속성을 위한 로그 디렉토리 설정
-    latest_run_name = find_latest_log_dir()
-    TENSORBOARD_LOG_NAME = latest_run_name if os.path.exists(latest_model_path) and latest_run_name else f"PPO_SelfPlay_{int(time.time())}"
+    TENSORBOARD_LOG_NAME = f"PPO_SelfPlay_{int(time.time())}"
     run_path = os.path.join(LOG_DIR, TENSORBOARD_LOG_NAME)
+    os.makedirs(run_path, exist_ok=True)
     
     custom_logger = configure(run_path, ["stdout", "tensorboard"])
     
-    # 체크포인트와 프로그레스 바를 위한 콜백 리스트 설정
-    checkpoint_path = os.path.join(run_path, "checkpoints")
-    os.makedirs(checkpoint_path, exist_ok=True)
-    checkpoint_callback = CheckpointCallback(save_freq=20000, save_path=checkpoint_path, name_prefix="rl_model")
-    callback_list = CallbackList([checkpoint_callback, ProgressBarCallback()])
+    # 이전 학습 상태 불러오기
+    latest_model_path, _ = find_latest_model_and_opponent()
     
-    policy_type = "CnnPolicy" if len(OBSERVATION_SHAPE) == 3 else "MlpPolicy"
-
-    if os.path.exists(latest_model_path):
-        print(f"저장된 모델 {latest_model_path}에서 학습을 재개합니다.")
-        model = PPO.load(latest_model_path, env=env, device='auto') 
+    if latest_model_path:
+        print(f"이전 학습 모델에서 훈련을 재개합니다: {latest_model_path}")
+        model = PPO.load(latest_model_path, env=env, device='auto')
     else:
-        print(f"{policy_type} 정책으로 새로운 학습을 시작합니다.")
-        model = PPO(policy_type, env, verbose=0, device='auto')
+        print("새로운 셀프 플레이 학습 세션을 시작합니다.")
+        # 처음에는 상대가 없으므로, JS에서 랜덤 또는 기본 AI로 작동해야 함
+        if os.path.exists("opponent.onnx"):
+            print("기존 'opponent.onnx' 파일을 사용합니다.")
+        else:
+            print("경고: 'opponent.onnx' 파일이 없습니다. JS 환경에서 상대방이 멈춰있을 수 있습니다.")
+        model = PPO("MlpPolicy", env, verbose=0, device='auto')
         
     model.set_logger(custom_logger)
-    
-    if not os.path.exists("opponent.onnx"):
-        print("'opponent.onnx' 파일이 없어 현재 에이전트로 초기 상대를 생성합니다.")
-        model.save(os.path.join(MODEL_DIR, "initial_model.zip"))
-        export_to_onnx(os.path.join(MODEL_DIR, "initial_model.zip"), "opponent.onnx")
-    else:
-        print("기존 'opponent.onnx' 파일을 초기 상대로 사용합니다.")
-    
+
     try:
-        total_steps_done = model.num_timesteps
-        while total_steps_done < TOTAL_TRAINING_STEPS:
-            model.learn(total_timesteps=total_steps_done + STEPS_PER_ITERATION, callback=callback_list, reset_num_timesteps=False)
-            total_steps_done = model.num_timesteps
-            model.save(latest_model_path)
-            export_to_onnx(latest_model_path, "opponent.onnx")
-            if total_steps_done < TOTAL_TRAINING_STEPS:
-                input(f"--- CHECKPOINT ({total_steps_done}/{TOTAL_TRAINING_STEPS} steps) ---\n"
-                      f">>> 상대방 모델이 업데이트되었습니다. 브라우저를 새로고침(F5)한 뒤, 여기서 Enter를 누르세요...")
+        # 3. 셀프 플레이 학습 루프
+        for i in range(TOTAL_TRAINING_ITERATIONS):
+            print(f"=============== 셀프 플레이 반복 [{i+1}/{TOTAL_TRAINING_ITERATIONS}] ===============")
+            
+            # reset_num_timesteps=False로 설정하여 학습을 이어나감
+            model.learn(total_timesteps=STEPS_PER_ITERATION, callback=ProgressBarCallback(), reset_num_timesteps=False)
+
+            # 현재까지 학습된 모델을 저장
+            current_model_path = os.path.join(run_path, "latest_model.zip")
+            model.save(current_model_path)
+            
+            # 저장된 모델을 opponent.onnx로 변환 및 복사
+            update_opponent_model(current_model_path, OBSERVATION_SHAPE)
+
+            # 만약을 위해 변환된 onnx 파일도 백업
+            shutil.copyfile("opponent.onnx", os.path.join(run_path, "latest_opponent.onnx"))
+
+        print("\n\n🎉 모든 셀프 플레이 학습이 완료되었습니다! 🎉")
+        final_model_path = os.path.join(run_path, "final_model.zip")
+        model.save(final_model_path)
+        print(f"최종 모델이 '{final_model_path}'에 저장되었습니다.")
+        print(f"최종 상대방 모델은 프로젝트 루트의 'opponent.onnx' 입니다.")
+        print("이제 index.html을 열고 AI 모드로 최종 결과를 확인하세요.")
+
+    except KeyboardInterrupt:
+        print("\n학습이 중단되었습니다. 현재까지의 진행 상황을 저장합니다.")
+        model.save(os.path.join(run_path, "interrupted_model.zip"))
     finally:
         env.close()
         web_server.stop()
-    
-    export_to_onnx(latest_model_path, "model.onnx")
 
 if __name__ == '__main__':
     main()
@@ -609,14 +638,96 @@ if __name__ == '__main__':
         <section id="step5" class="step bg-white p-6 sm:p-8 rounded-2xl shadow-lg border border-slate-200 mb-10">
             <h2 class="text-2xl font-bold mb-4 border-b pb-3 text-slate-900">단계 5: 최종 AI 게임 테스트</h2>
              <div class="workflow-guide">
-                <h4 class="text-lg">AI 플레이 감상하기</h4>
+                <h4 class="text-lg">Onnx변환 후 AI 플레이 감상하기</h4>
                 <p class="mt-2 text-sm text-slate-700">이제 모든 준비가 끝났습니다. 학습의 최종 결과물인 `model.onnx`가 얼마나 똑똑해졌는지 확인해볼 시간입니다.</p>
                 <ol class="list-decimal list-inside space-y-2 text-sm text-slate-700 mt-3">
-                    <li>프로젝트 폴더에서 터미널을 열고 <code>python -m http.server</code> 명령어로 로컬 서버를 실행합니다.</li>
-                     <li>웹 브라우저에서 <a href="http://localhost:8000" target="_blank" class="text-teal-600 underline">http://localhost:8000</a> 으로 접속합니다.</li>
-                     <li>게임이 로드되면, **'AI 모드'** 버튼을 클릭하여 학습된 모델의 플레이를 감상하세요!</li>
+                    <li>`convert_onnx.py`를 프로젝트 폴더에 새로 만들어 아래의 코드를 붙여넣습니다.</li>
+                    <li>프로젝트 폴더에서 <code>training_logs/PPO_숫자/</code> 폴더에서 `final_model.zip` 파일을 찾습니다.</li>
+                    <li>`final_model.zip` 파일을 우클릭하여 상대경로를 복사하여 convert_onnx.py 내부의 <code>MODEL_DIR="경로"</code>의 경로에 붙여넣어 수정합니다. (이때 파일 이름은 지우고 폴더 경로만 붙여넣기)</li>
+                    <li>`model.onnx` 파일이 나오면 프로젝트 폴더에서 터미널을 열고 <code>python -m http.server</code> 명령어로 로컬 서버를 실행합니다.</li>
+                    <li>웹 브라우저에서 <a href="http://localhost:8000" target="_blank" class="text-teal-600 underline">http://localhost:8000</a> 으로 접속합니다.</li>
+                    <li>게임이 로드되면, <strong>AI 모드</strong> 버튼을 클릭하여 학습된 모델의 플레이를 감상하세요!</li>
                 </ol>
             </div>
+            <div class="code-block-provided">
+                    <button class="copy-button">복사</button>
+                    <pre class="bg-slate-100 text-slate-800 p-4 rounded-lg overflow-x-auto text-sm"><code class="language-python"># train_selfplay.py
+import torch
+import torch.nn as nn
+from stable_baselines3 import PPO
+import numpy as np
+import os
+
+# --- 설정 ---
+MODEL_DIR = "model"  # 모델이 저장된 폴더 경로
+MODEL_FILENAME = "final_model.zip"
+MODEL_PATH = os.path.join(MODEL_DIR, MODEL_FILENAME)
+
+# 변환된 ONNX 모델을 저장할 경로와 파일명
+# index.html 파일이 있는 루트 폴더에 저장해야 AI 모드가 인식할 수 있습니다.
+ONNX_OUTPUT_PATH = "model.onnx"
+
+# train.py에 정의된 환경의 관찰 공간 모양
+# (배치 크기 1을 추가하여 [1, 20] 형태로 만들어야 합니다)
+OBSERVATION_SHAPE = (1, 20) 
+
+def convert_to_onnx():
+    """
+    Stable-Baselines3 PPO 모델(.zip)을 ONNX 형식으로 변환합니다.
+    """
+    print(f"'{MODEL_PATH}'에서 학습된 모델을 불러옵니다...")
+
+    # 모델 파일이 존재하는지 확인
+    if not os.path.exists(MODEL_PATH):
+        print(f"오류: 모델 파일 '{MODEL_PATH}'을 찾을 수 없습니다.")
+        print("먼저 train.py를 실행하여 모델을 학습시키고 저장해야 합니다.")
+        return
+
+    # Stable-Baselines3 모델 불러오기
+    # PyTorch를 사용하도록 device='cpu'로 명시하는 것이 안정적입니다.
+    try:
+        model = PPO.load(MODEL_PATH, device='cpu')
+    except Exception as e:
+        print(f"모델을 불러오는 중 오류가 발생했습니다: {e}")
+        return
+        
+    print("모델을 성공적으로 불러왔습니다.")
+
+    # ONNX 변환을 위해 모델을 평가 모드(evaluation mode)로 설정합니다.
+    # 이 과정은 드롭아웃(dropout)이나 배치 정규화(batch normalization) 등의
+    # 학습용 레이어를 비활성화하여 일관된 출력을 보장합니다.
+    model.policy.eval()
+
+    # ONNX 변환을 위한 더미 입력 데이터를 생성합니다.
+    # 이 데이터는 모델의 구조를 추적하는 데 사용되며, 실제 입력값은 중요하지 않습니다.
+    dummy_input = torch.randn(OBSERVATION_SHAPE, dtype=torch.float32)
+
+    print(f"모델을 ONNX 형식으로 변환합니다. 저장 위치: '{ONNX_OUTPUT_PATH}'")
+
+    try:
+        # torch.onnx.export 함수를 사용하여 모델을 변환합니다.
+        torch.onnx.export(
+            model.policy,                 # 변환할 모델의 정책 네트워크
+            dummy_input,                  # 모델 구조 추적을 위한 더미 입력
+            ONNX_OUTPUT_PATH,             # 저장될 ONNX 파일 경로
+            opset_version=11,             # ONNX 버전 (11은 호환성이 좋음)
+            input_names=['input'],        # ONNX 모델의 입력 레이어 이름
+            output_names=['output'],      # ONNX 모델의 출력 레이어 이름
+            dynamic_axes={'input': {0: 'batch_size'}, # 배치 크기가 변할 수 있도록 설정
+                          'output': {0: 'batch_size'}}
+        )
+        print("-" * 50)
+        print("✅ ONNX 변환이 성공적으로 완료되었습니다!")
+        print(f"이제 'index.html' 파일을 브라우저에서 열고 'AI 모드'를 테스트할 수 있습니다.")
+        print("-" * 50)
+
+    except Exception as e:
+        print(f"ONNX 변환 중 오류가 발생했습니다: {e}")
+
+if __name__ == '__main__':
+    convert_to_onnx()
+</code></pre>
+                </div>
         </section>
 
         <section id="step6" class="step bg-white p-6 sm:p-8 rounded-2xl shadow-lg border border-slate-200 mb-10">

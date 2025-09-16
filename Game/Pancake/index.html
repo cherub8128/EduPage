@@ -90,11 +90,16 @@
       window.addEventListener('DOMContentLoaded', () => {
         let gameMode = 'USER';
         let ws, ortSession, isModelReady = false, latestAiAction = [0, 0, 0, 0], aiLoopInterval = null;
-        let isRoundOver = false, potentialReward = 0;
+        let isRoundOver = false;
+        let hasFlippedInAir = false;
+        let orientationAtLaunch = 1;
 
         const { Engine, Render, Runner, World, Bodies, Body, Constraint, Events, Vector, Composite } = Matter;
         const engine = Engine.create();
-        engine.positionIterations = 24; engine.velocityIterations = 10; engine.constraintIterations = 6;
+        
+        engine.positionIterations = 30;
+        engine.velocityIterations = 20;
+        engine.constraintIterations = 12;
         engine.gravity.y = 1.2;
 
         const W = window.innerWidth, H = window.innerHeight;
@@ -111,7 +116,8 @@
         const ground = Bodies.rectangle(W/2, H + thickness/2, W * 2, thickness, { isStatic: true, render: { fillStyle: '#0e1424' } });
         const wallL  = Bodies.rectangle(-thickness/2, H/2, thickness, H * 2, { isStatic: true, render: { fillStyle: '#0e1424' } });
         const wallR  = Bodies.rectangle(W + thickness/2, H/2, thickness, H * 2, { isStatic: true, render: { fillStyle: '#0e1424' } });
-        World.add(world, [ground, wallL, wallR]);
+        const ceil = Bodies.rectangle(W/2, -thickness/2, W*2, thickness, {isStatic: true, render: {fillStyle: '#0e1424'}});
+        World.add(world, [ground, wallL, wallR, ceil]);
         
         const panVertices = [ { x: -140, y: -26 }, { x: -120, y: -10 }, { x: -120, y: 10 }, { x: 120, y: 10 }, { x: 120, y: -10 }, { x: 140, y: -26 }, { x: 140, y: -50 }, { x: -140, y: -50 } ].map(v => ({x: v.x * scale, y: v.y * scale}));
         const panBody = Bodies.fromVertices(W * 0.5, H * 0.65, [panVertices], { collisionFilter: { category: 0x0001, mask: 0x0002 }, render: { fillStyle: getComputedStyle(document.documentElement).getPropertyValue('--pan').trim(), strokeStyle: getComputedStyle(document.documentElement).getPropertyValue('--pan-edge').trim(), lineWidth: 1 } });
@@ -122,9 +128,16 @@
         World.add(world, [pan]);
         Body.setStatic(pan, true);
 
-        let score = 0, orientationInPan = 1, flipState = 'in_pan';
+        let score = 0, flipState = 'in_pan';
         const scoreUI = document.getElementById('score');
-        function updateScoreUI() { scoreUI.textContent = `점수: ${score}`; }
+
+        function updateScoreDisplay(rewardValue = null) {
+            if (gameMode === 'TRAINING') {
+                scoreUI.textContent = `보상: ${rewardValue !== null ? rewardValue.toFixed(3) : '...'}`;
+            } else {
+                scoreUI.textContent = `점수: ${score}`;
+            }
+        }
 
         let anchorTargetX = W * 0.5;
         let anchorTargetY = H * 0.65;
@@ -139,8 +152,43 @@
         const PANCAKE_CONF = { length: 160 * scale, segments: 8, particleRadius: 6 * scale, density: 0.0012, friction: 0.9, frictionStatic: 1.0, linkStiffness: 0.98, linkDamping: 0.28, bendStiffness: 0.9, bendDamping: 0.25, thirdStiffness: 0.7, thirdDamping: 0.22 };
         let pancake = { nodes: [], constraints: [] };
 
-        function buildPancake() { teardownPancake(); const cfg = PANCAKE_CONF, n = cfg.segments + 1, step = cfg.length / cfg.segments; const startY = pan.position.y - 140 * scale + (Math.random() - 0.5) * 20 * scale, startX = pan.position.x - cfg.length / 2 + (Math.random() - 0.5) * 30 * scale; const nodes = []; for (let i = 0; i < n; i++) { nodes.push(Bodies.circle(startX + i * step, startY, cfg.particleRadius, { density: cfg.density, friction: cfg.friction, frictionStatic: cfg.frictionStatic, frictionAir: 0.012, restitution: 0, collisionFilter: { category: 0x0002, mask: 0x0001 }, render: { fillStyle: '#f0c27b', strokeStyle: '#8a5a2f', lineWidth: 1 } })); } const cons = []; for (let i = 0; i < n - 1; i++) { cons.push(Constraint.create({ bodyA: nodes[i], bodyB: nodes[i + 1], length: step, stiffness: cfg.linkStiffness, damping: cfg.linkDamping, render: { visible: false } })); } for (let i = 0; i < n - 2; i++) { cons.push(Constraint.create({ bodyA: nodes[i], bodyB: nodes[i + 2], length: step * 2, stiffness: cfg.bendStiffness, damping: cfg.bendDamping, render: { visible: false } })); } for (let i = 0; i < n - 3; i++) { cons.push(Constraint.create({ bodyA: nodes[i], bodyB: nodes[i + 3], length: step * 3, stiffness: cfg.thirdStiffness, damping: cfg.thirdDamping, render: { visible: false } })); } pancake.nodes = nodes; pancake.constraints = cons; World.add(world, [...nodes, ...cons]); }
-        function teardownPancake() { if (pancake.nodes.length) Composite.remove(world, pancake.nodes); if (pancake.constraints.length) Composite.remove(world, pancake.constraints); pancake.nodes = []; pancake.constraints = []; }
+        function buildPancake() { 
+            teardownPancake(); 
+            const cfg = PANCAKE_CONF;
+            const n = cfg.segments + 1;
+            const step = cfg.length / cfg.segments;
+
+            // [핵심 수정] 팬케이크가 위에서 떨어지는 대신, 팬 중앙에 바로 생성되도록 수정
+            // 팬의 실제 윗면 Y좌표를 계산합니다. panBody는 팬의 주요 부분입니다.
+            const panTopY = panBody.bounds.min.y;
+            // 팬케이크 입자(원)가 팬 표면에 살짝 닿도록 시작 Y 위치를 설정합니다.
+            const startY = panTopY - cfg.particleRadius;
+            // 팬케이크가 팬의 X축 중앙에 정확히 위치하도록 설정합니다. (랜덤성 제거)
+            const startX = pan.position.x - cfg.length/Math.floor(Math.random() * 3 + 3);
+
+            const nodes = []; 
+            for (let i = 0; i < n; i++) { 
+                nodes.push(Bodies.circle(startX + i * step, startY, cfg.particleRadius, { 
+                    density: cfg.density, friction: cfg.friction, frictionStatic: cfg.frictionStatic, 
+                    frictionAir: 0.012, restitution: 0, 
+                    collisionFilter: { category: 0x0002, mask: 0x0001 }, 
+                    render: { fillStyle: '#f0c27b', strokeStyle: '#8a5a2f', lineWidth: 1 } 
+                })); 
+            } 
+            const cons = []; 
+            for (let i = 0; i < n - 1; i++) { cons.push(Constraint.create({ bodyA: nodes[i], bodyB: nodes[i + 1], length: step, stiffness: cfg.linkStiffness, damping: cfg.linkDamping, render: { visible: false } })); } 
+            for (let i = 0; i < n - 2; i++) { cons.push(Constraint.create({ bodyA: nodes[i], bodyB: nodes[i + 2], length: step * 2, stiffness: cfg.bendStiffness, damping: cfg.bendDamping, render: { visible: false } })); } 
+            for (let i = 0; i < n - 3; i++) { cons.push(Constraint.create({ bodyA: nodes[i], bodyB: nodes[i + 3], length: step * 3, stiffness: cfg.thirdStiffness, damping: cfg.thirdDamping, render: { visible: false } })); } 
+            pancake.nodes = nodes; 
+            pancake.constraints = cons; 
+            World.add(world, [...nodes, ...cons]); 
+        }
+        
+        function teardownPancake() { 
+            if (pancake.nodes.length) World.remove(world, pancake.nodes); 
+            if (pancake.constraints.length) World.remove(world, pancake.constraints); 
+            pancake.nodes = []; pancake.constraints = []; 
+        }
 
         let lastToss = 0, bumping = false;
         function easeOutCubic(t) { return 1 - Math.pow(1 - t, 3); } function easeInCubic(t) { return t * t * t; }
@@ -169,10 +217,83 @@
         Events.on(render, 'afterRender', () => { const ctx = render.context, pts = pancake.nodes.map(n => n.position); if (pts.length < 2) return; const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim(), border = getComputedStyle(document.documentElement).getPropertyValue('--accent-strong').trim(); ctx.save(); ctx.lineJoin = 'round'; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(pts[0].x, pts[0].y); for (let i = 1; i < pts.length - 1; i++) { const midX = (pts[i].x + pts[i + 1].x) / 2, midY = (pts[i].y + pts[i + 1].y) / 2; ctx.quadraticCurveTo(pts[i].x, pts[i].y, midX, midY); } ctx.lineTo(pts[pts.length - 1].x, pts[pts.length - 1].y); ctx.strokeStyle = border; ctx.lineWidth = 26 * scale; ctx.stroke(); ctx.strokeStyle = accent; ctx.lineWidth = 22 * scale; ctx.stroke(); ctx.restore(); });
         function getObservation() { if (!pancake.nodes.length) return new Array(20).fill(0); const obs = [], panPos = pan.position, panAngle = pan.angle; obs.push(panPos.x / W, (panPos.y - H/2) / (H/2), panAngle / MAX_ANGLE, desiredAngle / MAX_ANGLE); let comX = 0, comY = 0, comVelX = 0, comVelY = 0; pancake.nodes.forEach(node => { comX += node.position.x; comY += node.position.y; comVelX += node.velocity.x; comVelY += node.velocity.y; }); const n = pancake.nodes.length; comX /= n; comY /= n; comVelX /= n; comVelY /= n; obs.push((comX - panPos.x) / (W / 2), (comY - panPos.y) / (H / 2), comVelX / 10, comVelY / 10); const keyNodes = [pancake.nodes[0], pancake.nodes[Math.floor(n/2)], pancake.nodes[n-1]]; keyNodes.forEach(node => { const relPos = Vector.sub(node.position, panPos), rotatedRelPos = Vector.rotate(relPos, -panAngle), relVel = Vector.sub(node.velocity, pan.velocity); obs.push(rotatedRelPos.x / (140 * scale), rotatedRelPos.y / (50 * scale), relVel.x / 10, relVel.y / 10); }); return obs; }
         
-        function calculateRewardAndDone() { let reward = -0.05, done = false; if (!pancake.nodes.length) return { reward, done: true }; const pancakeMinY = Math.min(...pancake.nodes.map(n => n.position.y)); if (pancakeMinY > ground.position.y - thickness/2 - (20 * scale)) { reward = -10.0; done = true; isRoundOver = true; return { reward, done }; } let isContact = false; const panSolids = pan.parts.filter(part => part !== pan && !part.isSensor); for (const node of pancake.nodes) { for (const part of panSolids) { const collision = Matter.SAT.collides(node, part); if (collision && collision.collided) { isContact = true; break; } } if (isContact) break; } const n = pancake.nodes.length, pancakeCOMX = pancake.nodes.reduce((sum, node) => sum + node.position.x, 0) / n, pancakeCenterY = pancake.nodes.reduce((sum, node) => sum + node.position.y, 0) / n, panY = pan.position.y; if(isContact){ const horizontalOffset = Math.abs(pancakeCOMX - pan.position.x), maxOffset = 140 * scale; reward += 0.2 * (1 - Math.min(1, horizontalOffset / maxOffset)); } if (flipState === 'in_pan') { if (panY - pancakeCenterY > 40 * scale) { flipState = 'in_air'; potentialReward = 0; } } else if (flipState === 'in_air') { if (isContact) { const firstNodeX = pancake.nodes[0].position.x, lastNodeX = pancake.nodes[n - 1].position.x, currentOrientation = Math.sign(lastNodeX - firstNodeX); if (currentOrientation !== 0 && currentOrientation !== orientationInPan) { score += 10; updateScoreUI(); reward += 20.0; reward += potentialReward; orientationInPan = currentOrientation; } else { reward -= 5.0; reward -= potentialReward; } flipState = 'in_pan'; potentialReward = 0; } else { reward += 0.05; potentialReward += 0.1; } } isRoundOver = done; return { reward, done }; }
+        function isOutOfBouds() {
+            if (!pancake.nodes.length) return false;
+            for (const node of pancake.nodes) {
+                const r = node.circleRadius;
+                if (node.position.y < ceil.position.y + thickness/2 + r || 
+                    node.position.y > ground.position.y - thickness/2 - r ||
+                    node.position.x < wallL.position.x + thickness/2 + r ||
+                    node.position.x > wallR.position.x - thickness/2 - r) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        function calculateRewardAndDone() {
+            let reward = 0;
+            let done = false;
+            if (!pancake.nodes.length) return { reward: 0, done: true };
+
+            if (isOutOfBouds()) {
+                done = true;
+                isRoundOver = true; 
+                return { reward: 0, done: true };
+            }
+
+            const n = pancake.nodes.length;
+            let isContact = false;
+            const panSolids = pan.parts.filter(part => part !== pan && !part.isSensor);
+            for (const node of pancake.nodes) {
+                for (const part of panSolids){
+                  const collision = Matter.SAT.collides(node, part);
+                  if (collision && collision.collided) { isContact = true; break; }
+                }
+                if (isContact) break;
+            }
+            
+            const pancakeCenterY = pancake.nodes.reduce((sum, node) => sum + node.position.y, 0) / n;
+            const panY = pan.position.y;
+
+            if (flipState === 'in_pan') {
+                if (panY - pancakeCenterY > 40 * scale) {
+                    flipState = 'in_air'; 
+                    hasFlippedInAir = false;
+                    orientationAtLaunch = Math.sign(pancake.nodes[n - 1].position.x - pancake.nodes[0].position.x);
+                }
+            } else if (flipState === 'in_air') {
+                if (isContact) {
+                    if (hasFlippedInAir) {
+                        reward = 10.0;
+                        score += 10;
+                        done = true;
+                        isRoundOver = true;
+                    }
+                    flipState = 'in_pan';
+                } else {
+                    if (!hasFlippedInAir) {
+                        const currentOrientation = Math.sign(pancake.nodes[n-1].position.x - pancake.nodes[0].position.x);
+                        if (currentOrientation !== 0 && currentOrientation !== orientationAtLaunch) {
+                            hasFlippedInAir = true;
+                        }
+                    }
+                }
+            }
+            return { reward, done };
+        }
         
         Events.on(engine, 'afterUpdate', () => { 
             if (gameMode === 'TRAINING' || isRoundOver || !pancake.nodes.length) return; 
+            
+            if (isOutOfBouds()) {
+                if (!isRoundOver) {
+                    isRoundOver = true;
+                    setTimeout(resetGame, 500);
+                }
+                return;
+            }
+
             let isContact = false; 
             const panSolids = pan.parts.filter(part => part !== pan && !part.isSensor); 
             for (const node of pancake.nodes) { 
@@ -182,30 +303,55 @@
                 } 
                 if (isContact) break; 
             } 
-            const pancakeCenterY = pancake.nodes.reduce((sum, node) => sum + node.position.y, 0) / pancake.nodes.length, panY = pan.position.y; 
-            if (flipState === 'in_pan' && panY - pancakeCenterY > 40 * scale) { 
-                flipState = 'in_air'; 
-            } else if (flipState === 'in_air' && isContact) { 
-                const firstNodeX = pancake.nodes[0].position.x, lastNodeX = pancake.nodes[pancake.nodes.length - 1].position.x, currentOrientation = Math.sign(lastNodeX - firstNodeX); 
-                if (currentOrientation !== 0 && currentOrientation !== orientationInPan) { score += 10; updateScoreUI(); orientationInPan = currentOrientation; } 
-                flipState = 'in_pan'; 
-            } 
-            const pancakeMinY = Math.min(...pancake.nodes.map(n => n.position.y)); 
-            if (pancakeMinY > ground.position.y - thickness/2 - 20 * scale) {
-                if (!isRoundOver) {
-                    isRoundOver = true;
-                    setTimeout(resetGame, 500);
+            const n = pancake.nodes.length;
+            const pancakeCenterY = pancake.nodes.reduce((sum, node) => sum + node.position.y, 0) / n;
+            const panY = pan.position.y; 
+            if (flipState === 'in_pan') {
+                if (panY - pancakeCenterY > 40 * scale) {
+                    flipState = 'in_air'; hasFlippedInAir = false; 
+                    orientationAtLaunch = Math.sign(pancake.nodes[n - 1].position.x - pancake.nodes[0].position.x);
+                }
+            } else if (flipState === 'in_air') {
+                if (!hasFlippedInAir) {
+                    const currentOrientation = Math.sign(pancake.nodes[n - 1].position.x - pancake.nodes[0].position.x);
+                    if (currentOrientation !== 0 && currentOrientation !== orientationAtLaunch) {
+                        hasFlippedInAir = true;
+                    }
+                }
+                if (isContact) {
+                    if (hasFlippedInAir) { score += 10; updateScoreDisplay(); }
+                    flipState = 'in_pan';
                 }
             }
         });
         
-        function resetGame() { isRoundOver = false; anchorTargetX = W * 0.5; anchorTargetY = H * 0.65; anchorYOffset = 0; desiredAngle = 0; potentialReward = 0; const pivotPos = { x: anchorTargetX, y: anchorTargetY }, offset = Vector.rotate(handleLocal, desiredAngle), center = Vector.sub(pivotPos, offset); Body.setStatic(pan, false); Body.setPosition(pan, center); Body.setAngle(pan, 0); Body.setStatic(pan, true); buildPancake(); score = 0; orientationInPan = 1; flipState = 'in_pan'; updateScoreUI(); }
+        function resetGame() { 
+            isRoundOver = false; anchorTargetX = W * 0.5; anchorTargetY = H * 0.65; anchorYOffset = 0; 
+            desiredAngle = 0; hasFlippedInAir = false; orientationAtLaunch = 1;
+            const pivotPos = { x: anchorTargetX, y: anchorTargetY }, offset = Vector.rotate(handleLocal, desiredAngle), center = Vector.sub(pivotPos, offset); 
+            Body.setStatic(pan, false); Body.setPosition(pan, center); Body.setAngle(pan, 0); Body.setStatic(pan, true); 
+            buildPancake(); score = 0; flipState = 'in_pan'; updateScoreDisplay(); 
+        }
+
         function resetForTraining() { resetGame(); if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ observation: getObservation() })); }
-        function stepGameForTraining(action) { if (isRoundOver) return; applyAction(action); Engine.update(engine, 1000 / 60); const { reward, done } = calculateRewardAndDone(), observation = getObservation(); if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ observation, reward, done })); if (done) setTimeout(resetForTraining, 50); }
+        
+        function stepGameForTraining(action) { 
+            if (isRoundOver) return; 
+            applyAction(action); 
+            Engine.update(engine, 1000 / 60); 
+            const { reward, done } = calculateRewardAndDone(); 
+            updateScoreDisplay(reward);
+            const observation = getObservation(); 
+            if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ observation, reward, done })); 
+            if (done) setTimeout(resetForTraining, 50); 
+        }
 
         function setGameMode(newMode) {
-            gameMode = newMode; sessionStorage.setItem('gameMode', newMode); console.log(`게임 모드 변경: ${newMode}`);
-            document.getElementById('mode-user').classList.toggle('active', newMode === 'USER'); document.getElementById('mode-ai').classList.toggle('active', newMode === 'AI'); document.getElementById('game-mode-status').textContent = newMode;
+            gameMode = newMode; sessionStorage.setItem('gameMode', newMode);
+            document.getElementById('mode-user').classList.toggle('active', newMode === 'USER'); 
+            document.getElementById('mode-ai').classList.toggle('active', newMode === 'AI'); 
+            document.getElementById('game-mode-status').textContent = newMode;
+            updateScoreDisplay();
             const touchControls = document.querySelector('.touch-controls-container');
             if (touchControls) { touchControls.classList.toggle('active', newMode === 'USER'); }
             if (newMode === 'TRAINING') { runner.enabled = false; if(aiLoopInterval) clearInterval(aiLoopInterval); aiLoopInterval = null;
@@ -247,12 +393,8 @@
 
         window.addEventListener('keydown', (e) => {
           if (gameMode === 'USER') {
-              if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Space', 'KeyW', 'KeyS'].includes(e.code)) {
-                  e.preventDefault();
-              }
-              if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.code)) {
-                  keys[e.code] = true;
-              }
+              if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Space', 'KeyW', 'KeyS'].includes(e.code)) { e.preventDefault(); }
+              if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.code)) { keys[e.code] = true; }
               if (e.code === 'KeyW') keys['RotateLeft'] = true;
               if (e.code === 'KeyS') keys['RotateRight'] = true;
               if (e.code === 'Space') toss();
