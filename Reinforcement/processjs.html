@@ -249,12 +249,19 @@ class ServerThread(threading.Thread):
         self.observation_queue = queue.Queue()
         self.daemon = True # 메인 스레드가 종료되면 함께 종료
 
-    async def handler(self, websocket, path):
+    # --- FIX ---
+    # 최신 websockets 라이브러리(v10.0+)는 핸들러에 'path' 인자를 전달하지 않습니다.
+    # 따라서 함수 정의에서 'path'를 제거해야 합니다.
+    async def handler(self, websocket):
         logging.info(f"새로운 클라이언트 연결됨: {websocket.remote_address}")
         consumer_task = asyncio.ensure_future(self.consumer(websocket))
         producer_task = asyncio.ensure_future(self.producer(websocket))
-        done, pending = await asyncio.wait([consumer_task, producer_task], return_when=asyncio.FIRST_COMPLETED)
-        for task in pending: task.cancel()
+        done, pending = await asyncio.wait(
+            [consumer_task, producer_task],
+            return_when=asyncio.FIRST_COMPLETED,
+        )
+        for task in pending:
+            task.cancel()
         logging.info(f"클라이언트 연결 종료: {websocket.remote_address}")
 
     async def consumer(self, websocket):
@@ -263,7 +270,8 @@ class ServerThread(threading.Thread):
             try:
                 command = await self.loop.run_in_executor(None, self.command_queue.get)
                 await websocket.send(json.dumps(command))
-            except websockets.exceptions.ConnectionClosed: break
+            except (websockets.exceptions.ConnectionClosed, asyncio.CancelledError):
+                break
 
     async def producer(self, websocket):
         """클라이언트로부터 관측 데이터를 받아 메인 스레드로 전송"""
@@ -272,53 +280,56 @@ class ServerThread(threading.Thread):
                 message = await websocket.recv()
                 data = json.loads(message)
                 if "observation" in data:
-                    obs = np.array(data["observation"], dtype=np.float32)
-                    reward = data.get("reward", 0) # reward가 없으면 0으로 처리
-                    done = data.get("done", False) # done이 없으면 False로 처리
+                    obs = np.array(data["observation"], dtype=np.float64)
+                    reward = data.get("reward", 0)
+                    done = data.get("done", False)
                     self.observation_queue.put((obs, reward, done))
-            except websockets.exceptions.ConnectionClosed: break
+            except (websockets.exceptions.ConnectionClosed, asyncio.CancelledError):
+                break
 
     def run(self):
         asyncio.set_event_loop(self.loop)
-        start_server = websockets.serve(self.handler, "localhost", 8765)
-        self.loop.run_until_complete(start_server)
-        logging.info("웹소켓 서버가 8765 포트에서 시작되었습니다.")
-        self.loop.run_forever()
+        async def start_server():
+            async with websockets.serve(self.handler, "localhost", 8765):
+                await asyncio.Future()
+        try:
+            # run_until_complete() 대신 run()을 사용하여 서버를 실행합니다.
+            # 이 방식은 스레드 종료 시 더 깔끔하게 처리됩니다.
+            self.loop.run_until_complete(start_server())
+        finally:
+            self.loop.close()
 
     def stop(self):
-        if self.loop.is_running(): self.loop.call_soon_threadsafe(self.loop.stop)
+        if self.loop.is_running():
+            self.loop.call_soon_threadsafe(self.loop.stop)
+            logging.info("웹소켓 서버 종료를 시도합니다.")
 
 class WebSocketEnv(gym.Env):
     def __init__(self, observation_shape, action_space_config):
         super(WebSocketEnv, self).__init__()
-        self.observation_space = spaces.Box(low=-np.inf, high=np.inf, shape=observation_shape, dtype=np.float32)
+        self.observation_space = spaces.Box(low=-np.inf, high=np.inf, shape=observation_shape, dtype=np.float64)
         if action_space_config['type'] == 'discrete': self.action_space = spaces.Discrete(action_space_config['n'])
-        elif action_space_config['type'] == 'continuous': self.action_space = spaces.Box(low=np.array(action_space_config['low']), high=np.array(action_space_config['high']), dtype=np.float32)
+        elif action_space_config['type'] == 'continuous': self.action_space = spaces.Box(low=np.array(action_space_config['low']), high=np.array(action_space_config['high']), dtype=np.float64)
         self.server_thread = ServerThread()
         self.server_thread.start()
         print("첫 클라이언트의 연결 및 데이터 수신을 기다립니다...")
 
     def reset(self, seed=None, options=None):
         super().reset(seed=seed)
-        
-        # --- BUG FIX: 큐를 비워 이전 세션의 '유령 데이터'를 제거합니다 ---
         with self.server_thread.observation_queue.mutex:
             self.server_thread.observation_queue.queue.clear()
-            
         self.server_thread.command_queue.put({"command": "reset"})
-        obs, _, _ = self.server_thread.observation_queue.get() # 블로킹 호출로 새 데이터를 기다림
-        
-        # print("환경 리셋 완료. 다음 세대 학습을 시작합니다.")
+        obs, _, _ = self.server_thread.observation_queue.get()
         return obs, {}
 
     def step(self, action):
-        action_to_send = action.tolist() if isinstance(action, np.ndarray) else float(action) # 연속 행동은 float
+        action_to_send = action.tolist() if isinstance(action, np.ndarray) else float(action)
         self.server_thread.command_queue.put({"command": "action", "action": action_to_send})
-        obs, reward, done = self.server_thread.observation_queue.get() # 블로킹 호출
+        obs, reward, done = self.server_thread.observation_queue.get()
         return obs, reward, done, False, {}
 
     def render(self, mode='human'): pass
-    
+   
     def close(self):
         self.server_thread.stop()
         print("웹소켓 서버가 종료되었습니다.")
@@ -357,10 +368,10 @@ OBSERVATION_SHAPE = (4,)
 # 2. 행동 공간 (Action Space) - AI의 '손'
 # ACTION_SPACE_CONFIG = {'type': 'discrete', 'n': 5}
 ACTION_SPACE_CONFIG = {'type': 'continuous', 'low': [-2.0], 'high': [2.0]} # 1차원 연속 행동 예시
-# ACTION_SPACE_CONFIG = {'type': 'continuous', 'low': [-1.0, -3.0], 'high': [1.0, 3.0]} # 2차원 연속 행동 예시
+# ACTION_SPACE_CONFIG = {'type': 'continuous', 'low': [-1.0, -1.0, -1.0, 0.0], 'high': [1.0, 1.0, 1.0, 1.0]} # 2차원 연속 행동 예시
 
 # -----------------
-LOG_DIR, TOTAL_TIMESTEPS, PORT = "training_logs", 200_000, 8000
+LOG_DIR, TOTAL_TIMESTEPS, PORT = "training_logs", 50_000_000, 8000
 os.makedirs(LOG_DIR, exist_ok=True)
 
 class WebServerThread(threading.Thread):
@@ -368,6 +379,7 @@ class WebServerThread(threading.Thread):
     def run(self): self.server = socketserver.TCPServer(("", self.port), http.server.SimpleHTTPRequestHandler); self.server.serve_forever()
     def stop(self):
         if self.server: self.server.shutdown()
+
 
 def find_latest_run_and_checkpoint():
     if not os.path.isdir(LOG_DIR): return None, None
@@ -387,31 +399,31 @@ def main():
     web_server.start()
     time.sleep(1)
     webbrowser.open(f'http://localhost:{PORT}')
-    
+   
     latest_run_name, latest_checkpoint = find_latest_run_and_checkpoint()
-    
+   
     TENSORBOARD_LOG_NAME = latest_run_name if latest_run_name else f"PPO_{int(time.time())}"
     run_path = os.path.join(LOG_DIR, TENSORBOARD_LOG_NAME)
-    
+   
     checkpoint_path = os.path.join(run_path, "checkpoints")
     os.makedirs(checkpoint_path, exist_ok=True)
-    
+   
     env = WebSocketEnv(observation_shape=OBSERVATION_SHAPE, action_space_config=ACTION_SPACE_CONFIG)
     custom_logger = configure(run_path, ["stdout", "tensorboard"])
-    
+   
     checkpoint_callback = CheckpointCallback(save_freq=20000, save_path=checkpoint_path, name_prefix="rl_model")
     progress_callback = ProgressBarCallback()
     callback_list = CallbackList([checkpoint_callback, progress_callback])
-    
+   
     policy_type = "CnnPolicy" if len(OBSERVATION_SHAPE) == 3 else "MlpPolicy"
-    
+   
     if latest_checkpoint:
         print(f"체크포인트에서 학습을 재개합니다: {latest_checkpoint}")
-        model = PPO.load(latest_checkpoint, env=env, device='auto')
+        model = PPO.load(latest_checkpoint, env=env, verbose=0, device='auto')
     else:
         print(f"{policy_type} 정책으로 새로운 학습 세션을 시작합니다.")
         model = PPO(policy_type, env, verbose=0, device='auto') # verbose=0 for clean progress bar
-        
+       
     model.set_logger(custom_logger)
     final_model_path = ""
     try:
@@ -637,7 +649,7 @@ if __name__ == '__main__':
 
         <section id="step5" class="step bg-white p-6 sm:p-8 rounded-2xl shadow-lg border border-slate-200 mb-10">
             <h2 class="text-2xl font-bold mb-4 border-b pb-3 text-slate-900">단계 5: 최종 AI 게임 테스트</h2>
-             <div class="workflow-guide">
+             <div class="workflow-guide mb-10">
                 <h4 class="text-lg">Onnx변환 후 AI 플레이 감상하기</h4>
                 <p class="mt-2 text-sm text-slate-700">이제 모든 준비가 끝났습니다. 학습의 최종 결과물인 `model.onnx`가 얼마나 똑똑해졌는지 확인해볼 시간입니다.</p>
                 <ol class="list-decimal list-inside space-y-2 text-sm text-slate-700 mt-3">
@@ -651,8 +663,7 @@ if __name__ == '__main__':
             </div>
             <div class="code-block-provided">
                     <button class="copy-button">복사</button>
-                    <pre class="bg-slate-100 text-slate-800 p-4 rounded-lg overflow-x-auto text-sm"><code class="language-python"># train_selfplay.py
-import torch
+                    <pre class="bg-slate-100 text-slate-800 p-4 rounded-lg overflow-x-auto text-sm"><code class="language-python">import torch
 import torch.nn as nn
 from stable_baselines3 import PPO
 import numpy as np
