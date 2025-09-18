@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KaTeX 사용법</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.css" integrity="sha384-wcIxkf4k558fYv3eWK7dGoQf7TIQb2eFE1OAp9T63flYBFXCq5zEuETCGoAd+5Sn" crossorigin="anonymous">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.js" integrity="sha384-hIoBPJpTUs74ddyc4bFZSM1YxF3hLAoBEYEZjS3+B1SQEt5NEDv3vycHjவருக்கு賢" crossorigin="anonymous"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/contrib/auto-render.min.js" integrity="sha384-43gviWU0YVjaDtb/GhzOouEsbQMP/6BasKcAiSmdM+ErsWA4iIpxGsvllM3i0dc" crossorigin="anonymous"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Source+Code+Pro&display=swap');
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            line-height: 1.8;
+            color: #e0e0e0;
+            background-color: #121212;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        h1, h2 {
+            font-family: 'Noto Sans KR', sans-serif;
+            color: #bb86fc;
+            border-bottom: 2px solid #bb86fc;
+            padding-bottom: 10px;
+        }
+        code {
+            font-family: 'Source Code Pro', monospace;
+            background-color: #333;
+            padding: 0.2em 0.4em;
+            border-radius: 3px;
+            font-size: 0.9em;
+        }
+        pre {
+            background-color: #1e1e1e;
+            border: 1px solid #444;
+            padding: 1em;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        .katex-display {
+            padding: 1em;
+            background-color: #1e1e1e;
+            border-radius: 5px;
+            border: 1px solid #444;
+            margin: 1em 0;
+        }
+        .example {
+            margin-bottom: 2rem;
+        }
+        .back-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+            padding: 10px 15px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            transition: background-color 0.3s;
+            z-index: 100;
+        }
+        .back-button:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <a href="../Teacher/index.html" class="back-button">&larr; Back</a>
+    <h1>KaTeX 사용법 (Cheatsheet)</h1>
+
+    <p>KaTeX는 웹에서 빠르고 쉽게 수학 수식을 렌더링하는 라이브러리입니다. 아래는 기본적인 사용법입니다.</p>
+
+    <h2>기본 설정</h2>
+    <p>HTML의 <code>&lt;head&gt;</code> 태그 안에 아래의 CDN 링크를 추가하여 KaTeX를 페이지에 포함시킵니다.</p>
+    <pre><code>&lt;!-- CSS --&gt;
+&lt;link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.css">
+
+&lt;!-- JS --&gt;
+&lt;script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.js">&lt;/script&gt;
+
+&lt;!-- Auto-render Extension --&gt;
+&lt;script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/contrib/auto-render.min.js">&lt;/script&gt;
+</code></pre>
+    <p>그리고 <code>&lt;body&gt;</code> 태그 마지막에 아래 스크립트를 추가하여 페이지 내의 수식을 자동으로 렌더링하도록 설정합니다.</p>
+    <pre><code>&lt;script&gt;
+    document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, {
+            delimiters: [
+                {left: "$$", right: "$$", display: true},
+                {left: "$", right: "$", display: false},
+                {left: "\[", right: "\]", display: true},
+                {left: "\\(", right: "\\)", display: false}
+            ]
+        });
+    });
+&lt;/script&gt;
+</code></pre>
+    
+    <h2>사용 예제</h2>
+
+    <div class="example">
+        <h3>인라인 수식 (Inline)</h3>
+        <p>문장 안에 수식을 넣으려면 <code>$</code> 기호로 감쌉니다.</p>
+        <pre><code>피타고라스 정리는 $a^2 + b^2 = c^2$ 입니다.</code></pre>
+        <p><b>결과:</b> 피타고라스 정리는 $a^2 + b^2 = c^2$ 입니다.</p>
+    </div>
+
+    <div class="example">
+        <h3>블록 수식 (Display/Block)</h3>
+        <p>수식을 별도의 줄에 크게 표시하려면 <code>$$</code> 기호로 감쌉니다.</p>
+        <pre><code>근의 공식은 다음과 같습니다. $$x = {-b pm s t r o t} { b ^ 2 - 4 a c } { 2 a }$$</code></pre>
+        <p><b>결과:</b> 근의 공식은 다음과 같습니다. $$x = {-b pm s t r o t} { b ^ 2 - 4 a c } { 2 a }$$</p>
+    </div>
+
+    <div class="example">
+        <h3>분수와 제곱근</h3>
+        <pre><code>$$\ f r a c t { 1 } { 2 }   \ s q r t { x ^ 2 + y ^ 2 }$$</code></pre>
+        <p><b>결과:</b></p>
+        <p>$$\ f r a c t { 1 } { 2 }   \ s q r t { x ^ 2 + y ^ 2 }$$</p>
+    </div>
+
+    <div class="example">
+        <h3>그리스 문자</h3>
+        <pre><code>$\ a l p h a, \ b e t a, \ g a m m a, \ D e l t a, \ O m e g a$</code></pre>
+        <p><b>결과:</b> $\ a l p h a, \ b e t a, \ g a m m a, \ D e l t a, \ O m e g a$</p>
+    </div>
+
+    <div class="example">
+        <h3>합계 및 적분</h3>
+        <pre><code>$$\ s u m _ { i = 1 } ^ { n }   i ^ 2   =   \ f r a c t { n ( n + 1 ) ( 2 n + 1 ) } { 6 }   \   \ i n t g _ { a } ^ { b }   f ( x ) d x$$</code></pre>
+        <p><b>결과:</b></p>
+        <p>$$\ s u m _ { i = 1 } ^ { n }   i ^ 2   =   \ f r a c t { n ( n + 1 ) ( 2 n + 1 ) } { 6 }   \   \ i n t g _ { a } ^ { b }   f ( x ) d x$$</p>
+    </div>
+
+    <div class="example">
+        <h3>행렬</h3>
+        <pre><code>$$ 
+A = \ b e g i n { c a t r i x } 
+ a   &   b \ \ 
+ c   &   d \ \ 
+ \ e n d { c a t r i x } 
+$$</code></pre>
+        <p><b>결과:</b></p>
+        <p>$$ 
+A = \ b e g i n { c a t r i x } 
+ a   &   b \ \ 
+ c   &   d \ \ 
+ \ e n d { c a t r i x } 
+$$</p>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            renderMathInElement(document.body, {
+                delimiters: [
+                    {left: "$$", right: "$$", display: true},
+                    {left: "$", right: "$", display: false},
+                    {left: "\[", right: "\]", display: true},
+                    {left: "\\(", right: "\\)", display: false}
+                ]
+            });
+        });
+    </script>
+</body>
+</html>
