@@ -124,6 +124,7 @@
 <script type="module">
     import * as THREE from 'three';
     import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import { ConvexGeometry } from 'three/addons/geometries/ConvexGeometry.js';
 
     let polyhedraDB = [];
     const listContainer = document.getElementById('polyhedra-list');
@@ -180,6 +181,10 @@
         const container = document.getElementById('viewer-container');
         renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
         renderer.setPixelRatio(window.devicePixelRatio);
+
+        renderer.setSize(container.clientWidth, container.clientHeight);
+        renderer.outputColorSpace = THREE.SRGBColorSpace;
+
         container.appendChild(renderer.domElement);
         scene = new THREE.Scene();
         camera = new THREE.PerspectiveCamera(50, container.clientWidth / container.clientHeight, 0.1, 100);
@@ -211,65 +216,201 @@
         renderer.render(scene, camera);
     };
 
+    const disposeObject3D = (obj) => {
+        obj.traverse((child) => {
+            if (child.isMesh || child.isLine || child.isLineSegments) {
+            if (child.geometry) child.geometry.dispose();
+            if (Array.isArray(child.material)) child.material.forEach(m => m && m.dispose());
+            else if (child.material) child.material.dispose();
+        }
+    });
+    };
+
     const createPolyhedronMesh = (polyhedron) => {
-        if (currentMesh) {
-            scene.remove(currentMesh);
-            if(currentMesh.children.length > 0) {
-              currentMesh.children.forEach(child => {
-                child.geometry.dispose();
-                if (Array.isArray(child.material)) child.material.forEach(m => m.dispose());
-                else child.material.dispose();
-              });
-            }
-        }
-        
-        if (!polyhedron.geometryData) return null;
+        if (currentMesh) { scene.remove(currentMesh); disposeObject3D(currentMesh); currentMesh = null; }
 
-        let geometry;
-        const { geometryData } = polyhedron;
+        const gd = polyhedron?.geometryData;
+        if (!gd) return null;
 
-        if (geometryData.generator) {
-            const size = 1.6;
-            const detail = 0;
-            switch (geometryData.generator) {
-                case 'Icosahedron': geometry = new THREE.IcosahedronGeometry(size, detail); break;
-                case 'Dodecahedron': geometry = new THREE.DodecahedronGeometry(size, detail); break;
-                default: geometry = new THREE.BoxGeometry(size,size,size);
-            }
-        } else if (geometryData.vertices && geometryData.faces) {
-            const vertices = geometryData.vertices.flat();
-            const faces = geometryData.faces.flatMap(face => {
-                if (face.length < 3) return [];
-                const triangles = [];
-                for (let i = 1; i < face.length - 1; i++) {
-                    triangles.push(face[0], face[i], face[i + 1]);
-                }
-                return triangles;
-            });
-            geometry = new THREE.BufferGeometry();
-            geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
-            geometry.setIndex(faces);
-            geometry.computeVertexNormals();
-        } else {
-            return null;
-        }
-        
-        geometry.center();
+        const geom = makeGeometry(gd);
+        if (!geom) return null;
 
-        const faceMaterial = new THREE.MeshStandardMaterial({
-            color: 0x0891b2, // cyan-600
+        const surface = new THREE.Mesh(
+            geom,
+            new THREE.MeshStandardMaterial({
+            color: 0x0891b2,
             metalness: 0.1,
             roughness: 0.5,
-        });
-        const edgeMaterial = new THREE.MeshBasicMaterial({ color: 0x0f172a, wireframe: true, transparent: true, opacity: 0.1 });
+            flatShading: true,
+            polygonOffset: true,
+            polygonOffsetFactor: 1,
+            polygonOffsetUnits: 1,
+            side: THREE.FrontSide
+            })
+        );
+
+        const edges = new THREE.LineSegments(
+            new THREE.EdgesGeometry(geom, 1),
+            new THREE.LineBasicMaterial({ color: 0x0f172a, transparent: true, opacity: 0.35 })
+        );
 
         currentMesh = new THREE.Group();
-        currentMesh.add(new THREE.Mesh(geometry, faceMaterial));
-        currentMesh.add(new THREE.Mesh(geometry.clone(), edgeMaterial));
-        
+        currentMesh.add(surface);
+        currentMesh.add(edges);
         scene.add(currentMesh);
         return currentMesh;
+        };
+
+    const makeBufferGeometryFromFaces = (geometryData) => {
+    const V = geometryData.vertices.map(([x,y,z]) => new THREE.Vector3(x,y,z));
+    const faces = geometryData.faces;
+
+    // 전역 중심
+    const globalCentroid = V.reduce((a,v)=>a.add(v), new THREE.Vector3()).multiplyScalar(1/V.length);
+
+    const indices = [];
+    // 면 방향 교정 + 삼각분할
+    for (const face of faces) {
+        if (!face || face.length < 3) continue;
+
+        const idxs = face.slice(); // copy
+        const v0 = V[idxs[0]];
+        // 법선 시도 (첫 유효 삼각형 찾기)
+        let n = new THREE.Vector3(0,0,0);
+        for (let i=1; i<idxs.length-1 && n.lengthSq()===0; i++) {
+        const a = V[idxs[i]].clone().sub(v0);
+        const b = V[idxs[i+1]].clone().sub(v0);
+        n.copy(a.cross(b));
+        }
+        // 면 중심과 방향 비교해서 안쪽이면 뒤집기
+        const faceCentroid = idxs.reduce((acc,i)=>acc.add(V[i]), new THREE.Vector3()).multiplyScalar(1/idxs.length);
+        if (n.dot(faceCentroid.clone().sub(globalCentroid)) < 0) idxs.reverse();
+
+        // triangle fan
+        for (let i=1; i<idxs.length-1; i++) {
+        const a = idxs[0], b = idxs[i], c = idxs[i+1];
+        const area2 = V[b].clone().sub(V[a]).cross(V[c].clone().sub(V[a])).lengthSq();
+        if (area2 > 1e-12) indices.push(a,b,c); // 0면적 삼각형 제거
+        }
+    }
+
+    const positions = new Float32Array(V.length * 3);
+    V.forEach((p,i)=>{ positions[3*i]=p.x; positions[3*i+1]=p.y; positions[3*i+2]=p.z; });
+
+    const geom = new THREE.BufferGeometry();
+    geom.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+    // 큰 지오메트리 대비 16/32비트 인덱스 자동 선택
+    const IndexAttr = (V.length > 65535 || Math.max(...indices,0) > 65535)
+        ? THREE.Uint32BufferAttribute
+        : THREE.Uint16BufferAttribute;
+    geom.setIndex(new IndexAttr(indices, 1));
+    geom.computeVertexNormals();
+    geom.computeBoundingBox();
+    geom.computeBoundingSphere();
+    geom.center(); // 화면 가운데 정렬
+    return geom;
     };
+
+    const validateGeometryData = (gd) => {
+        if (!gd?.vertices?.length || !gd?.faces?.length) return { ok:false, reason:'no-verts-or-faces' };
+        const V = gd.vertices.length;
+        // 인덱스/길이 검증
+        for (const f of gd.faces) {
+            if (!Array.isArray(f) || f.length < 3) return { ok:false, reason:'degenerate-face' };
+            for (const i of f) if (i < 0 || i >= V || !Number.isInteger(i)) return { ok:false, reason:'index-out-of-range' };
+        }
+        return { ok:true };
+    };
+
+    const geometryFromFaces = (gd) => {
+        const V = gd.vertices.map(([x,y,z]) => new THREE.Vector3(x,y,z));
+        const globalC = V.reduce((a,v)=>a.add(v), new THREE.Vector3()).multiplyScalar(1/V.length);
+
+        const indices = [];
+        for (const face of gd.faces) {
+            if (!Array.isArray(face) || face.length < 3) continue;
+            const f = face.slice();
+            // 대충의 법선(첫 유효 삼각형)
+            let n = new THREE.Vector3();
+            for (let i=1; i<f.length-1 && n.lengthSq()===0; i++) {
+            const a = V[f[i]].clone().sub(V[f[0]]);
+            const b = V[f[i+1]].clone().sub(V[f[0]]);
+            n.copy(a.cross(b));
+            }
+            if (n.lengthSq() === 0) continue; // 퇴화면 skip
+
+            // 면 중심
+            const fc = f.reduce((acc,i)=>acc.add(V[i]), new THREE.Vector3()).multiplyScalar(1/f.length);
+
+            // 면 평면 좌표축(u,v) 만들고 각도 기준 정렬
+            let u = V[f[0]].clone().sub(fc); if (u.lengthSq()===0) u.set(1,0,0);
+            u.normalize();
+            const v = n.clone().cross(u).normalize();
+
+            const ordered = f.map(idx => {
+            const d = V[idx].clone().sub(fc);
+            const ang = Math.atan2(d.dot(v), d.dot(u));
+            return { idx, ang };
+            }).sort((a,b)=>a.ang - b.ang).map(o=>o.idx);
+
+            // 바깥 방향(전역 중심으로부터 바깥쪽)으로 노멀 맞추기
+            if (n.dot(fc.clone().sub(globalC)) < 0) ordered.reverse();
+
+            // 삼각 팬, 0 면적 삼각형 제거
+            for (let i=1; i<ordered.length-1; i++) {
+            const a = ordered[0], b = ordered[i], c = ordered[i+1];
+            const area2 = V[b].clone().sub(V[a]).cross(V[c].clone().sub(V[a])).lengthSq();
+            if (area2 > 1e-12) indices.push(a,b,c);
+            }
+        }
+
+        const pos = new Float32Array(V.length*3);
+        V.forEach((p,i)=>{ pos[3*i]=p.x; pos[3*i+1]=p.y; pos[3*i+2]=p.z; });
+
+        const geom = new THREE.BufferGeometry();
+        geom.setAttribute('position', new THREE.Float32BufferAttribute(pos,3));
+
+        // 인덱스 타입 자동 선택(대용량에서도 안전하게)
+        let maxIndex = 0; for (let i=0; i<indices.length; i++) if (indices[i] > maxIndex) maxIndex = indices[i];
+        const IndexAttr = (V.length > 65535 || maxIndex > 65535) ? THREE.Uint32BufferAttribute : THREE.Uint16BufferAttribute;
+        geom.setIndex(new IndexAttr(indices,1));
+
+        geom.computeVertexNormals();
+        geom.computeBoundingBox();
+        geom.computeBoundingSphere();
+        geom.center();
+        return geom;
+        };
+
+
+            const makeGeometry = (gd) => {
+        // 1) 제너레이터 우선
+        if (gd.generator) {
+            const size = 1.6, detail = 0;
+            switch (gd.generator) {
+            case 'Tetrahedron':   return new THREE.TetrahedronGeometry(size, detail);
+            case 'Box':           return new THREE.BoxGeometry(size,size,size);
+            case 'Octahedron':    return new THREE.OctahedronGeometry(size, detail);
+            case 'Dodecahedron':  return new THREE.DodecahedronGeometry(size, detail);
+            case 'Icosahedron':   return new THREE.IcosahedronGeometry(size, detail);
+            // 나머지 제너레이터는 별도 구현/좌표 세트에 매핑해 사용
+            default: break;
+            }
+        }
+
+        // 2) 수동 좌표면 → 면 교정 후 삼각분할
+        if (gd.vertices?.length && gd.faces?.length) return geometryFromFaces(gd);
+
+        // 3) 폴백: 볼록껍질(ConvexGeometry) — import 필요
+        if (gd.vertices?.length >= 4) {
+            const pts = gd.vertices.map(([x,y,z]) => new THREE.Vector3(x,y,z));
+            const hull = new ConvexGeometry(pts);
+            hull.center();
+            return hull;
+        }
+        return null;
+    };
+
 
     const openModal = (polyhedron) => {
         document.getElementById('modal-title').textContent = polyhedron.name;
