@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orange3 데이터 분석 프로젝트 보고서 (예시)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" xintegrity="sha384-n8MVd4RsNIU07vaPkpxUalGOz4A6PCgbNEOFJMYGfCKijWLLbsc1nlCATRTeDD5b" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" xintegrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzUOEleOLALmuqehneUG+vnGctmImQXLwlu" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" xintegrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous"></script>
+    <style>
+        :root { --bg-primary: #f1f5f9; --bg-secondary: #ffffff; --bg-tertiary: #f8fafc; --text-primary: #1e293b; --text-secondary: #475569; --border-primary: #e2e8f0; --border-secondary: #cbd5e1; --accent-color: #f97316; }
+        body { font-family: 'Inter', 'Noto Sans KR', sans-serif; background-color: var(--bg-primary); color: var(--text-secondary); }
+        .section-card { background-color: var(--bg-secondary); }
+        h1, h2, h3, h4, h5, h6 { color: var(--text-primary); }
+        .markdown-preview { margin-top: 1rem; padding: 1rem; background-color: var(--bg-tertiary); border-radius: 0.5rem; border: 1px solid var(--border-primary); min-height: 120px; }
+        .prose { --tw-prose-body: var(--text-primary); --tw-prose-headings: var(--text-primary); --tw-prose-links: var(--accent-color); --tw-prose-bold: var(--text-primary); --tw-prose-code: var(--text-primary); --tw-prose-bullets: var(--text-secondary); }
+        .readonly-input { width: 100%; background-color: transparent; font-size: 1rem; }
+        
+        @media print {
+            body {
+                background-color: #ffffff !important;
+            }
+            .section-card {
+                page-break-inside: avoid;
+                break-inside: avoid;
+                box-shadow: none !important;
+                border: 1px solid #e2e8f0;
+                margin-bottom: 1.5rem;
+            }
+            /* header {
+                 display: none;
+            } */
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-700">
+    <main class="container mx-auto max-w-4xl p-4 sm:p-8">
+        <header class="text-center mb-12">
+            <h1 class="text-4xl sm:text-5xl font-bold tracking-tight">🍊 Orange3 데이터 분석 프로젝트 보고서 (예시)</h1>
+        </header>
+
+        <section class="bg-white p-6 sm:p-8 rounded-xl shadow-lg mb-8 section-card">
+            <div class="space-y-6">
+                <div><label class="text-xl font-semibold">🚀 프로젝트 제목</label><div class="readonly-input mt-2 border-b pb-2">Orange3를 활용한 붓꽃(Iris) 품종 분류 모델 성능 비교</div></div>
+                <div><label class="text-xl font-semibold">🔢 학번</label><div class="readonly-input mt-2 border-b pb-2">10510</div></div>
+                <div><label class="text-xl font-semibold">🆎 이름</label><div class="readonly-input mt-2 border-b pb-2">박데이터</div></div>
+            </div>
+        </section>
+
+        <section class="bg-white p-6 sm:p-8 rounded-xl shadow-lg mb-8 section-card">
+            <h2 class="text-3xl font-bold border-b-2 border-orange-500 pb-3 mb-6">제작 동기</h2>
+            <div class="markdown-preview prose max-w-none"><p>생명과학 시간에 식물의 분류 체계에 대해 배우면서, 비슷한 식물이라도 미세한 특징에 따라 종이 나뉜다는 점에 흥미를 느꼈습니다. 이러한 특징들을 데이터로 활용하여 컴퓨터가 스스로 품종을 구별하게 할 수 있는지 궁금해졌습니다. 코딩 없이도 강력한 데이터 분석이 가능한 Orange3를 이용하여, 데이터 과학 분야의 기본 원리를 탐구하고 진로를 탐색해보고자 이 프로젝트를 시작하게 되었습니다.</p></div>
+        </section>
+
+        <section class="bg-white p-6 sm:p-8 rounded-xl shadow-lg mb-8 section-card">
+            <h2 class="text-3xl font-bold border-b-2 border-orange-500 pb-3 mb-6">만들면서 어려웠던 점과 극복 방식</h2>
+            <h3 class="text-xl font-semibold mt-4">😥 만들면서 어려웠던 점</h3>
+            <div class="markdown-preview prose max-w-none"><p>Test & Score 위젯에서 AUC, F1-Score, Precision 등 여러 성능 평가 지표가 나왔는데, 각 지표가 무엇을 의미하는지 그리고 어떤 상황에서 더 중요한 지표가 되는지 이해하는 것이 어려웠습니다. 단순히 정확도(Accuracy)만 높다고 좋은 모델이 아니라는 점을 받아들이기 힘들었습니다.</p></div>
+            <h3 class="text-xl font-semibold mt-8">💪 극복한 방법</h3>
+            <div class="markdown-preview prose max-w-none"><p>관련 블로그와 유튜브 영상을 찾아보며 각 평가 지표의 개념을 공부했습니다. 특히 실제 암 진단 예시처럼 '틀리면 안 되는 것을 틀렸을 때(FN)'와 '맞춰야 할 것을 틀렸을 때(FP)'의 중요도가 다른 경우를 학습하며, 상황에 맞는 지표 선택의 중요성을 깨달았습니다. 혼동 행렬(Confusion Matrix)을 함께 보며 각 지표가 어떻게 계산되는지 직접 확인한 것이 큰 도움이 되었습니다.</p></div>
+        </section>
+
+        <section class="bg-white p-6 sm:p-8 rounded-xl shadow-lg mb-8 section-card">
+            <h2 class="text-3xl font-bold border-b-2 border-orange-500 pb-3 mb-6">프로젝트 사용 개념</h2>
+            <h3 class="text-xl font-semibold mt-4">📊 사용 데이터 설명</h3>
+            <div class="markdown-preview prose max-w-none"><p>피셔(Fisher)의 붓꽃(Iris) 데이터셋을 사용했습니다. 이 데이터는 통계학과 머신러닝 분야에서 분류 모델 예제로 널리 사용됩니다. <br> - <strong>데이터 출처</strong>: Orange3 내장 데이터셋 (File 위젯) <br> - <strong>전체 데이터 수</strong>: 150개 <br> - <strong>훈련 방식</strong>: 10-fold Cross Validation (데이터를 10개의 그룹으로 나누어 9개는 훈련에, 1개는 검증에 사용하는 방식을 10번 반복하여 모델 성능의 신뢰도를 높임)</p></div>
+            
+            <h4 class="text-lg font-semibold mt-6 mb-2">수치 데이터의 경우 (변수 설명)</h4>
+            <div class="markdown-preview prose max-w-none"><ul><li><strong>iris (Target)</strong>: 범주형, 붓꽃의 품종 (setosa, versicolor, virginica)</li><li><strong>sepal length (Feature)</strong>: 수치형, 꽃받침의 길이 (cm)</li><li><strong>sepal width (Feature)</strong>: 수치형, 꽃받침의 너비 (cm)</li><li><strong>petal length (Feature)</strong>: 수치형, 꽃잎의 길이 (cm)</li><li><strong>petal width (Feature)</strong>: 수치형, 꽃잎의 너비 (cm)</li></ul></div>
+
+            <h3 class="text-xl font-semibold mt-8">⚙️ Orange3 워크플로우</h3>
+            <p class="text-slate-600 mb-4">아래는 본 프로젝트에서 구성한 Orange3 워크플로우입니다.</p>
+            <div class="screenshot-container"><img src="https://placehold.co/800x450/e2e8f0/475569?text=Orange3+Workflow" alt="Orange3 워크플로우 화면" class="w-full h-full object-contain rounded-lg"></div>
+            <div class="markdown-preview prose max-w-none mt-4"><p>File 위젯으로 Iris 데이터를 불러온 후, 3개의 분류 모델(Tree, SVM, Logistic Regression)에 연결했습니다. 각 모델의 학습 결과를 Test & Score 위젯으로 보내 성능을 비교 평가하고, 가장 성능이 좋은 모델의 결과를 Confusion Matrix 위젯으로 보내 시각적으로 분석했습니다.</p></div>
+        </section>
+
+        <section class="bg-white p-6 sm:p-8 rounded-xl shadow-lg mb-8 section-card">
+            <h2 class="text-3xl font-bold border-b-2 border-orange-500 pb-3 mb-6">학습 결과 분석 (Test & Score / 혼동 행렬)</h2>
+            <p class="text-slate-600 mb-4">아래는 Test & Score 위젯의 결과 화면입니다.</p>
+            <div class="screenshot-container"><img src="https://placehold.co/800x450/e2e8f0/475569?text=Test+%26+Score+Results" alt="Test & Score 결과 화면" class="w-full h-full object-contain rounded-lg"></div>
+            <h3 class="text-xl font-semibold mt-8">결과 해석</h3>
+            <div class="markdown-preview prose max-w-none mt-4"><p>Test & Score 결과, 세 모델 모두 95% 이상의 높은 정확도(CA)를 보였습니다. 모델 간 성능을 더 정밀하게 비교하기 위해 AUC 점수를 확인한 결과, <strong>SVM 모델이 0.995로 가장 높은 점수</strong>를 기록했으며, 로지스틱 회귀(0.994), 결정 트리(0.963)가 그 뒤를 이었습니다. AUC는 모델이 얼마나 클래스를 잘 구별하는지를 나타내는 지표로, 이 데이터셋에서는 SVM이 품종을 분류하는 데 가장 탁월한 성능을 보인다고 해석할 수 있습니다. 결정 트리 모델도 준수한 성능을 보였지만, 다른 두 모델에 비해서는 상대적으로 성능이 낮게 나타났습니다.</p></div>
+        </section>
+
+        <section class="bg-white p-6 sm:p-8 rounded-xl shadow-lg mb-8 section-card">
+            <h2 class="text-3xl font-bold border-b-2 border-orange-500 pb-3 mb-6">프로젝트 관련 교과 지식 탐구</h2>
+            <h3 class="text-xl font-semibold mt-4">🔬 사용된 데이터 관련 개념</h3>
+            <div class="markdown-preview prose max-w-none"><p><strong>생명과학 - 식물의 분류</strong>: 붓꽃 데이터는 생물의 분류 체계(종-속-과-목-강-문-계) 중 '종(species)'을 구분하는 과정과 관련이 깊습니다. 데이터에 사용된 꽃받침과 꽃잎의 길이/너비는 식물을 분류하는 주요 기준인 '형태학적 특성'에 해당합니다. 이처럼 측정 가능한 외부 형태로 종을 구분하는 것은 전통적인 생물 분류학의 핵심 원리입니다.</p></div>
+            <h3 class="text-xl font-semibold mt-8">⚙️ 사용된 모델 관련 개념</h3>
+            <div class="markdown-preview prose max-w-none"><p><strong>수학 - 결정 트리(Decision Tree)</strong>: 결정 트리 모델은 데이터를 가장 잘 구분할 수 있는 질문(특성)을 찾아 '예/아니오'로 계속해서 가지를 쳐나가며 데이터를 분류하는 방식입니다. 이때 최적의 질문을 찾기 위해 '불순도(Impurity)'라는 개념을 사용하는데, 대표적으로 <strong>지니 불순도(Gini Impurity)</strong>나 <strong>엔트로피(Entropy)</strong>가 있습니다. 엔트로피의 공식은 $ E(S) = \sum_{i=1}^{c} -p_i \log_2(p_i) $ 이며, 이 값이 낮아지는 방향으로 트리를 성장시켜 나갑니다. 이는 정보 이론과 확률 통계 지식에 기반한 원리입니다.</p></div>
+        </section>
+
+        <section class="bg-white p-6 sm:p-8 rounded-xl shadow-lg mb-8 section-card">
+            <h2 class="text-3xl font-bold border-b-2 border-orange-500 pb-3 mb-6">느낀점</h2>
+            <div class="markdown-preview prose max-w-none"><p>복잡한 코딩 없이도 데이터의 특징을 분석하고, 머신러닝 모델을 만들어 성능을 평가하는 전 과정을 체험할 수 있다는 점이 매우 인상 깊었습니다. 단순히 데이터를 넣고 결과를 보는 것을 넘어, 각 모델의 원리를 공부하고 왜 이런 결과가 나왔는지 고민하는 과정에서 데이터 과학자라는 직업에 더 큰 매력을 느끼게 되었습니다. 교과서에서 배우던 수학, 과학 지식이 실제 문제를 해결하는 데 어떻게 사용되는지 직접 확인할 수 있었던 소중한 경험이었습니다.</p></div>
+        </section>
+
+        <section class="bg-white p-6 sm:p-8 rounded-xl shadow-lg mb-8 section-card">
+            <h2 class="text-3xl font-bold border-b-2 border-orange-500 pb-3 mb-6">향후 계획</h2>
+            <div class="markdown-preview prose max-w-none"><p>이번에는 주어진 4가지 특성만 사용했지만, 다음에는 잎의 모양이나 줄기의 굵기 등 새로운 특성을 추가하여 모델의 성능이 어떻게 변하는지 연구해보고 싶습니다. 또한, 붓꽃 데이터뿐만 아니라 버섯의 독성 여부나 와인의 품질을 예측하는 등 더 복잡하고 현실적인 데이터셋에 도전하여 분석 능력을 키워나가고 싶습니다.</p></div>
+        </section>
+
+        <section class="bg-white p-6 sm:p-8 rounded-xl shadow-lg mb-8 section-card">
+            <h2 class="text-3xl font-bold border-b-2 border-orange-500 pb-3 mb-6">참고 문헌</h2>
+            <div class="markdown-preview prose max-w-none"><p>Orange3. (2023). <em>Test & Score</em>. Orange Visual Programming documentation. https://orange3.readthedocs.io/projects/orange-visual-programming/en/latest/widgets/evaluate/testandscore.html</p><p>Wikipedia. (2023, 8월 15일). <em>Iris flower data set</em>. https://en.wikipedia.org/wiki/Iris_flower_data_set</p></div>
+        </section>
+    </main>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.renderMathInElement) {
+                renderMathInElement(document.body, { delimiters: [ {left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false} ] });
+            }
+        });
+    </script>
+</body>
+</html>
+
