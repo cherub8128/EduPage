@@ -135,7 +135,7 @@
 
     async function loadData() {
         try {
-            const response = await fetch('Math/polyhedra_db.json');
+            const response = await fetch('./polyhedra_db.json');
             if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
             const data = await response.json();
             polyhedraDB = data.polyhedra;
