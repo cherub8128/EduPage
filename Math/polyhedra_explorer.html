@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>다면체 백과사전</title>
+    <title>다면체 백과사전 (최종판)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
     <!-- Google Model Viewer -->
@@ -55,13 +55,37 @@
             width: 100%;
             height: 100%;
             --poster-color: transparent;
-            background-color: #e8ecf2; /* Light blue-gray background for viewer */
+            background-color: #e8ecf2;
+        }
+        /* Loading Spinner Animation */
+        .loader {
+            border: 4px solid #f3f3f3; /* Light grey */
+            border-top: 4px solid var(--accent-secondary); /* Blue */
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Initial page loader styles */
+        #page-loader {
+            transition: opacity 0.5s ease-out;
         }
     </style>
 </head>
 <body>
+    
+    <!-- Initial Page Loader -->
+    <div id="page-loader" class="fixed inset-0 flex flex-col items-center justify-center bg-white z-50">
+        <div class="loader"></div>
+        <p class="mt-4 text-lg" style="color: var(--accent-main);">데이터베이스 로딩 중...</p>
+    </div>
 
-    <div id="app" class="container mx-auto p-4 md:p-8">
+    <div id="app" class="container mx-auto p-4 md:p-8 opacity-0 transition-opacity duration-500">
         <header class="text-center mb-8">
             <h1 class="text-4xl md:text-5xl font-bold" style="color: var(--accent-main);">다면체 백과사전</h1>
             <p style="color: var(--text-light);" class="mt-2 text-lg">알려진 모든 다면체를 검색하고 3D로 탐험하세요.</p>
@@ -86,16 +110,25 @@
     <div id="modal" class="fixed inset-0 bg-black bg-opacity-50 modal-backdrop hidden items-center justify-center p-4">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col md:flex-row overflow-hidden">
             <div id="modal-3d-container" class="w-full md:w-1/2 h-64 md:h-auto min-h-[300px] flex items-center justify-center relative" style="background-color: #e8ecf2;">
+                <!-- Model Loading Indicator -->
+                <div id="model-loading-overlay" class="absolute inset-0 flex flex-col items-center justify-center bg-gray-200 bg-opacity-75 z-10">
+                    <div class="loader"></div>
+                    <p class="mt-4 text-lg" style="color: var(--accent-main);">모델 로딩 중...</p>
+                </div>
+                <!-- Model Viewer -->
                 <model-viewer id="polyhedron-viewer" 
+                    class="opacity-0 transition-opacity duration-300"
                     src="" 
                     alt="다면체 3D 모델"
                     camera-controls 
                     auto-rotate
                     disable-zoom
-                    shadow-intensity="1.2"
-                    shadow-softness="0.8"
+                    shadow-intensity="1.0"
+                    shadow-softness="1.0"
+                    exposure="1.0"
                     skybox-color="#F2F2F2">
                 </model-viewer>
+                <!-- Error Message -->
                 <div id="model-error" class="hidden absolute inset-0 flex items-center justify-center text-center p-4" style="color: var(--text-light);">
                     <span>3D 모델을 불러올 수 없습니다.<br>(파일을 찾을 수 없거나 형식이 올바르지 않습니다.)</span>
                 </div>
@@ -122,7 +155,9 @@
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => {
+            const pageLoader = document.getElementById('page-loader');
+            const appContainer = document.getElementById('app');
             const grid = document.getElementById('polyhedra-grid');
             const searchInput = document.getElementById('search-input');
             const modal = document.getElementById('modal');
@@ -130,21 +165,20 @@
             const noResults = document.getElementById('no-results');
             const viewer = document.getElementById('polyhedron-viewer');
             const modelError = document.getElementById('model-error');
+            const modelLoadingOverlay = document.getElementById('model-loading-overlay');
 
             let polyhedraData = [];
 
-            // Helper function to check if a file exists on the server
             async function checkFileExists(url) {
                 try {
                     const response = await fetch(url, { method: 'HEAD', cache: 'no-cache' });
-                    return response.ok; // Returns true for 2xx status codes
+                    return response.ok;
                 } catch (error) {
-                    console.error('Network error checking file:', url, error);
                     return false;
                 }
             }
             
-            async function loadData() {
+            async function loadDataAndRender() {
                 try {
                     const response = await fetch('./polyhedra_db.json');
                     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
@@ -153,7 +187,12 @@
                     await displayPolyhedra(polyhedraData);
                 } catch (error) {
                     console.error("Failed to load polyhedra data:", error);
-                    grid.innerHTML = `<p class="text-red-500 text-center col-span-full">데이터 로딩에 실패했습니다. 파일을 확인해주세요.</p>`;
+                    appContainer.innerHTML = `<p class="text-red-500 text-center col-span-full">데이터 로딩에 실패했습니다. 파일을 확인해주세요.</p>`;
+                } finally {
+                    // Hide page loader and show app content
+                    pageLoader.style.opacity = '0';
+                    appContainer.style.opacity = '1';
+                    setTimeout(() => pageLoader.style.display = 'none', 500); // Remove from layout after fade out
                 }
             }
 
@@ -194,9 +233,9 @@
                 document.getElementById('modal-edges').textContent = polyhedron.edges;
                 document.getElementById('modal-vertices').textContent = polyhedron.vertices;
                 document.getElementById('modal-wythoff').textContent = polyhedron.wythoff;
-
+                
                 const propertiesContainer = document.getElementById('modal-properties');
-                propertiesContainer.innerHTML = '';
+                propertiesContainer.innerHTML = ''; 
                 polyhedron.properties.forEach(prop => {
                     const badge = document.createElement('span');
                     const isInfinite = prop === '무한 계열';
@@ -212,13 +251,15 @@
                     propertiesContainer.appendChild(badge);
                 });
 
-                viewer.style.display = 'block';
                 modelError.classList.add('hidden');
+                viewer.classList.add('opacity-0');
+                viewer.classList.remove('opacity-100');
                 
                 if (polyhedron.glbFile) {
+                    modelLoadingOverlay.classList.remove('hidden');
                     viewer.src = `./glb/${polyhedron.glbFile}`;
                 } else {
-                    viewer.style.display = 'none';
+                    modelLoadingOverlay.classList.add('hidden');
                     modelError.classList.remove('hidden');
                     modelError.querySelector('span').textContent = '3D 모델이 제공되지 않습니다.';
                 }
@@ -226,9 +267,15 @@
                 modal.classList.remove('hidden');
                 modal.classList.add('flex');
             }
+
+            viewer.addEventListener('load', () => {
+                modelLoadingOverlay.classList.add('hidden');
+                viewer.classList.remove('opacity-0');
+                viewer.classList.add('opacity-100');
+            });
             
             viewer.addEventListener('error', () => {
-                viewer.style.display = 'none';
+                modelLoadingOverlay.classList.add('hidden');
                 modelError.classList.remove('hidden');
                 modelError.querySelector('span').innerHTML = '3D 모델을 불러올 수 없습니다.<br>(파일을 찾을 수 없거나 형식이 올바르지 않습니다.)';
             });
@@ -260,8 +307,9 @@
                     hideModal();
                 }
             });
-
-            loadData();
+            
+            // Start the initial loading process
+            loadDataAndRender();
         });
     </script>
 </body>
