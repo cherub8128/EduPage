@@ -84,9 +84,14 @@
         <section id="step1" class="mb-16">
             <div class="step-card bg-white p-8 rounded-xl shadow-lg">
                 <h2 class="text-3xl font-bold mb-4 border-b-2 border-blue-200 pb-2">Step 1: 현상 관찰 및 문제 발견</h2>
+                <p class="mb-6 text-gray-600">스마트폰 플래시를 이용해 커피잔 안쪽에 빛을 비추고, 아래 예시와 같이 바닥에 생기는 밝은 무늬(Caustic)를 관찰해 봅시다.</p>
+                <div class="mb-8 p-4 border rounded-lg bg-gray-50">
+                    <h3 class="font-semibold text-center mb-2">관찰 예시</h3>
+                    <img src=".\images\cup0.jpg" alt="커피잔 속 Caustic 현상 예시" class="max-w-xs mx-auto rounded-md">
+                </div>
                 <div class="grid md:grid-cols-2 gap-8">
                     <div>
-                        <h3 class="block text-lg font-semibold mb-2">📸 나의 관찰 사진</h3>
+                        <h3 class="block text-lg font-semibold mb-2">📸 내 관찰 사진</h3>
                         <div class="mt-4 border rounded-lg p-4 bg-gray-50 min-h-[200px] flex items-center justify-center screenshot-container">
                              <img id="screenshot-preview-1" alt="관찰 사진 미리보기" class="max-w-full max-h-64 rounded-md hidden"><span id="screenshot-placeholder-1" class="text-slate-500">관찰 사진 첨부</span>
                         </div>
@@ -146,7 +151,15 @@
                     <h3 class="text-xl font-semibold mb-4">참고: 다양한 도구별 제작 과정</h3>
                     <div class="mb-4 border-b border-gray-200"><nav class="-mb-px flex space-x-8"><button class="tab-button active whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" data-tab="geogebra1">GeoGebra (도구)</button><button class="tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300" data-tab="geogebra2">GeoGebra (수식)</button><button class="tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300" data-tab="python">Python</button><button class="tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300" data-tab="matlab">MATLAB</button></nav></div>
                     <div>
-                        <div id="geogebra1" class="tab-content active"><h4 class="text-lg font-semibold mb-2">GeoGebra 자취 기능 활용</h4><ol class="list-decimal list-inside space-y-2 text-sm"><li>원 그리기: 중심 (0,0), 반지름 1</li><li>원 위의 점 A 생성</li><li>점 A를 지나고 x축에 평행한 선 l 생성</li><li>점 A에서의 접선 m 생성</li><li>선 l을 접선 m에 대해 대칭시킨 반사선 n 생성</li><li>반사선 n에 '자취 보이기' 설정</li><li>점 A 애니메이션 실행</li></ol></div>
+                        <div id="geogebra1" class="tab-content active">
+                            <h4 class="text-lg font-semibold mb-2">GeoGebra 자취 기능 활용</h4>
+                            <div class="grid md:grid-cols-2 gap-8">
+                                <ol class="list-decimal list-inside space-y-2 text-sm"><li>원 그리기: 중심 (0,0), 반지름 1</li><li>원 위의 점 A 생성</li><li>점 A를 지나고 x축에 평행한 선 l 생성</li><li>점 A에서의 접선 m 생성</li><li>선 l을 접선 m에 대해 대칭시킨 반사선 n 생성</li><li>반사선 n에 '자취 보이기' 설정</li><li>점 A 애니메이션 실행</li></ol>
+                                <div class="flex items-center justify-center">
+                                    <img src=".\images\geogebra1.png" alt="GeoGebra 자취 예시" class="rounded-lg shadow-md">
+                                </div>
+                            </div>
+                        </div>
                         <div id="geogebra2" class="tab-content"><h4 class="text-lg font-semibold mb-2">GeoGebra 수식/자취 활용</h4><ol class="list-decimal list-inside space-y-2 text-sm"><li>슬라이더 만들기: 변수 \(\theta\)를 \(0\)에서 \(2\pi\) 범위로 생성</li><li>원과 반사점 생성: <code>x^2+y^2=1</code>, <code>P=(cos(θ), sin(θ))</code></li><li>반사 광선 그리기: <code>y - sin(θ) = tan(2θ)(x - cos(θ))</code></li><li>자취 그리기: <code>자취</code> 도구 선택 후 반사 광선 클릭, \(\theta\) 슬라이더 클릭</li></ol></div>
                         <div id="python" class="tab-content"><h4 class="text-lg font-semibold mb-2">Python Matplotlib 활용 (스트링 아트)</h4><pre><code class="language-python text-sm">import numpy as np
 import matplotlib.pyplot as plt
@@ -179,7 +192,7 @@ xlim([-1.5, 1.5]); ylim([-1.5, 1.5]); hold off;</code></pre></div>
                     </div>
                 </div>
                 <div class="bg-teal-50 p-6 rounded-lg">
-                    <label for="simulation-code" class="block text-lg font-semibold mb-2">⚙️ 나의 시뮬레이션 제출</label>
+                    <label for="simulation-code" class="block text-lg font-semibold mb-2">⚙️ 내 시뮬레이션 제출</label>
                     <textarea id="simulation-code" rows="12" class="markdown-input editable-field font-mono text-sm" placeholder="이곳에 Python 코드 전체를 붙여넣거나, 완성된 GeoGebra의 공유 링크를 입력하세요."></textarea>
                     <div class="markdown-preview prose max-w-none"></div>
                 </div>
@@ -225,7 +238,7 @@ xlim([-1.5, 1.5]); ylim([-1.5, 1.5]); hold off;</code></pre></div>
         document.addEventListener('DOMContentLoaded', function() {
             // KaTeX 스크립트가 로드된 후 의존성 있는 함수들 실행
             const katexScript = document.querySelector('script[src*="katex.min.js"]');
-            katexScript.onload = () => {
+            const initPage = () => {
                 loadContent();
                 renderAllMath();
                 document.querySelectorAll('.markdown-input').forEach(el => updatePreview(el));
@@ -233,13 +246,10 @@ xlim([-1.5, 1.5]); ylim([-1.5, 1.5]); hold off;</code></pre></div>
                 drawReflection();
                 drawEpicycloid();
             };
-            if(window.katex) { // 이미 로드된 경우
-                 loadContent();
-                renderAllMath();
-                document.querySelectorAll('.markdown-input').forEach(el => updatePreview(el));
-                setupEventListeners();
-                drawReflection();
-                drawEpicycloid();
+            if (window.katex) {
+                initPage();
+            } else {
+                katexScript.onload = initPage;
             }
         });
 
