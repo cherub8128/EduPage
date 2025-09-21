@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>다면체 데이터베이스</title>
+    <title>유한 다면체 백과사전</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
     <!-- Google Model Viewer -->
@@ -40,7 +40,7 @@
         </header>
 
         <div class="mb-8 max-w-2xl mx-auto">
-            <input type="text" id="search-input" placeholder="한글/영문 이름, 기호, 분류로 검색... (예: J1, Cube, 카탈랑)" class="w-full p-4 text-lg border-2 border-slate-200 rounded-full focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 outline-none transition duration-300 shadow-sm">
+            <input type="text" id="search-input" placeholder="이름, 기호, 분류로 검색... (예: U75, J92, 균일)" class="w-full p-4 text-lg border-2 border-slate-200 rounded-full focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 outline-none transition duration-300 shadow-sm">
         </div>
         
         <div id="polyhedra-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
@@ -141,14 +141,14 @@
                 propertiesContainer.innerHTML = '';
                 polyhedron.properties.forEach(prop => {
                     const badge = document.createElement('span');
-                    badge.className = 'bg-cyan-100 text-cyan-800 text-sm font-medium mr-2 px-2.5 py-0.5 rounded-full';
+                    const isInfinite = prop === '무한 계열';
+                    badge.className = `text-sm font-medium mr-2 px-2.5 py-0.5 rounded-full ${isInfinite ? 'bg-amber-100 text-amber-800' : 'bg-cyan-100 text-cyan-800'}`;
                     badge.textContent = prop;
                     propertiesContainer.appendChild(badge);
                 });
                 
-                // Set the OBJ file source for the model-viewer
-                // Assumes OBJ files are in a directory named 'obj'
-                viewer.src = `./obj/${polyhedron.objFile}`;
+                // Assumes GLB files are in a directory named 'glb'
+                viewer.src = `./glb/${polyhedron.glbFile}`;
 
                 modal.classList.remove('hidden');
                 modal.classList.add('flex');
@@ -160,7 +160,8 @@
                     p.name.toLowerCase().includes(searchTerm) ||
                     p.en_name.toLowerCase().includes(searchTerm) ||
                     p.id.toLowerCase().includes(searchTerm) ||
-                    p.class.toLowerCase().includes(searchTerm)
+                    p.class.toLowerCase().includes(searchTerm) ||
+                    p.properties.some(prop => prop.toLowerCase().includes(searchTerm))
                 );
                 displayPolyhedra(filteredData);
             });
@@ -168,7 +169,6 @@
             const hideModal = () => {
                 modal.classList.add('hidden');
                 modal.classList.remove('flex');
-                 // Pause the viewer when modal is closed
                 viewer.pause();
             };
 
@@ -184,3 +184,4 @@
     </script>
 </body>
 </html>
+
