@@ -193,3 +193,22 @@ html.light .game-container .pin.alive:not(.selected) { background: rgba(255, 255
 html.light .game-container .pin.alive:not(.selected):hover { transform: translateY(-3px); background: #ffffff; border-color: rgba(0, 0, 0, 0.25); box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); }
 html.light .game-container .pin.removed { background: transparent; border: 1px dashed rgba(0, 0, 0, 0.2); color: rgba(0, 0, 0, 0.2); opacity: 0.8; }
 
+.copyright-footer {
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    background-color: #2d3748; /* 다크 그레이 */
+    color: white;
+    text-align: center;
+    padding: 12px 0;
+    z-index: 1000;
+    font-size: 0.85em;
+    border-top: 1px solid #4a5568;
+}
+.copyright-footer p {
+    margin: 0;
+    padding: 0;
+}
+
+

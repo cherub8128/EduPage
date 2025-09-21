@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>수학 교육 — 메인 페이지</title>
+    <meta name="description" content="고등학교 대상의 수학 학습 자료와 평가, 교사용 리소스를 모아둔 메인 페이지입니다." />
+    <style>
+        :root{
+            --bg:#f7fafc; --card:#ffffff; --accent:#2563eb; --muted:#6b7280; --glass:rgba(255,255,255,0.6);
+            --max-width:1000px;
+            font-family:system-ui,-apple-system,Segoe UI,Roboto,'Noto Sans KR',Helvetica,Arial;
+        }
+        html,body{height:100%}
+        body{
+            margin:0;
+            background:linear-gradient(180deg,var(--bg),#eef2ff);
+            color:#111827;
+            -webkit-font-smoothing:antialiased;
+            -moz-osx-font-smoothing:grayscale;
+            display:flex;
+            justify-content:center;
+            padding:32px 16px;
+        }
+        .container{
+            width:100%;
+            max-width:var(--max-width);
+        }
+        header{
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            gap:16px;
+            margin-bottom:20px;
+        }
+        .brand{
+            display:flex;
+            gap:12px;
+            align-items:center;
+            text-decoration:none;
+            color:inherit;
+        }
+        .logo{
+            width:48px;height:48px;border-radius:8px;
+            background:linear-gradient(135deg,var(--accent),#7c3aed);
+            display:flex; align-items:center; justify-content:center;
+            color:white;font-weight:700;font-size:18px;
+            box-shadow:0 4px 12px rgba(37,99,235,0.18);
+        }
+        nav a{
+            color:var(--muted); text-decoration:none; margin-left:18px; font-size:14px;
+        }
+        .hero{
+            background:var(--card);
+            border-radius:12px;
+            padding:28px;
+            box-shadow:0 8px 30px rgba(15,23,42,0.06);
+            display:flex;
+            gap:24px;
+            align-items:center;
+            flex-wrap:wrap;
+        }
+        .hero .left{flex:1 1 360px; min-width:260px;}
+        .hero h1{margin:0 0 8px 0; font-size:20px;}
+        .hero p{margin:0 0 16px 0; color:var(--muted); line-height:1.5;}
+        .quicklinks{display:flex; gap:10px; flex-wrap:wrap;}
+        .btn{
+            display:inline-flex; align-items:center; gap:8px;
+            background:var(--glass); border-radius:10px; padding:8px 12px;
+            color:var(--accent); text-decoration:none; font-weight:600; font-size:14px;
+            border:1px solid rgba(37,99,235,0.08);
+        }
+        .search{
+            display:flex; gap:8px; align-items:center;
+            background:#f3f4f6; padding:6px 8px; border-radius:10px;
+            border:1px solid rgba(15,23,42,0.04);
+        }
+        .search input{
+            border:0; background:transparent; outline:none; font-size:14px; width:220px;
+        }
+
+        .grid{
+            display:grid;
+            grid-template-columns:repeat(3,1fr);
+            gap:16px;
+            margin-top:18px;
+        }
+        @media (max-width:880px){ .grid{grid-template-columns:repeat(2,1fr);} }
+        @media (max-width:560px){ .grid{grid-template-columns:1fr} .hero{padding:18px} }
+
+        .card{
+            background:var(--card); border-radius:10px; padding:14px; box-shadow:0 6px 18px rgba(2,6,23,0.04);
+            display:flex; flex-direction:column; gap:10px;
+        }
+        .card h3{margin:0; font-size:16px;}
+        .card p{margin:0; color:var(--muted); font-size:13px;}
+
+        .small-list{display:flex; flex-direction:column; gap:8px;}
+        .item{
+            display:flex; align-items:center; gap:10px; padding:8px; border-radius:8px;
+            text-decoration:none; color:inherit;
+        }
+        .badge{
+            width:46px; height:46px; border-radius:8px; background:#eef2ff; display:flex; align-items:center; justify-content:center;
+            color:var(--accent); font-weight:700;
+        }
+
+        footer{margin-top:18px; color:var(--muted); font-size:13px; text-align:center;}
+        .crumbs{font-size:13px;color:var(--muted); margin-bottom:10px;}
+    </style>
+</head>
+<body>
+    <div class="container" role="main">
+        <header>
+            <a class="brand" href="/" aria-label="홈으로 이동">
+                <div class="logo">M</div>
+                <div>
+                    <div style="font-weight:700">수학 교육</div>
+                    <div style="font-size:12px;color:var(--muted)">학습·연습·평가 자료 모음</div>
+                </div>
+            </a>
+            <nav aria-label="주요 링크">
+                <a href="/Teacher/MathEdu/index.html">메인</a>
+                <a href="./lessons.html">수업</a>
+                <a href="./exercises.html">연습문제</a>
+                <a href="./resources.html">자료실</a>
+            </nav>
+        </header>
+
+        <div class="crumbs" aria-hidden="true">루트 / 수학</div>
+
+        <section class="hero" aria-labelledby="hero-title">
+            <div class="left">
+                <h1 id="hero-title">루트에서 연결되는 수학 메인 페이지</h1>
+                <p>이 페이지는 루트(index)에서 자연스럽게 진입할 수 있는 메인 허브입니다. 학년별 수업, 연습문제, 평가문항과 교사용 자료로 빠르게 이동하세요.</p>
+
+                <div class="quicklinks" role="navigation" aria-label="빠른 링크">
+                    <a class="btn" href="./lessons.html">수업 계획 보기</a>
+                    <a class="btn" href="./exercises.html">연습문제 풀기</a>
+                    <a class="btn" href="./resources.html">교사용 자료</a>
+                </div>
+            </div>
+
+            <div class="right" style="min-width:220px; display:flex; flex-direction:column; gap:10px;">
+                <div class="search" role="search" aria-label="수학 자료 검색">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <path d="M21 21l-4.35-4.35" stroke="#374151" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <circle cx="11" cy="11" r="6" stroke="#374151" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <input id="search" placeholder="검색어를 입력하세요 (예: 함수, 확률)" />
+                </div>
+
+                <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                    <div style="font-size:13px;color:var(--muted)">최근 업데이트:</div>
+                    <div style="background:#e0f2fe;padding:6px 8px;border-radius:8px;color:#0369a1;font-weight:600;font-size:13px;">중등 함수 단원 보강자료</div>
+                </div>
+            </div>
+        </section>
+
+        <section class="grid" aria-label="주요 섹션">
+            <article class="card" aria-labelledby="sec-lessons">
+                <h3 id="sec-lessons">수업 모듈</h3>
+                <p>학년별, 단원별로 정리된 강의 노트와 PPT, 핵심 개념 요약을 제공합니다.</p>
+                <div class="small-list" style="margin-top:8px;">
+                    <a class="item" href="./lessons/grade7.html">
+                        <div class="badge">7</div>
+                        <div>
+                            <div style="font-weight:700">중1 (7학년)</div>
+                            <div style="font-size:12px;color:var(--muted)">정수·유리수·문자와 식</div>
+                        </div>
+                    </a>
+                    <a class="item" href="./lessons/grade9.html">
+                        <div class="badge">9</div>
+                        <div>
+                            <div style="font-weight:700">중3 (9학년)</div>
+                            <div style="font-size:12px;color:var(--muted)">함수와 그래프 심화</div>
+                        </div>
+                    </a>
+                </div>
+            </article>
+
+            <article class="card" aria-labelledby="sec-exercises">
+                <h3 id="sec-exercises">연습문제</h3>
+                <p>단원별 연습문제, 핵심유형 문제, 자동채점용 샘플을 제공합니다.</p>
+                <div style="display:flex;gap:8px; margin-top:8px;">
+                    <a class="btn" href="./exercises.html">전체 문제</a>
+                    <a class="btn" href="./exercises/auto-grade.html">자동채점 샘플</a>
+                </div>
+            </article>
+
+            <article class="card" aria-labelledby="sec-resources">
+                <h3 id="sec-resources">자료실</h3>
+                <p>PPT, 평가문항, 실전 테스트지 및 참고자료 PDF를 다운로드하세요.</p>
+                <div style="display:flex;gap:8px; margin-top:8px;">
+                    <a class="btn" href="./resources.html">자료실 열기</a>
+                </div>
+            </article>
+
+            <article class="card" aria-labelledby="sec-eval" style="grid-column: span 2;">
+                <h3 id="sec-eval">평가 및 진단</h3>
+                <p>단원 진단평가와 서술형 채점 가이드, 성취도 분석용 템플릿을 제공합니다.</p>
+                <div style="display:flex;gap:8px; margin-top:8px;">
+                    <a class="btn" href="./assessment.html">진단평가 만들기</a>
+                    <a class="btn" href="./rubrics.html">채점 기준</a>
+                </div>
+            </article>
+
+            <article class="card" aria-labelledby="sec-teacher">
+                <h3 id="sec-teacher">교사용 도구</h3>
+                <p>수업 계획 템플릿, 학습지 자동생성기, 수업 녹화 가이드 등 교사용 리소스.</p>
+                <a class="btn" href="./teacher-tools.html">교사용 툴 보기</a>
+            </article>
+        </section>
+
+        <footer>
+            <div style="margin-bottom:6px;">이 페이지는 로컬/서버 모두에서 루트 경로("/")로부터 자연스럽게 연결되도록 설계되었습니다.</div>
+            <div>문의: <a href="mailto:teacher@example.com">teacher@example.com</a> · © 수학 교육</div>
+        </footer>
+    </div>
+
+    <script>
+        // 간단한 검색 동작 (클라이언트 사이드 필터링 예시)
+        (function(){
+            const input = document.getElementById('search');
+            input.addEventListener('keydown', function(e){
+                if(e.key === 'Enter'){
+                    const q = input.value.trim();
+                    if(!q) return;
+                    // 기본: lessons/exercises/resources 검색 페이지로 이동 (쿼리 파라미터 포함)
+                    const url = './search.html?q=' + encodeURIComponent(q);
+                    location.href = url;
+                }
+            });
+        })();
+    </script>
+</body>
+</html>
