@@ -202,7 +202,7 @@
     { "id": "J90", "name": "이중 쐐기띠", "en_name": "Disphenocingulum", "class": "존슨의 다면체", "properties": ["볼록", "비균일"], "faces": 20, "edges": 30, "vertices": 14, "wythoff": "해당 없음", "glbFile": "J90.glb" },
     { "id": "J91", "name": "이월 쌍둥근지붕", "en_name": "Bilunabirotunda", "class": "존슨의 다면체", "properties": ["볼록", "비균일"], "faces": 14, "edges": 24, "vertices": 12, "wythoff": "해당 없음", "glbFile": "J91.glb" },
     { "id": "J92", "name": "삼각 둔치 쐐기 둥근지붕", "en_name": "Triangular hebesphenorotunda", "class": "존슨의 다면체", "properties": ["볼록", "비균일"], "faces": 20, "edges": 30, "vertices": 13, "wythoff": "해당 없음", "glbFile": "J92.glb" },
-    { "id": "INF-P", "name": "각기둥", "en_name": "Prism", "class": "무한 다면체", "properties": ["볼록", "균일", "무한 계열"], "faces": "n+2", "edges": "3n", "vertices": "2n", "wythoff": "2 n | 2", "glbFile": "INF-P5.glb" },
+    { "id": "INF-P", "name": "각기둥", "en_name": "Prism", "class": "무한 다면체", "properties": ["볼록", "균일", "무한 계열"], "faces": "n+2", "edges": "3n", "vertices": "2n", "wythoff": "2 n | 2", "glbFile": "INF-P.glb" },
     { "id": "INF-A", "name": "엇각기둥", "en_name": "Antiprism", "class": "무한 다면체", "properties": ["볼록", "균일", "무한 계열"], "faces": "2n+2", "edges": "4n", "vertices": "2n", "wythoff": "| 2 2 n", "glbFile": "INF-A5.glb" }
   ]
 }
