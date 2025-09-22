@@ -181,20 +181,60 @@
         </footer>
     </main>
 
+    <!-- Autosave Status Indicator -->
+    <div id="autosave-status" class="print-hidden fixed bottom-6 right-6 flex items-center bg-slate-800 text-white py-2 px-4 rounded-lg shadow-lg opacity-0 transition-opacity duration-500 z-50">
+        <svg id="autosave-icon-saving" class="animate-spin h-5 w-5 mr-3 hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <svg id="autosave-icon-saved" class="h-5 w-5 mr-3 hidden" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+        </svg>
+        <span id="autosave-text"></span>
+    </div>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/showdown/2.1.0/showdown.min.js"></script>
     <script>
-        // --- CORE FUNCTIONS ---
+        // --- GLOBAL VARS ---
         const converter = new showdown.Converter({ simpleLineBreaks: true, tables: true, strikethrough: true });
+        let saveTimer = null;
+        let statusTimer = null;
 
+        // --- AUTOSAVE STATUS UI ---
+        function showSaveStatus(state) {
+            const statusEl = document.getElementById('autosave-status');
+            if (!statusEl) return;
+            const textEl = document.getElementById('autosave-text');
+            const iconSaving = document.getElementById('autosave-icon-saving');
+            const iconSaved = document.getElementById('autosave-icon-saved');
+
+            clearTimeout(statusTimer);
+            statusEl.classList.remove('opacity-0');
+
+            if (state === 'saving') {
+                textEl.textContent = '저장 중...';
+                iconSaving.classList.remove('hidden');
+                iconSaved.classList.add('hidden');
+            } else if (state === 'saved') {
+                textEl.textContent = '모든 변경사항이 저장되었습니다.';
+                iconSaving.classList.add('hidden');
+                iconSaved.classList.remove('hidden');
+                statusTimer = setTimeout(() => {
+                    statusEl.classList.add('opacity-0');
+                }, 2000); // Hide after 2 seconds
+            }
+        }
+
+        // --- CORE FUNCTIONS ---
         function updatePreview(textareaElement) {
-            saveContent(textareaElement);
+            // The saveContent function is now called by the input event listener directly.
             const container = textareaElement.parentElement;
             const preview = container.querySelector('.markdown-preview');
             const markdownText = textareaElement.value;
             const html = converter.makeHtml(markdownText);
             preview.innerHTML = html;
             if (window.renderMathInElement) {
-                renderMathInElement(preview, { delimiters: [ {left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false} ] });
+                renderMathInElement(preview, { delimiters: [ {left: '$', right: '$', display: true}, {left: ', right: ', display: false} ] });
             }
         }
 
@@ -203,6 +243,7 @@
             const placeholder = document.getElementById(`screenshot-placeholder-${id}`);
             const file = event.target.files[0];
             if (file) {
+                showSaveStatus('saving');
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     const base64Image = e.target.result;
@@ -210,6 +251,7 @@
                     preview.classList.remove('hidden');
                     placeholder.classList.add('hidden');
                     localStorage.setItem(`screenshot-preview-${id}`, base64Image);
+                    showSaveStatus('saved');
                 }
                 reader.readAsDataURL(file);
             }
@@ -217,9 +259,15 @@
         
         // --- LOCAL STORAGE (AUTOSAVE) ---
         function saveContent(element) {
-            if(element.id) {
-                localStorage.setItem(element.id, element.value);
-            }
+            clearTimeout(saveTimer);
+            showSaveStatus('saving');
+            
+            saveTimer = setTimeout(() => {
+                if(element.id) {
+                    localStorage.setItem(element.id, element.value);
+                }
+                showSaveStatus('saved');
+            }, 1000); // Debounce time
         }
 
         function loadContent() {
@@ -246,11 +294,9 @@
             let isValid = true;
             const validationMessage = document.getElementById('validation-message');
             
-            // Validate all text fields
             document.querySelectorAll('.editable-field').forEach(field => {
                 field.classList.remove('is-invalid');
                 if (field.value.trim() === '') {
-                    // Special case: Category name is only required if its image is uploaded.
                     if (field.id.startsWith('category') && field.id.endsWith('-name')) {
                         const imgId = field.id.split('-')[1];
                         const imgPreview = document.getElementById(`screenshot-preview-${imgId}`);
@@ -265,10 +311,9 @@
                 }
             });
 
-            // Validate mandatory screenshots (workflow and results)
             for (let i = 3; i <= 4; i++) {
                 const imgPreview = document.getElementById(`screenshot-preview-${i}`);
-                const container = imgPreview.parentElement; // The div that holds the image
+                const container = imgPreview.parentElement;
                 container.classList.remove('is-invalid');
 
                 if (imgPreview.classList.contains('hidden')) {
@@ -290,11 +335,16 @@
             });
         }
 
-        function saveAsPdf() { 
+        function saveAsPdf() {
             updatePrintableInputs();
-            if (validateForm()) { 
-                window.print(); 
-            } 
+            if (validateForm()) {
+                const studentId = document.getElementById('student-id').value.trim() || '학번';
+                const studentName = document.getElementById('student-name').value.trim() || '이름';
+                const originalTitle = document.title;
+                document.title = `Orange3_${studentId}_${studentName}`;
+                window.print();
+                document.title = originalTitle;
+            }
         }
 
         // --- INITIALIZATION ---
@@ -308,11 +358,14 @@
                 }
                 textarea.addEventListener('input', autoResize);
                 autoResize();
-                textarea.addEventListener('input', () => saveContent(textarea));
+                textarea.addEventListener('input', (e) => {
+                    updatePreview(e.target);
+                    saveContent(e.target);
+                });
             });
             
             document.querySelectorAll('.text-input.editable-field').forEach(input => {
-                input.addEventListener('input', () => saveContent(input));
+                input.addEventListener('input', (e) => saveContent(e.target));
             });
 
             document.querySelectorAll('.markdown-input.editable-field').forEach(ta => {
@@ -322,6 +375,11 @@
             });
         });
     </script>
+    <footer class="text-center py-8 print-hidden">
+        <p class="text-sm text-slate-500">
+            © 2025 Cherub8128. All rights reserved. 무단 복제 및 배포를 금지합니다.
+        </p>
+    </footer>
 </body>
 </html>
 
