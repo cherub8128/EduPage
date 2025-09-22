@@ -161,6 +161,33 @@
     <script>
         // --- CORE FUNCTIONS ---
         const converter = new showdown.Converter({ simpleLineBreaks: true, tables: true, strikethrough: true });
+        let saveTimer = null;
+        let statusTimer = null;
+
+        // --- AUTOSAVE STATUS UI ---
+        function showSaveStatus(state) {
+            const statusEl = document.getElementById('autosave-status');
+            if (!statusEl) return;
+            const textEl = document.getElementById('autosave-text');
+            const iconSaving = document.getElementById('autosave-icon-saving');
+            const iconSaved = document.getElementById('autosave-icon-saved');
+
+            clearTimeout(statusTimer);
+            statusEl.classList.remove('opacity-0');
+
+            if (state === 'saving') {
+                textEl.textContent = '저장 중...';
+                iconSaving.classList.remove('hidden');
+                iconSaved.classList.add('hidden');
+            } else if (state === 'saved') {
+                textEl.textContent = '모든 변경사항이 저장되었습니다.';
+                iconSaving.classList.add('hidden');
+                iconSaved.classList.remove('hidden');
+                statusTimer = setTimeout(() => {
+                    statusEl.classList.add('opacity-0');
+                }, 2000); // Hide after 2 seconds
+            }
+        }
 
         function updatePreview(textareaElement) {
             saveContent(textareaElement); // 변경 시 자동 저장
