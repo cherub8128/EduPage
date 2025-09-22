@@ -230,7 +230,7 @@ aiMoveBtn.addEventListener("click", () => {
 
 // 이론 페이지 이동 (디자인 일관성 위해 버튼 사용)
 theoryBtn.addEventListener("click", () => {
-  window.location.hash = "#Lab/KaylesAI/theory.html";
+  window.location.href = "theory.html";
 });
 
 // 초기 진입
