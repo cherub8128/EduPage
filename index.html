@@ -226,15 +226,29 @@
                     const loadedScript = doc.querySelector('script');
                     const oldScript = document.getElementById('page-script');
                     if (oldScript) oldScript.remove();
+
                     if (loadedScript) {
                         const newScript = document.createElement('script');
-                        if (loadedScript.src) {
-                            newScript.src = loadedScript.src;
-                        } else {
-                            newScript.textContent = loadedScript.textContent;
-                        }
                         newScript.id = 'page-script';
-                        document.body.appendChild(newScript);
+
+                        // If the script has a src, fetch it and inject inline.
+                        // This is more reliable for execution in an SPA context.
+                        if (loadedScript.src) {
+                            try {
+                                const scriptResponse = await fetch(loadedScript.src);
+                                if (!scriptResponse.ok) {
+                                    throw new Error(`Script fetch failed: ${scriptResponse.status}`);
+                                }
+                                newScript.textContent = await scriptResponse.text();
+                                document.body.appendChild(newScript);
+                            } catch (e) {
+                                console.error(`Failed to load or execute script from ${loadedScript.src}:`, e);
+                            }
+                        } else {
+                            // For inline scripts, just copy the content.
+                            newScript.textContent = loadedScript.textContent;
+                            document.body.appendChild(newScript);
+                        }
                         loadedScript.remove();
                     }
 
