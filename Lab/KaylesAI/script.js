@@ -1,3 +1,4 @@
+function startKayles() {
 /* =========================================================
  * Misère Dawson's Kayles — Exact DP only (N ≤ 120, Chrome)
  * - 규칙: 인접한 2핀만 제거 가능 (옥탈 0.07)
@@ -241,3 +242,14 @@ theoryBtn.addEventListener("click", () => {
   render();
   gameMsgEl.textContent = "정확 DP 모드입니다. 새 게임을 시작하세요.";
 })();
+}
+
+function tryStart() {
+    if (document.getElementById('pins') && document.getElementById('newGameBtn')) {
+        startKayles();
+    } else {
+        setTimeout(tryStart, 50);
+    }
+}
+
+tryStart();
