@@ -5,50 +5,50 @@
       <div class="toolbar-top">
         <h1 class="brand">도슨의 미제르 케일스 게임</h1>
         <div class="badges">
-          <span id="modelBadge" class="pill">Mode: Exact DP (n ≤ 120)</span>
-          <span id="pnBadge" class="pill">Initial Position: —</span>
+          <span id="modelBadge" class="pill">모드: Exact DP (n ≤ 120)</span>
+          <span id="pnBadge" class="pill">시작 포지션: —</span>
         </div>
       </div>
 
       <div class="controls-grid">
         <div class="ctrl">
-          <span>Pins</span>
+          <span>핀</span>
           <input id="nPins" type="number" min="2" max="120" value="60"/>
         </div>
         <div class="ctrl">
-          <span>First Player</span>
+          <span>선 플레이어</span>
           <select id="whoFirst">
-            <option value="human" selected>Human</option>
+            <option value="human" selected>사람</option>
             <option value="ai">AI</option>
           </select>
         </div>
         <div class="ctrl">
             <span>&nbsp;</span>
-            <button id="newGameBtn" class="btn primary">New Game</button>
+            <button id="newGameBtn" class="btn primary">새 게임</button>
         </div>
         <div class="ctrl">
              <span>&nbsp;</span>
-            <button id="aiMoveBtn" class="btn">AI Move</button>
+            <button id="aiMoveBtn" class="btn">AI 두기</button>
         </div>
          <div class="ctrl">
             <span>&nbsp;</span>
-            <button id="theoryBtn" class="btn" >Theory</button>
+            <button id="theoryBtn" class="btn" >이론</button>
         </div>
       </div>
 
       <div class="legend">
-        <span><span class="swatch live"></span> Alive</span>
-        <span><span class="swatch sel"></span> Selected</span>
-        <span><span class="swatch dead"></span> Removed</span>
+        <span><span class="swatch live"></span> 선택가능</span>
+        <span><span class="swatch sel"></span> 선택됨</span>
+        <span><span class="swatch dead"></span> 제거됨</span>
       </div>
     </header>
 
     <main class="board card">
       <div class="topbar">
         <div class="turn-info">
-          Current Turn: <strong id="turnWho">Human</strong>
+          현재 턴: <strong id="turnWho">사람</strong>
         </div>
-        <div id="gameMsg" class="muted">Start a new game.</div>
+        <div id="gameMsg" class="muted">새 게임 시작</div>
       </div>
       <div id="pins" class="pins">
         <!-- Pins will be rendered here by JavaScript -->

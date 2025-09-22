@@ -131,7 +131,7 @@ function render() {
     }
     pinsEl.appendChild(div);
   });
-  turnWhoEl.textContent = player === +1 ? "Human" : "AI";
+  turnWhoEl.textContent = player === +1 ? "사람" : "AI";
   aiMoveBtn.disabled = !(player === -1);
 }
 
@@ -164,7 +164,7 @@ function onPinClick(i) {
 }
 
 function declareWinner(currentWho) {
-  const winner = currentWho === +1 ? "Human" : "AI";
+  const winner = currentWho === +1 ? "사람" : "AI";
   gameMsgEl.textContent = `게임 종료! 승자: ${winner}`;
   turnWhoEl.textContent = "종료";
   aiMoveBtn.disabled = true;
@@ -210,7 +210,7 @@ newGameBtn.addEventListener("click", () => {
   pins = Array(n).fill(1);
   selected = [];
   const who = whoFirstEl.value;
-  player = (who === "human") ? +1 : -1;
+  player = (who === "사람") ? +1 : -1;
   render();
   if (checkAndMaybeEnd()) return;
   gameMsgEl.textContent = (player === +1) ? "인접한 핀 2개를 클릭하세요." : "AI가 먼저 둡니다.";
@@ -229,7 +229,7 @@ aiMoveBtn.addEventListener("click", () => {
 
 // 이론 페이지 이동 (디자인 일관성 위해 버튼 사용)
 theoryBtn.addEventListener("click", () => {
-  window.location.href = "theory.html";
+  window.location.href = "Lab/KaylesAI/theory.html";
 });
 
 // 초기 진입
