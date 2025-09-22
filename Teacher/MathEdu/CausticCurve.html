@@ -231,46 +231,9 @@ xlim([-1.5, 1.5]); ylim([-1.5, 1.5]); hold off;</code></pre></div>
         
         <footer class="text-center mt-12 print-hidden"><div id="validation-message" class="text-red-600 font-semibold mb-4 h-6"></div><button onclick="saveAsPdf()" class="bg-blue-600 text-white font-bold py-3 px-8 rounded-lg text-lg hover:bg-blue-700 transition-colors shadow-lg">보고서 PDF로 저장</button></footer>
     </main>
-<!-- Autosave Status Indicator -->
-    <div id="autosave-status" class="print-hidden fixed bottom-6 right-6 flex items-center bg-slate-800 text-white py-2 px-4 rounded-lg shadow-lg opacity-0 transition-opacity duration-500 z-50">
-        <svg id="autosave-icon-saving" class="animate-spin h-5 w-5 mr-3 hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-        </svg>
-        <svg id="autosave-icon-saved" class="h-5 w-5 mr-3 hidden" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-        </svg>
-        <span id="autosave-text"></span>
-    </div>
+
     <script>
         const converter = new showdown.Converter({ ghCodeBlocks: true, simpleLineBreaks: true });
-        let saveTimer = null;
-        let statusTimer = null;
-
-        // --- AUTOSAVE STATUS UI ---
-        function showSaveStatus(state) {
-            const statusEl = document.getElementById('autosave-status');
-            if (!statusEl) return;
-            const textEl = document.getElementById('autosave-text');
-            const iconSaving = document.getElementById('autosave-icon-saving');
-            const iconSaved = document.getElementById('autosave-icon-saved');
-
-            clearTimeout(statusTimer);
-            statusEl.classList.remove('opacity-0');
-
-            if (state === 'saving') {
-                textEl.textContent = '저장 중...';
-                iconSaving.classList.remove('hidden');
-                iconSaved.classList.add('hidden');
-            } else if (state === 'saved') {
-                textEl.textContent = '모든 변경사항이 저장되었습니다.';
-                iconSaving.classList.add('hidden');
-                iconSaved.classList.remove('hidden');
-                statusTimer = setTimeout(() => {
-                    statusEl.classList.add('opacity-0');
-                }, 2000); // Hide after 2 seconds
-            }
-        }
         
         document.addEventListener('DOMContentLoaded', function() {
             // KaTeX 스크립트가 로드된 후 의존성 있는 함수들 실행
@@ -315,10 +278,7 @@ xlim([-1.5, 1.5]); ylim([-1.5, 1.5]); hold off;</code></pre></div>
                     preview.src = base64Image;
                     preview.classList.remove('hidden');
                     placeholder.classList.add('hidden');
-                    
-                    showSaveStatus('saving');
                     localStorage.setItem(`screenshot-preview-${id}`, base64Image);
-                    showSaveStatus('saved');
                 }
                 reader.readAsDataURL(file);
             }
@@ -347,28 +307,17 @@ xlim([-1.5, 1.5]); ylim([-1.5, 1.5]); hold off;</code></pre></div>
         }
         
         function setupEventListeners() {
-            document.querySelectorAll('.editable-field').forEach(field => {
-                field.addEventListener('input', () => {
-                    if (field.classList.contains('markdown-input')) {
-                        updatePreview(field);
-                    }
-                    
-                    clearTimeout(saveTimer);
-                    showSaveStatus('saving');
-                    saveTimer = setTimeout(() => {
-                        saveContent(field);
-                        showSaveStatus('saved');
-                    }, 1200);
-                });
+            document.querySelectorAll('.markdown-input.editable-field').forEach(field => {
+                field.addEventListener('input', () => { saveContent(field); updatePreview(field); });
             });
-
+            document.querySelectorAll('input.editable-field').forEach(field => {
+                field.addEventListener('input', () => saveContent(field));
+            });
             const mobileMenuButton = document.getElementById('mobile-menu-button'), mobileMenu = document.getElementById('mobile-menu');
             mobileMenuButton.addEventListener('click', () => mobileMenu.classList.toggle('hidden'));
             document.querySelectorAll('#mobile-menu a').forEach(link => link.addEventListener('click', () => mobileMenu.classList.add('hidden')));
-            
             document.getElementById('theta-slider').addEventListener('input', drawReflection);
             ['k-slider', 'size-slider', 'epicycloid-slider'].forEach(id => document.getElementById(id).addEventListener('input', drawEpicycloid));
-            
             document.querySelectorAll('.tab-button').forEach(tab => {
                 tab.addEventListener('click', () => {
                     document.querySelectorAll('.tab-button').forEach(t => t.classList.remove('active'));
@@ -452,12 +401,6 @@ xlim([-1.5, 1.5]); ylim([-1.5, 1.5]); hold off;</code></pre></div>
             kValue.textContent = k; sizeValue.textContent = r; epicycloidAngleValue.textContent = `${animationAngleDeg.toFixed(0)}°`;
         }
     </script>
-
-    <footer class="text-center py-8 print-hidden">
-        <p class="text-sm text-slate-500">
-            © 2025 Cherub8128. All rights reserved. 무단 복제 및 배포를 금지합니다.
-        </p>
-    </footer>
 </body>
 </html>
 
