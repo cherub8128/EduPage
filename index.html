@@ -222,65 +222,63 @@
                     const parser = new DOMParser();
                     const doc = parser.parseFromString(text, 'text/html');
 
-                    // 1. Extract scripts and remove them from the temporary document
-                    const loadedScripts = Array.from(doc.querySelectorAll('script'));
-                    loadedScripts.forEach(s => s.remove());
+                    // --- Script Handling ---
+                    const loadedScript = doc.querySelector('script');
+                    const oldScript = document.getElementById('page-script');
+                    if (oldScript) oldScript.remove();
 
-                    // 2. Inject the HTML content into the main page
+                    if (loadedScript) {
+                        const newScript = document.createElement('script');
+                        newScript.id = 'page-script';
+
+                        // If the script has a src, fetch it and inject inline.
+                        // This is more reliable for execution in an SPA context.
+                        if (loadedScript.src) {
+                            try {
+                                const scriptResponse = await fetch(loadedScript.src);
+                                if (!scriptResponse.ok) {
+                                    throw new Error(`Script fetch failed: ${scriptResponse.status}`);
+                                }
+                                newScript.textContent = await scriptResponse.text();
+                                document.body.appendChild(newScript);
+                            } catch (e) {
+                                console.error(`Failed to load or execute script from ${loadedScript.src}:`, e);
+                            }
+                        } else {
+                            // For inline scripts, just copy the content.
+                            newScript.textContent = loadedScript.textContent;
+                            document.body.appendChild(newScript);
+                        }
+                        loadedScript.remove();
+                    }
+
+                    // --- Content Layout Handling ---
                     const titleSection = doc.body.firstElementChild;
                     const mainSection = doc.querySelector('main');
                     const isTitlePage = mainSection && titleSection && titleSection.nextElementSibling === mainSection;
 
+                    // Reset title container styles before loading new content
                     titleContainer.removeAttribute('style');
                     titleContainer.className = '';
                     
                     if (isTitlePage) {
+                        // For pages with a title section, set a fixed height
                         titleContainer.style.height = '500px';
+                        
+                        // Transfer background styles and classes from the loaded title section to our container
                         if (titleSection.hasAttribute('style')) {
                             titleContainer.style.cssText += titleSection.getAttribute('style');
                         }
                         titleContainer.className = titleSection.className;
+
+                        // Inject the *inner* content, allowing flexbox to center it
                         titleContainer.innerHTML = titleSection.innerHTML;
                         contentContainer.innerHTML = mainSection.outerHTML;
                     } else {
+                        // For content-only pages (like the game), collapse the title container
                         titleContainer.style.height = '0';
                         titleContainer.innerHTML = '';
                         contentContainer.innerHTML = doc.body.innerHTML;
-                    }
-
-                    // 3. Execute the extracted scripts in order
-                    document.querySelectorAll('.page-script').forEach(s => s.remove());
-
-                    for (const script of loadedScripts) {
-                        const newScript = document.createElement('script');
-                        newScript.classList.add('page-script');
-                        for (const attr of script.attributes) {
-                            newScript.setAttribute(attr.name, attr.value);
-                        }
-
-                        if (!script.src) {
-                            newScript.textContent = script.textContent;
-                            document.body.appendChild(newScript);
-                            continue;
-                        }
-
-                        if (script.src.startsWith('http')) {
-                            await new Promise((resolve, reject) => {
-                                newScript.onload = resolve;
-                                newScript.onerror = reject;
-                                document.body.appendChild(newScript);
-                            });
-                        } else {
-                            try {
-                                const response = await fetch(script.src);
-                                if (!response.ok) throw new Error(`HTTP error ${response.status}`);
-                                newScript.removeAttribute('src');
-                                newScript.textContent = await response.text();
-                                document.body.appendChild(newScript);
-                            } catch (e) {
-                                console.error(`Failed to load local script ${script.src}:`, e);
-                            }
-                        }
                     }
 
                 } catch (error) {
