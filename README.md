@@ -9,7 +9,6 @@
 - **[메인 페이지](https://cherub8128.github.io/EduPage)**: 모든 프로젝트로 연결되는 인터랙티브 랜딩 페이지입니다.
 
 ### 🎮 Game
-- **[OraphaMine](./Game/OraphaMine/index.html)**
 - **[Pancake](./Game/Pancake/index.html)**
 - 설명: 웹 기반 미니게임들입니다.
 

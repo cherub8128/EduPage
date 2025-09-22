@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>수학 교과 프로젝트</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #f1f5f9;
+            --bg-secondary: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #475569;
+            --accent-color: #ef4444; /* Red for Math */
+        }
+        body {
+            font-family: 'Inter', 'Noto Sans KR', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            background-color: var(--bg-primary);
+            color: var(--text-secondary);
+        }
+        .card-button {
+            background-color: var(--accent-color);
+            transition: background-color 0.3s ease;
+        }
+        .card-button:hover {
+            background-color: #dc2626; /* Darker red */
+        }
+    </style>
+</head>
+<body>
+    <a href="../../index.html#/Teacher/index.html" class="absolute top-4 left-4 text-slate-600 hover:text-slate-900 transition-colors">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
+    </a>
+    <div class="container mx-auto max-w-5xl px-4 py-16 sm:py-24">
+        <header class="text-center mb-12">
+            <h1 class="text-4xl sm:text-5xl font-bold tracking-tight text-slate-900">수학 교과 프로젝트</h1>
+            <p class="mt-4 text-lg text-slate-600">수학 교과 관련 프로젝트 및 탐구 활동지</p>
+        </header>
+
+        <main class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <!-- Caustic Curve Project -->
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden transform hover:-translate-y-1 transition-transform duration-300">
+                <div class="p-8">
+                    <h2 class="text-2xl font-bold text-slate-900 mb-3">✨커피잔이 그리는 빛 무늬</h2>
+                    <p class="text-slate-600 mb-6">컵 속의 빛이 만들어내는 아름다운 곡선, 빛반사 곡선(Caustic)을 탐구하는 프로젝트입니다.</p>
+                    <a href="CausticCurve.html" class="card-button text-white font-semibold py-2 px-5 rounded-lg inline-block">살펴보기</a>
+                </div>
+            </div>
+
+            <!-- Add new math projects here -->
+
+        </main>
+    </div>
+</body>
+</html>

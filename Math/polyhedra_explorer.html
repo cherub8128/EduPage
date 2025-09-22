@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>다면체 백과사전 (최종판)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Google Model Viewer -->
+    <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script>
+    <style>
+        /* Custom Color Palette */
+        :root {
+            --bg-main: #F2F2F2;
+            --bg-card: #FFFFFF;
+            --text-main: #595959;
+            --text-light: #546C8C;
+            --accent-main: #193559;
+            --accent-secondary: #3D5473;
+        }
+
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-main);
+        }
+        .card {
+            background-color: var(--bg-card);
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            position: relative;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.07), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
+        }
+        /* 3D 모델이 있는 카드의 3D 아이콘 */
+        .card.has-model::after {
+            content: '3D';
+            position: absolute;
+            top: 0.75rem;
+            right: 0.75rem;
+            font-size: 0.65rem;
+            font-weight: bold;
+            color: var(--accent-secondary);
+            background-color: var(--bg-main);
+            padding: 0.1rem 0.3rem;
+            border-radius: 0.25rem;
+            border: 1px solid #D1D9E3;
+        }
+        .modal-backdrop {
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+        model-viewer {
+            width: 100%;
+            height: 100%;
+            --poster-color: transparent;
+            background-color: #e8ecf2;
+        }
+        /* Loading Spinner Animation */
+        .loader {
+            border: 4px solid #f3f3f3; /* Light grey */
+            border-top: 4px solid var(--accent-secondary); /* Blue */
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Initial page loader styles */
+        #page-loader {
+            transition: opacity 0.5s ease-out;
+        }
+    </style>
+</head>
+<body>
+    
+    <!-- Initial Page Loader -->
+    <div id="page-loader" class="fixed inset-0 flex flex-col items-center justify-center bg-white z-50">
+        <div class="loader"></div>
+        <p class="mt-4 text-lg" style="color: var(--accent-main);">데이터베이스 로딩 중...</p>
+    </div>
+
+    <div id="app" class="container mx-auto p-4 md:p-8 opacity-0 transition-opacity duration-500">
+        <header class="text-center mb-8">
+            <h1 class="text-4xl md:text-5xl font-bold" style="color: var(--accent-main);">다면체 백과사전</h1>
+            <p style="color: var(--text-light);" class="mt-2 text-lg">알려진 모든 다면체를 검색하고 3D로 탐험하세요.</p>
+        </header>
+
+        <div class="mb-8 max-w-2xl mx-auto">
+            <input type="text" id="search-input" placeholder="이름, 기호, 분류로 검색... (예: U75, J92, 균일)" 
+                   class="w-full p-4 text-lg border-2 border-gray-200 rounded-full outline-none transition duration-300 shadow-sm 
+                          focus:ring-2"
+                   style="--tw-ring-color: var(--accent-secondary); --tw-border-color-focus: var(--accent-secondary);">
+        </div>
+        
+        <div id="polyhedra-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+            <!-- Polyhedra cards will be dynamically generated here -->
+        </div>
+        <div id="no-results" class="text-center py-12 text-xl hidden" style="color: var(--text-light);">
+            검색 결과가 없습니다.
+        </div>
+    </div>
+
+    <!-- Modal for details -->
+    <div id="modal" class="fixed inset-0 bg-black bg-opacity-50 modal-backdrop hidden items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col md:flex-row overflow-hidden">
+            <div id="modal-3d-container" class="w-full md:w-1/2 h-64 md:h-auto min-h-[300px] flex items-center justify-center relative" style="background-color: #e8ecf2;">
+                <!-- Model Loading Indicator -->
+                <div id="model-loading-overlay" class="absolute inset-0 flex flex-col items-center justify-center bg-gray-200 bg-opacity-75 z-10">
+                    <div class="loader"></div>
+                    <p class="mt-4 text-lg" style="color: var(--accent-main);">모델 로딩 중...</p>
+                </div>
+                <!-- Model Viewer -->
+                <model-viewer id="polyhedron-viewer" 
+                    class="opacity-0 transition-opacity duration-300"
+                    src="" 
+                    alt="다면체 3D 모델"
+                    camera-controls 
+                    auto-rotate
+                    disable-zoom
+                    shadow-intensity="1.0"
+                    shadow-softness="1.0"
+                    exposure="1.0"
+                    skybox-color="#F2F2F2">
+                </model-viewer>
+                <!-- Error Message -->
+                <div id="model-error" class="hidden absolute inset-0 flex items-center justify-center text-center p-4" style="color: var(--text-light);">
+                    <span>3D 모델을 불러올 수 없습니다.<br>(파일을 찾을 수 없거나 형식이 올바르지 않습니다.)</span>
+                </div>
+            </div>
+            <div id="modal-content" class="w-full md:w-1/2 p-6 overflow-y-auto">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <h2 id="modal-title" class="text-3xl font-bold" style="color: var(--accent-main);"></h2>
+                        <p id="modal-en-title" class="text-xl" style="color: var(--text-light);"></p>
+                    </div>
+                    <button id="close-modal" class="text-4xl leading-none" style="color: var(--text-light);">&times;</button>
+                </div>
+                <div class="mt-4 space-y-3 text-base">
+                    <p><strong>기호:</strong> <span id="modal-id" class="font-mono px-2 py-1 rounded" style="background-color: #e8ecf2; color: var(--accent-main);"></span></p>
+                    <p><strong>분류:</strong> <span id="modal-class"></span></p>
+                    <p><strong>면 (Faces):</strong> <span id="modal-faces"></span></p>
+                    <p><strong>모서리 (Edges):</strong> <span id="modal-edges"></span></p>
+                    <p><strong>꼭짓점 (Vertices):</strong> <span id="modal-vertices"></span></p>
+                    <p><strong>속성:</strong> <span id="modal-properties"></span></p>
+                    <p><strong>Wythoff 기호:</strong> <span id="modal-wythoff" class="font-mono"></span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const pageLoader = document.getElementById('page-loader');
+            const appContainer = document.getElementById('app');
+            const grid = document.getElementById('polyhedra-grid');
+            const searchInput = document.getElementById('search-input');
+            const modal = document.getElementById('modal');
+            const closeModalBtn = document.getElementById('close-modal');
+            const noResults = document.getElementById('no-results');
+            const viewer = document.getElementById('polyhedron-viewer');
+            const modelError = document.getElementById('model-error');
+            const modelLoadingOverlay = document.getElementById('model-loading-overlay');
+
+            let polyhedraData = [];
+
+            async function checkFileExists(url) {
+                try {
+                    const response = await fetch(url, { method: 'HEAD', cache: 'no-cache' });
+                    return response.ok;
+                } catch (error) {
+                    return false;
+                }
+            }
+            
+            async function loadDataAndRender() {
+                try {
+                    const response = await fetch('./polyhedra_db.json');
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                    const data = await response.json();
+                    polyhedraData = data.polyhedra;
+                    await displayPolyhedra(polyhedraData);
+                } catch (error) {
+                    console.error("Failed to load polyhedra data:", error);
+                    appContainer.innerHTML = `<p class="text-red-500 text-center col-span-full">데이터 로딩에 실패했습니다. 파일을 확인해주세요.</p>`;
+                } finally {
+                    // Hide page loader and show app content
+                    pageLoader.style.opacity = '0';
+                    appContainer.style.opacity = '1';
+                    setTimeout(() => pageLoader.style.display = 'none', 500); // Remove from layout after fade out
+                }
+            }
+
+            async function displayPolyhedra(data) {
+                grid.innerHTML = '';
+                noResults.classList.toggle('hidden', data.length > 0);
+
+                const cardPromises = data.map(async p => {
+                    const card = document.createElement('div');
+                    card.className = 'card p-4 rounded-xl shadow-md cursor-pointer border border-gray-200';
+                    
+                    if (p.glbFile) {
+                        const fileExists = await checkFileExists(`./glb/${p.glbFile}`);
+                        if (fileExists) {
+                            card.classList.add('has-model');
+                        }
+                    }
+
+                    card.innerHTML = `
+                        <h3 class="text-lg font-bold" style="color: var(--text-main);">${p.name}</h3>
+                        <p class="text-sm" style="color: var(--text-light);">${p.en_name}</p>
+                        <p class="text-xs font-mono inline-block px-2 py-1 rounded mt-2" style="background-color: #e8ecf2; color: var(--accent-main);">${p.id}</p>
+                    `;
+                    card.addEventListener('click', () => showModal(p));
+                    return card;
+                });
+                
+                const cards = await Promise.all(cardPromises);
+                cards.forEach(card => grid.appendChild(card));
+            }
+
+            function showModal(polyhedron) {
+                document.getElementById('modal-title').textContent = polyhedron.name;
+                document.getElementById('modal-en-title').textContent = polyhedron.en_name;
+                document.getElementById('modal-id').textContent = polyhedron.id;
+                document.getElementById('modal-class').textContent = polyhedron.class;
+                document.getElementById('modal-faces').textContent = polyhedron.faces;
+                document.getElementById('modal-edges').textContent = polyhedron.edges;
+                document.getElementById('modal-vertices').textContent = polyhedron.vertices;
+                document.getElementById('modal-wythoff').textContent = polyhedron.wythoff;
+                
+                const propertiesContainer = document.getElementById('modal-properties');
+                propertiesContainer.innerHTML = ''; 
+                polyhedron.properties.forEach(prop => {
+                    const badge = document.createElement('span');
+                    const isInfinite = prop === '무한 계열';
+                    badge.className = `text-sm font-medium mr-2 px-2.5 py-0.5 rounded-full`;
+                    if(isInfinite) {
+                        badge.style.backgroundColor = '#fef3c7';
+                        badge.style.color = '#92400e';
+                    } else {
+                        badge.style.backgroundColor = '#e8ecf2';
+                        badge.style.color = 'var(--accent-secondary)';
+                    }
+                    badge.textContent = prop;
+                    propertiesContainer.appendChild(badge);
+                });
+
+                modelError.classList.add('hidden');
+                viewer.classList.add('opacity-0');
+                viewer.classList.remove('opacity-100');
+                
+                if (polyhedron.glbFile) {
+                    modelLoadingOverlay.classList.remove('hidden');
+                    viewer.src = `./glb/${polyhedron.glbFile}`;
+                } else {
+                    modelLoadingOverlay.classList.add('hidden');
+                    modelError.classList.remove('hidden');
+                    modelError.querySelector('span').textContent = '3D 모델이 제공되지 않습니다.';
+                }
+
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            }
+
+            viewer.addEventListener('load', () => {
+                modelLoadingOverlay.classList.add('hidden');
+                viewer.classList.remove('opacity-0');
+                viewer.classList.add('opacity-100');
+            });
+            
+            viewer.addEventListener('error', () => {
+                modelLoadingOverlay.classList.add('hidden');
+                modelError.classList.remove('hidden');
+                modelError.querySelector('span').innerHTML = '3D 모델을 불러올 수 없습니다.<br>(파일을 찾을 수 없거나 형식이 올바르지 않습니다.)';
+            });
+
+            searchInput.addEventListener('input', (e) => {
+                const searchTerm = e.target.value.toLowerCase().trim();
+                const filteredData = polyhedraData.filter(p => 
+                    p.name.toLowerCase().includes(searchTerm) ||
+                    p.en_name.toLowerCase().includes(searchTerm) ||
+                    p.id.toLowerCase().includes(searchTerm) ||
+                    p.class.toLowerCase().includes(searchTerm) ||
+                    p.properties.some(prop => prop.toLowerCase().includes(searchTerm))
+                );
+                displayPolyhedra(filteredData);
+            });
+
+            const hideModal = () => {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+                if(viewer.src) {
+                   viewer.pause();
+                   viewer.src = '';
+                }
+            };
+
+            closeModalBtn.addEventListener('click', hideModal);
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    hideModal();
+                }
+            });
+            
+            // Start the initial loading process
+            loadDataAndRender();
+        });
+    </script>
+</body>
+</html>
+
