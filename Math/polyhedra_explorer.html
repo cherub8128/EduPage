@@ -9,6 +9,11 @@
     <!-- Google Model Viewer -->
     <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script>
     <style>
+        @import url('https://cdn.jsdelivr.net/gh/joungkyun/font-d2coding/d2coding.css');
+        p.font-mono, span.font-mono {
+            font-family: 'D2Coding', monospace;
+        }
+
         /* Custom Color Palette */
         :root {
             --bg-main: #F2F2F2;
@@ -143,6 +148,7 @@
                 </div>
                 <div class="mt-4 space-y-3 text-base">
                     <p><strong>기호:</strong> <span id="modal-id" class="font-mono px-2 py-1 rounded" style="background-color: #e8ecf2; color: var(--accent-main);"></span></p>
+                    <div id="modal-numbering-container"></div>
                     <p><strong>분류:</strong> <span id="modal-class"></span></p>
                     <p><strong>면 (Faces):</strong> <span id="modal-faces"></span></p>
                     <p><strong>모서리 (Edges):</strong> <span id="modal-edges"></span></p>
@@ -228,6 +234,21 @@
                 document.getElementById('modal-title').textContent = polyhedron.name;
                 document.getElementById('modal-en-title').textContent = polyhedron.en_name;
                 document.getElementById('modal-id').textContent = polyhedron.id;
+                
+                const numberingContainer = document.getElementById('modal-numbering-container');
+                numberingContainer.innerHTML = ''; // Clear previous content
+
+                if (polyhedron.numbering && Object.values(polyhedron.numbering).some(v => v)) {
+                    const numberingContent = Object.entries(polyhedron.numbering)
+                        .filter(([, value]) => value)
+                        .map(([, value]) => `<span class="font-mono px-2 py-1 rounded mr-2" style="background-color: #e8ecf2; color: var(--accent-main);">${value}</span>`)
+                        .join(' ');
+
+                    if (numberingContent) {
+                        numberingContainer.innerHTML = `<p><strong>표준 번호:</strong> ${numberingContent}</p>`;
+                    }
+                }
+
                 document.getElementById('modal-class').textContent = polyhedron.class;
                 document.getElementById('modal-faces').textContent = polyhedron.faces;
                 document.getElementById('modal-edges').textContent = polyhedron.edges;
@@ -287,7 +308,8 @@
                     p.en_name.toLowerCase().includes(searchTerm) ||
                     p.id.toLowerCase().includes(searchTerm) ||
                     p.class.toLowerCase().includes(searchTerm) ||
-                    p.properties.some(prop => prop.toLowerCase().includes(searchTerm))
+                    p.properties.some(prop => prop.toLowerCase().includes(searchTerm)) ||
+                    (p.numbering && Object.values(p.numbering).some(num => num && num.toLowerCase().includes(searchTerm)))
                 );
                 displayPolyhedra(filteredData);
             });
