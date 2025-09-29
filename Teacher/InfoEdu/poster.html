@@ -85,6 +85,8 @@
             margin: 0 auto;
             height: 0;
             padding-bottom: 141.42%; /* A4/A1 Aspect ratio: 297 / 210 = 1.4142 */
+            border: 1px dashed #cbd5e1; /* Add visual boundary */
+            box-sizing: border-box;
         }
         
         #poster-preview {
@@ -93,6 +95,7 @@
             left: 0;
             width: 100%;
             height: 100%;
+            overflow: hidden; /* Hide anything that spills out of the page */
         }
 
         .break-inside-avoid { break-inside: avoid; }
@@ -132,7 +135,7 @@
                     </button>
                     <button id="export-pdf" class="bg-navyblue-900 text-white font-bold py-2 px-4 rounded-lg hover:bg-navyblue-800 transition duration-200 shadow-soft flex items-center">
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                        PDF로 내보내기
+                        A4 PDF로 내보내기
                     </button>
                 </div>
             </header>
@@ -326,7 +329,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const challengeTitle = "2025 STEAM융합 AI·SW 챌린지";
             return `
                 <div class="bg-white p-6 h-full w-full flex flex-col box-border relative">
-                    <div class="absolute top-0 right-0 w-6 h-6 bg-navyblue-900"></div>
+                    <div class="absolute top-6 right-0 w-6 h-6 bg-navyblue-900"></div>
                     <div class="text-xs font-semibold text-slate-500 mb-2">${challengeTitle}</div>
                     <header class="flex items-start mb-3 border-b-2 border-slate-200 pb-3">
                         <div class="mr-4 flex-shrink-0">
@@ -457,10 +460,8 @@ document.addEventListener('DOMContentLoaded', () => {
         },
 
         handleDeleteBlock(col, blockIndex) {
-            if (confirm('이 블록을 정말 삭제하시겠습니까?')) {
-                this.posterData.columns[col].splice(blockIndex, 1);
-                this.rerender();
-            }
+            this.posterData.columns[parseInt(col)].splice(parseInt(blockIndex), 1);
+            this.rerender();
         },
 
         handleAddBlock(col, blockIndex, type) {
@@ -471,11 +472,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 newBlock.content = ''; // No default image
                 newBlock.caption = '새 이미지';
             }
-            this.posterData.columns[col].splice(parseInt(blockIndex) + 1, 0, newBlock);
+            this.posterData.columns[parseInt(col)].splice(parseInt(blockIndex) + 1, 0, newBlock);
             this.rerender();
         },
 
         rerender() {
+            this.renderEditor();
             this.renderPreview();
             this.saveData();
         },
@@ -523,8 +525,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
                 const imgData = canvas.toDataURL('image/png');
                 const { jsPDF } = window.jspdf;
-                const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a1' });
-                pdf.addImage(imgData, 'PNG', 0, 0, 594, 841);
+                const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+                pdf.addImage(imgData, 'PNG', 0, 0, 210, 297);
 
                 const authors = this.posterData.authorName.split('\n').join(', ');
                 const filename = `${this.posterData.projectTitle} (${authors}).pdf`;
