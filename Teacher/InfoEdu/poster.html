@@ -34,11 +34,19 @@
                             600: '#475569', 700: '#334155', 800: '#1e293b',
                             900: '#0f172a',
                         },
-                        navy: {
-                            50: '#eef2ff', 100: '#e0e7ff', 200: '#c7d2fe',
-                            300: '#a5b4fc', 400: '#818cf8', 500: '#6366f1',
-                            600: '#4f46e5', 700: '#4338ca', 800: '#3730a3',
-                            900: '#312e81', 950: '#1e223b'
+                        navyblue: { // New color palette
+                            DEFAULT: '#023373',
+                            '50': '#E6F0FF',
+                            '100': '#BEDAFF',
+                            '200': '#94C3FF',
+                            '300': '#6BAEFE',
+                            '400': '#429AFF',
+                            '500': '#1A85FF',
+                            '600': '#006AD4',
+                            '700': '#0052A3',
+                            '800': '#013D75',
+                            '900': '#023373',
+                            '950': '#011A3B'
                         },
                         gray: {
                             50: '#f9fafb', 100: '#f3f4f6', 200: '#e5e7eb',
@@ -69,13 +77,24 @@
         @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
         
         body { font-family: 'Pretendard', 'Inter', sans-serif; }
-        .poster-a1 {
-            aspect-ratio: 594 / 841;
+
+        .poster-aspect-ratio-wrapper {
+            position: relative;
             width: 100%;
             max-width: 800px;
             margin: 0 auto;
-            transform-origin: top;
+            height: 0;
+            padding-bottom: 141.42%; /* A4/A1 Aspect ratio: 297 / 210 = 1.4142 */
         }
+        
+        #poster-preview {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
         .break-inside-avoid { break-inside: avoid; }
         .add-block-btn { opacity: 0; transition: all 0.2s ease-in-out; }
         .block-container:hover .add-block-btn { opacity: 1; }
@@ -95,7 +114,7 @@
     <div id="app" class="flex flex-col lg:flex-row h-screen font-sans">
         
         <!-- Editor Panel -->
-        <div id="editor-panel" class="w-full lg:w-1/2 p-4 sm:p-6 overflow-y-auto bg-white border-r border-slate-200">
+        <div id="editor-panel" class="w-full lg:w-1/2 p-4 sm:p-6 overflow-y-auto bg-white border-r border-slate-200 transition-all duration-300">
             <header class="flex justify-between items-center pb-4 border-b border-slate-200 mb-6">
                 <div>
                     <h1 class="text-2xl font-bold text-gray-900">포스터 편집기</h1>
@@ -107,9 +126,13 @@
                         <svg id="save-icon-saved" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-green-500 hidden"><polyline points="20 6 9 17 4 12"></polyline></svg>
                         <span id="save-text"></span>
                     </div>
-                    <button id="export-pdf" class="bg-navy-700 text-white font-bold py-2 px-4 rounded-lg hover:bg-navy-800 transition duration-200 shadow-soft flex items-center">
+                     <button id="toggle-preview" class="bg-slate-200 text-slate-700 font-bold py-2 px-4 rounded-lg hover:bg-slate-300 transition duration-200 flex items-center">
+                        <svg id="toggle-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line></svg>
+                        <span id="toggle-text">미리보기 감추기</span>
+                    </button>
+                    <button id="export-pdf" class="bg-navyblue-900 text-white font-bold py-2 px-4 rounded-lg hover:bg-navyblue-800 transition duration-200 shadow-soft flex items-center">
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                        PDF로 내보내기
+                        A4 PDF로 내보내기
                     </button>
                 </div>
             </header>
@@ -120,9 +143,9 @@
         </div>
 
         <!-- Preview Panel -->
-        <div id="preview-panel" class="w-full lg:w-1/2 p-4 sm:p-6 overflow-y-auto bg-slate-100 flex flex-col items-center">
-            <div id="poster-container" class="w-full">
-                <div id="poster" class="bg-white text-gray-800 shadow-lifted poster-a1 p-[2cm] box-border relative">
+        <div id="preview-panel" class="w-full lg:w-1/2 p-4 sm:p-6 overflow-y-auto bg-slate-100 flex flex-col items-center transition-all duration-300">
+            <div class="poster-aspect-ratio-wrapper">
+                <div id="poster-preview" class="bg-white text-gray-800 shadow-lifted">
                      <!-- Poster content will be rendered here -->
                 </div>
             </div>
@@ -131,12 +154,12 @@
     
     <div id="loader-overlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
         <div class="bg-white p-6 rounded-lg shadow-xl text-center">
-            <svg class="animate-spin h-8 w-8 text-navy-700 mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <svg class="animate-spin h-8 w-8 text-navyblue-900 mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
             <p class="text-lg font-semibold">PDF 생성 중...</p>
-            <p class="text-sm text-slate-600">고화질로 변환하고 있습니다. 잠시만 기다려주세요.</p>
+            <p class="text-sm text-slate-600">잠시만 기다려주세요.</p>
         </div>
     </div>
 
@@ -150,7 +173,6 @@ document.addEventListener('DOMContentLoaded', () => {
         
         getInitialData() {
             return {
-                challengeTitle: "2025 STEAM융합 AI·SW 챌린지",
                 projectTitle: "Gemma 3 기반 오프라인 응급조치 안내 AI 앱",
                 projectGoal: "이 프로젝트는 **재난, 조난 등 인터넷 연결이 불가능한 오프라인 상황**에서 사용자가 응급 상황에 대처할 수 있도록, 경량 AI 모델 **Gemma 3**를 스마트폰에 탑재하여 **실시간 맞춤형 응급조치 가이드**를 제공하는 온디바이스 AI 앱 개발을 목표로 합니다.",
                 authorName: "송도\n박안전\n김신속",
@@ -186,16 +208,6 @@ document.addEventListener('DOMContentLoaded', () => {
             this.renderEditor();
             this.renderPreview();
             this.attachEventListeners();
-            
-             window.addEventListener('load', () => {
-                renderMathInElement(document.getElementById('poster'), {
-                    delimiters: [
-                        {left: '$$', right: '$$', display: true},
-                        {left: '$', right: '$', display: false},
-                    ],
-                    throwOnError : false
-                });
-            });
         },
         
         loadData() {
@@ -220,25 +232,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="space-y-4 p-4 border border-slate-200 rounded-lg bg-slate-50">
                     <h3 class="font-bold text-lg text-gray-900">포스터 기본 정보</h3>
                     <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-1">챌린지 제목</label>
-                        <input type="text" data-key="challengeTitle" class="w-full border-slate-300 rounded-md shadow-sm p-2 focus:ring-navy-500 focus:border-navy-500" value="${this.posterData.challengeTitle}">
-                    </div>
-                    <div>
                         <label class="block text-sm font-medium text-slate-700 mb-1">프로젝트 제목</label>
-                        <input type="text" data-key="projectTitle" class="w-full border-slate-300 rounded-md shadow-sm text-lg p-2 focus:ring-navy-500 focus:border-navy-500" value="${this.posterData.projectTitle}">
+                        <input type="text" data-key="projectTitle" class="w-full border-slate-300 rounded-md shadow-sm text-lg p-2 focus:ring-navyblue-700 focus:border-navyblue-700" value="${this.posterData.projectTitle}">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-slate-700 mb-1">프로젝트 핵심 목표</label>
-                        <textarea data-key="projectGoal" class="w-full border-slate-300 rounded-md shadow-sm p-2 h-24 resize-none focus:ring-navy-500 focus:border-navy-500">${this.posterData.projectGoal}</textarea>
+                        <textarea data-key="projectGoal" class="w-full border-slate-300 rounded-md shadow-sm p-2 h-24 resize-y-none focus:ring-navyblue-700 focus:border-navyblue-700">${this.posterData.projectGoal}</textarea>
                     </div>
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="block text-sm font-medium text-slate-700 mb-1">출품자 (최대 5명, 한 줄에 한 명)</label>
-                            <textarea data-key="authorName" class="w-full border-slate-300 rounded-md shadow-sm p-2 h-28 resize-none focus:ring-navy-500 focus:border-navy-500">${this.posterData.authorName}</textarea>
+                            <textarea data-key="authorName" class="w-full border-slate-300 rounded-md shadow-sm p-2 h-28 resize-y-none focus:ring-navyblue-700 focus:border-navyblue-700">${this.posterData.authorName}</textarea>
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-slate-700 mb-1">지도교사 이름</label>
-                            <input type="text" data-key="instructorName" class="w-full border-slate-300 rounded-md shadow-sm p-2 focus:ring-navy-500 focus:border-navy-500" value="${this.posterData.instructorName}">
+                            <input type="text" data-key="instructorName" class="w-full border-slate-300 rounded-md shadow-sm p-2 focus:ring-navyblue-700 focus:border-navyblue-700" value="${this.posterData.instructorName}">
                         </div>
                     </div>
                 </div>`;
@@ -265,10 +273,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
             switch (block.type) {
                 case 'header':
-                    contentHtml = `<input type="text" class="w-full font-bold text-lg border-b-2 border-slate-200 focus:outline-none focus:border-navy-500 p-1" value="${block.content}" data-col="${colIndex}" data-block="${blockIndex}" data-type="header">`;
+                    contentHtml = `<input type="text" class="w-full font-bold text-lg border-b-2 border-slate-200 focus:outline-none focus:border-navyblue-700 p-1" value="${block.content}" data-col="${colIndex}" data-block="${blockIndex}" data-type="header">`;
                     break;
                 case 'text':
-                    contentHtml = `<textarea class="w-full h-32 border-slate-300 rounded-md p-2 resize-none focus:ring-navy-500 focus:border-navy-500" data-col="${colIndex}" data-block="${blockIndex}" data-type="text">${block.content}</textarea>`;
+                    contentHtml = `<textarea class="w-full h-32 border-slate-300 rounded-md p-2 resize-y-none focus:ring-navyblue-700 focus:border-navyblue-700" data-col="${colIndex}" data-block="${blockIndex}" data-type="text">${block.content}</textarea>`;
                     break;
                 case 'image':
                     const imagePreviewSrc = block.content.startsWith('data:image') ? block.content : 'https://placehold.co/100x60/e2e8f0/cbd5e0?text=No+Image';
@@ -277,7 +285,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             <label class="block text-sm font-medium text-slate-700">이미지 파일</label>
                             <div class="flex items-center space-x-4">
                                 <img src="${imagePreviewSrc}" class="w-24 h-16 object-cover rounded-md border border-slate-200">
-                                <input type="file" class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-navy-50 file:text-navy-700 hover:file:bg-navy-100" accept="image/*" data-col="${colIndex}" data-block="${blockIndex}" data-type="image" data-field="content">
+                                <input type="file" class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-navyblue-50 file:text-navyblue-700 hover:file:bg-navyblue-100" accept="image/*" data-col="${colIndex}" data-block="${blockIndex}" data-type="image" data-field="content">
                             </div>
                             <label class="block text-sm font-medium text-slate-700 mt-2">캡션 (설명)</label>
                             <input type="text" class="w-full border-slate-300 rounded-md p-2" value="${block.caption || ''}" data-col="${colIndex}" data-block="${blockIndex}" data-type="image" data-field="caption" placeholder="이미지 설명">
@@ -294,7 +302,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="relative h-2 flex items-center justify-center add-block-btn mt-4">
                     <div class="w-full border-t border-dashed border-slate-300"></div>
                     <div class="absolute flex space-x-2">
-                         <button class="p-1.5 bg-navy-700 text-white rounded-full shadow-md hover:bg-navy-800 transform transition hover:scale-110" data-col="${colIndex}" data-block="${blockIndex}" data-action="add" data-add-type="text" title="텍스트 블록 추가"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg></button>
+                         <button class="p-1.5 bg-navyblue-700 text-white rounded-full shadow-md hover:bg-navyblue-800 transform transition hover:scale-110" data-col="${colIndex}" data-block="${blockIndex}" data-action="add" data-add-type="text" title="텍스트 블록 추가"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg></button>
                          <button class="p-1.5 bg-green-500 text-white rounded-full shadow-md hover:bg-green-600 transform transition hover:scale-110" data-col="${colIndex}" data-block="${blockIndex}" data-action="add" data-add-type="image" title="이미지 블록 추가"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg></button>
                     </div>
                 </div>`;
@@ -305,62 +313,70 @@ document.addEventListener('DOMContentLoaded', () => {
         },
 
         renderPreview() {
-            const poster = document.getElementById('poster');
-            poster.innerHTML = `
-                <div class="text-base font-semibold text-slate-500 mb-4">${this.posterData.challengeTitle}</div>
-                <header class="flex items-start mb-[0.5cm] border-b-2 border-slate-200 pb-4">
-                    <div class="mr-6 flex-shrink-0">
-                        <div class="w-24 h-24 border-4 border-slate-300 flex flex-col justify-center items-center rounded-md">
-                            <span class="text-sm font-bold text-slate-500">출품번호</span>
-                            <div class="h-8"></div>
-                        </div>
-                    </div>
-                    <div class="flex-grow pt-2">
-                        <h1 class="text-5xl font-bold text-gray-900">${this.posterData.projectTitle}</h1>
-                    </div>
-                </header>
-                <div class="grid grid-cols-5 gap-x-[1cm] my-[1cm] border-b-2 border-slate-200 pb-6 items-start">
-                    <div class="col-span-3">
-                        <h2 class="text-2xl font-bold mb-2 text-gray-900">프로젝트 핵심 목표</h2>
-                        <div class="text-md leading-relaxed prose max-w-none text-gray-800/90">${this.parseContent(this.posterData.projectGoal)}</div>
-                    </div>
-                    <div class="col-span-2 text-left pl-6">
-                        <div class="p-4 border border-slate-200 rounded-xl bg-slate-50/50 h-full">
-                            <h3 class="font-bold text-lg text-gray-900">출품자</h3>
-                            <p class="mt-1 mb-3 text-gray-800/90 whitespace-pre-line">${this.posterData.authorName}</p>
-                            <h3 class="font-bold text-lg text-gray-900">지도교사</h3>
-                            <p class="mt-1 text-gray-800/90">${this.posterData.instructorName}</p>
-                        </div>
-                    </div>
-                </div>
-                <main class="grid grid-cols-3 gap-x-[1cm]">
-                    ${this.posterData.columns.map(col => `
-                        <div class="flex flex-col space-y-[0.8cm]">
-                            ${col.map(block => this.createPreviewBlock(block)).join('')}
-                        </div>
-                    `).join('')}
-                </main>`;
+            const poster = document.getElementById('poster-preview');
+            poster.innerHTML = this.getPosterHTML();
 
-            renderMathInElement(poster, {
+            window.renderMathInElement(poster, {
                 delimiters: [ {left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false} ],
                 throwOnError : false
             });
         },
 
+        getPosterHTML() {
+            const challengeTitle = "2025 STEAM융합 AI·SW 챌린지";
+            return `
+                <div class="bg-white p-6 h-full w-full flex flex-col box-border relative">
+                    <div class="absolute top-0 right-0 w-6 h-6 bg-navyblue-900"></div>
+                    <div class="text-xs font-semibold text-slate-500 mb-2">${challengeTitle}</div>
+                    <header class="flex items-start mb-3 border-b-2 border-slate-200 pb-3">
+                        <div class="mr-4 flex-shrink-0">
+                            <div class="w-16 h-16 border-2 border-slate-300 flex flex-col justify-center items-center rounded-md">
+                                <span class="text-[0.6rem] font-bold text-slate-500">출품번호</span>
+                                <div class="h-6"></div>
+                            </div>
+                        </div>
+                        <div class="flex-grow pt-1">
+                            <h1 class="text-3xl font-bold text-gray-900 leading-tight">${this.posterData.projectTitle}</h1>
+                        </div>
+                    </header>
+                    <div class="grid grid-cols-5 gap-x-4 my-4 border-b-2 border-slate-200 pb-4 items-start">
+                        <div class="col-span-3">
+                            <h2 class="text-base font-bold mb-1 text-gray-900">프로젝트 핵심 목표</h2>
+                            <div class="text-xs leading-relaxed prose max-w-none text-gray-800/90">${this.parseContent(this.posterData.projectGoal)}</div>
+                        </div>
+                        <div class="col-span-2 text-left pl-3">
+                            <div class="p-2 border border-slate-200 rounded-lg bg-slate-50/50 h-full">
+                                <h3 class="font-bold text-sm text-gray-900">출품자</h3>
+                                <p class="mt-1 mb-2 text-xs text-gray-800/90 whitespace-pre-line">${this.posterData.authorName}</p>
+                                <h3 class="font-bold text-sm text-gray-900">지도교사</h3>
+                                <p class="mt-1 text-xs text-gray-800/90">${this.posterData.instructorName}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <main class="grid grid-cols-3 gap-x-4 flex-grow">
+                        ${this.posterData.columns.map(col => `
+                            <div class="flex flex-col space-y-4">
+                                ${col.map(block => this.createPreviewBlock(block)).join('')}
+                            </div>
+                        `).join('')}
+                    </main>
+                </div>`;
+        },
+
         createPreviewBlock(block) {
-            const blockWrapper = (content) => `<div class="p-4 border border-slate-200 rounded-xl shadow-soft bg-white break-inside-avoid">${content}</div>`;
+            const blockWrapper = (content) => `<div class="p-3 border border-slate-200 rounded-lg shadow-soft bg-white break-inside-avoid">${content}</div>`;
             
             switch (block.type) {
                 case 'header':
-                    return `<h2 class="text-2xl font-bold text-gray-900 border-l-4 border-navy-700 pl-3">${block.content}</h2>`;
+                    return `<h2 class="text-base font-bold text-gray-900 border-l-4 border-navyblue-900 pl-2">${block.content}</h2>`;
                 case 'text':
-                    return blockWrapper(`<div class="text-base leading-relaxed prose max-w-none text-gray-800/90">${this.parseContent(block.content)}</div>`);
+                    return blockWrapper(`<div class="text-xs leading-relaxed prose max-w-none text-gray-800/90">${this.parseContent(block.content)}</div>`);
                 case 'image':
                     const imgSrc = block.content || 'https://placehold.co/600x400/e2e8f0/cbd5e0?text=Image+Not+Found';
                     return blockWrapper(`
                         <div class="break-inside-avoid">
-                            <img src="${imgSrc}" alt="${block.caption || 'Poster image'}" class="w-full rounded-md shadow-md mb-2" onerror="this.onerror=null;this.src='https://placehold.co/600x400/e2e8f0/cbd5e0?text=Image+Load+Failed';">
-                            <p class="text-center text-sm text-slate-600">${block.caption || ''}</p>
+                            <img src="${imgSrc}" alt="${block.caption || 'Poster image'}" class="w-full rounded-md shadow-md mb-1" onerror="this.onerror=null;this.src='https://placehold.co/600x400/e2e8f0/cbd5e0?text=Image+Load+Failed';">
+                            <p class="text-center text-[0.65rem] text-slate-600">${block.caption || ''}</p>
                         </div>`);
                 default:
                     return '';
@@ -383,6 +399,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 if(action === 'add') this.handleAddBlock(col, block, addType);
             });
             document.getElementById('export-pdf').addEventListener('click', () => this.exportToPdf());
+            document.getElementById('toggle-preview').addEventListener('click', () => this.togglePreview());
+        },
+        
+        togglePreview() {
+            const previewPanel = document.getElementById('preview-panel');
+            const editorPanel = document.getElementById('editor-panel');
+            const toggleText = document.getElementById('toggle-text');
+            
+            previewPanel.classList.toggle('hidden');
+            if (previewPanel.classList.contains('hidden')) {
+                editorPanel.classList.remove('lg:w-1/2');
+                editorPanel.classList.add('w-full');
+                toggleText.textContent = "미리보기 보이기";
+            } else {
+                editorPanel.classList.add('lg:w-1/2');
+                editorPanel.classList.remove('w-full');
+                toggleText.textContent = "미리보기 감추기";
+            }
         },
 
         handleFileInput(e) {
@@ -442,7 +476,6 @@ document.addEventListener('DOMContentLoaded', () => {
         },
 
         rerender() {
-            this.renderEditor();
             this.renderPreview();
             this.saveData();
         },
@@ -459,24 +492,49 @@ document.addEventListener('DOMContentLoaded', () => {
         async exportToPdf() {
             const loader = document.getElementById('loader-overlay');
             loader.classList.remove('hidden');
-            const posterElement = document.getElementById('poster');
-            const renderWidth = 2376;
-            const scale = renderWidth / posterElement.offsetWidth;
+
+            const renderContainer = document.createElement('div');
+            const renderWidth = 1190.55; 
+            const renderHeight = 1683.78;
+
+            renderContainer.style.width = `${renderWidth}px`;
+            renderContainer.style.height = `${renderHeight}px`;
+            renderContainer.style.position = 'absolute';
+            renderContainer.style.left = '-9999px'; 
+            renderContainer.style.boxSizing = 'border-box';
+            
+            document.body.appendChild(renderContainer);
+            
+            const posterHTML = this.getPosterHTML();
+            renderContainer.innerHTML = posterHTML;
+            
+            window.renderMathInElement(renderContainer, {
+                delimiters: [ {left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false} ],
+                throwOnError : false
+            });
 
             try {
-                const canvas = await html2canvas(posterElement, {
-                    scale: scale, useCORS: true, logging: false,
-                    windowWidth: posterElement.scrollWidth, windowHeight: posterElement.scrollHeight
+                await new Promise(resolve => setTimeout(resolve, 500));
+
+                const canvas = await html2canvas(renderContainer, {
+                    scale: 2,
+                    useCORS: true, 
+                    logging: false,
                 });
                 const imgData = canvas.toDataURL('image/png');
                 const { jsPDF } = window.jspdf;
-                const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a1' });
-                pdf.addImage(imgData, 'PNG', 0, 0, 594, 841);
-                pdf.save(`${this.posterData.projectTitle.slice(0, 20)}.pdf`);
+                const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+                pdf.addImage(imgData, 'PNG', 0, 0, 210, 297);
+
+                const authors = this.posterData.authorName.split('\n').join(', ');
+                const filename = `${this.posterData.projectTitle} (${authors}).pdf`;
+                pdf.save(filename);
+
             } catch(error) {
                 console.error("PDF 생성 중 오류 발생:", error);
                 alert("PDF를 생성하는 데 실패했습니다. 콘솔을 확인해주세요.");
             } finally {
+                document.body.removeChild(renderContainer);
                 loader.classList.add('hidden');
             }
         }
