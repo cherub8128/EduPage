@@ -1,185 +1,189 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" class="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>KaTeX 사용법 및 고교 수학 기호</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.css" integrity="sha384-wcIxkf4k558fYv3eWK7dGoQf7TIQb2eFE1OAp9T63flYBFXCq5zEuETCGoAd+5Sn" crossorigin="anonymous">
-    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.js" integrity="sha384-hIoBPJpTUs74ddyc4bFZSM1YxF3hLAoBEYEZjS3+B1SQEt5NEDv3vycHjவருக்கு賢" crossorigin="anonymous"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/contrib/auto-render.min.js" integrity="sha384-43gviWU0YVjaDtb/GhzOouEsbQMP/6BasKcAiSmdM+ErsWA4iIpxGsvllM3i0dc" crossorigin="anonymous"></script>
-    <link rel="stylesheet" href="../css/shared_style.css">
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;800&family=Fira+Code&family=D2Coding&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" xintegrity="sha384-n8MVd4RsNIU0KOVEMQNogPSesLpv7qwX5GKT6Aqc2LSYQyIYc0OFtGhfgMLlA6oB" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" xintegrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzUOEleOLALmuqehneUG+vnGctmUb0ZY0l8" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" xintegrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous"></script>
     <style>
-        body {
-            max-width: 900px;
+        /* KaTeX 페이지 전용 스타일 */
+        .katex-table { width: 100%; border-collapse: collapse; margin-bottom: 2rem; background-color: var(--color-surface); border: 1px solid var(--color-border); border-radius: 0.75rem; overflow: hidden; box-shadow: var(--shadow-md); }
+        .katex-table th, .katex-table td { padding: 1rem 1.25rem; text-align: left; vertical-align: middle; border-bottom: 1px solid var(--color-border); }
+        .katex-table td { border-left: 1px solid var(--color-border); }
+        .katex-table th { background-color: var(--bg-secondary); font-weight: 600; color: var(--color-text-heading); }
+        .katex-table th:not(:first-child), .katex-table td:not(:first-child) { border-left: 1px solid var(--color-border); }
+        .katex-table tbody tr:last-child td { border-bottom: none; }
+        .katex-table tbody tr:hover { background-color: var(--bg-secondary); }
+
+        .katex-table td:first-child { width: 25%; }
+        .katex-table td:nth-child(2) { width: 35%; }
+        .katex-table code { 
+            font-family: var(--font-code); 
+            background-color: var(--color-code-bg); 
+            color: var(--color-code-text);
+            padding: 0.2em 0.4em; border-radius: 4px; font-size: 0.9em; 
         }
-        h1, h2, h3 {
-            border-bottom-color: #03dac6;
-            color: #03dac6;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 2rem;
-            background-color: #2c2c2c;
-        }
-        th, td {
-            border: 1px solid #444;
-            padding: 12px;
-            text-align: left;
-            vertical-align: middle;
-        }
-        th {
-            background-color: #333;
-            color: #e0e0e0;
-        }
-        td:first-child {
-            width: 25%;
-        }
-        td:nth-child(2) {
-            width: 35%;
-        }
-        code {
-            font-family: 'Source Code Pro', monospace;
-            background-color: #3e3e3e;
-            padding: 0.2em 0.4em;
-            border-radius: 3px;
-            font-size: 0.95em;
-        }
-        .katex {
-            font-size: 1.1em;
-        }
-        .katex-display {
-            font-size: 1.2em;
-        }
-        .info {
-            background-color: #1e1e1e;
-            border-left: 5px solid #03dac6;
-            padding: 1.5rem;
-            margin-bottom: 2rem;
-        }
+        .katex { font-size: 1.1em !important; }
+        .katex-display { font-size: 1.2em !important; }
+        .info-box { background-color: var(--accent-light-color); border-left: 4px solid var(--accent-color); padding: 1.5rem; margin-bottom: 2rem; border-radius: 0.5rem; }
+        .info-box ul { list-style-position: inside; }
+        .info-box a { color: var(--accent-color); font-weight: 600; text-decoration: underline; }
     </style>
 </head>
 <body>
-    <a href="../index.html" class="back-button">&larr; Home</a>
-    <h1>KaTeX 사용법 및 고교 수학 기호</h1>
+    <header id="main-header-placeholder" class="main-header"></header>
+    <main>
+        <div class="page-header">
+            <div class="container">
+                <h1>KaTeX 사용법</h1>
+                <p class="subtitle">웹 페이지에 수학 수식을 렌더링하는 KaTeX 라이브러리 치트시트입니다.</p>
+            </div>
+        </div>
 
-    <div class="info">
-        <p>KaTeX는 웹 페이지에 수학 수식을 빠르고 쉽게 렌더링하는 라이브러리입니다.</p>
-        <ul>
-            <li>인라인(inline) 수식은 문장 안에 자연스럽게 표시됩니다. <code>$...$</code> 기호로 수식을 감싸서 사용합니다.</li>
-            <li>디스플레이(display) 수식은 별도의 단락으로 중앙에 크게 표시됩니다. <code>$$...$$</code> 기호로 수식을 감싸서 사용합니다.</li>
-        </ul>
-        <p>
-            더 많은 기능이나 지원되는 전체 명령어 목록은 공식 문서를 참고하세요.<br>
-            <a href="https://katex.org/docs/supported.html" target="_blank">지원 기능 목록 (Supported Functions)</a><br>
-            <a href="https://katex.org/docs/support_table.html" target="_blank">지원 기능 표 (Support Table)</a>
-        </p>
-    </div>
+        <div class="container">
+            <div class="info-box">
+                <p>KaTeX는 웹 페이지에 수학 수식을 빠르고 쉽게 렌더링하는 라이브러리입니다.</p>
+                <ul>
+                    <li>인라인(inline) 수식은 문장 안에 자연스럽게 표시됩니다. <code>$...$</code> 기호로 수식을 감싸서 사용합니다.</li>
+                    <li>디스플레이(display) 수식은 별도의 단락으로 중앙에 크게 표시됩니다. <code>$$...$$</code> 기호로 수식을 감싸서 사용합니다.</li>
+                </ul>
+                <p class="mt-2">
+                    더 많은 기능이나 지원되는 전체 명령어 목록은 공식 문서를 참고하세요.<br>
+                    <a href="https://katex.org/docs/supported.html" target="_blank">지원 기능 목록 (Supported Functions)</a> | 
+                    <a href="https://katex.org/docs/support_table.html" target="_blank">지원 기능 표 (Support Table)</a>
+                </p>
+            </div>
 
-    <h2>자주 사용하는 기호 및 수식</h2>
+            <h2 class="section-title">자주 사용하는 기호 및 수식</h2>
 
-    <h3>기본 연산 및 관계식</h3>
-    <table>
+            <h3 class="subsection-title">기본 연산</h3>
+            <table class="katex-table">
         <thead>
             <tr><th>설명</th><th>코드</th><th>결과</th></tr>
         </thead>
         <tbody>
             <tr><td>더하기, 빼기</td><td><code>$a + b, a - b$</code></td><td>$a + b, a - b$</td></tr>
-            <tr><td>곱하기, 나누기</td><td><code>$a \times b, a \div b$</code></td><td>$a 	imes b, a 	imes b$</td></tr>
-            <tr><td>분수</td><td><code>$\frac{a}{b}$</code></td><td>$rac{a}{b}$</td></tr>
-            <tr><td>플러스-마이너스</td><td><code>$\pm$</code></td><td>$
-pm$</td></tr>
-            <tr><td>같지 않다</td><td><code>$\neq$</code></td><td>$
-eq$</td></tr>
-            <tr><td>부등호</td><td><code>$a < b, a \leq b$</code></td><td>$a < b, a 
-$</td></tr>
-            <tr><td>근사값</td><td><code>$a \approx b$</code></td><td>$a 
-$</td></tr>
+            <tr><td>곱하기, 나누기</td><td><code>$a \times b, a \div b$</code></td><td>$a \times b, a \div b$</td></tr>
+            <tr><td>분수</td><td><code>$\frac{a}{b}$</code></td><td>$\frac{a}{b}$</td></tr>
+            <tr><td>플러스-마이너스</td><td><code>$\pm$</code></td><td>$\pm$</td></tr>
+            <tr><td>같지 않다</td><td><code>$a \ne b$</code></td><td>$a \ne b$</td></tr>
+            <tr><td>부등호</td><td><code>$a < b, a \le b$</code></td><td>$a < b, a \le b$</td></tr>
+            <tr><td>근사값</td><td><code>$a \approx b$</code></td><td>$a \approx b$</td></tr>
         </tbody>
     </table>
 
-    <h3>지수, 로그, 근호</h3>
-    <table>
+    <h3 class="subsection-title">지수와 로그</h3>
+    <table class="katex-table">
         <thead>
             <tr><th>설명</th><th>코드</th><th>결과</th></tr>
         </thead>
         <tbody>
             <tr><td>위 첨자 (제곱)</td><td><code>$x^2, y^{10}$</code></td><td>$x^2, y^{10}$</td></tr>
             <tr><td>아래 첨자</td><td><code>$a_1, H_2O$</code></td><td>$a_1, H_2O$</td></tr>
-            <tr><td>제곱근</td><td><code>$\sqrt{x}$</code></td><td>$
-$</td></tr>
-            <tr><td>n제곱근</td><td><code>$\sqrt[n]{x}$</code></td><td>$
-$</td></tr>
-            <tr><td>로그</td><td><code>$\log_{a}{x}$</code></td><td>$
-$</td></tr>
-            <tr><td>자연로그</td><td><code>$\ln{x}$</code></td><td>$
-$</td></tr>
+            <tr><td>제곱근</td><td><code>$\sqrt{x}$</code></td><td>$\sqrt{x}$</td></tr>
+            <tr><td>n제곱근</td><td><code>$\sqrt[n]{x}$</code></td><td>$\sqrt[n]{x}$</td></tr>
+            <tr><td>로그</td><td><code>$\log_{a}{x}$</code></td><td>$\log_{a}{x}$</td></tr>
+            <tr><td>자연로그</td><td><code>$\ln{x}$</code></td><td>$\ln{x}$</td></tr>
         </tbody>
     </table>
 
-    <h3>집합과 명제</h3>
-    <table>
+    <h3 class="subsection-title">집합과 명제</h3>
+    <table class="katex-table">
         <thead>
             <tr><th>설명</th><th>코드</th><th>결과</th></tr>
         </thead>
         <tbody>
-            <tr><td>원소</td><td><code>$a \in A$</code></td><td>$a 
-$</td></tr>
-            <tr><td>부분집합</td><td><code>$A \subset B, A \subseteq B$</code></td><td>$A 
-, A 
-$</td></tr>
-            <tr><td>합집합, 교집합</td><td><code>$A \cup B, A \cap B$</code></td><td>$A 
-, A 
-$</td></tr>
-            <tr><td>모든, 존재</td><td><code>$\forall x, \exists y$</code></td><td>$
-, 
-$</td></tr>
-            <tr><td>그리고, 또는</td><td><code>$p \land q, p \lor q$</code></td><td>$p 
-, p 
-$</td></tr>
-            <tr><td>부정</td><td><code>$\neg p$</code></td><td>$
-$</td></tr>
+            <tr><td>원소</td><td><code>$a \in A$</code></td><td>$a \in A$</td></tr>
+            <tr><td>부분집합</td><td><code>$A \subset B, A \subseteq B$</code></td><td>$A \subset B, A \subseteq B$</td></tr>
+            <tr><td>합집합, 교집합</td><td><code>$A \cup B, A \cap B$</code></td><td>$A \cup B, A \cap B$</td></tr>
+            <tr><td>모든, 존재</td><td><code>$\forall x, \exists y$</code></td><td>$\forall x, \exists y$</td></tr>
+            <tr><td>그리고, 또는</td><td><code>$p \land q, p \lor q$</code></td><td>$p \land q, p \lor q$</td></tr>
+            <tr><td>부정</td><td><code>$\neg p$</code></td><td>$\neg p$</td></tr>
         </tbody>
     </table>
 
-    <h3>미적분</h3>
-    <table>
+    <h3 class="subsection-title">미적분</h3>
+    <table class="katex-table">
         <thead>
             <tr><th>설명</th><th>코드</th><th>결과</th></tr>
         </thead>
         <tbody>
-            <tr><td>극한</td><td><code>$\lim_{x \to a} f(x)$</code></td><td>$
-$</td></tr>
-            <tr><td>무한대</td><td><code>$\infty$</code></td><td>$
-$</td></tr>
-            <tr><td>합 (시그마)</td><td><code>$\sum_{k=1}^{n} k$</code></td><td>$
-$</td></tr>
-            <tr><td>적분 (인테그랄)</td><td><code>$\int_{a}^{b} f(x) dx$</code></td><td>$
-$</td></tr>
+            <tr><td>극한</td><td><code>$\lim_{x \to a} f(x)$</code></td><td>$\lim_{x \to a} f(x)$</td></tr>
+            <tr><td>무한대</td><td><code>$\infty$</code></td><td>$\infty$</td></tr>
+            <tr><td>합 (시그마)</td><td><code>$\sum_{k=1}^{n} k$</code></td><td>$\sum_{k=1}^{n} k$</td></tr>
+            <tr><td>적분 (인테그랄)</td><td><code>$\int_{a}^{b} f(x) dx$</code></td><td>$\int_{a}^{b} f(x) dx$</td></tr>
             <tr><td>프라임 (미분)</td><td><code>$f'(x)$</code></td><td>$f'(x)$</td></tr>
-            <tr><td>델타</td><td><code>$\Delta x$</code></td><td>$
-$</td></tr>
+            <tr><td>델타</td><td><code>$\Delta x$</code></td><td>$\Delta x$</td></tr>
+        </tbody>
+    </table>
+
+    <h3 class="subsection-title">삼각함수</h3>
+    <table class="katex-table">
+        <thead>
+            <tr><th>설명</th><th>코드</th><th>결과</th></tr>
+        </thead>
+        <tbody>
+            <tr><td>기본 함수</td><td><code>$\sin\theta, \cos\theta, \tan\theta$</code></td><td>$\sin\theta, \cos\theta, \tan\theta$</td></tr>
+            <tr><td>역수 함수</td><td><code>$\csc\theta, \sec\theta, \cot\theta$</code></td><td>$\csc\theta, \sec\theta, \cot\theta$</td></tr>
+            <tr><td>역함수</td><td><code>$\arcsin x, \arccos x, \arctan x$</code></td><td>$\arcsin x, \arccos x, \arctan x$</td></tr>
+            <tr><td>피타고라스 항등식</td><td><code>$\sin^2\theta + \cos^2\theta = 1$</code></td><td>$\sin^2\theta + \cos^2\theta = 1$</td></tr>
+            <tr><td>극한 공식</td><td><code>$$\lim_{x \to 0} \frac{\sin x}{x} = 1$$</code></td><td>$$\lim_{x \to 0} \frac{\sin x}{x} = 1$$</td></tr>
+        </tbody>
+    </table>
+
+    <h3 class="subsection-title">기하 및 도형</h3>
+    <table class="katex-table">
+        <thead>
+            <tr><th>설명</th><th>코드</th><th>결과</th></tr>
+        </thead>
+        <tbody>
+            <tr><td>각도</td><td><code>$\angle ABC$</code></td><td>$\angle ABC$</td></tr>
+            <tr><td>도(Degree)</td><td><code>$90^\circ$</code></td><td>$90^\circ$</td></tr>
+            <tr><td>삼각형</td><td><code>$\triangle ABC$</code></td><td>$\triangle ABC$</td></tr>
+            <tr><td>선분</td><td><code>$\overline{AB}$</code></td><td>$\overline{AB}$</td></tr>
+            <tr><td>수직</td><td><code>$\overline{AB} \perp \overline{CD}$</code></td><td>$\overline{AB} \perp \overline{CD}$</td></tr>
+            <tr><td>평행</td><td><code>$\overline{AB} \parallel \overline{CD}$</code></td><td>$\overline{AB} \parallel \overline{CD}$</td></tr>
+        </tbody>
+    </table>
+
+    <h3 class="subsection-title">논문/전공 수학 기호</h3>
+    <table class="katex-table">
+        <thead>
+            <tr><th>설명</th><th>코드</th><th>결과</th></tr>
+        </thead>
+        <tbody>
+            <tr><td>굵은 글씨 (벡터/행렬)</td><td><code>$\mathbf{v}, \mathbf{M}$</code></td><td>$\mathbf{v}, \mathbf{M}$</td></tr>
+            <tr><td>평균 (bar)</td><td><code>$\bar{x}$</code></td><td>$\bar{x}$</td></tr>
+            <tr><td>추정값 (hat)</td><td><code>$\hat{y}$</code></td><td>$\hat{y}$</td></tr>
+            <tr><td>편미분</td><td><code>$\frac{\partial f}{\partial x}$</code></td><td>$\frac{\partial f}{\partial x}$</td></tr>
+            <tr><td>기댓값</td><td><code>$\mathbb{E}[X]$</code></td><td>$\mathbb{E}[X]$</td></tr>
+            <tr><td>노름 (Norm)</td><td><code>$\| \mathbf{x} \|$</code></td><td>$\| \mathbf{x} \|$</td></tr>
+            <tr><td>내적 (Dot Product)</td><td><code>$\vec{a} \cdot \vec{b}$</code></td><td>$\vec{a} \cdot \vec{b}$</td></tr>
+            <tr><td>경우 나누기 (Cases)</td><td><code>$$f(x) = \begin{cases} 1 & x > 0 \\ 0 & x = 0 \\ -1 & x < 0 \end{cases}$$</code></td><td>$$f(x) = \begin{cases} 1 & x > 0 \\ 0 & x = 0 \\ -1 & x < 0 \end{cases}$$</td></tr>
+            <tr><td>정체(Upright) 텍스트</td><td><code>$V_{\text{max}}, 10 \text{ cm}, \mathrm{d}x$</code></td><td>$V_{\text{max}}, 10 \text{ cm}, \mathrm{d}x$</td></tr>
         </tbody>
     </table>
     
-    <h3>그리스 문자 및 기타</h3>
-    <table>
+    <h3 class="subsection-title">그리스 문자 및 기타</h3>
+    <table class="katex-table">
         <thead>
             <tr><th>설명</th><th>코드</th><th>결과</th></tr>
         </thead>
         <tbody>
-            <tr><td>알파, 베타</td><td><code>$\alpha, \beta$</code></td><td>$
-, 
-$</td></tr>
-            <tr><td>세타, 파이</td><td><code>$\theta, \pi$</code></td><td>$
-, 
-$</td></tr>
-            <tr><td>벡터</td><td><code>$\vec{a}$</code></td><td>$
-$</td></tr>
-            <tr><td>행렬</td><td><code>$$A = \begin{pmatrix} a & b \\ c & d \end{pmatrix}$$</code></td><td>$$A = begin{pmatrix} a & b \\ c & d \end{pmatrix}$$</td></tr>
-            <tr><td>근의 공식</td><td><code>$$x = \frac{-b \pm \sqrt{b^2-4ac}}{2a}$$</code></td><td>$$x = frac{-b}{2a}$$</td></tr>
+            <tr><td>소문자</td><td><code>$\alpha, \beta, \gamma, \delta, \epsilon$</code></td><td>$\alpha, \beta, \gamma, \delta, \epsilon$</td></tr>
+            <tr><td>대문자</td><td><code>$\Gamma, \Delta, \Theta, \Lambda, \Pi$</code></td><td>$\Gamma, \Delta, \Theta, \Lambda, \Pi$</td></tr>
+            <tr><td>세타, 파이</td><td><code>$\theta, \pi$</code></td><td>$\theta, \pi$</td></tr>
+            <tr><td>벡터</td><td><code>$\vec{a}$</code></td><td>$\vec{a}$</td></tr>
+            <tr><td>행렬</td><td><code>$$A = \begin{pmatrix} a & b \\ c & d \end{pmatrix}$$</code></td><td>$$A = \begin{pmatrix} a & b \\ c & d \end{pmatrix}$$</td></tr>
+            <tr><td>근의 공식</td><td><code>$$x = \frac{-b \pm \sqrt{b^2-4ac}}{2a}$$</code></td><td>$$x = \frac{-b \pm \sqrt{b^2-4ac}}{2a}$$</td></tr>
         </tbody>
     </table>
+        </div>
+    </main>
 
     <script>
         document.addEventListener("DOMContentLoaded", function() {
@@ -193,5 +197,6 @@ $</td></tr>
             });
         });
     </script>
+    <script src="script.js"></script>
 </body>
 </html>
