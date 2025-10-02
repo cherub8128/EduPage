@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STEAM융합 AI.SW챌린지 포스터 생성기</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" integrity="sha384-n8MVd4RsNIU0KOVEMQNogPSesLpv7qwX5GKT6Aqc2LSYQyIYc0OFtGhfgMLlA6oB" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" integrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzUOEleOLALmuqehneUG+vnGctmUb0ZY0l8" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" integrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'Pretendard', 'sans-serif'],
+                    },
+                    colors: {
+                        slate: {
+                            50: '#f8fafc', 100: '#f1f5f9', 200: '#e2e8f0',
+                            300: '#cbd5e1', 400: '#94a3b8', 500: '#64748b',
+                            600: '#475569', 700: '#334155', 800: '#1e293b',
+                            900: '#0f172a',
+                        },
+                        navyblue: { // New color palette
+                            DEFAULT: '#023373',
+                            '50': '#E6F0FF',
+                            '100': '#BEDAFF',
+                            '200': '#94C3FF',
+                            '300': '#6BAEFE',
+                            '400': '#429AFF',
+                            '500': '#1A85FF',
+                            '600': '#006AD4',
+                            '700': '#0052A3',
+                            '800': '#013D75',
+                            '900': '#023373',
+                            '950': '#011A3B'
+                        },
+                        gray: {
+                            50: '#f9fafb', 100: '#f3f4f6', 200: '#e5e7eb',
+                            300: '#d1d5db', 400: '#9ca3af', 500: '#6b7280',
+                            600: '#4b5563', 700: '#374151', 800: '#1f2937',
+                            900: '#111827', 950: '#030712'
+                        }
+                    },
+                    boxShadow: {
+                        'soft': '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05)',
+                        'lifted': '0 10px 15px -3px rgba(0, 0, 0, 0.07), 0 4px 6px -4px rgba(0, 0, 0, 0.07)'
+                    },
+                    keyframes: {
+                        spin: {
+                            '0%': { transform: 'rotate(0deg)' },
+                            '100%': { transform: 'rotate(360deg)' },
+                        },
+                    },
+                    animation: {
+                        spin: 'spin 1s linear infinite',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://rsms.me/inter/inter.css');
+        @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+        
+        body { font-family: 'Pretendard', 'Inter', sans-serif; }
+
+        .break-inside-avoid { break-inside: avoid; }
+        .add-block-btn { opacity: 0; transition: all 0.2s ease-in-out; }
+        .block-container:hover .add-block-btn { opacity: 1; }
+        .add-block-btn:hover { transform: scale(1.1); }
+        textarea {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        textarea::-webkit-scrollbar { display: none; }
+        .prose :where(ul):not(:where([class~="not-prose"] *)) {
+            padding-left: 1.2em;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-gray-800">
+
+    <div id="app" class="flex flex-col lg:flex-row h-screen font-sans">
+        
+        <div id="editor-panel" class="w-full lg:w-1/2 p-4 sm:p-6 overflow-y-auto bg-white border-r border-slate-200 transition-all duration-300">
+            <header class="flex justify-between items-center pb-4 border-b border-slate-200 mb-6">
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-900">포스터 편집기</h1>
+                    <p class="text-sm text-slate-500">마크다운과 KaTeX 수식을 지원합니다.</p>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div id="save-status" class="flex items-center space-x-2 text-sm text-slate-500">
+                        <svg id="save-icon-saving" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="animate-spin hidden"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path></svg>
+                        <svg id="save-icon-saved" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-green-500 hidden"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        <span id="save-text"></span>
+                    </div>
+                     <button id="toggle-preview" class="bg-slate-200 text-slate-700 font-bold py-2 px-4 rounded-lg hover:bg-slate-300 transition duration-200 flex items-center">
+                        <svg id="toggle-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line></svg>
+                        <span id="toggle-text">미리보기 감추기</span>
+                    </button>
+                    <button id="export-pdf" class="bg-navyblue-900 text-white font-bold py-2 px-4 rounded-lg hover:bg-navyblue-800 transition duration-200 shadow-soft flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                        PDF로 내보내기
+                    </button>
+                </div>
+            </header>
+
+            <div id="editor-fields" class="space-y-6">
+                </div>
+        </div>
+
+        <div id="preview-panel" class="w-full lg:w-1/2 p-4 sm:p-6 overflow-auto bg-slate-100 transition-all duration-300 relative">
+            <div id="zoom-controls" class="absolute bottom-6 right-6 z-10 bg-white/80 backdrop-blur-sm rounded-lg shadow-md flex items-center p-1 space-x-1">
+                <button id="zoom-in-btn" title="확대" class="p-2 rounded-md hover:bg-slate-200 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                </button>
+                <button id="zoom-out-btn" title="축소" class="p-2 rounded-md hover:bg-slate-200 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                </button>
+                <button id="zoom-fit-btn" title="한눈에 보기" class="p-2 rounded-md hover:bg-slate-200 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 14 10 14 10 20"></polyline><polyline points="20 10 14 10 14 4"></polyline><line x1="14" y1="10" x2="21" y2="3"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
+                </button>
+                 <button id="zoom-reset-btn" title="원래 크기" class="p-2 rounded-md hover:bg-slate-200 transition-colors text-sm font-bold">
+                    100%
+                </button>
+            </div>
+
+            <div class="mx-auto my-8">
+                <div id="poster-preview" class="bg-white text-gray-800 shadow-lifted">
+                     </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="loader-overlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+        <div class="bg-white p-6 rounded-lg shadow-xl text-center">
+            <svg class="animate-spin h-8 w-8 text-navyblue-900 mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <p class="text-lg font-semibold">PDF 생성 중...</p>
+            <p class="text-sm text-slate-600">잠시만 기다려주세요.</p>
+        </div>
+    </div>
+
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+
+    const app = {
+        posterData: null,
+        saveTimeout: null,
+        posterWidth: 1190.55, // PDF A1 width in pixels at 72 DPI
+        posterHeight: 1683.78, // PDF A1 height in pixels at 72 DPI
+        zoomLevel: 1.0,
+        
+        getInitialData() {
+            return {
+                projectTitle: "Gemma 3 기반 오프라인 응급조치 안내 AI 앱",
+                projectGoal: "이 프로젝트는 **재난, 조난 등 인터넷 연결이 불가능한 오프라인 상황**에서 사용자가 응급 상황에 대처할 수 있도록, 경량 AI 모델 **Gemma 3**를 스마트폰에 탑재하여 **실시간 맞춤형 응급조치 가이드**를 제공하는 온디바이스 AI 앱 개발을 목표로 합니다.",
+                authorName: "권도움\n양응급\n유안전\n최신속",
+                instructorName: "차형준",
+                columns: [
+                    [
+                        { id: 'c1_b1', type: 'header', content: '탐구/제작 배경' },
+                        { id: 'c1_b2', type: 'text', content: '자연재해나 등산 중 조난과 같은 재난 상황에서는 통신망이 두절되어 인터넷 접속이 불가능한 경우가 많습니다. 이러한 상황에서 부상을 당했을 때, 정확한 응급처치 정보의 부재는 생명을 위협할 수 있습니다. 본 연구는 누구나 가지고 있는 스마트폰을 활용하여 통신 연결 없이도 신뢰할 수 있는 응급조치 정보를 제공하는 AI 시스템을 개발하고자 합니다.' },
+                        { id: 'c1_b3', type: 'header', content: '제작 원리 (S.T.E.A.M)' },
+                        { id: 'c1_b4', type: 'text', content: '- **Science**: 심폐소생술(CPR), 하임리히법, 지혈 등 검증된 응급의학 원리를 AI의 지식 기반으로 활용합니다.\n- **Technology**: `TensorFlow Lite`를 사용해 최신 경량 언어 모델 **Gemma 3**를 스마트폰에서 직접 구동하는 **온디바이스 AI** 기술을 핵심으로 합니다. 이를 통해 인터넷 없이도 자연어 질의응답이 가능합니다.\n- **Engineering**: 사용자의 질문 의도를 정확히 파악하고, 긴급한 상황에 맞춰 핵심 정보를 단계별로 명확히 전달하는 대화형 AI 시스템을 설계 및 구축합니다.\n- **Arts**: 응급 상황의 사용자가 심리적 안정감을 느끼고 직관적으로 앱을 사용할 수 있도록, 간결하고 명확한 UI/UX를 디자인합니다. 아이콘과 최소한의 텍스트로 정보를 전달합니다.\n- **Mathematics**: LLM의 기반이 되는 트랜스포머의 어텐션 메커니즘과, 모델을 스마트폰에 탑재하기 위해 부동소수점 가중치를 정수형으로 변환하는 양자화($W_{int} = \\text{round}(W_{float} / S)$) 기술의 수학적 원리를 적용합니다.' }
+                    ],
+                    [
+                        { id: 'c2_b1', type: 'header', content: '결과물/프로토타입' },
+                        { id: 'c2_b2', type: 'image', content: '', caption: '앱 메인 화면 (응급상황 선택)' },
+                        { id: 'c2_b3', type: 'image', content: '', caption: 'AI 응급조치 안내 화면 (CPR 가이드)' },
+                        { id: 'c2_b4', type: 'header', content: '사용 방법/구동 방식' },
+                        { id: 'c2_b5', type: 'text', content: '1.  **앱 실행**: 오프라인 상태에서 앱을 실행합니다.\n2.  **상황 선택/질문**: 초기 화면에서 \'골절\', \'출혈\' 등 응급 상황 유형을 선택하거나, 마이크 버튼을 눌러 "아이가 동전을 삼켰어요"와 같이 음성으로 질문합니다.\n3.  **AI 가이드 확인**: Gemma 3 AI가 상황을 인지하고, "기도 확보가 최우선입니다. 아이를 즉시..."와 같이 단계별 응급조치 방법을 텍스트와 이미지로 안내합니다.\n4.  **추가 질문**: 사용자는 "주의할 점은 뭐야?" 와 같이 추가적인 질문을 통해 계속해서 도움을 받을 수 있습니다.' },
+                    ],
+                    [
+                        { id: 'c3_b1', type: 'header', content: '향후 업데이트 계획' },
+                        { id: 'c3_b2', type: 'text', content: '- **멀티모달 기능**: 텍스트뿐만 아니라, 스마트폰 카메라로 촬영한 상처 이미지를 AI가 분석하여 더욱 정확한 조치 방법을 안내하는 비전(Vision) 기능을 추가합니다.\n- **음성 제어 확장**: TTS(Text-to-Speech) 기능을 도입하여, 사용자가 화면을 보지 않고 음성만으로 모든 안내를 받을 수 있도록 접근성을 향상시킵니다.' },
+                        { id: 'c3_b3', type: 'header', content: '시사점 및 결론' },
+                        { id: 'c3_b4', type: 'text', content: '본 프로젝트는 최신 거대 언어 모델이 더 이상 대규모 서버와 네트워크에 의존하지 않고, 개인의 스마트폰 안에서 생명을 구하는 필수 도구로 활용될 수 있음을 보여줍니다. 이는 AI 기술의 접근성을 높여 디지털 정보 격차를 해소하고, 재난 상황에서의 개인 대응 능력을 강화하는 데 기여할 수 있다는 점에서 중요한 시사점을 가집니다.' },
+                        { id: 'c3_b5', type: 'header', content: '참고 문헌' },
+                        { id: 'c3_b6', type: 'text', content: '1. Google. (2024). *Gemma: Open Models Based on Gemini Research and Technology*. Google AI.\n2. TensorFlow. (2024). *TensorFlow Lite | On-device machine learning*. ' },
+                    ]
+                ]
+            };
+        },
+
+        init() {
+            this.loadData();
+            this.renderEditor();
+            this.renderPreview();
+            this.attachEventListeners();
+        },
+        
+        loadData() {
+            const savedData = localStorage.getItem('academicPosterData');
+            this.posterData = savedData ? JSON.parse(savedData) : this.getInitialData();
+        },
+
+        saveData() {
+            clearTimeout(this.saveTimeout);
+            this.updateSaveStatus('saving');
+            this.saveTimeout = setTimeout(() => {
+                localStorage.setItem('academicPosterData', JSON.stringify(this.posterData));
+                this.updateSaveStatus('saved');
+            }, 1000);
+        },
+
+        renderEditor() {
+            const editorFields = document.getElementById('editor-fields');
+            editorFields.innerHTML = '';
+
+            const mainInfoHtml = `
+                <div class="space-y-4 p-4 border border-slate-200 rounded-lg bg-slate-50">
+                    <h3 class="font-bold text-lg text-gray-900">포스터 기본 정보</h3>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">프로젝트 제목</label>
+                        <input type="text" data-key="projectTitle" class="w-full border-slate-300 rounded-md shadow-sm text-lg p-2 focus:ring-navyblue-700 focus:border-navyblue-700" value="${this.posterData.projectTitle}">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">프로젝트 핵심 목표</label>
+                        <textarea data-key="projectGoal" class="w-full border-slate-300 rounded-md shadow-sm p-2 h-24 resize-y-none focus:ring-navyblue-700 focus:border-navyblue-700">${this.posterData.projectGoal}</textarea>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">출품자 (최대 5명, 한 줄에 한 명)</label>
+                            <textarea data-key="authorName" class="w-full border-slate-300 rounded-md shadow-sm p-2 h-28 resize-y-none focus:ring-navyblue-700 focus:border-navyblue-700">${this.posterData.authorName}</textarea>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">지도교사 이름</label>
+                            <input type="text" data-key="instructorName" class="w-full border-slate-300 rounded-md shadow-sm p-2 focus:ring-navyblue-700 focus:border-navyblue-700" value="${this.posterData.instructorName}">
+                        </div>
+                    </div>
+                </div>`;
+            editorFields.insertAdjacentHTML('beforeend', mainInfoHtml);
+
+            this.posterData.columns.forEach((column, colIndex) => {
+                const columnContainer = document.createElement('div');
+                columnContainer.className = "space-y-4 p-4 border border-slate-200 rounded-lg";
+                columnContainer.innerHTML = `<h3 class="font-bold text-lg text-gray-900">컬럼 ${colIndex + 1}</h3>`;
+                column.forEach((block, blockIndex) => {
+                    columnContainer.appendChild(this.createEditorBlock(block, colIndex, blockIndex));
+                });
+                editorFields.appendChild(columnContainer);
+            });
+        },
+
+        createEditorBlock(block, colIndex, blockIndex) {
+            const blockContainer = document.createElement('div');
+            blockContainer.className = "block-container";
+            
+            const blockDiv = document.createElement('div');
+            blockDiv.className = 'p-3 bg-white border border-slate-200 rounded-md relative group';
+            let contentHtml = '';
+
+            switch (block.type) {
+                case 'header':
+                    contentHtml = `<input type="text" class="w-full font-bold text-lg border-b-2 border-slate-200 focus:outline-none focus:border-navyblue-700 p-1" value="${block.content}" data-col="${colIndex}" data-block="${blockIndex}" data-type="header">`;
+                    break;
+                case 'text':
+                    contentHtml = `<textarea class="w-full h-32 border-slate-300 rounded-md p-2 resize-y-none focus:ring-navyblue-700 focus:border-navyblue-700" data-col="${colIndex}" data-block="${blockIndex}" data-type="text">${block.content}</textarea>`;
+                    break;
+                case 'image':
+                    const imagePreviewSrc = block.content.startsWith('data:image') ? block.content : 'https://placehold.co/100x60/e2e8f0/cbd5e0?text=No+Image';
+                    contentHtml = `
+                        <div class="space-y-2">
+                            <label class="block text-sm font-medium text-slate-700">이미지 파일</label>
+                            <div class="flex items-center space-x-4">
+                                <img src="${imagePreviewSrc}" class="w-24 h-16 object-cover rounded-md border border-slate-200">
+                                <input type="file" class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-navyblue-50 file:text-navyblue-700 hover:file:bg-navyblue-100" accept="image/*" data-col="${colIndex}" data-block="${blockIndex}" data-type="image" data-field="content">
+                            </div>
+                            <label class="block text-sm font-medium text-slate-700 mt-2">캡션 (설명)</label>
+                            <input type="text" class="w-full border-slate-300 rounded-md p-2" value="${block.caption || ''}" data-col="${colIndex}" data-block="${blockIndex}" data-type="image" data-field="caption" placeholder="이미지 설명">
+                        </div>`;
+                    break;
+            }
+            
+            blockDiv.innerHTML = contentHtml + `
+                <button class="absolute top-2 right-2 p-1 bg-white rounded-full text-slate-400 hover:text-red-500 hover:bg-red-100 opacity-0 group-hover:opacity-100 transition-opacity" data-col="${colIndex}" data-block="${blockIndex}" data-action="delete">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                </button>`;
+            
+            const addBlockHtml = `
+                <div class="relative h-2 flex items-center justify-center add-block-btn mt-4">
+                    <div class="w-full border-t border-dashed border-slate-300"></div>
+                    <div class="absolute flex space-x-2">
+                         <button class="p-1.5 bg-navyblue-700 text-white rounded-full shadow-md hover:bg-navyblue-800 transform transition hover:scale-110" data-col="${colIndex}" data-block="${blockIndex}" data-action="add" data-add-type="text" title="텍스트 블록 추가"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg></button>
+                         <button class="p-1.5 bg-green-500 text-white rounded-full shadow-md hover:bg-green-600 transform transition hover:scale-110" data-col="${colIndex}" data-block="${blockIndex}" data-action="add" data-add-type="image" title="이미지 블록 추가"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg></button>
+                    </div>
+                </div>`;
+
+            blockContainer.appendChild(blockDiv);
+            blockContainer.insertAdjacentHTML('beforeend', addBlockHtml);
+            return blockContainer;
+        },
+
+        renderPreview() {
+            const poster = document.getElementById('poster-preview');
+            poster.style.width = `${this.posterWidth}px`;
+            poster.style.height = `${this.posterHeight}px`;
+            
+            poster.innerHTML = this.getPosterHTML();
+            this.applyZoom();
+
+            window.renderMathInElement(poster, {
+                delimiters: [ {left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false} ],
+                throwOnError : false
+            });
+        },
+        
+        applyZoom() {
+            const poster = document.getElementById('poster-preview');
+            if (!poster) return;
+            poster.style.transformOrigin = 'top left';
+            poster.style.transform = `scale(${this.zoomLevel})`;
+        },
+
+        getPosterHTML() {
+            const challengeTitle = "2025 STEAM융합 AI·SW 챌린지";
+            return `
+                <div class="bg-white p-6 h-full w-full flex flex-col box-border relative">
+                    <div class="absolute top-6 right-0 w-6 h-6 bg-navyblue-900"></div>
+                    <div class="text-xs font-semibold text-slate-500 mb-2">${challengeTitle}</div>
+                    <header class="flex items-start mb-3 border-b-2 border-slate-200 pb-3">
+                        <div class="mr-4 flex-shrink-0">
+                            <div class="w-16 h-16 border-2 border-slate-300 flex flex-col justify-center items-center rounded-md">
+                                <span class="text-[0.6rem] font-bold text-slate-500">출품번호</span>
+                                <div class="h-6"></div>
+                            </div>
+                        </div>
+                        <div class="flex-grow pt-1">
+                            <h1 class="text-3xl font-bold text-gray-900 leading-tight">${this.posterData.projectTitle}</h1>
+                        </div>
+                    </header>
+                    <div class="grid grid-cols-5 gap-x-4 my-4 border-b-2 border-slate-200 pb-4 items-start">
+                        <div class="col-span-3">
+                            <h2 class="text-base font-bold mb-1 text-gray-900">프로젝트 핵심 목표</h2>
+                            <div class="text-xs leading-relaxed prose max-w-none text-gray-800/90">${this.parseContent(this.posterData.projectGoal)}</div>
+                        </div>
+                        <div class="col-span-2 text-left pl-3">
+                            <div class="p-2 border border-slate-200 rounded-lg bg-slate-50/50 h-full">
+                                <h3 class="font-bold text-sm text-gray-900">출품자</h3>
+                                <p class="mt-1 mb-2 text-xs text-gray-800/90 whitespace-pre-line">${this.posterData.authorName}</p>
+                                <h3 class="font-bold text-sm text-gray-900">지도교사</h3>
+                                <p class="mt-1 text-xs text-gray-800/90">${this.posterData.instructorName}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <main class="grid grid-cols-3 gap-x-4 flex-grow">
+                        ${this.posterData.columns.map(col => `
+                            <div class="flex flex-col space-y-4">
+                                ${col.map(block => this.createPreviewBlock(block)).join('')}
+                            </div>
+                        `).join('')}
+                    </main>
+                </div>`;
+        },
+
+        createPreviewBlock(block) {
+            const blockWrapper = (content) => `<div class="p-3 border border-slate-200 rounded-lg shadow-soft bg-white break-inside-avoid">${content}</div>`;
+            
+            switch (block.type) {
+                case 'header':
+                    return `<h2 class="text-base font-bold text-gray-900 border-l-4 border-navyblue-900 pl-2">${block.content}</h2>`;
+                case 'text':
+                    return blockWrapper(`<div class="text-xs leading-relaxed prose max-w-none text-gray-800/90">${this.parseContent(block.content)}</div>`);
+                case 'image':
+                    const imgSrc = block.content || 'https://placehold.co/600x400/e2e8f0/cbd5e0?text=Image+Not+Found';
+                    return blockWrapper(`
+                        <div class="break-inside-avoid">
+                            <img src="${imgSrc}" alt="${block.caption || 'Poster image'}" class="w-full rounded-md shadow-md mb-1" onerror="this.onerror=null;this.src='https://placehold.co/600x400/e2e8f0/cbd5e0?text=Image+Load+Failed';">
+                            <p class="text-center text-[0.65rem] text-slate-600">${block.caption || ''}</p>
+                        </div>`);
+                default:
+                    return '';
+            }
+        },
+
+        parseContent(content) {
+            return marked.parse(content || '', { breaks: true, gfm: true });
+        },
+
+        attachEventListeners() {
+            const editorPanel = document.getElementById('editor-panel');
+            editorPanel.addEventListener('input', e => this.handleEditorInput(e));
+            editorPanel.addEventListener('change', e => this.handleFileInput(e));
+            editorPanel.addEventListener('click', e => {
+                const button = e.target.closest('button[data-action]');
+                if (!button) return;
+                const { action, col, block, addType } = button.dataset;
+                if(action === 'delete') this.handleDeleteBlock(col, block);
+                if(action === 'add') this.handleAddBlock(col, block, addType);
+            });
+            document.getElementById('export-pdf').addEventListener('click', () => this.exportToPdf());
+            document.getElementById('toggle-preview').addEventListener('click', () => this.togglePreview());
+            
+            // Zoom controls
+            document.getElementById('zoom-in-btn').addEventListener('click', () => {
+                this.zoomLevel += 0.1;
+                this.applyZoom();
+            });
+            document.getElementById('zoom-out-btn').addEventListener('click', () => {
+                this.zoomLevel = Math.max(0.1, this.zoomLevel - 0.1);
+                this.applyZoom();
+            });
+            document.getElementById('zoom-fit-btn').addEventListener('click', () => {
+                const previewPanel = document.getElementById('preview-panel');
+                if (!previewPanel) return;
+                const viewportWidth = previewPanel.clientWidth;
+                const viewportHeight = previewPanel.clientHeight;
+                const scaleX = viewportWidth / this.posterWidth;
+                const scaleY = viewportHeight / this.posterHeight;
+                this.zoomLevel = Math.min(scaleX, scaleY) * 0.95; // 5% margin
+                this.applyZoom();
+            });
+            document.getElementById('zoom-reset-btn').addEventListener('click', () => {
+                this.zoomLevel = 1.0;
+                this.applyZoom();
+            });
+        },
+        
+        togglePreview() {
+            const previewPanel = document.getElementById('preview-panel');
+            const editorPanel = document.getElementById('editor-panel');
+            const toggleText = document.getElementById('toggle-text');
+            
+            previewPanel.classList.toggle('hidden');
+            if (previewPanel.classList.contains('hidden')) {
+                editorPanel.classList.remove('lg:w-1/2');
+                editorPanel.classList.add('w-full');
+                toggleText.textContent = "미리보기 보이기";
+            } else {
+                editorPanel.classList.add('lg:w-1/2');
+                editorPanel.classList.remove('w-full');
+                toggleText.textContent = "미리보기 감추기";
+            }
+        },
+
+        handleFileInput(e) {
+            if (e.target.type !== 'file' || !e.target.files[0]) return;
+            const file = e.target.files[0];
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const col = e.target.dataset.col;
+                const blockIndex = e.target.dataset.block;
+                const block = this.posterData.columns[col][blockIndex];
+                if (!block) return;
+                block.content = event.target.result; // Base64 string
+                this.rerender();
+            };
+            reader.readAsDataURL(file);
+        },
+
+        handleEditorInput(e) {
+            if (!e.target.matches('input, textarea') || e.target.type === 'file') return;
+            const key = e.target.dataset.key;
+            const col = e.target.dataset.col;
+
+            if (key) {
+                this.posterData[key] = e.target.value;
+            } else if (col !== undefined) {
+                const blockIndex = e.target.dataset.block;
+                const block = this.posterData.columns[col][blockIndex];
+                if (!block) return;
+
+                if (block.type === 'image') {
+                    block[e.target.dataset.field] = e.target.value;
+                } else {
+                    block.content = e.target.value;
+                }
+            }
+            this.renderPreview();
+            this.saveData();
+        },
+
+        handleDeleteBlock(col, blockIndex) {
+            this.posterData.columns[parseInt(col)].splice(parseInt(blockIndex), 1);
+            this.rerender();
+        },
+
+        handleAddBlock(col, blockIndex, type) {
+            const newBlock = { id: Date.now().toString(), type };
+            if (type === 'text') {
+                newBlock.content = '새로운 텍스트 블록입니다.';
+            } else if (type === 'image') {
+                newBlock.content = ''; // No default image
+                newBlock.caption = '새 이미지';
+            }
+            this.posterData.columns[parseInt(col)].splice(parseInt(blockIndex) + 1, 0, newBlock);
+            this.rerender();
+        },
+
+        rerender() {
+            this.renderEditor();
+            this.renderPreview();
+            this.saveData();
+        },
+
+        updateSaveStatus(status) {
+            const textEl = document.getElementById('save-text');
+            const savingIcon = document.getElementById('save-icon-saving');
+            const savedIcon = document.getElementById('save-icon-saved');
+            savingIcon.classList.toggle('hidden', status !== 'saving');
+            savedIcon.classList.toggle('hidden', status !== 'saved');
+            textEl.textContent = status === 'saving' ? '저장 중...' : '저장 완료';
+        },
+        
+        async exportToPdf() {
+            const loader = document.getElementById('loader-overlay');
+            loader.classList.remove('hidden');
+
+            const renderContainer = document.createElement('div');
+            
+            renderContainer.style.width = `${this.posterWidth}px`;
+            renderContainer.style.height = `${this.posterHeight}px`;
+            renderContainer.style.position = 'absolute';
+            renderContainer.style.left = '-9999px'; 
+            renderContainer.style.boxSizing = 'border-box';
+            
+            document.body.appendChild(renderContainer);
+            
+            const posterHTML = this.getPosterHTML();
+            renderContainer.innerHTML = posterHTML;
+            
+            window.renderMathInElement(renderContainer, {
+                delimiters: [ {left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false} ],
+                throwOnError : false
+            });
+
+            try {
+                await new Promise(resolve => setTimeout(resolve, 500));
+
+                const canvas = await html2canvas(renderContainer, {
+                    scale: 2,
+                    useCORS: true, 
+                    logging: false,
+                });
+                const imgData = canvas.toDataURL('image/png');
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a1' });
+                pdf.addImage(imgData, 'PNG', 0, 0, 594, 841);
+
+                const authors = this.posterData.authorName.split('\n').join(', ');
+                const filename = `${this.posterData.projectTitle} (${authors}).pdf`;
+                pdf.save(filename);
+
+            } catch(error) {
+                console.error("PDF 생성 중 오류 발생:", error);
+                alert("PDF를 생성하는 데 실패했습니다. 콘솔을 확인해주세요.");
+            } finally {
+                document.body.removeChild(renderContainer);
+                loader.classList.add('hidden');
+            }
+        }
+    };
+    app.init();
+});
+</script>
+
+</body>
+</html>
