@@ -101,7 +101,7 @@
             z-index: 100;
         }
         .message-box.show { bottom: 20px; }
-        #ending-popup, #gameover-popup { transition: opacity 0.5s, visibility 0.5s; }
+        #ending-popup, #gameover-popup, #help-modal { transition: opacity 0.5s, visibility 0.5s; }
         .gem-silhouette { filter: brightness(0.4) grayscale(1); }
         .map-coord { font-size: 0.65rem; color: var(--text-muted); font-family: 'Orbitron', sans-serif; text-align: center; }
         .tab-btn {
@@ -127,7 +127,10 @@
     
     <main class="w-full flex flex-col items-center justify-center">
         <h1 class="font-orbitron text-4xl font-bold text-main mb-2 mt-4 lg:mt-0">VECTOR MERGE</h1>
-        <p class="text-sub mb-6">벡터를 조합하여 목표 지점으로 이동하세요.</p>
+        <p class="text-sub mb-6 flex items-center">
+            벡터를 조합하여 목표 지점으로 이동하세요.
+            <button id="help-btn" class="ml-2 w-6 h-6 rounded-full bg-sub text-main font-bold text-sm flex items-center justify-center hover:bg-main">?</button>
+        </p>
 
         <div class="lg:hidden flex w-full max-w-md mb-4 rounded-lg p-1 bg-sub">
             <button id="tab-map" class="tab-btn w-1/2 p-2 rounded-md font-bold active">MAP</button>
@@ -214,10 +217,45 @@
         </div>
     </main>
     <footer class="w-full text-center p-4 text-xs text-muted">
-        <p>v1.2.0 | © 2025 pi-dimension</p>
+        <p>v1.3.0 | © 2025 pi-dimension</p>
     </footer>
 
     <div id="message-box" class="message-box p-3 rounded-lg text-white font-bold shadow-lg"></div>
+    
+    <div id="help-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-main border-2 border-main rounded-2xl p-6 text-left shadow-2xl max-w-lg w-full max-h-[80vh] overflow-y-auto relative">
+            <h2 class="font-orbitron text-2xl text-center mb-4">게임 규칙</h2>
+            <button id="close-help-btn" class="absolute top-4 right-4 text-sub hover:text-main text-2xl">&times;</button>
+            <div class="space-y-4 text-sm text-sub">
+                <div>
+                    <h3 class="font-bold text-main mb-1">게임 목표</h3>
+                    <p>작업대에서 벡터를 조합하여 플레이어(<span class="inline-block w-4 h-4 rounded-full bg-blue-500"></span>)를 주 목표(<span class="inline-block w-4 h-4 text-yellow-400"><svg class="w-full h-full" fill="currentColor" viewBox="0 0 20 20"><path d="M10 15a5 5 0 100-10 5 5 0 000 10zm0-1.5a3.5 3.5 0 100-7 3.5 3.5 0 000 7z"/></svg></span>) 지점으로 이동시키는 것입니다. 맵에 있는 아이템 지점으로 이동하여 도움을 받을 수도 있습니다.</p>
+                </div>
+                <div>
+                    <h3 class="font-bold text-main mb-1">벡터 사용</h3>
+                    <p>벡터는 현재 위치에서 목표 지점(주 목표, 아이템, 보석)까지 정확히 도달할 수 있는 벡터만 사용할 수 있습니다. 벡터를 클릭하여 사용해 보세요.</p>
+                </div>
+                 <div>
+                    <h3 class="font-bold text-main mb-1">벡터 조합과 잔여물</h3>
+                    <p>작업대 위에서 두 벡터를 합치면 두 벡터의 x, y 성분이 더해진 새로운 벡터가 생성됩니다. 단, 영벡터(0,0)가 아닐 경우, 드래그를 시작한 위치에 '잔여물'이 남습니다.</p>
+                </div>
+                <div>
+                    <h3 class="font-bold text-main mb-1">아이템 종류</h3>
+                    <ul class="list-disc list-inside space-y-2">
+                        <li><b>소환진:</b> 작업대 위에서 클릭하면 빈 공간에 랜덤 아이템(기본 벡터 또는 1레벨 제거기)을 소환합니다. 사용 횟수가 정해져 있습니다.</li>
+                        <li><b>잔여물:</b> 공간을 차지하는 방해물입니다. 같은 레벨의 잔여물끼리 합치면 상위 레벨의 잔여물이 됩니다.</li>
+                        <li><b>제거기:</b> 잔여물 위로 드래그하여 제거할 수 있습니다. 자신보다 같거나 낮은 레벨의 잔여물만 제거 가능하며, 사용 횟수가 있습니다. 같은 레벨의 제거기끼리 합치면, 더 낮은 사용 횟수를 계승하는 상위 레벨 제거기가 됩니다.</li>
+                        <li><b>방해물:</b> 작업대를 가리는 블록입니다. 인접한 칸에서 방해물과 같은 색의 벡터를 합성하면 사라지며, 밑에 숨겨진 아이템이 나타납니다.</li>
+                        <li><b>보석:</b> 맵에 나타나는 특별 아이템입니다. 획득하면 아공간이 영구적으로 1칸 확장됩니다. (최대 10칸)</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="font-bold text-main mb-1">하트와 초기화</h3>
+                    <p>하트는 '맵 초기화'에 사용되는 체력입니다. 맵 초기화 시 1개씩 소모되며, 스테이지 클리어 시 1개씩 회복됩니다. 하트가 0개일 때 초기화를 시도하면, 모든 진행상황(보석, 스테이지)을 초기화하고 처음부터 다시 시작할지 선택할 수 있습니다.</p>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <div id="gameover-popup" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center invisible opacity-0">
         <div class="bg-main border-2 border-red-500 rounded-2xl p-8 text-center shadow-2xl transform scale-95 transition-transform duration-300">
@@ -302,6 +340,10 @@
         const workbenchPanel = document.getElementById('workbench-panel');
         const tabMap = document.getElementById('tab-map');
         const tabWorkbench = document.getElementById('tab-workbench');
+        const helpBtn = document.getElementById('help-btn');
+        const helpModal = document.getElementById('help-modal');
+        const closeHelpBtn = document.getElementById('close-help-btn');
+
         document.getElementById('gem-legend-icon').innerHTML = `<div class="w-full h-full text-yellow-400 animate-pulse">${GEMS[3].svg}</div>`;
 
         const BASE_VECTORS = [ { x: 1, y: 0 }, { x: -1, y: 0 }, { x: 0, y: 1 }, { x: 0, y: -1 } ];
@@ -796,6 +838,12 @@
             mapPanel.classList.add('hidden');
             tabWorkbench.classList.add('active');
             tabMap.classList.remove('active');
+        });
+        
+        helpBtn.addEventListener('click', () => helpModal.classList.remove('hidden'));
+        closeHelpBtn.addEventListener('click', () => helpModal.classList.add('hidden'));
+        helpModal.addEventListener('click', (e) => {
+            if(e.target === helpModal) helpModal.classList.add('hidden');
         });
 
         drawMapCoords();
