@@ -77,7 +77,7 @@
             transform: translate(-50%, -50%) rotate(-45deg);
         }
         .grid-cell.passable {
-            background-color: transparent;
+            background-color: var(--bg-tertiary);
         }
         .grid-cell.passable::before,
         .grid-cell.passable::after {
@@ -174,16 +174,20 @@
             <button id="help-btn" class="ml-2 w-6 h-6 rounded-full bg-sub text-main font-bold text-sm flex items-center justify-center hover:bg-main">?</button>
         </p>
 
-        <div class="lg:hidden flex w-full max-w-md mb-4 rounded-lg p-1 bg-sub">
-            <button id="tab-map" class="tab-btn w-1/2 p-2 rounded-md font-bold active">MAP</button>
-            <button id="tab-workbench" class="tab-btn w-1/2 p-2 rounded-md font-bold">WORKBENCH</button>
-        </div>
-
-        <div class="flex flex-col lg:flex-row gap-8 w-full max-w-7xl">
+        <div id="desktop-parent-container" class="flex flex-col lg:flex-row gap-8 w-full max-w-7xl">
             <!-- 왼쪽: 맵 & 정보 -->
-            <div id="map-panel" class="bg-main p-6 rounded-2xl border-2 border-main flex flex-col gap-4 lg:w-1/3">
-                <div>
-                    <h2 class="font-orbitron text-2xl text-center mb-4">MAP</h2>
+            <div id="map-panel" class="bg-main p-6 rounded-2xl border-2 border-main flex flex-col gap-4 lg:w-1/3 w-full">
+                <div class="flex flex-col gap-4">
+                    <h2 class="font-orbitron text-2xl text-center mb-0 lg:block hidden">MAP</h2>
+                    <div class="bg-sub p-4 rounded-lg">
+                        <div class="flex items-center justify-center gap-4 text-center">
+                            <div>
+                                <span class="font-orbitron text-lg">STAGE</span>
+                                <span id="stage-counter" class="font-orbitron text-2xl font-bold text-green-400">1</span>
+                            </div>
+                            <div id="heart-container" class="flex gap-1 items-center"></div>
+                        </div>
+                    </div>
                     <div id="map-container" class="relative w-full max-w-sm mx-auto aspect-square mb-4">
                         <div id="map-coords-y" class="absolute -left-6 top-0 h-full flex flex-col items-center justify-around"></div>
                         <div id="map-grid" class="game-grid w-full h-full rounded-lg"></div>
@@ -213,20 +217,14 @@
                         <div id="map-coords-x" class="absolute -bottom-6 left-0 w-full flex justify-around items-center"></div>
                     </div>
                 </div>
-                <div class="bg-sub p-4 rounded-lg">
-                    <div class="flex items-center justify-center gap-4 text-center mb-4">
-                        <div>
-                            <span class="font-orbitron text-lg">STAGE</span>
-                            <span id="stage-counter" class="font-orbitron text-2xl font-bold text-green-400">1</span>
-                        </div>
-                        <div id="heart-container" class="flex gap-1 items-center"></div>
-                    </div>
+
+                <div id="legend-panel" class="bg-sub p-4 rounded-lg mt-6">
                     <div class="text-left text-sm space-y-3">
                         <h3 class="font-orbitron text-lg text-center mb-2">MAP LEGEND</h3>
                         <div class="grid grid-cols-2 gap-x-4 gap-y-2">
                              <div class="flex items-center gap-3"><div class="w-8 h-8 flex-shrink-0 flex items-center justify-center bg-blue-500 rounded-full border-2 border-blue-300"><svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg></div><span>플레이어</span></div>
                             <div class="flex items-center gap-3"><div class="w-8 h-8 flex-shrink-0 flex items-center justify-center"><svg class="w-full h-full text-yellow-400" fill="currentColor" viewBox="0 0 20 20"><path d="M10 15a5 5 0 100-10 5 5 0 000 10zm0-1.5a3.5 3.5 0 100-7 3.5 3.5 0 000 7z"/></svg></div><span>포털</span></div>
-                            <div class="flex items-center gap-3"><div class="w-8 h-8 flex-shrink-0 flex items-center justify-center"><div class="w-full h-full rounded-md flex items-center justify-center" style="background-color: hsl(90, 80%, 55%); border: 2px solid hsl(90, 80%, 70%);"><svg class="w-5 h-5 text-white" style="transform: rotate(90deg);" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg></div></div><span>벡터</span></div>
+                            <div class="flex items-center gap-3"><div class="w-8 h-8 flex-shrink-0 flex items-center justify-center"><div class="w-full h-full rounded-md flex items-center justify-center" style="background-color: hsl(90, 80%, 55%); border: 2px solid hsl(90, 80%, 70%);"><svg class="w-5 h-5 text-white" style="transform: rotate(90deg);" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg></div></div><span>벡터</span></div>
                             <div class="flex items-center gap-3"><div class="w-8 h-8 flex-shrink-0 flex items-center justify-center"><svg class="w-full h-full text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M5 21v-4M3 19h4m14-14v4m-2-2h4m-2 14v-4m-2 2h4M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></div><span>소환진</span></div>
                              <div class="flex items-center gap-3"><div class="w-8 h-8 flex-shrink-0 flex items-center justify-center"> <div id="gem-legend-icon"></div> </div><span>보석</span></div>
                              <div class="flex items-center gap-3"><div class="w-8 h-8 flex-shrink-0 flex items-center justify-center"><div class="w-full h-full text-blue-300 animate-pulse font-bold text-2xl flex items-center justify-center">?</div></div><span>랜덤 아이템</span></div>
@@ -248,7 +246,7 @@
                          </div>
                     </div>
                 </div>
-                <div class="bg-sub p-4 rounded-lg mt-auto">
+                <div id="gem-collection-panel" class="bg-sub p-4 rounded-lg mt-6 lg:mt-auto">
                     <h3 class="font-orbitron text-lg text-center mb-3">GEM COLLECTION</h3>
                     <div id="gem-collection-container" class="grid grid-cols-6 gap-2"></div>
                     <button id="full-reset-btn" class="w-full mt-3 bg-red-900 hover:bg-red-800 text-white text-xs py-2 px-2 rounded-lg">모든 진행 초기화</button>
@@ -256,7 +254,7 @@
             </div>
 
             <!-- 오른쪽: 작업 공간 -->
-            <div id="workbench-panel" class="bg-main p-6 rounded-2xl border-2 border-main flex-col lg:w-2/3 hidden lg:flex">
+            <div id="workbench-panel" class="bg-main p-6 rounded-2xl border-2 border-main flex-col lg:w-2/3 hidden lg:flex w-full">
                 <h2 class="font-orbitron text-2xl text-center mb-4">WORKBENCH</h2>
                 <div id="game-board" class="grid grid-cols-4 gap-3 mb-6">
                      <div class="slot board-slot" data-index="0"></div><div class="slot board-slot" data-index="1"></div><div class="slot board-slot" data-index="2"></div><div class="slot board-slot" data-index="3"></div>
@@ -278,7 +276,7 @@
         </div>
     </main>
     <footer class="w-full text-center p-4 text-xs text-muted">
-        <p>1.5.0 | © 2025 pi-dimension</p>
+        <p>v1.4.0 | © 2025 pi-dimension</p>
     </footer>
 
     <div id="message-box" class="message-box p-3 rounded-lg text-white font-bold shadow-lg"></div>
@@ -411,10 +409,6 @@
         const stageCounterEl = document.getElementById('stage-counter');
         const mapCoordsX = document.getElementById('map-coords-x');
         const mapCoordsY = document.getElementById('map-coords-y');
-        const mapPanel = document.getElementById('map-panel');
-        const workbenchPanel = document.getElementById('workbench-panel');
-        const tabMap = document.getElementById('tab-map');
-        const tabWorkbench = document.getElementById('tab-workbench');
         const helpBtn = document.getElementById('help-btn');
         const helpModal = document.getElementById('help-modal');
         const closeHelpBtn = document.getElementById('close-help-btn');
@@ -524,10 +518,16 @@
                 const boardIndices = [...Array(16).keys()];
                 const stageColorPalette = getStageColorPalette(state.stageCount);
                 const obstacleCount = 2;
-                for(let i=0; i<obstacleCount; i++) {
+                for (let i = 0; i < obstacleCount; i++) {
                     if(!boardIndices.length) break;
                     const pos = boardIndices.splice(randInt(boardIndices.length), 1)[0];
-                    const hiddenItem = randInt(3) === 0 ? createPouchItemHTML(5) : createVectorItemHTML(BASE_VECTORS[randInt(4)].x, BASE_VECTORS[randInt(4)].y);
+                    
+                    let hiddenItem;
+                    const rand = randInt(3);
+                    if (rand === 0) hiddenItem = createPouchItemHTML(5);
+                    else if (rand === 1) hiddenItem = createVectorItemHTML(BASE_VECTORS[randInt(4)].x, BASE_VECTORS[randInt(4)].y);
+                    else hiddenItem = createRemoverItemHTML(1);
+
                     const colorInfo = stageColorPalette[randInt(stageColorPalette.length)];
                     boardSlots[pos].innerHTML = createObstacleItemHTML(colorInfo, hiddenItem);
                 }
@@ -574,7 +574,7 @@
                 case 'obstacle': 
                     const colorInfo = COLOR_PALETTE.find(c => c.name === data.colorName);
                     try {
-                         return createObstacleItemHTML(colorInfo, atob(data.hiddenItem));
+                         return createObstacleItemHTML(colorInfo, decodeURIComponent(escape(atob(data.hiddenItem))));
                     } catch (e) {
                          console.error("Error decoding hidden item:", data.hiddenItem, e);
                          return ''; // return empty if fails
@@ -586,11 +586,7 @@
         function serializeSlot(slot) {
             const item = slot.firstElementChild;
             if (!item) return null;
-            if (item.dataset.itemType === 'obstacle') {
-                const data = { ...item.dataset };
-                data.hiddenItem = btoa(unescape(encodeURIComponent(data.hiddenItem)));
-                return data;
-            }
+            // Obstacle's hiddenItem is already encoded in createObstacleItemHTML, no need to re-encode.
             return { ...item.dataset };
         }
 
@@ -617,6 +613,9 @@
             mapItemsContainer.innerHTML = '';
             const gridCells = mapGrid.children;
             for (const cell of gridCells) { cell.classList.remove('passable'); }
+            for (const cell of gridCells) {
+                cell.style.backgroundColor = ''; // Reset background color
+            }
 
             const occupiedPositions = new Set();
             occupiedPositions.add(`${state.playerPos.x},${state.playerPos.y}`);
@@ -649,7 +648,7 @@
                 const [x, y] = posStr.split(',').map(Number);
                 const displayY = GRID_SIZE - 1 - y;
                 const index = displayY * GRID_SIZE + x;
-                if (gridCells[index]) gridCells[index].classList.add('passable');
+                if (gridCells[index]) gridCells[index].classList.add('passable'); // This will apply the correct CSS styles
             });
         }
         function updateGemCollectionUI(){gemCollectionContainer.innerHTML='';GEMS.forEach(e=>{const t=state.gemsCollected.has(e.id),o=document.createElement('div');o.className=`w-10 h-10 flex items-center justify-center ${t?`text-${e.color}`:'text-gray-600 gem-silhouette'}`;o.innerHTML=e.svg;gemCollectionContainer.appendChild(o)})}
@@ -714,66 +713,88 @@
         
         function attachItemListeners(item){if(!item||item.dataset.itemType==='obstacle')return;item.addEventListener('mousedown',handleInteractionStart);item.addEventListener('touchstart',handleInteractionStart,{passive:false});}
         
-        let dragTimer = null;
+        let isDragging = false;
+        let startPos = { x: 0, y: 0 };
+        const DRAG_THRESHOLD = 10; // 10px
         
         function handleInteractionStart(e){
-            e.preventDefault();
             const originalItem = e.currentTarget;
+            // 이미 드래그 중인 경우, 호환성으로 인해 발생하는 중복 이벤트를 무시합니다.
+            if (isDragging || state.dragged.originalItem) return;
+
             if(!originalItem) return;
 
+            // 터치 이벤트가 시작되면, 호환성을 위해 발생하는 마우스 이벤트는 무시합니다.
+            if (e.type === 'touchstart') e.preventDefault();
+
+            isDragging = false;
             state.dragged.originalItem = originalItem;
             state.dragged.sourceSlot = originalItem.parentElement;
-
-            const startDrag = () => {
-                if (!state.dragged.originalItem) return;
-                state.dragged.isDragging = true;
-
-                const ghostItem = originalItem.cloneNode(true);
-                const rect = originalItem.getBoundingClientRect();
-                ghostItem.classList.add('ghost-item');
-                ghostItem.style.width = `${rect.width}px`;
-                ghostItem.style.height = `${rect.height}px`;
-                document.body.appendChild(ghostItem);
-                state.dragged.element = ghostItem;
-
-                originalItem.classList.add('dragging-source');
-            };
-
-            dragTimer = setTimeout(startDrag, 250); 
+            const pos = e.touches ? e.touches[0] : e;
+            startPos = { x: pos.clientX, y: pos.clientY };
             
             document.addEventListener('mousemove', handleInteractionMove);
             document.addEventListener('touchmove', handleInteractionMove, { passive: false });
             document.addEventListener('mouseup', handleInteractionEnd, { once: true });
             document.addEventListener('touchend', handleInteractionEnd, { once: true });
         }
+        
+        function startDrag() {
+            if (!state.dragged.originalItem || isDragging) return;
+            isDragging = true;
+
+            const originalItem = state.dragged.originalItem;
+            const ghostItem = originalItem.cloneNode(true);
+            const rect = originalItem.getBoundingClientRect();
+            ghostItem.classList.add('ghost-item');
+            ghostItem.style.width = `${rect.width}px`;
+            ghostItem.style.height = `${rect.height}px`;
+            document.body.appendChild(ghostItem);
+            state.dragged.element = ghostItem;
+
+            originalItem.classList.add('dragging-source');
+        }
 
         function handleInteractionMove(e) {
             if (!state.dragged.originalItem) return;
+            e.preventDefault();
+            const pos = e.touches ? e.touches[0] : e;
             
-            if (state.dragged.isDragging) {
-                e.preventDefault(); // Only prevent scroll if we are actually dragging
-                const pos = e.touches ? e.touches[0] : e;
-                if (state.dragged.element) {
-                    state.dragged.element.style.left = `${pos.clientX}px`;
-                    state.dragged.element.style.top = `${pos.clientY}px`;
-                    
-                    allSlots.forEach(s => s.classList.remove('over'));
-                    const targetSlot = document.elementFromPoint(pos.clientX, pos.clientY)?.closest('.slot');
-                    if(targetSlot) targetSlot.classList.add('over');
+            if (!isDragging) {
+                const dx = pos.clientX - startPos.x;
+                const dy = pos.clientY - startPos.y;
+                if (Math.sqrt(dx*dx + dy*dy) > DRAG_THRESHOLD) {
+                    startDrag();
                 }
+            }
+
+            if (isDragging && state.dragged.element) {
+                state.dragged.element.style.left = `${pos.clientX}px`;
+                state.dragged.element.style.top = `${pos.clientY}px`;
+
+                // 유령 아이템을 잠시 숨기고 그 아래의 요소를 찾습니다.
+                state.dragged.element.style.display = 'none';
+                const elementBelow = document.elementFromPoint(pos.clientX, pos.clientY);
+                state.dragged.element.style.display = '';
+
+                allSlots.forEach(s => s.classList.remove('over'));
+                const targetSlot = elementBelow?.closest('.slot');
+                if(targetSlot) targetSlot.classList.add('over');
             }
         }
 
         function handleInteractionEnd(e) {
-            clearTimeout(dragTimer);
-            
-            if (state.dragged.isDragging) {
+            const wasDragging = isDragging;
+            if (isDragging) {
+                // 유령 아이템을 숨겨야 정확한 드롭 위치를 찾을 수 있습니다.
+                if (state.dragged.element) state.dragged.element.style.display = 'none';
+
                 const pos = e.changedTouches ? e.changedTouches[0] : e;
                 const targetSlot = document.elementFromPoint(pos.clientX, pos.clientY)?.closest('.slot');
                 if (targetSlot) {
                     handleDrop(targetSlot);
                 }
-            } else { // Click logic
+            } else if (!wasDragging) { // Click logic
                 const item = state.dragged.originalItem;
                 if (item) {
                     const itemType = item.dataset.itemType;
@@ -787,9 +808,13 @@
             
             document.removeEventListener('mousemove', handleInteractionMove);
             document.removeEventListener('touchmove', handleInteractionMove);
+            // 이 리스너들은 handleInteractionStart에서 { once: true }로 등록되므로, 여기서 명시적으로 제거할 필요가 없습니다.
+            // document.removeEventListener('mouseup', handleInteractionEnd);
+            // document.removeEventListener('touchend', handleInteractionEnd);
             
+            isDragging = false;
             allSlots.forEach(s => s.classList.remove('over'));
-            state.dragged = { element: null, sourceSlot: null, originalItem: null, isDragging: false };
+            state.dragged = { element: null, sourceSlot: null, originalItem: null };
             saveProgress();
         }
 
@@ -820,17 +845,29 @@
             const itemToSpawn = spawnableItems[randInt(spawnableItems.length)];
             let newItemHTML;
             if(itemToSpawn === 'remover') {
-                 newItemHTML = createRemoverItemHTML(1);
+                newItemHTML = createRemoverItemHTML(1);
             } else {
-                 newItemHTML = createVectorItemHTML(itemToSpawn.x, itemToSpawn.y);
+                newItemHTML = createVectorItemHTML(itemToSpawn.x, itemToSpawn.y);
             }
 
-            const pouchRect = pouchSlot.getBoundingClientRect(), slotRect = targetSlot.getBoundingClientRect();
+            const pouchRect = pouchSlot.getBoundingClientRect();
+            let slotRect;
+            if (window.innerWidth < 1024) { // lg breakpoint
+                slotRect = targetSlot.getBoundingClientRect();
+            } else {
+                slotRect = targetSlot.getBoundingClientRect();
+            }
+
             const flyingItem = document.createElement('div'); flyingItem.innerHTML = newItemHTML;
             flyingItem.style.cssText = `position:fixed; left:${pouchRect.left}px; top:${pouchRect.top}px; width:${pouchRect.width}px; height:${pouchRect.height}px; transition:all .4s cubic-bezier(.5,-.5,.5,1.5); z-index:1000;`;
             document.body.appendChild(flyingItem); flyingItem.getBoundingClientRect();
             flyingItem.style.transform = `translate(${slotRect.left - pouchRect.left}px, ${slotRect.top - pouchRect.top}px) scale(1)`;
-            setTimeout(() => { document.body.removeChild(flyingItem); targetSlot.innerHTML = newItemHTML; attachItemListeners(targetSlot.firstElementChild); saveProgress(); }, 400);
+            setTimeout(() => { 
+                document.body.removeChild(flyingItem); 
+                targetSlot.innerHTML = newItemHTML; 
+                attachItemListeners(targetSlot.firstElementChild); 
+                saveProgress();
+            }, 400);
         }
         
         function useVector(element, vx, vy) {
@@ -894,8 +931,8 @@
             adjacentIndices.forEach(index => {
                 const adjacentSlot = boardSlots[index]; if (!adjacentSlot) return;
                 const obstacle = adjacentSlot.querySelector('[data-item-type="obstacle"]');
-                if (obstacle && (obstacle.dataset.colorName === mergedVectorColorName || (state.stageCount >= 110 && mergedVectorColorName === 'any'))) {
-                    const hiddenItemHTML = atob(obstacle.dataset.hiddenItem);
+                if (obstacle && (obstacle.dataset.colorName === mergedVectorColorName || (state.stageCount >= 10 && mergedVectorColorName === 'any'))) {
+                    const hiddenItemHTML = decodeURIComponent(escape(atob(obstacle.dataset.hiddenItem)));
                     adjacentSlot.innerHTML = hiddenItemHTML;
                     attachItemListeners(adjacentSlot.firstElementChild);
                     showMessage(`방해물이 제거되었습니다!`, 'success');
@@ -903,14 +940,7 @@
             });
         }
 
-        function handleDrop(targetSlot) {
-            if (!targetSlot) return;
-            const originalItem = state.dragged.originalItem;
-            const sourceSlot = state.dragged.sourceSlot;
-            
-            if (!originalItem || !sourceSlot || targetSlot === sourceSlot) return;
-
-            const targetItem = targetSlot.querySelector('.item');
+        function handleDrop(targetSlot) { if (!targetSlot) return; const originalItem = state.dragged.originalItem; const sourceSlot = state.dragged.sourceSlot; if (!originalItem || !sourceSlot || targetSlot === sourceSlot) return; const targetItem = targetSlot.querySelector('.item');
             
             if (!targetItem) {
                 targetSlot.appendChild(originalItem);
@@ -999,6 +1029,7 @@
             fullReset();
         });
         resetStageBtn.addEventListener('click', () => {
+            if (resetStageBtn.disabled) return;
             if (state.hearts > 0) {
                 state.hearts--;
                 updateHeartUI();
@@ -1047,12 +1078,6 @@
             });
         }
         
-        // --- Custom Drag Logic ---
-        document.body.addEventListener('mousemove', handleInteractionMove);
-        document.body.addEventListener('mouseup', handleInteractionEnd);
-        document.body.addEventListener('touchmove', handleInteractionMove, { passive: false });
-        document.body.addEventListener('touchend', handleInteractionEnd);
-
         mapGrid.style.setProperty('--grid-size', GRID_SIZE);
         mapGrid.innerHTML = Array(GRID_SIZE * GRID_SIZE).fill('<div class="grid-cell"></div>').join('');
         
@@ -1078,33 +1103,51 @@
             }
         });
         
-        tabMap.addEventListener('click', () => {
-            mapPanel.classList.remove('hidden', 'lg:flex');
-            workbenchPanel.classList.add('hidden');
-            tabMap.classList.add('active');
-            tabWorkbench.classList.remove('active');
-        });
-
-        tabWorkbench.addEventListener('click', () => {
-            workbenchPanel.classList.remove('hidden');
-            workbenchPanel.classList.add('flex');
-            mapPanel.classList.add('hidden');
-            tabWorkbench.classList.add('active');
-            tabMap.classList.remove('active');
-        });
-        
         helpBtn.addEventListener('click', () => { helpModal.classList.remove('hidden', 'invisible', 'opacity-0'); });
         closeHelpBtn.addEventListener('click', () => { helpModal.classList.add('hidden', 'invisible', 'opacity-0'); });
         helpModal.addEventListener('click', (e) => {
             if(e.target === helpModal) helpModal.classList.add('hidden', 'invisible', 'opacity-0');
         });
 
+        function handleResize() {
+            const workbenchPanel = document.getElementById('workbench-panel');
+            const mapPanel = document.getElementById('map-panel');
+            const desktopParent = document.getElementById('desktop-parent-container');
+            const legendPanel = document.getElementById('legend-panel');
+            const gemCollectionPanel = document.getElementById('gem-collection-panel');
+
+            if (window.innerWidth < 1024) { // lg breakpoint
+                // Mobile: move workbench into map panel
+                if (workbenchPanel.parentElement !== mapPanel) {
+                    mapPanel.appendChild(workbenchPanel);
+                }
+                // Mobile: move legend and gem collection into workbench
+                if (legendPanel.parentElement !== workbenchPanel) {
+                    workbenchPanel.appendChild(legendPanel);
+                    workbenchPanel.appendChild(gemCollectionPanel);
+                }
+                workbenchPanel.classList.remove('hidden');
+                workbenchPanel.classList.add('flex');
+            } else {
+                // Desktop: move workbench back to its original parent
+                if (workbenchPanel.parentElement !== desktopParent) {
+                    desktopParent.appendChild(workbenchPanel);
+                    // Desktop: move legend and gem collection back to map panel
+                    mapPanel.appendChild(legendPanel);
+                    mapPanel.appendChild(gemCollectionPanel);
+                }
+                workbenchPanel.classList.remove('hidden'); // Ensure it's visible on desktop too
+                workbenchPanel.classList.add('lg:flex');
+            }
+        }
+
         drawMapCoords();
         initLegends();
+        window.addEventListener('resize', handleResize);
+        handleResize(); // Initial check
         loadProgress();
         
     });
     </script>
 </body>
 </html>
-
