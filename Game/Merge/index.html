@@ -278,7 +278,7 @@
         </div>
     </main>
     <footer class="w-full text-center p-4 text-xs text-muted">
-        <p>v1.4.0 | © 2025 pi-dimension</p>
+        <p>1.5.0 | © 2025 pi-dimension</p>
     </footer>
 
     <div id="message-box" class="message-box p-3 rounded-lg text-white font-bold shadow-lg"></div>
@@ -895,7 +895,7 @@
                 const adjacentSlot = boardSlots[index]; if (!adjacentSlot) return;
                 const obstacle = adjacentSlot.querySelector('[data-item-type="obstacle"]');
                 if (obstacle && (obstacle.dataset.colorName === mergedVectorColorName || (state.stageCount >= 110 && mergedVectorColorName === 'any'))) {
-                    const hiddenItemHTML = decodeURIComponent(escape(atob(obstacle.dataset.hiddenItem)));
+                    const hiddenItemHTML = atob(obstacle.dataset.hiddenItem);
                     adjacentSlot.innerHTML = hiddenItemHTML;
                     attachItemListeners(adjacentSlot.firstElementChild);
                     showMessage(`방해물이 제거되었습니다!`, 'success');
