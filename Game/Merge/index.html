@@ -195,8 +195,8 @@
                             <svg class="w-full h-full text-yellow-400" viewBox="0 0 100 100">
                                 <defs>
                                     <linearGradient id="portalGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                                        <stop offset="0%" style="stop-color: #FBBF24;" />
-                                        <stop offset="100%" style="stop-color: #F59E0B;" />
+                                        <stop offset="0%" style="stop-color: #A855F7;" />
+                                        <stop offset="100%" style="stop-color: #60A5FA;" />
                                     </linearGradient>
                                 </defs>
                                 <circle cx="50" cy="50" r="48" fill="none" stroke="url(#portalGradient)" stroke-width="4" />
@@ -573,7 +573,12 @@
                 case 'remover': return createRemoverItemHTML(parseInt(data.tier), parseInt(data.count));
                 case 'obstacle': 
                     const colorInfo = COLOR_PALETTE.find(c => c.name === data.colorName);
-                    return createObstacleItemHTML(colorInfo, atob(data.hiddenItem));
+                    try {
+                         return createObstacleItemHTML(colorInfo, atob(data.hiddenItem));
+                    } catch (e) {
+                         console.error("Error decoding hidden item:", data.hiddenItem, e);
+                         return ''; // return empty if fails
+                    }
                 default: return '';
             }
         }
@@ -583,7 +588,7 @@
             if (!item) return null;
             if (item.dataset.itemType === 'obstacle') {
                 const data = { ...item.dataset };
-                data.hiddenItem = btoa(data.hiddenItem);
+                data.hiddenItem = btoa(unescape(encodeURIComponent(data.hiddenItem)));
                 return data;
             }
             return { ...item.dataset };
@@ -890,7 +895,7 @@
                 const adjacentSlot = boardSlots[index]; if (!adjacentSlot) return;
                 const obstacle = adjacentSlot.querySelector('[data-item-type="obstacle"]');
                 if (obstacle && (obstacle.dataset.colorName === mergedVectorColorName || (state.stageCount >= 110 && mergedVectorColorName === 'any'))) {
-                    const hiddenItemHTML = atob(obstacle.dataset.hiddenItem);
+                    const hiddenItemHTML = decodeURIComponent(escape(atob(obstacle.dataset.hiddenItem)));
                     adjacentSlot.innerHTML = hiddenItemHTML;
                     attachItemListeners(adjacentSlot.firstElementChild);
                     showMessage(`방해물이 제거되었습니다!`, 'success');
