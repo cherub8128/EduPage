@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>벡터 머지: 차원 이동</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Noto+Sans+KR:wght@400;500&display=swap" rel="stylesheet">
@@ -18,9 +18,12 @@
             --border-primary: #D1D5DB; --border-secondary: #E5E7EB;
         }
         html {
-            height: 100%;
+             height: 100%;
         }
         body {
+            -webkit-user-select: none; /* Safari */
+            -ms-user-select: none; /* IE 10+ */
+            user-select: none; /* Standard syntax */
             min-height: 100%;
             font-family: 'Noto Sans KR', sans-serif;
             background: var(--bg-primary);
@@ -86,8 +89,18 @@
             display: flex; align-items: center; justify-content: center;
             flex-direction: column; gap: 1px; padding: 2px;
             border-radius: 0.375rem; position: relative;
+            touch-action: none; /* Prevents scrolling when dragging item on mobile */
         }
-        .item.dragging { opacity: 0.5; transform: scale(1.1); }
+        .item.dragging-source {
+            opacity: 0.3;
+        }
+        .ghost-item {
+            position: fixed;
+            pointer-events: none;
+            z-index: 1000;
+            transform: translate(-50%, -50%) scale(1.1);
+            opacity: 0.8;
+        }
         .item:active { cursor: grabbing; }
         .pouch { animation: pulse-pouch 2.5s infinite; }
         @keyframes pulse-pouch {
@@ -217,12 +230,12 @@
         </div>
     </main>
     <footer class="w-full text-center p-4 text-xs text-muted">
-        <p>v1.3.0 | © 2025 pi-dimension</p>
+        <p>v1.3.1 | © 2025 pi-dimension</p>
     </footer>
 
     <div id="message-box" class="message-box p-3 rounded-lg text-white font-bold shadow-lg"></div>
     
-    <div id="help-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-50 hidden">
+    <div id="help-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-50 invisible opacity-0">
         <div class="bg-main border-2 border-main rounded-2xl p-6 text-left shadow-2xl max-w-lg w-full max-h-[80vh] overflow-y-auto relative">
             <h2 class="font-orbitron text-2xl text-center mb-4">게임 규칙</h2>
             <button id="close-help-btn" class="absolute top-4 right-4 text-sub hover:text-main text-2xl">&times;</button>
@@ -244,7 +257,7 @@
                     <ul class="list-disc list-inside space-y-2">
                         <li><b>소환진:</b> 작업대 위에서 클릭하면 빈 공간에 랜덤 아이템(기본 벡터 또는 1레벨 제거기)을 소환합니다. 사용 횟수가 정해져 있습니다.</li>
                         <li><b>잔여물:</b> 공간을 차지하는 방해물입니다. 같은 레벨의 잔여물끼리 합치면 상위 레벨의 잔여물이 됩니다.</li>
-                        <li><b>제거기:</b> 잔여물 위로 드래그하여 제거할 수 있습니다. 자신보다 같거나 낮은 레벨의 잔여물만 제거 가능하며, 사용 횟수가 있습니다. 같은 레벨의 제거기끼리 합치면, 더 낮은 사용 횟수를 계승하는 상위 레벨 제거기가 됩니다.</li>
+                        <li><b>제거기:</b> 잔여물 위로 드래그하여 제거할 수 있습니다. 자신보다 같거나 낮은 레벨의 잔여물만 제거 가능하며, 사용 횟수가 있습니다. 같은 레벨의 제거기끼리 합치면, 더 적은 사용 횟수를 계승하는 상위 레벨 제거기가 됩니다.</li>
                         <li><b>방해물:</b> 작업대를 가리는 블록입니다. 인접한 칸에서 방해물과 같은 색의 벡터를 합성하면 사라지며, 밑에 숨겨진 아이템이 나타납니다.</li>
                         <li><b>보석:</b> 맵에 나타나는 특별 아이템입니다. 획득하면 아공간이 영구적으로 1칸 확장됩니다. (최대 10칸)</li>
                     </ul>
@@ -489,7 +502,7 @@
         }
         function updateGemCollectionUI(){gemCollectionContainer.innerHTML='';GEMS.forEach(e=>{const t=state.gemsCollected.has(e.id),o=document.createElement('div');o.className=`w-10 h-10 flex items-center justify-center ${t?`text-${e.color}`:'text-gray-600 gem-silhouette'}`;o.innerHTML=e.svg;gemCollectionContainer.appendChild(o)})}
         function updateInventoryUI() {
-            const slotsToShow = 4 + state.gemsCollected.size;
+            const slotsToShow = Math.min(10, 4 + state.gemsCollected.size);
             inventorySlots.forEach((slot, index) => {
                 if (index < slotsToShow) {
                     slot.classList.remove('hidden');
@@ -547,9 +560,56 @@
         function createRemoverItemHTML(t, c){ const count = c || (3 + randInt(3)); const color = REMOVER_COLORS[Math.min(t-1, REMOVER_COLORS.length - 1)]; return`<div class="item ${color.bg} border-2 ${color.border} shadow-lg" draggable="true" data-item-type="remover" data-tier="${t}" data-count="${count}"><div class="absolute top-0 right-1 text-xs font-bold text-white bg-black/30 rounded-full px-1.5 py-0.5 shadow-md">x${count}</div><svg class="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg><span class="text-xs font-bold text-white/80">제거기 Lv.${t}</span></div>`}
         function createObstacleItemHTML(c,h){const e=btoa(unescape(encodeURIComponent(h)));return`<div class="item border-4 shadow-lg" style="${c.bg} ${c.border}" data-item-type="obstacle" data-color-name="${c.name}" data-hidden-item="${e}"><svg class="w-10 h-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg></div>`}
         
-        function attachItemListeners(item){if(!item||item.dataset.itemType==='obstacle')return;item.setAttribute('draggable','true');item.addEventListener('dragstart',handleDragStart);item.addEventListener('dragend',handleDragEnd);if(item.dataset.itemType==='vector')item.addEventListener('click',handleVectorClick);else if(item.dataset.itemType==='pouch')item.addEventListener('click',handlePouchClick)}
-        function handleDragStart(e){state.dragged.element=e.currentTarget;state.dragged.sourceSlot=e.currentTarget.parentElement;setTimeout(()=>{if(state.dragged.element)state.dragged.element.classList.add('dragging')},0)}
-        function handleDragEnd(e){if(e.currentTarget&&e.currentTarget.classList)e.currentTarget.classList.remove('dragging');state.dragged={element:null,sourceSlot:null}}
+        function attachItemListeners(item){if(!item||item.dataset.itemType==='obstacle')return;item.addEventListener('mousedown',handleDragStart);item.addEventListener('touchstart',handleDragStart,{passive:false});if(item.dataset.itemType==='vector')item.addEventListener('click',handleVectorClick);else if(item.dataset.itemType==='pouch')item.addEventListener('click',handlePouchClick)}
+        
+        function handleDragStart(e){
+            if (e.target.closest && !e.target.closest('.item')) return;
+            e.preventDefault();
+            const originalItem = e.target.closest('.item');
+            if(!originalItem) return;
+
+            const ghostItem = originalItem.cloneNode(true);
+            ghostItem.classList.add('ghost-item');
+            document.body.appendChild(ghostItem);
+
+            const pos = e.touches ? e.touches[0] : e;
+            ghostItem.style.left = `${pos.clientX}px`;
+            ghostItem.style.top = `${pos.clientY}px`;
+
+            originalItem.classList.add('dragging-source');
+
+            state.dragged.element = ghostItem;
+            state.dragged.sourceSlot = originalItem.parentElement;
+            state.dragged.originalItem = originalItem;
+        }
+
+        function handleDragMove(e) {
+            if (!state.dragged.element) return;
+            e.preventDefault();
+            const pos = e.touches ? e.touches[0] : e;
+            state.dragged.element.style.left = `${pos.clientX}px`;
+            state.dragged.element.style.top = `${pos.clientY}px`;
+
+            allSlots.forEach(s => s.classList.remove('over'));
+            const targetSlot = document.elementFromPoint(pos.clientX, pos.clientY)?.closest('.slot');
+            if(targetSlot) targetSlot.classList.add('over');
+        }
+
+        function handleDragEnd(e) {
+            if (!state.dragged.element) return;
+            const pos = e.changedTouches ? e.changedTouches[0] : e;
+            const targetSlot = document.elementFromPoint(pos.clientX, pos.clientY)?.closest('.slot');
+            
+            if (targetSlot) {
+                handleDrop(targetSlot);
+            }
+
+            document.body.removeChild(state.dragged.element);
+            if(state.dragged.originalItem) state.dragged.originalItem.classList.remove('dragging-source');
+            allSlots.forEach(s => s.classList.remove('over'));
+            state.dragged = { element: null, sourceSlot: null, originalItem: null };
+        }
+        
         function handleVectorClick(e){const t=e.currentTarget;useVector(t,parseInt(t.dataset.vx),parseInt(t.dataset.vy))}
         
         function handlePouchClick(e) {
@@ -653,23 +713,20 @@
             });
         }
 
-        function handleDrop(event) {
-            event.preventDefault();
-            const targetSlot = event.currentTarget;
-            targetSlot.classList.remove('over');
-            if (!state.dragged.element || !state.dragged.sourceSlot || targetSlot === state.dragged.sourceSlot) return;
+        function handleDrop(targetSlot) {
+            if (!targetSlot) return;
             
             const sourceSlot = state.dragged.sourceSlot;
             const targetItem = targetSlot.querySelector('.item');
             
             if (!targetItem) {
-                targetSlot.appendChild(state.dragged.element);
+                targetSlot.appendChild(state.dragged.originalItem);
             } else {
-                const sourceType = state.dragged.element.dataset.itemType;
+                const sourceType = state.dragged.originalItem.dataset.itemType;
                 const targetType = targetItem.dataset.itemType;
                 
                 if (sourceType === 'vector' && targetType === 'vector' && targetSlot.classList.contains('board-slot') && sourceSlot.classList.contains('board-slot')) {
-                    const v1 = { x: parseInt(state.dragged.element.dataset.vx), y: parseInt(state.dragged.element.dataset.vy) };
+                    const v1 = { x: parseInt(state.dragged.originalItem.dataset.vx), y: parseInt(state.dragged.originalItem.dataset.vy) };
                     const v2 = { x: parseInt(targetItem.dataset.vx), y: parseInt(targetItem.dataset.vy) };
                     const newV = { x: v1.x + v2.x, y: v1.y + v2.y };
                     
@@ -685,7 +742,7 @@
                     checkAndClearObstacles(targetSlot);
 
                 } else if (sourceType === 'residue' && targetType === 'residue') {
-                    const tier1 = parseInt(state.dragged.element.dataset.tier);
+                    const tier1 = parseInt(state.dragged.originalItem.dataset.tier);
                     const tier2 = parseInt(targetItem.dataset.tier);
                     if (tier1 === tier2) {
                         targetSlot.innerHTML = createResidueItemHTML(tier1 + 1);
@@ -693,22 +750,22 @@
                         sourceSlot.innerHTML = '';
                     }
                 } else if (sourceType === 'remover' && targetType === 'remover') {
-                    const tier1 = parseInt(state.dragged.element.dataset.tier);
+                    const tier1 = parseInt(state.dragged.originalItem.dataset.tier);
                     const tier2 = parseInt(targetItem.dataset.tier);
                     if (tier1 === tier2) {
-                        const count1 = parseInt(state.dragged.element.dataset.count);
+                        const count1 = parseInt(state.dragged.originalItem.dataset.count);
                         const count2 = parseInt(targetItem.dataset.count);
                         targetSlot.innerHTML = createRemoverItemHTML(tier1 + 1, Math.min(count1, count2));
                         attachItemListeners(targetSlot.firstElementChild);
                         sourceSlot.innerHTML = '';
                     }
                 } else if (sourceType === 'remover' && targetType === 'residue') {
-                    const removerTier = parseInt(state.dragged.element.dataset.tier);
+                    const removerTier = parseInt(state.dragged.originalItem.dataset.tier);
                     const residueTier = parseInt(targetItem.dataset.tier);
                     if (removerTier >= residueTier) {
                         targetSlot.innerHTML = ''; // Clear residue
                         
-                        const remover = state.dragged.element;
+                        const remover = state.dragged.originalItem;
                         let count = parseInt(remover.dataset.count) - 1;
                         if (count > 0) {
                             sourceSlot.innerHTML = createRemoverItemHTML(removerTier, count);
@@ -789,17 +846,12 @@
             });
         }
         
-        // Initial setup
-        allSlots.forEach(slot => {
-            slot.addEventListener('dragover', (e) => { 
-                e.preventDefault();
-                slot.classList.add('over');
-            });
-            slot.addEventListener('dragleave', (e) => {
-                slot.classList.remove('over');
-            });
-            slot.addEventListener('drop', handleDrop);
-        });
+        // --- Custom Drag Logic ---
+        document.body.addEventListener('mousemove', handleDragMove);
+        document.body.addEventListener('mouseup', handleDragEnd);
+        document.body.addEventListener('touchmove', handleDragMove, {passive: false});
+        document.body.addEventListener('touchend', handleDragEnd);
+
         mapGrid.style.setProperty('--grid-size', GRID_SIZE);
         mapGrid.innerHTML = Array(GRID_SIZE * GRID_SIZE).fill('<div class="grid-cell"></div>').join('');
         
@@ -840,10 +892,10 @@
             tabMap.classList.remove('active');
         });
         
-        helpBtn.addEventListener('click', () => helpModal.classList.remove('hidden'));
-        closeHelpBtn.addEventListener('click', () => helpModal.classList.add('hidden'));
+        helpBtn.addEventListener('click', () => { helpModal.classList.remove('hidden', 'invisible', 'opacity-0'); });
+        closeHelpBtn.addEventListener('click', () => { helpModal.classList.add('hidden', 'invisible', 'opacity-0'); });
         helpModal.addEventListener('click', (e) => {
-            if(e.target === helpModal) helpModal.classList.add('hidden');
+            if(e.target === helpModal) helpModal.classList.add('hidden', 'invisible', 'opacity-0');
         });
 
         drawMapCoords();
