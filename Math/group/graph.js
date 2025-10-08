@@ -1,5 +1,5 @@
 function drawCayleyGraph(groupData, selectedGenerators) {
-    const { elements, table } = groupData;
+    const { elements, table, display_elements } = groupData;
     const container = d3.select("#cayley-graph");
     container.html(""); // 기존 SVG 클리어
 
@@ -28,7 +28,7 @@ function drawCayleyGraph(groupData, selectedGenerators) {
     ];
 
     // 노드와 링크 데이터 구성
-    const nodes = elements.map(el => ({ id: el }));
+    const nodes = display_elements.map(el => ({ id: el }));
     const links = [];
     const elementMap = new Map(elements.map((el, i) => [el, i]));
 
@@ -39,8 +39,8 @@ function drawCayleyGraph(groupData, selectedGenerators) {
         elements.forEach((el, elIndex) => {
             const targetIndex = table[elIndex][genMapIndex];
             links.push({
-                source: el,
-                target: elements[targetIndex],
+                source: display_elements[elIndex],
+                target: display_elements[targetIndex],
                 color: genColors[genIndex % genColors.length]
             });
         });

@@ -7,6 +7,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const pathOutput = document.querySelector('#path-output p');
     const cayleyTableWrapper = document.getElementById('cayley-table-wrapper');
     const tableFilterInput = document.getElementById('table-filter');
+    const abbreviationsPanel = document.getElementById('abbreviations-panel');
+    const abbreviationsList = document.getElementById('abbreviations-list');
 
     let currentGroupData = null;
 
@@ -62,6 +64,9 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             currentGroupData = await response.json();
 
+            // 긴 원소 이름 축약
+            abbreviateLongElements();
+
             // UI 요소들 업데이트
             updateElementDropdowns();
             updateGeneratorDropdown();
@@ -75,16 +80,57 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // 긴 원소 이름을 축약하고 맵을 생성하는 함수
+    function abbreviateLongElements() {
+        const { elements } = currentGroupData;
+        const abbreviationMap = new Map();
+        let abbreviationCounter = 1;
+        const MAX_LENGTH = 11;
+
+        const displayElements = elements.map(el => {
+            if (el === '()') {
+                return '1'; // 항등원 '()'을 '0'으로 표시
+            }
+            if (el.length > MAX_LENGTH) { // '()'가 아닌 다른 긴 원소들
+                const alias = `g_{${abbreviationCounter++}}`;
+                abbreviationMap.set(alias, el);
+                return alias;
+            }
+            return el;
+        });
+
+        currentGroupData.display_elements = displayElements;
+        currentGroupData.abbreviations = abbreviationMap;
+
+        // 범례 패널 업데이트
+        updateAbbreviationsPanel();
+    }
+
+    // 범례 패널 업데이트
+    function updateAbbreviationsPanel() {
+        const { abbreviations } = currentGroupData;
+        if (abbreviations.size > 0) {
+            abbreviationsPanel.classList.remove('hidden');
+            abbreviationsList.innerHTML = '';
+            abbreviations.forEach((original, alias) => {
+                const div = document.createElement('div');
+                div.textContent = `${alias}: ${original}`;
+                abbreviationsList.appendChild(div);
+            });
+        } else {
+            abbreviationsPanel.classList.add('hidden');
+        }
+    }
+
     // 원소 드롭다운 업데이트
     function updateElementDropdowns() {
-        const { elements } = currentGroupData;
+        const { elements, display_elements } = currentGroupData;
         [startElementSelect, endElementSelect].forEach(select => {
             select.innerHTML = '';
-            elements.forEach(el => {
+            elements.forEach((el, i) => {
                 const option = document.createElement('option');
-                option.value = el; // 값은 원본 문자열 유지
-                // KaTeX 렌더링 대신 텍스트로 표시
-                option.textContent = el;
+                option.value = el; // 값은 원본 이름
+                option.textContent = display_elements[i]; // 표시는 축약 이름
                 select.appendChild(option);
             });
         });
@@ -92,14 +138,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 생성원 드롭다운 업데이트
     function updateGeneratorDropdown() {
-        const { minimal_generators } = currentGroupData;
+        const { minimal_generators, elements, display_elements } = currentGroupData;
         generatorSelect.innerHTML = '';
         if (minimal_generators && minimal_generators.length > 0) {
             minimal_generators.forEach((genSet, index) => {
                 const option = document.createElement('option');
                 option.value = index;
-                // KaTeX 렌더링 대신 텍스트로 표시
-                option.textContent = `Set ${index + 1}: {${genSet.join(', ')}}`;
+                // 생성원도 축약된 이름으로 표시
+                const displayGenSet = genSet.map(gen => {
+                    const elIndex = elements.indexOf(gen);
+                    return display_elements[elIndex] || gen;
+                });
+                option.textContent = `Set ${index + 1}: {${displayGenSet.join(', ')}}`;
                 generatorSelect.appendChild(option);
             });
         } else {
@@ -111,7 +161,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 케일리 테이블 렌더링
     function renderCayleyTable() {
-        const { elements, table: tableData } = currentGroupData;
+        const { display_elements, table: tableData } = currentGroupData;
         cayleyTableWrapper.innerHTML = ''; // 기존 테이블 초기화
 
         // --- 테이블 컨테이너 및 통합 테이블 생성 ---
@@ -126,7 +176,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const cornerCell = document.createElement('th');
         cornerCell.innerHTML = '<span>•</span>';
         headerRow.appendChild(cornerCell);
-        elements.forEach(el => {
+        display_elements.forEach(el => {
             const th = document.createElement('th');
             katex.render(el, th, { throwOnError: false, displayMode: true });
             headerRow.appendChild(th);
@@ -137,11 +187,11 @@ document.addEventListener('DOMContentLoaded', () => {
         tableData.forEach((rowData, i) => {
             const row = dataTbody.insertRow();
             const th = document.createElement('th');
-            katex.render(elements[i], th, { throwOnError: false, displayMode: true });
+            katex.render(display_elements[i], th, { throwOnError: false, displayMode: true });
             row.appendChild(th);
             rowData.forEach(cellIndex => {
                 const cell = row.insertCell();
-                katex.render(elements[cellIndex], cell, { throwOnError: false, displayMode: true });
+                katex.render(display_elements[cellIndex], cell, { throwOnError: false, displayMode: true });
             });
         });
 
@@ -167,7 +217,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const dataTable = cayleyTableWrapper.querySelector('.cayley-data-table');
         if (!dataTable) return;
     
-        const { elements } = currentGroupData;
+        const { display_elements } = currentGroupData;
         const rows = dataTable.querySelectorAll('tbody tr');
     
         // 모든 하이라이트 초기화
@@ -178,11 +228,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!filterText) return; // 필터 텍스트가 없으면 여기서 종료
     
         rows.forEach((row, rowIndex) => {
-            const rowHeaderKatex = elements[rowIndex].toLowerCase().replace(/\\/g, '');
+            const rowHeaderKatex = display_elements[rowIndex].toLowerCase().replace(/\\/g, '');
             let rowMatch = rowHeaderKatex.includes(filterText);
     
             row.querySelectorAll('td').forEach((td, colIndex) => {
-                const colHeaderKatex = elements[colIndex].toLowerCase().replace(/\\/g, '');
+                const colHeaderKatex = display_elements[colIndex].toLowerCase().replace(/\\/g, '');
                 const cellKatex = td.textContent.toLowerCase().replace(/\\/g, '');
     
                 let colMatch = colHeaderKatex.includes(filterText);
@@ -224,7 +274,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const path = bfsShortestPath(startElement, endElement, generators);
 
         if (path) {
-            const pathString = path.map(p => katex.renderToString(p, { throwOnError: false })).join(' → ');
+            // 경로 표시도 축약된 이름으로
+            const pathString = path.map(p => {
+                const elIndex = currentGroupData.elements.indexOf(p);
+                const displayEl = currentGroupData.display_elements[elIndex] || p;
+                return katex.renderToString(displayEl, { throwOnError: false });
+            }).join(' → ');
             pathOutput.innerHTML = `최단 경로: ${pathString} (길이: ${path.length - 1})`;
         } else {
             pathOutput.textContent = '최단 경로: 경로를 찾을 수 없습니다.';

@@ -120,6 +120,10 @@ select:focus, button:focus {
     font-family: inherit; /* body의 폰트를 명확하게 상속받도록 수정 */
 }
 
+.hidden {
+    display: none !important;
+}
+
 .content-panel {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -131,6 +135,28 @@ select:focus, button:focus {
     border-radius: 8px;
     padding: 20px;
     border: 1px solid var(--border-color);
+}
+
+/* 범례 패널 스타일 */
+#abbreviations-panel {
+    grid-column: 2 / 3; /* 그래프 패널 아래에 위치 */
+    margin-top: 1.5rem;
+    background: var(--panel-bg-color);
+}
+
+#abbreviations-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 10px;
+    font-size: 14px;
+}
+
+#abbreviations-list div {
+    background-color: var(--panel-bg-light);
+    padding: 8px 12px;
+    border-radius: 4px;
+    color: var(--text-secondary-color);
+    word-break: break-all;
 }
 
 /* 테이블 컨테이너를 flex로 설정하여 내부 요소 크기 제어 */
