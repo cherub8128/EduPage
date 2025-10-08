@@ -1,0 +1,23 @@
+{
+    "elements": [
+        "()",
+        "(0 1)"
+    ],
+    "table": [
+        [
+            0,
+            1
+        ],
+        [
+            1,
+            0
+        ]
+    ],
+    "group_order": 2,
+    "minimal_generators": [
+        [
+            "(0 1)"
+        ]
+    ],
+    "group_name": "Z_2"
+}
