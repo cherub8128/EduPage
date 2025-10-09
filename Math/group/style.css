@@ -365,3 +365,33 @@ input#table-filter {
     border-color: var(--primary-color);
     color: white;
 }
+
+/* --- 모바일 최적화 --- */
+@media (max-width: 1024px) {
+    body {
+        padding: 1rem;
+    }
+    main {
+        padding: 15px;
+    }
+    .content-panel {
+        grid-template-columns: 1fr; /* 1열 레이아웃으로 변경 */
+    }
+    #graph-container {
+        grid-row: 1; /* 그래프를 첫 번째 행으로 */
+        min-height: 400px; /* 모바일에서 그래프 높이 확보 */
+        overflow-x: hidden; /* 혹시 모를 가로 스크롤바 방지 */
+    }
+    #cayley-graph svg {
+        /* SVG가 부모 컨테이너 너비에 맞게 크기 조절되도록 설정 */
+        width: 100%;
+        height: auto;
+        max-width: 100%;
+    }
+    #table-container {
+        grid-row: 2; /* 테이블을 두 번째 행으로 */
+    }
+    #abbreviations-panel {
+        grid-column: 1 / -1; /* 전체 너비 차지 */
+    }
+}
