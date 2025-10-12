@@ -3,76 +3,169 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gemma 3 270M 로컬 PC에서 실행하기</title>
+    <title>Gemma 3 1B IT 로컬 PC에서 실행하기</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-okaidia.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Noto+Sans+KR:wght@400;700&family=Fira+Code&display=swap" rel="stylesheet">
     <style>
         body {
-            font-family: 'Noto Sans KR', sans-serif;
-            background-color: #282c34;
-            color: #abb2bf;
+            font-family: 'Inter', 'Noto Sans KR', sans-serif;
+            background: #111827;
+            background: radial-gradient(circle at top left, rgba(17, 24, 39, 1) 0%, rgba(55, 48, 163, 0.2) 100%), #111827;
+            color: #E5E7EB; /* 기본 텍스트 색상을 밝게 설정 */
+            overflow-y: scroll;
         }
         .slide {
             display: none;
+            opacity: 0;
+            transition: opacity 0.6s ease-in-out;
         }
         .slide.active {
             display: block;
+            opacity: 1;
         }
         .code-highlight {
-            background-color: rgba(255, 255, 0, 0.15);
+            background-color: rgba(139, 92, 246, 0.2);
+            border-left: 2px solid #8B5CF6;
             display: block;
-            margin: -0.25rem -0.5rem;
-            padding: 0.25rem 0.5rem;
-            border-radius: 0.25rem;
+            margin: -0.5rem -1rem;
+            padding: 0.5rem 1rem;
+        }
+        .code-wrapper {
+            position: relative;
         }
         pre[class*="language-"] {
-            font-size: 0.9rem;
-            line-height: 1.6;
-            white-space: pre-wrap;
-            word-break: break-all;
+            border-radius: 0.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background-color: #1F2937 !important;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+            padding-top: 3.5rem !important;
         }
+        .copy-btn {
+            position: absolute;
+            top: 0.75rem;
+            right: 0.75rem;
+            background-color: #374151;
+            color: #D1D5DB;
+            border: 1px solid #4B5563;
+            border-radius: 0.375rem;
+            padding: 0.35rem 0.75rem;
+            font-size: 0.875rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            z-index: 10;
+        }
+        .copy-btn:hover {
+            background-color: #4B5563;
+            color: #FFF;
+        }
+        .copy-btn.copied {
+            background-color: #10B981;
+            color: white;
+            border-color: #059669;
+        }
+
         .explanation-box {
-            background-color: #21252b;
-            border-left: 4px solid #98c379;
-            padding: 1rem;
+            background-color: rgba(31, 41, 55, 0.7);
+            border-left: 4px solid #6366F1;
+            padding: 1.25rem;
             border-radius: 0.5rem;
             margin-top: 1rem;
+            backdrop-filter: blur(10px);
         }
         .terminal {
-            background-color: #1e1e1e;
-            color: #d4d4d4;
-            padding: 1rem;
+            background-color: #000;
+            color: #E5E7EB;
+            padding: 1.25rem;
             border-radius: 0.5rem;
-            font-family: monospace;
+            font-family: 'Fira Code', monospace;
+            border: 1px solid rgba(255,255,255,0.2);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
         }
-        .terminal .prompt {
-            color: #569cd6;
+        .terminal .prompt { color: #4ade80; }
+        .terminal .user-input { color: #60a5fa; }
+        .terminal .output { color: #f87171; }
+
+        .btn-gradient {
+            background-image: linear-gradient(to right, #4F46E5, #8B5CF6);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px 0 rgba(79, 70, 229, 0.75);
         }
-        .terminal .user-input {
-            color: #9cdcfe;
+        .btn-gradient:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(79, 70, 229, 0.4);
         }
-        .terminal .output {
-            color: #ce9178;
+        
+        #progress-bar-inner {
+            transition: width 0.3s ease-in-out;
+        }
+
+        /* --- Custom PrismJS Theme for Readability --- */
+        pre[class*="language-"] code[class*="language-"] {
+            font-family: 'Fira Code', monospace;
+        }
+
+        :not(pre) > code[class*="language-"], pre[class*="language-"] {
+             background: #1F2937;
+        }
+
+        .token.comment, .token.prolog, .token.doctype, .token.cdata {
+            color: #6B7280; /* Gray 500 */
+        }
+        .token.punctuation {
+            color: #9CA3AF; /* Gray 400 */
+        }
+        .token.property, .token.tag, .token.boolean, .token.number, .token.constant, .token.symbol, .token.deleted {
+            color: #FBBF24; /* Amber 400 */
+        }
+        .token.selector, .token.attr-name, .token.string, .token.char, .token.builtin, .token.inserted {
+            color: #A7F3D0; /* Emerald 200 */
+        }
+        .token.operator, .token.entity, .token.url, .language-css .token.string, .style .token.string {
+            color: #93C5FD; /* Blue 300 */
+        }
+        .token.atrule, .token.attr-value, .token.keyword {
+            color: #C4B5FD; /* Violet 300 */
+        }
+        .token.function, .token.class-name {
+            color: #818CF8; /* Indigo 400 */
+        }
+        .token.regex, .token.important, .token.variable {
+            color: #FDBA74; /* Orange 300 */
+        }
+
+        /* 기본 코드 텍스트 색상을 밝게 설정 */
+        pre[class*="language-"],
+        code[class*="language-"] {
+            color: #E5E7EB;
+            text-shadow: none;
         }
     </style>
 </head>
-<body class="p-4 md:p-8">
+<body class="p-4 md:p-8 flex items-center justify-center min-h-screen">
 
-    <div class="max-w-7xl mx-auto bg-[#21252b] rounded-xl shadow-2xl overflow-hidden">
-        <div class="p-8">
-            <h1 class="text-3xl md:text-4xl font-bold text-white text-center">Gemma 3 270M 로컬 PC에서 실행하기</h1>
-            <p class="text-center text-gray-400 mt-2">내 컴퓨터에서 직접 최신 AI 모델을 움직여봅시다!</p>
+    <div class="max-w-7xl w-full mx-auto bg-gray-900/50 rounded-2xl shadow-2xl overflow-hidden border border-gray-700 backdrop-filter backdrop-blur-xl">
+        
+        <div id="progress-bar-container" class="w-full bg-gray-700 h-2 rounded-t-2xl">
+            <div id="progress-bar-inner" class="bg-gradient-to-r from-indigo-500 to-purple-500 h-2"></div>
         </div>
 
-        <div id="slider-container" class="p-4 md:p-8 border-t border-gray-700 min-h-[500px]">
+        <div class="p-8 text-center">
+            <h1 class="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">Gemma 3 1B IT 로컬 실행 가이드</h1>
+            <p class="text-gray-400 mt-3 text-lg">당신의 PC에서 직접 최신 AI 모델을 다운로드하고 실행해보세요!</p>
+        </div>
+
+        <div id="slider-container" class="p-4 md:p-8 border-t border-gray-700 min-h-[550px]">
             <!-- Slides will be injected here by JS -->
         </div>
 
-        <div class="bg-[#282c34] p-4 flex justify-between items-center">
-            <button id="prevBtn" class="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed">이전</button>
+        <div class="bg-gray-900/70 p-4 flex justify-between items-center border-t border-gray-700">
+            <button id="prevBtn" class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-6 rounded-lg transition duration-300 disabled:opacity-40 disabled:cursor-not-allowed">이전</button>
             <div id="slide-counter" class="text-white text-lg font-semibold"></div>
-            <button id="nextBtn" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 px-4 rounded-lg transition duration-300">다음</button>
+            <button id="nextBtn" class="btn-gradient text-white font-bold py-2 px-6 rounded-lg">다음</button>
         </div>
     </div>
 
@@ -81,146 +174,233 @@
     <script>
         const slides = [
             {
-                title: "1. 시작하기 전에: 로컬 환경 준비",
+                title: "Step 1: 필요한 라이브러리 설치",
                 explanation: `
-                    <p>여러분의 PC에서 직접 Gemma 3를 실행해볼 겁니다. 이를 위해 몇 가지 준비가 필요합니다.</p>
+                    <p>가장 먼저, PC의 터미널을 열고 Gemma 3 실행에 필요한 도구들을 설치합니다.</p>
                     <div class="explanation-box">
-                        <p><strong>필요한 것:</strong><br>
-                        1. <strong>Python 3.8 이상:</strong> PC에 파이썬이 설치되어 있어야 합니다.<br>
-                        2. <strong>터미널 (명령 프롬프트, PowerShell, Terminal 등):</strong> 코드를 실행할 창이 필요합니다.<br>
-                        3. <strong>인터넷 연결:</strong> AI 모델 파일을 처음 다운로드할 때 필요합니다.
+                        <p class="text-indigo-300"><strong>핵심 라이브러리:</strong><br>
+                        - <code class="font-bold text-white">huggingface-hub:</code> 모델 다운로드 담당<br>
+                        - <code class="font-bold text-white">transformers, torch:</code> 모델 실행 담당</p>
+                    </div>
+                    <p class="mt-4">터미널에 아래 명령어를 한 번에 복사하여 실행하세요.</p>
+                `,
+                code: `pip install transformers torch huggingface-hub`,
+                language: 'bash'
+            },
+            {
+                title: "Step 2: Hugging Face 로그인 및 토큰 발급",
+                explanation: `
+                    <p>최신 모델을 다운로드하려면 Hugging Face 계정이 필요합니다. <a href="https://huggingface.co/join" target="_blank" class="text-indigo-400 hover:underline font-bold">Hugging Face에 가입</a>한 후, 모델 접근 권한이 있는 'Access Token'을 발급받아야 합니다.</p>
+                    <div class="explanation-box">
+                        <p class="text-indigo-300"><strong>토큰 발급 (Read 권한):</strong><br>
+                        1. 로그인 후, 프로필 > <strong>Settings</strong> > <strong>Access Tokens</strong> 탭으로 이동<br>
+                        2. <strong>New token</strong> 버튼 클릭<br>
+                        3. 이름(Name)을 정하고, 역할(Role)을 <strong>read</strong>로 선택 후 생성</p>
+                    </div>
+                    <p class="mt-4">생성된 토큰을 복사한 뒤, 아래 명령어를 터미널에 입력하여 로그인을 완료하세요. 토큰을 붙여넣고 엔터를 누르면 로그인되며, 입력하는 내용은 보이지 않습니다.</p>
+                `,
+                code: `huggingface-cli login`,
+                language: 'bash'
+            },
+            {
+                title: "Step 3: 모델 스펙과 입출력 형식 파악",
+                explanation: `
+                    <p>코드를 작성하기 전, <a href="https://huggingface.co/google/gemma-3-1b-it" target="_blank" class="text-indigo-400 hover:underline font-bold">모델 페이지</a>에서 모델의 사양과 사용법을 확인하는 것이 중요합니다. 특히 모델이 어떤 형식의 입력을 받고(Input), 어떤 형식으로 답변을 돌려주는지(Output) 파악해야 합니다.</p>
+                     <div class="explanation-box">
+                        <p class="text-indigo-300"><strong>gemma-3-1b-it 모델의 특징:</strong><br>
+                        - <strong>입력(Input):</strong> 텍스트 외에 이미지도 이해할 수 있습니다. 1B 모델 기준, 최대 <strong>32,000 토큰</strong>(약 24,000 단어)의 긴 문맥을 기억합니다.<br>
+                        - <strong>출력(Output):</strong> 입력에 대한 답변으로 텍스트를 생성하며, 최대 <strong>8,192 토큰</strong>(약 6,000 단어)까지 생성 가능합니다.<br>
+                        - <strong>대화 형식:</strong> 'role'과 'content' 키를 가진 딕셔너리의 리스트 형태를 사용합니다.<br>
+                        - <strong>역할(Role):</strong> 사용자는 <code class="font-bold text-white">'user'</code>, 모델은 <code class="font-bold text-white">'assistant'</code>로 지정하여 대화 문맥을 알려줍니다.
                         </p>
                     </div>
-                    <p class="mt-4">이 튜토리얼은 파이썬이 설치되어 있다고 가정하고 진행됩니다!</p>
+                    <p class="mt-4">이런 규칙을 이해해야 챗봇 코드의 <code class="bg-gray-700 p-1 rounded text-white">messages</code> 리스트를 올바르게 다룰 수 있습니다.</p>
+                `,
+                code: ``,
+                language: 'python'
+            },
+            {
+                title: "Step 4: 스크립트 #1 - 모델 다운로드",
+                explanation: `
+                    <p>첫 번째 스크립트는 Hugging Face에서 Gemma 3 모델 파일을 내 PC로 다운로드하는 역할을 합니다.</p>
+                    <p class="mt-2">아래 코드를 <code class="bg-gray-700 p-1 rounded text-white">model.py</code> 라는 이름으로 저장하세요. 모델은 약 5GB 이상이므로 충분한 공간을 확보해주세요.</p>
+                `,
+                code: `
+# 파일명: model.py
+from huggingface_hub import snapshot_download
+import os
+
+# 다운로드할 모델 ID
+model_id = "google/gemma-3-1b-it"
+
+# 저장할 로컬 폴더 경로
+<span class="code-highlight">local_model_path = "./google/gemma-3-1b-it"</span>
+
+if not os.path.exists(local_model_path):
+    os.makedirs(local_model_path)
+
+print(f"'{model_id}' 모델 다운로드를 시작합니다...")
+print(f"저장 경로: '{local_model_path}'")
+
+snapshot_download(
+    repo_id=model_id,
+    local_dir=local_model_path,
+    local_dir_use_symlinks=False
+)
+
+print(f"\\n다운로드 완료!")
+                `,
+                language: 'python'
+            },
+             {
+                title: "Step 5: 스크립트 #2 - 로컬 챗봇 실행",
+                explanation: `
+                    <p>이제 다운로드한 모델을 사용하여 대화하는 챗봇 스크립트를 만들 차례입니다.</p>
+                    <p class="mt-2">이 코드는 지정된 로컬 경로에서 모델을 불러와 오프라인으로 챗봇을 실행합니다. 아래 코드를 <code class="bg-gray-700 p-1 rounded text-white">chatbot.py</code> 라는 이름으로 저장하세요.</p>
+                `,
+                code: `
+# 파일명: chatbot.py
+import torch
+from transformers import pipeline
+import os
+
+# 1. 다운로드한 로컬 모델 경로 지정
+<span class="code-highlight">local_model_path = "./google/gemma-3-1b-it"</span>
+
+# 2. 오프라인 모델로 파이프라인 생성
+print("로컬 모델로 파이프라인을 생성합니다...")
+pipe = pipeline(
+    "text-generation",
+    model=local_model_path,
+    device="cuda", # GPU 사용
+    dtype=torch.float32,
+)
+print("파이프라인 생성 완료! 채팅을 시작합니다.")
+
+# 3. 대화 기록을 저장할 리스트
+messages = []
+
+# 4. 콘솔 채팅 루프
+while True:
+    user_input = input("나: ")
+    if user_input.lower() in ["exit", "quit"]:
+        break
+    
+    messages.append({"role": "user", "content": user_input})
+    
+    outputs = pipe(messages, max_new_tokens=1024)
+    
+    assistant_response = outputs[0]["generated_text"][-1]["content"].strip()
+    print(f"Assistant: {assistant_response}")
+    
+    # 전체 대화 기록을 업데이트하여 문맥 유지
+    messages = outputs[0]["generated_text"]
+                `,
+                language: 'python'
+            },
+            {
+                title: "Step 6: 실행 및 AI와 대화하기",
+                explanation: `
+                    <p>모든 준비가 끝났습니다! 터미널에서 스크립트를 순서대로 실행하여 AI 챗봇을 만나보세요.</p>
+                    <p class="mt-2">1. <code class="bg-gray-700 p-1 rounded text-white">model.py</code>를 실행하여 모델 다운로드 (최초 1회)<br>
+                    2. 다운로드 완료 후, <code class="bg-gray-700 p-1 rounded text-white">chatbot.py</code>를 실행하여 챗봇 시작</p>
+                    <div class="terminal mt-4">
+                        <span class="prompt">$</span> <span class="user-input">python model.py</span>
+                        <div class="output">'google/gemma-3-1b-it' 모델 다운로드를 시작합니다...</div>
+                        <br>
+                        <span class="prompt">$</span> <span class="user-input">python chatbot.py</span>
+                    </div>
+                    <div class="explanation-box">
+                        <p class="text-indigo-300"><strong>챗봇 실행 예시:</strong></p>
+                    </div>
+                    <div class="terminal mt-4">
+                        <div>로컬 모델로 파이프라인을 생성합니다...</div>
+                        <div>파이프라인 생성 완료! 채팅을 시작합니다.</div>
+                        <div><span class="prompt">나:</span> <span class="user-input">안녕! 넌 누구야?</span></div>
+                        <div><span class="output">Assistant: 안녕하세요! 저는 Google에서 훈련한 대규모 언어 모델입니다.</span></div>
+                        <div><span class="prompt">나:</span> <span class="user-input">quit</span></div>
+                    </div>
                 `,
                 code: ``
             },
             {
-                title: "2. 필요한 라이브러리 설치하기",
+                title: "Tip: 더 가벼운 모델 사용하기 (270M)",
                 explanation: `
-                    <p>먼저, 여러분의 PC 터미널을 열고 아래 명령어를 입력하여 Gemma 3를 사용하는 데 필요한 도구(라이브러리)들을 설치해주세요.</p>
+                    <p>1B 모델(약 5GB) 다운로드가 인터넷 환경이나 PC 사양 때문에 부담스럽다면, 훨씬 가벼운 270M 모델(약 500MB)을 사용할 수 있습니다.</p>
+                     <div class="explanation-box">
+                        <p class="text-indigo-300"><strong>gemma-3-270m-it 모델</strong>은 성능은 조금 낮지만 훨씬 빠르게 다운로드하고 실행할 수 있어 테스트용으로 좋습니다. 다음 슬라이드에서 270M 모델용 코드를 확인하세요.</p>
+                    </div>
                 `,
-                code: `
-# 터미널(명령 프롬프트 등)에 아래 명령어를 입력하고 엔터를 누르세요.
-<span class="code-highlight">pip install transformers torch</span>
-                `
+                code: ``,
+                language: 'python'
             },
             {
-                title: "3. AI 모델 불러오기 (GPU/CPU 자동 감지)",
+                title: "Tip: 270M 모델 다운로드 스크립트",
                 explanation: `
-                    <p>이제 파이썬 코드를 작성할 시간입니다. Colab과 달리 로컬 환경에서는 PC에 NVIDIA GPU가 있는지 자동으로 확인하고, 없으면 CPU를 사용하도록 코드를 짜는 것이 좋습니다.</p>
-                    <p class="mt-2"><code class="bg-gray-700 p-1 rounded">torch.cuda.is_available()</code> 코드가 바로 그 역할을 합니다.</p>
+                    <p>아래와 같이 <code class="bg-gray-700 p-1 rounded text-white">model.py</code> 파일의 <code class="bg-gray-700 p-1 rounded text-white">model_id</code>와 <code class="bg-gray-700 p-1 rounded text-white">local_model_path</code>를 <code class="bg-gray-700 p-1 rounded text-white">google/gemma-3-270m-it</code>로 수정하여 실행하세요.</p>
                 `,
                 code: `
+# 파일명: model_270m.py (새 이름으로 저장 추천)
+from huggingface_hub import snapshot_download
+import os
+
+# 다운로드할 모델 ID 변경
+<span class="code-highlight">model_id = "google/gemma-3-270m-it"</span>
+
+# 저장할 로컬 폴더 경로 변경
+<span class="code-highlight">local_model_path = "./google/gemma-3-270m-it"</span>
+
+if not os.path.exists(local_model_path):
+    os.makedirs(local_model_path)
+
+print(f"'{model_id}' 모델 다운로드를 시작합니다...")
+print(f"저장 경로: '{local_model_path}'")
+
+snapshot_download(
+    repo_id=model_id,
+    local_dir=local_model_path,
+    local_dir_use_symlinks=False
+)
+
+print(f"\\n다운로드 완료!")
+                `,
+                language: 'python'
+            },
+            {
+                title: "Tip: 270M 모델 챗봇 실행 스크립트",
+                explanation: `
+                     <p>270M 모델을 다운로드했다면, <code class="bg-gray-700 p-1 rounded text-white">chatbot.py</code>의 <code class="bg-gray-700 p-1 rounded text-white">local_model_path</code>도 270M 모델 경로로 맞춰주어야 합니다.</p>
+                `,
+                code: `
+# 파일명: chatbot_270m.py (새 이름으로 저장 추천)
 import torch
 from transformers import pipeline
+import os
 
-# GPU가 사용 가능하면 'cuda', 아니면 'cpu'를 자동으로 선택
-<span class="code-highlight">device = "cuda" if torch.cuda.is_available() else "cpu"</span>
-print(f"사용할 장치: {device}")
+# 1. 다운로드한 270M 모델 경로로 변경
+<span class="code-highlight">local_model_path = "./google/gemma-3-270m-it"</span>
 
-# 'text-generation' 파이프라인을 준비합니다.
+# 2. 오프라인 모델로 파이프라인 생성
+print("로컬 모델(270M)로 파이프라인을 생성합니다...")
 pipe = pipeline(
     "text-generation",
-    model="google/gemma-3-270m-it",
-    model_kwargs={"torch_dtype": torch.bfloat16},
-<span class="code-highlight">    device=device,</span>
+    model=local_model_path,
+    device="cuda",
+    dtype=torch.float32,
 )
-                `
-            },
-            {
-                title: "4. AI와 대화하기",
-                explanation: `
-                    <p>AI에게 질문하는 방식은 Colab과 동일합니다. '사용자(user)'의 질문을 담은 메시지를 만들고, 파이프라인에 전달하여 답변을 생성합니다.</p>
+print("파이프라인 생성 완료! 채팅을 시작합니다.")
+
+# ... (이하 채팅 루프 코드는 동일)
                 `,
-                code: `
-# AI와 대화할 메시지를 리스트 형태로 만듭니다.
-messages = [
-    {"role": "user", "content": "강화학습에 대해 초등학생도 이해할 수 있게 설명해줘."},
-]
-
-# 파이프라인에 메시지를 전달하고, 답변 길이 등을 조절합니다.
-outputs = pipe(
-    messages,
-    max_new_tokens=256,
-    do_sample=True,
-)
-
-# AI가 생성한 답변 텍스트만 깔끔하게 출력합니다.
-print(outputs[0][-1]["content"])
-                `
+                language: 'python'
             },
             {
-                title: "5. 완성된 로컬 파이썬 스크립트",
+                title: "Final Step: 나만의 모델 탐험하기",
                 explanation: `
-                    <p>지금까지의 내용을 모두 합쳐, 터미널에서 사용자와 계속 대화할 수 있는 완전한 파이썬 스크립트를 만들어 봅시다.</p>
-                    <p class="mt-2">아래 코드를 <code class="bg-gray-700 p-1 rounded">run_gemma.py</code> 라는 이름으로 저장하세요.</p>
-                `,
-                code: `
-# run_gemma.py
-import torch
-from transformers import pipeline
-
-def main():
-    print("Gemma 3 270M 모델을 로딩합니다...")
-    device = "cuda" if torch.cuda.is_available() else "cpu"
-    print(f"사용 장치: {device}")
-
-    pipe = pipeline(
-        "text-generation",
-        model="google/gemma-3-270m-it",
-        model_kwargs={"torch_dtype": torch.bfloat16},
-        device=device,
-    )
-    print("모델 로딩 완료! 대화를 시작합니다. (종료하려면 'exit' 입력)")
-    
-    # 대화 기록을 저장할 리스트
-    chat_history = []
-
-    while True:
-        user_input = input("You: ")
-        if user_input.lower() == 'exit':
-            print("대화를 종료합니다.")
-            break
-        
-        # 이전 대화 내용과 함께 새로운 질문을 전달
-        messages = chat_history + [{"role": "user", "content": user_input}]
-        
-        outputs = pipe(messages, max_new_tokens=512, do_sample=True)
-        
-        assistant_response = outputs[0][-1]["content"]
-        print(f"Gemma: {assistant_response}")
-        
-        # 대화 기록 업데이트
-        chat_history.append({"role": "user", "content": user_input})
-        chat_history.append({"role": "assistant", "content": assistant_response})
-
-if __name__ == "__main__":
-    main()
-                `
-            },
-            {
-                title: "6. 스크립트 실행 및 체험하기",
-                explanation: `
-                    <p>이제 터미널에서 직접 만든 파이썬 스크립트를 실행해볼 시간입니다.</p>
-                    <p class="mt-2">1. 터미널을 열고, <code class="bg-gray-700 p-1 rounded">run_gemma.py</code> 파일을 저장한 폴더로 이동합니다.<br>
-                       (예: <code class="bg-gray-700 p-1 rounded">cd Documents/GemmaProject</code>)<br>
-                    2. 아래 명령어를 입력하여 스크립트를 실행합니다.</p>
-                    <div class="terminal mt-4">
-                        <span class="prompt">$</span> <span class="user-input">python run_gemma.py</span>
-                    </div>
+                    <p>이제 여러분은 로컬 PC에서 AI 모델을 직접 실행하는 방법을 배웠습니다!</p>
+                    <p class="mt-2"><a href='https://huggingface.co/models' target='_blank' class='text-indigo-400 hover:underline font-bold'>Hugging Face Models</a>에는 Gemma 외에도 수많은 언어 모델이 있습니다.</p>
                     <div class="explanation-box">
-                        <p><strong>실행 예시:</strong><br>
-                        아래는 스크립트를 실행했을 때 터미널에 나타나는 화면 예시입니다. 'You:' 프롬프트가 나타나면 자유롭게 질문을 입력하고 엔터를 누르세요.</p>
-                    </div>
-                    <div class="terminal mt-4">
-                        <div>Gemma 3 270M 모델을 로딩합니다...</div>
-                        <div>사용 장치: cuda</div>
-                        <div>모델 로딩 완료! 대화를 시작합니다. (종료하려면 'exit' 입력)</div>
-                        <div><span class="prompt">You:</span> <span class="user-input">안녕! 넌 누구야?</span></div>
-                        <div><span class="output">Gemma: 안녕하세요! 저는 Google에서 훈련한 대규모 언어 모델입니다.</span></div>
-                        <div><span class="prompt">You:</span> <span class="user-input">exit</span></div>
-                        <div>대화를 종료합니다.</div>
+                        <p class="text-indigo-300">마음에 드는 다른 모델을 찾아 <code class="bg-gray-700 p-1 rounded text-white">model.py</code>의 <code class="bg-gray-700 p-1 rounded text-white">model_id</code>를 수정해서 직접 다운로드하고 실행해보세요. 자신만의 AI 챗봇을 만드는 멋진 경험이 될 겁니다.</p>
                     </div>
                 `,
                 code: ``
@@ -232,6 +412,7 @@ if __name__ == "__main__":
         const prevBtn = document.getElementById('prevBtn');
         const nextBtn = document.getElementById('nextBtn');
         const slideCounter = document.getElementById('slide-counter');
+        const progressBar = document.getElementById('progress-bar-inner');
 
         function createSlide(slideData, index) {
             const slideElement = document.createElement('div');
@@ -244,7 +425,7 @@ if __name__ == "__main__":
                 const codeWithPlaceholders = slideData.code.trim()
                     .replace(/<span class="code-highlight">/g, '[[HIGHLIGHT_START]]')
                     .replace(/<\/span>/g, '[[HIGHLIGHT_END]]');
-
+                
                 tempDiv.textContent = codeWithPlaceholders;
                 
                 const finalCode = tempDiv.innerHTML
@@ -252,17 +433,24 @@ if __name__ == "__main__":
                     .replace(/\[\[HIGHLIGHT_END\]\]/g, '</span>');
 
                 codeHtml = `
-                    <div class="mt-6 bg-[#282c34] rounded-lg overflow-hidden border border-gray-700">
-                        <pre class="language-python !text-sm !leading-relaxed"><code>${finalCode}</code></pre>
+                    <div class="mt-6 code-wrapper">
+                         <button class="copy-btn">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                <path d="M4 1.5H3a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1v-8a1 1 0 0 1 1-1h1z"/>
+                                <path d="M10.5 1.5a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 0 1h-2a.5.5 0 0 1-.5-.5m-5 0a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 0 1h-2a.5.5 0 0 1-.5-.5"/>
+                            </svg>
+                            <span class="copy-text">Copy</span>
+                        </button>
+                        <pre class="language-${slideData.language || 'python'}"><code class="language-${slideData.language || 'python'}">${finalCode}</code></pre>
                     </div>
                 `;
             }
 
             slideElement.innerHTML = `
-                <div class="grid grid-cols-1 ${slideData.code ? 'md:grid-cols-2' : ''} gap-8 items-start">
-                    <div class="prose prose-invert max-w-none">
-                        <h2 class="text-2xl font-bold text-indigo-400 mb-4">${slideData.title}</h2>
-                        <div class="text-gray-300 leading-relaxed space-y-2">${slideData.explanation}</div>
+                <div class="grid grid-cols-1 ${slideData.code ? 'lg:grid-cols-2' : ''} gap-8 items-start">
+                    <div class="prose prose-invert max-w-none prose-p:text-gray-300 prose-a:text-indigo-400 prose-headings:text-white">
+                        <h2 class="text-3xl font-bold mb-4">${slideData.title}</h2>
+                        <div class="leading-relaxed space-y-3">${slideData.explanation}</div>
                     </div>
                     ${slideData.code ? `<div>${codeHtml}</div>` : ''}
                 </div>
@@ -270,14 +458,62 @@ if __name__ == "__main__":
             return slideElement;
         }
 
-        function updateSlider() {
-            document.querySelectorAll('.slide').forEach((slide, index) => {
-                slide.classList.toggle('active', index === currentSlide);
+        function addCopyFunctionality() {
+            const copyButtons = document.querySelectorAll('.copy-btn');
+            copyButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const codeBlock = button.nextElementSibling.querySelector('code');
+                    const codeToCopy = codeBlock.innerText;
+                    
+                    // Using a temporary textarea to preserve formatting
+                    const textArea = document.createElement('textarea');
+                    textArea.value = codeToCopy;
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textArea);
+
+                    const copyText = button.querySelector('.copy-text');
+                    button.classList.add('copied');
+                    copyText.textContent = 'Copied!';
+                    
+                    setTimeout(() => {
+                        button.classList.remove('copied');
+                        copyText.textContent = 'Copy';
+                    }, 2000);
+                });
             });
+        }
+
+        function updateSlider() {
+            const activeSlideBeforeUpdate = document.querySelector('.slide.active');
+            if (activeSlideBeforeUpdate) {
+                activeSlideBeforeUpdate.classList.remove('active');
+            }
+
+            const newActiveSlide = document.querySelector(`.slide[data-index='${currentSlide}']`);
+            if(newActiveSlide) {
+                newActiveSlide.classList.add('active');
+            }
+
             slideCounter.textContent = `${currentSlide + 1} / ${slides.length}`;
             prevBtn.disabled = currentSlide === 0;
             nextBtn.disabled = currentSlide === slides.length - 1;
+            
+            const progressPercentage = ((currentSlide + 1) / slides.length) * 100;
+            progressBar.style.width = `${progressPercentage}%`;
+            
             Prism.highlightAll();
+        }
+        
+        function initSlider() {
+             slides.forEach((slideData, index) => {
+                const slideElement = createSlide(slideData, index);
+                slideElement.dataset.index = index;
+                sliderContainer.appendChild(slideElement);
+            });
+            updateSlider();
+            addCopyFunctionality();
         }
 
         prevBtn.addEventListener('click', () => {
@@ -294,11 +530,8 @@ if __name__ == "__main__":
             }
         });
         
-        // Initialize slider
-        slides.forEach((slideData, index) => {
-            sliderContainer.appendChild(createSlide(slideData, index));
-        });
-        updateSlider();
+        initSlider();
     </script>
 </body>
 </html>
+
