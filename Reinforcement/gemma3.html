@@ -12,7 +12,7 @@
             font-family: 'Inter', 'Noto Sans KR', sans-serif;
             background: #111827;
             background: radial-gradient(circle at top left, rgba(17, 24, 39, 1) 0%, rgba(55, 48, 163, 0.2) 100%), #111827;
-            color: #E5E7EB; /* 기본 텍스트 색상을 밝게 설정 */
+            color: #E5E7EB;
             overflow-y: scroll;
         }
         .slide {
@@ -112,34 +112,15 @@
              background: #1F2937;
         }
 
-        .token.comment, .token.prolog, .token.doctype, .token.cdata {
-            color: #6B7280; /* Gray 500 */
-        }
-        .token.punctuation {
-            color: #9CA3AF; /* Gray 400 */
-        }
-        .token.property, .token.tag, .token.boolean, .token.number, .token.constant, .token.symbol, .token.deleted {
-            color: #FBBF24; /* Amber 400 */
-        }
-        .token.selector, .token.attr-name, .token.string, .token.char, .token.builtin, .token.inserted {
-            color: #A7F3D0; /* Emerald 200 */
-        }
-        .token.operator, .token.entity, .token.url, .language-css .token.string, .style .token.string {
-            color: #93C5FD; /* Blue 300 */
-        }
-        .token.atrule, .token.attr-value, .token.keyword {
-            color: #C4B5FD; /* Violet 300 */
-        }
-        .token.function, .token.class-name {
-            color: #818CF8; /* Indigo 400 */
-        }
-        .token.regex, .token.important, .token.variable {
-            color: #FDBA74; /* Orange 300 */
-        }
-
-        /* 기본 코드 텍스트 색상을 밝게 설정 */
-        pre[class*="language-"],
-        code[class*="language-"] {
+        .token.comment, .token.prolog, .token.doctype, .token.cdata { color: #6B7280; }
+        .token.punctuation { color: #9CA3AF; }
+        .token.property, .token.tag, .token.boolean, .token.number, .token.constant, .token.symbol, .token.deleted { color: #FBBF24; }
+        .token.selector, .token.attr-name, .token.string, .token.char, .token.builtin, .token.inserted { color: #A7F3D0; }
+        .token.operator, .token.entity, .token.url, .language-css .token.string, .style .token.string { color: #93C5FD; }
+        .token.atrule, .token.attr-value, .token.keyword { color: #C4B5FD; }
+        .token.function, .token.class-name { color: #818CF8; }
+        .token.regex, .token.important, .token.variable { color: #FDBA74; }
+        pre[class*="language-"], code[class*="language-"] {
             color: #E5E7EB;
             text-shadow: none;
         }
@@ -216,8 +197,7 @@
                     </div>
                     <p class="mt-4">이런 규칙을 이해해야 챗봇 코드의 <code class="bg-gray-700 p-1 rounded text-white">messages</code> 리스트를 올바르게 다룰 수 있습니다.</p>
                 `,
-                code: ``,
-                language: 'python'
+                code: ``
             },
             {
                 title: "Step 4: 스크립트 #1 - 모델 다운로드",
@@ -226,21 +206,21 @@
                     <p class="mt-2">아래 코드를 <code class="bg-gray-700 p-1 rounded text-white">model.py</code> 라는 이름으로 저장하세요. 모델은 약 5GB 이상이므로 충분한 공간을 확보해주세요.</p>
                 `,
                 code: `
-# 파일명: model.py
+# filename: model.py
 from huggingface_hub import snapshot_download
 import os
 
-# 다운로드할 모델 ID
+# Model ID to download
 model_id = "google/gemma-3-1b-it"
 
-# 저장할 로컬 폴더 경로
-<span class="code-highlight">local_model_path = "./google/gemma-3-1b-it"</span>
+# Local folder path to save the model
+local_model_path = "./google/gemma-3-1b-it"
 
 if not os.path.exists(local_model_path):
     os.makedirs(local_model_path)
 
-print(f"'{model_id}' 모델 다운로드를 시작합니다...")
-print(f"저장 경로: '{local_model_path}'")
+print(f"Starting download of model '{model_id}'...")
+print(f"Saving to: '{local_model_path}'")
 
 snapshot_download(
     repo_id=model_id,
@@ -248,52 +228,60 @@ snapshot_download(
     local_dir_use_symlinks=False
 )
 
-print(f"\\n다운로드 완료!")
+print(f"\\nDownload complete!")
                 `,
                 language: 'python'
             },
              {
                 title: "Step 5: 스크립트 #2 - 로컬 챗봇 실행",
                 explanation: `
-                    <p>이제 다운로드한 모델을 사용하여 대화하는 챗봇 스크립트를 만들 차례입니다.</p>
-                    <p class="mt-2">이 코드는 지정된 로컬 경로에서 모델을 불러와 오프라인으로 챗봇을 실행합니다. 아래 코드를 <code class="bg-gray-700 p-1 rounded text-white">chatbot.py</code> 라는 이름으로 저장하세요.</p>
+                    <p>이제 다운로드한 모델을 사용하여 대화하는 챗봇 스크립트를 만들 차례입니다. 답변의 스타일을 조절할 수 있는 파라미터들이 추가되었습니다.</p>
+                    <p class="mt-2">아래 코드를 <code class="bg-gray-700 p-1 rounded text-white">chatbot.py</code> 라는 이름으로 저장하세요. 다음 페이지에서 각 파라미터의 역할을 자세히 알아봅니다.</p>
                 `,
                 code: `
-# 파일명: chatbot.py
+# filename: chatbot.py
 import torch
 from transformers import pipeline
 import os
 
-# 1. 다운로드한 로컬 모델 경로 지정
-<span class="code-highlight">local_model_path = "./google/gemma-3-1b-it"</span>
+# 1. Path to the downloaded local model
+local_model_path = "./google/gemma-3-1b-it"
 
-# 2. 오프라인 모델로 파이프라인 생성
-print("로컬 모델로 파이프라인을 생성합니다...")
+# 2. Create a pipeline with the offline model
+print("Creating a pipeline with the local model...")
 pipe = pipeline(
     "text-generation",
     model=local_model_path,
-    device="cuda", # GPU 사용
+    device="cuda", # Use GPU
     dtype=torch.float32,
 )
-print("파이프라인 생성 완료! 채팅을 시작합니다.")
+print("Pipeline created! Starting chat.")
 
-# 3. 대화 기록을 저장할 리스트
+# 3. List to store conversation history
 messages = []
 
-# 4. 콘솔 채팅 루프
+# 4. Console chat loop
 while True:
-    user_input = input("나: ")
+    user_input = input("You: ")
     if user_input.lower() in ["exit", "quit"]:
         break
     
     messages.append({"role": "user", "content": user_input})
     
-    outputs = pipe(messages, max_new_tokens=1024)
+    # Generate a response with parameters
+    outputs = pipe(
+        messages,
+<span class="code-highlight">        max_new_tokens=512,
+        do_sample=True,
+        temperature=0.7,
+        top_k=50,
+        top_p=0.95</span>
+    )
     
     assistant_response = outputs[0]["generated_text"][-1]["content"].strip()
     print(f"Assistant: {assistant_response}")
     
-    # 전체 대화 기록을 업데이트하여 문맥 유지
+    # Update history to maintain context
     messages = outputs[0]["generated_text"]
                 `,
                 language: 'python'
@@ -306,33 +294,60 @@ while True:
                     2. 다운로드 완료 후, <code class="bg-gray-700 p-1 rounded text-white">chatbot.py</code>를 실행하여 챗봇 시작</p>
                     <div class="terminal mt-4">
                         <span class="prompt">$</span> <span class="user-input">python model.py</span>
-                        <div class="output">'google/gemma-3-1b-it' 모델 다운로드를 시작합니다...</div>
+                        <div class="output">'google/gemma-3-1b-it' model download starts...</div>
                         <br>
                         <span class="prompt">$</span> <span class="user-input">python chatbot.py</span>
                     </div>
                     <div class="explanation-box">
-                        <p class="text-indigo-300"><strong>챗봇 실행 예시:</strong></p>
+                        <p class="text-indigo-300"><strong>Chatbot Execution Example:</strong></p>
                     </div>
                     <div class="terminal mt-4">
-                        <div>로컬 모델로 파이프라인을 생성합니다...</div>
-                        <div>파이프라인 생성 완료! 채팅을 시작합니다.</div>
-                        <div><span class="prompt">나:</span> <span class="user-input">안녕! 넌 누구야?</span></div>
-                        <div><span class="output">Assistant: 안녕하세요! 저는 Google에서 훈련한 대규모 언어 모델입니다.</span></div>
-                        <div><span class="prompt">나:</span> <span class="user-input">quit</span></div>
+                        <div>Creating pipeline with local model...</div>
+                        <div>Pipeline created! Starting chat.</div>
+                        <div><span class="prompt">You:</span> <span class="user-input">Hi! Who are you?</span></div>
+                        <div><span class="output">Assistant: Hello! I am a large language model trained by Google.</span></div>
+                        <div><span class="prompt">You:</span> <span class="user-input">quit</span></div>
                     </div>
                 `,
                 code: ``
+            },
+             {
+                title: "Step 7: AI의 답변 스타일 조절하기 (Parameters)",
+                explanation: `
+                    <p>AI의 답변은 여러 파라미터를 조절하여 원하는 스타일로 만들 수 있습니다. 챗봇의 창의성, 답변 길이, 정확성 등을 직접 튜닝해보세요.</p>
+                     <div class="explanation-box">
+                        <p class="text-indigo-300"><strong>주요 생성 파라미터:</strong><br>
+                        - <code class="font-bold text-white">max_new_tokens:</code> 답변의 <strong>최대 길이</strong>를 정합니다. (단위: 토큰)<br>
+                        - <code class="font-bold text-white">do_sample=True:</code> <strong>창의적 샘플링 모드</strong>를 켭니다. 챗봇처럼 자유로운 답변에 필수적입니다.<br>
+                        - <code class="font-bold text-white">temperature:</code> <strong>창의성</strong>을 조절합니다. 값이 낮을수록(예: 0.2) 논리적이고 예측 가능한 답변을, 높을수록(예: 0.9) 무작위하고 독창적인 답변을 합니다.<br>
+                        - <code class="font-bold text-white">top_k:</code> 다음 단어 후보를 가장 확률 높은 <strong>k개</strong>로 제한하여 문장의 일관성을 유지합니다.<br>
+                        - <code class="font-bold text-white">top_p:</code> 확률의 합이 <strong>p</strong>가 되는 단어 후보 중에서만 선택하여, 어색한 단어가 나올 확률을 줄입니다.
+                        </p>
+                    </div>
+                    <p class="mt-4"><code class="bg-gray-700 p-1 rounded text-white">chatbot.py</code> 코드의 이 부분을 수정하며 여러 가지 값을 테스트해보세요.</p>
+                `,
+                code: `
+# Control the output style by adjusting these parameters
+outputs = pipe(
+    messages,
+    max_new_tokens=512,      # Max length of the answer
+    do_sample=True,          # Enable creative mode
+    temperature=0.7,         # Creativity (0.2: logical, 0.9: random)
+    top_k=50,                # Narrows choices to top k words
+    top_p=0.95               # Narrows choices based on probability
+)
+                `,
+                language: 'python'
             },
             {
                 title: "Tip: 더 가벼운 모델 사용하기 (270M)",
                 explanation: `
                     <p>1B 모델(약 5GB) 다운로드가 인터넷 환경이나 PC 사양 때문에 부담스럽다면, 훨씬 가벼운 270M 모델(약 500MB)을 사용할 수 있습니다.</p>
                      <div class="explanation-box">
-                        <p class="text-indigo-300"><strong>gemma-3-270m-it 모델</strong>은 성능은 조금 낮지만 훨씬 빠르게 다운로드하고 실행할 수 있어 테스트용으로 좋습니다. 다음 슬라이드에서 270M 모델용 코드를 확인하세요.</p>
+                        <p class="text-indigo-300"><strong>gemma-3-270m-it model</strong>은 성능은 조금 낮지만 훨씬 빠르게 다운로드하고 실행할 수 있어 테스트용으로 좋습니다. 다음 슬라이드에서 270M 모델용 코드를 확인하세요.</p>
                     </div>
                 `,
                 code: ``,
-                language: 'python'
             },
             {
                 title: "Tip: 270M 모델 다운로드 스크립트",
@@ -340,21 +355,21 @@ while True:
                     <p>아래와 같이 <code class="bg-gray-700 p-1 rounded text-white">model.py</code> 파일의 <code class="bg-gray-700 p-1 rounded text-white">model_id</code>와 <code class="bg-gray-700 p-1 rounded text-white">local_model_path</code>를 <code class="bg-gray-700 p-1 rounded text-white">google/gemma-3-270m-it</code>로 수정하여 실행하세요.</p>
                 `,
                 code: `
-# 파일명: model_270m.py (새 이름으로 저장 추천)
+# filename: model_270m.py (saving as a new file is recommended)
 from huggingface_hub import snapshot_download
 import os
 
-# 다운로드할 모델 ID 변경
+# Change the model ID to download
 <span class="code-highlight">model_id = "google/gemma-3-270m-it"</span>
 
-# 저장할 로컬 폴더 경로 변경
+# Change the local folder path to save
 <span class="code-highlight">local_model_path = "./google/gemma-3-270m-it"</span>
 
 if not os.path.exists(local_model_path):
     os.makedirs(local_model_path)
 
-print(f"'{model_id}' 모델 다운로드를 시작합니다...")
-print(f"저장 경로: '{local_model_path}'")
+print(f"Starting download of model '{model_id}'...")
+print(f"Saving to: '{local_model_path}'")
 
 snapshot_download(
     repo_id=model_id,
@@ -362,7 +377,7 @@ snapshot_download(
     local_dir_use_symlinks=False
 )
 
-print(f"\\n다운로드 완료!")
+print(f"\\nDownload complete!")
                 `,
                 language: 'python'
             },
@@ -372,25 +387,25 @@ print(f"\\n다운로드 완료!")
                      <p>270M 모델을 다운로드했다면, <code class="bg-gray-700 p-1 rounded text-white">chatbot.py</code>의 <code class="bg-gray-700 p-1 rounded text-white">local_model_path</code>도 270M 모델 경로로 맞춰주어야 합니다.</p>
                 `,
                 code: `
-# 파일명: chatbot_270m.py (새 이름으로 저장 추천)
+# filename: chatbot_270m.py (saving as a new file is recommended)
 import torch
 from transformers import pipeline
 import os
 
-# 1. 다운로드한 270M 모델 경로로 변경
+# 1. Change path to the downloaded 270M model
 <span class="code-highlight">local_model_path = "./google/gemma-3-270m-it"</span>
 
-# 2. 오프라인 모델로 파이프라인 생성
-print("로컬 모델(270M)로 파이프라인을 생성합니다...")
+# 2. Create a pipeline with the offline model
+print("Creating a pipeline with the local model (270M)...")
 pipe = pipeline(
     "text-generation",
     model=local_model_path,
     device="cuda",
     dtype=torch.float32,
 )
-print("파이프라인 생성 완료! 채팅을 시작합니다.")
+print("Pipeline created! Starting chat.")
 
-# ... (이하 채팅 루프 코드는 동일)
+# ... (The rest of the chat loop code is the same)
                 `,
                 language: 'python'
             },
@@ -459,59 +474,37 @@ print("파이프라인 생성 완료! 채팅을 시작합니다.")
         }
 
         function addCopyFunctionality() {
-            const copyButtons = document.querySelectorAll('.copy-btn');
-            copyButtons.forEach(button => {
+            document.querySelectorAll('.copy-btn').forEach(button => {
                 button.addEventListener('click', () => {
-                    const codeBlock = button.nextElementSibling.querySelector('code');
-                    const codeToCopy = codeBlock.innerText;
-                    
-                    // Using a temporary textarea to preserve formatting
-                    const textArea = document.createElement('textarea');
-                    textArea.value = codeToCopy;
-                    document.body.appendChild(textArea);
-                    textArea.select();
-                    document.execCommand('copy');
-                    document.body.removeChild(textArea);
-
-                    const copyText = button.querySelector('.copy-text');
-                    button.classList.add('copied');
-                    copyText.textContent = 'Copied!';
-                    
-                    setTimeout(() => {
-                        button.classList.remove('copied');
-                        copyText.textContent = 'Copy';
-                    }, 2000);
+                    const code = button.nextElementSibling.querySelector('code').innerText;
+                    navigator.clipboard.writeText(code).then(() => {
+                        const copyText = button.querySelector('.copy-text');
+                        button.classList.add('copied');
+                        copyText.textContent = 'Copied!';
+                        setTimeout(() => {
+                            button.classList.remove('copied');
+                            copyText.textContent = 'Copy';
+                        }, 2000);
+                    });
                 });
             });
         }
 
         function updateSlider() {
-            const activeSlideBeforeUpdate = document.querySelector('.slide.active');
-            if (activeSlideBeforeUpdate) {
-                activeSlideBeforeUpdate.classList.remove('active');
-            }
-
-            const newActiveSlide = document.querySelector(`.slide[data-index='${currentSlide}']`);
-            if(newActiveSlide) {
-                newActiveSlide.classList.add('active');
-            }
-
+            document.querySelectorAll('.slide').forEach((el, i) => {
+                el.classList.toggle('active', i === currentSlide);
+            });
             slideCounter.textContent = `${currentSlide + 1} / ${slides.length}`;
             prevBtn.disabled = currentSlide === 0;
             nextBtn.disabled = currentSlide === slides.length - 1;
-            
-            const progressPercentage = ((currentSlide + 1) / slides.length) * 100;
-            progressBar.style.width = `${progressPercentage}%`;
-            
+            progressBar.style.width = `${((currentSlide + 1) / slides.length) * 100}%`;
             Prism.highlightAll();
         }
         
         function initSlider() {
              slides.forEach((slideData, index) => {
-                const slideElement = createSlide(slideData, index);
-                slideElement.dataset.index = index;
-                sliderContainer.appendChild(slideElement);
-            });
+                sliderContainer.appendChild(createSlide(slideData, index));
+             });
             updateSlider();
             addCopyFunctionality();
         }
