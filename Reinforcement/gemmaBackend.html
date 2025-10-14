@@ -3,33 +3,77 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gemma 3 채팅 AI 백엔드 만들기</title>
+    <title>로컬 AI 서버로 웹 챗봇 만들기</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-okaidia.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Noto+Sans+KR:wght@400;700&family=Fira+Code&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Noto Sans KR', sans-serif; background-color: #282c34; color: #abb2bf; }
-        .slide { display: none; }
-        .slide.active { display: block; }
-        .code-highlight { background-color: rgba(255, 255, 0, 0.15); display: block; margin: -0.25rem -0.5rem; padding: 0.25rem 0.5rem; border-radius: 0.25rem; }
-        pre[class*="language-"] { font-size: 0.9rem; line-height: 1.6; white-space: pre-wrap; word-break: break-all; }
-        .explanation-box { background-color: #21252b; border-left: 4px solid #98c379; padding: 1rem; border-radius: 0.5rem; margin-top: 1rem; }
+        body {
+            font-family: 'Inter', 'Noto Sans KR', sans-serif;
+            background: #111827;
+            background: radial-gradient(circle at top right, rgba(17, 24, 39, 1) 0%, rgba(219, 102, 102, 0.2) 100%), #111827;
+            color: #E5E7EB;
+            overflow-y: scroll;
+        }
+        .slide { display: none; opacity: 0; transition: opacity 0.6s ease-in-out; }
+        .slide.active { display: block; opacity: 1; }
+        .code-wrapper { position: relative; }
+        pre[class*="language-"] {
+            border-radius: 0.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background-color: #1F2937 !important;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+            padding-top: 3.5rem !important;
+        }
+        .copy-btn {
+            position: absolute; top: 0.75rem; right: 0.75rem;
+            background-color: #374151; color: #D1D5DB;
+            border: 1px solid #4B5563; border-radius: 0.375rem;
+            padding: 0.35rem 0.75rem; font-size: 0.875rem;
+            display: flex; align-items: center; gap: 0.5rem;
+            cursor: pointer; transition: all 0.2s ease; z-index: 10;
+        }
+        .copy-btn:hover { background-color: #4B5563; color: #FFF; }
+        .copy-btn.copied { background-color: #10B981; color: white; border-color: #059669; }
+
+        .explanation-box {
+            background-color: rgba(31, 41, 55, 0.7);
+            border-left: 4px solid #F87171;
+            padding: 1.25rem; border-radius: 0.5rem;
+            margin-top: 1rem; backdrop-filter: blur(10px);
+        }
+        
+        #progress-bar-inner { transition: width 0.3s ease-in-out; }
+        
+        pre[class*="language-"] code[class*="language-"] { font-family: 'Fira Code', monospace; }
+        .token.comment { color: #6B7280; }
+        .token.string { color: #A7F3D0; }
+        .token.keyword { color: #C4B5FD; }
+        .token.function { color: #818CF8; }
+        .token.number { color: #FBBF24; }
     </style>
 </head>
-<body class="p-4 md:p-8">
+<body class="p-4 md:p-8 flex items-center justify-center min-h-screen">
 
-    <div class="max-w-7xl mx-auto bg-[#21252b] rounded-xl shadow-2xl overflow-hidden">
-        <div class="p-8">
-            <h1 class="text-3xl md:text-4xl font-bold text-white text-center">Gemma 3 채팅 AI 백엔드 만들기</h1>
-            <p class="text-center text-gray-400 mt-2">웹 UI와 통신하는 파이썬 서버를 구축해봅시다.</p>
+    <div class="max-w-7xl w-full mx-auto bg-gray-900/50 rounded-2xl shadow-2xl overflow-hidden border border-gray-700 backdrop-filter backdrop-blur-xl">
+        
+        <div id="progress-bar-container" class="w-full bg-gray-700 h-2 rounded-t-2xl">
+            <div id="progress-bar-inner" class="bg-gradient-to-r from-red-500 to-orange-500 h-2"></div>
         </div>
 
-        <div id="slider-container" class="p-4 md:p-8 border-t border-gray-700 min-h-[500px]"></div>
+        <div class="p-8 text-center">
+            <h1 class="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-orange-400">로컬 AI 서버로 웹 챗봇 만들기</h1>
+            <p class="text-gray-400 mt-3 text-lg">Python으로 나만의 AI 서버를 만들고, 웹 브라우저에서 대화해보세요.</p>
+        </div>
 
-        <div class="bg-[#282c34] p-4 flex justify-between items-center">
-            <button id="prevBtn" class="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed">이전</button>
+        <div id="slider-container" class="p-4 md:p-8 border-t border-gray-700 min-h-[550px]">
+            <!-- Slides are injected here -->
+        </div>
+
+        <div class="bg-gray-900/70 p-4 flex justify-between items-center border-t border-gray-700">
+            <button id="prevBtn" class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-6 rounded-lg transition duration-300 disabled:opacity-40 disabled:cursor-not-allowed">이전</button>
             <div id="slide-counter" class="text-white text-lg font-semibold"></div>
-            <button id="nextBtn" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 px-4 rounded-lg transition duration-300">다음</button>
+            <button id="nextBtn" class="font-bold py-2 px-6 rounded-lg text-white bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 transition-all duration-300">다음</button>
         </div>
     </div>
 
@@ -38,176 +82,137 @@
     <script>
         const slides = [
             {
-                title: "1. 아키텍처 이해 및 프론트엔드 준비",
+                title: "Step 1: 새로운 아키텍처: 클라이언트-서버",
                 explanation: `
-                    <p>우리는 두 개의 독립적인 프로그램을 만들어 서로 통신하게 할 것입니다.</p>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 text-center">
-                        <div class="bg-gray-800 p-4 rounded-lg">
-                            <p class="text-2xl">🖥️</p>
-                            <p class="font-bold text-white">프론트엔드 (chat.html)</p>
-                            <p class="text-sm text-gray-400">사용자에게 보여지는 채팅 UI.</p>
-                        </div>
-                        <div class="bg-gray-800 p-4 rounded-lg">
-                            <p class="text-2xl">🐍</p>
-                            <p class="font-bold text-white">백엔드 (app.py)</p>
-                            <p class="text-sm text-gray-400">AI 모델을 실행하고 계산을 처리하는 파이썬 서버.</p>
-                        </div>
+                    <p>이번 가이드에서는 전문가들이 사용하는 <strong>클라이언트-서버</strong> 구조를 사용합니다. 여러분의 노트북이 두 가지 역할을 동시에 수행하게 됩니다.</p>
+                    <div class="explanation-box">
+                       <p class="text-red-300"><strong>두 가지 핵심 구성 요소:</strong><br>
+                        1. <strong>서버 (Python):</strong> 로컬 AI 모델(직접 파인튜닝한 모델 포함)을 로드하고, 실제 추론을 담당하는 강력한 백엔드입니다.<br>
+                        2. <strong>클라이언트 (HTML/JS):</strong> 사용자가 보는 웹 브라우저 화면입니다. 서버에 질문을 보내고, 받은 답변을 예쁘게 표시해줍니다.</p>
                     </div>
-                    <p class="mt-4">먼저, 아래 버튼을 클릭하여 웹 브라우저에 표시될 채팅 UI 파일(<code class="bg-gray-700 p-1 rounded">chat.html</code>)을 다운로드하세요. 이 파일은 우리가 만들 백엔드 서버와 통신하도록 미리 설정되어 있습니다.</p>
-                     <div class="mt-4">
-                        <a href="chat.html" download="chat.html" class="inline-block bg-teal-500 hover:bg-teal-400 text-white font-bold py-2 px-4 rounded-lg transition duration-300">
-                            chat.html 다운로드
-                        </a>
-                    </div>
+                    <p class="mt-4">이 구조 덕분에 강력한 Python의 AI 생태계를 활용하면서도, 사용자에게는 세련된 웹 인터페이스를 제공할 수 있습니다.</p>
                 `,
                 code: ``
             },
             {
-                title: "2. 백엔드 서버 준비하기 (Flask)",
+                title: "Step 2: Python 서버 환경 설정",
                 explanation: `
-                    <p>파이썬으로 웹 서버를 쉽게 만들 수 있도록 도와주는 <strong>Flask</strong>라는 도구를 사용할 겁니다. 프론트엔드(HTML)와 백엔드(Python)가 서로 다른 곳에서 실행되므로, 보안 정책(CORS)을 허용해주는 도구도 함께 설치합니다.</p>
+                    <p>AI 모델을 실행할 Python 서버를 만들기 위해 몇 가지 라이브러리를 설치해야 합니다.</p>
+                     <div class="explanation-box">
+                       <p class="text-red-300"><strong>필수 라이브러리:</strong><br>
+                        - <code class="font-bold text-white">Flask & Flask-Cors:</code> 간단하게 웹 서버를 만들고, 브라우저의 요청을 허용해줍니다.<br>
+                        - <code class="font-bold text-white">transformers, torch, accelerate:</code> AI 모델을 불러오고 실행하는 데 필수적인 라이브러리들입니다.</p>
+                    </div>
                 `,
-                code: `
-# 터미널에 아래 명령어를 입력하여 필요한 라이브러리를 설치합니다.
-# transformers, torch는 이전에 설치했다고 가정합니다.
-<span class="code-highlight">pip install Flask Flask-Cors</span>
-                `
+                code: `pip install flask flask-cors transformers torch accelerate`,
+                language: 'bash'
             },
             {
-                title: "3. Gemma 모델 로드 및 Flask 서버 설정",
+                title: "Step 3: Python AI 서버 코드 작성",
                 explanation: `
-                    <p>이제 백엔드 파이썬 스크립트(<code class="bg-gray-700 p-1 rounded">app.py</code>)를 작성합니다. 가장 먼저, 필요한 라이브러리를 import하고 Gemma 모델을 로드합니다.</p>
-                    <p class="mt-2"><strong>중요:</strong> 모델 로딩은 시간이 오래 걸리므로, 서버가 처음 시작될 때 딱 한 번만 실행되도록 코드의 맨 위에 배치합니다.</p>
+                    <p>이 Python 스크립트는 로컬 모델을 로드하고, 웹 클라이언트가 질문을 보낼 수 있는 API 엔드포인트(<code class="bg-gray-700 p-1 rounded">/chat</code>)를 생성합니다.</p>
+                    <p class="mt-2"><code class="bg-gray-700 p-1 rounded text-white">MODEL_PATH</code> 변수의 경로만 수정하면, 여러분이 직접 파인튜닝한 모델이나 다른 어떤 로컬 모델도 쉽게 불러와 사용할 수 있습니다.</p>
+                    <p class="mt-2">아래 코드를 <code class="bg-gray-700 p-1 rounded">server.py</code>로 저장하세요.</p>
+                    <div class="mt-4">
+                        <a href="./Source/server.py" download="server.py" class="inline-block bg-teal-500 hover:bg-teal-400 text-white font-bold py-2 px-4 rounded-lg transition duration-300">
+                            server.py 다운로드
+                        </a>
+                    </div>                    
                 `,
                 code: `
-# app.py
+# filename: server.py
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-import torch
 from transformers import pipeline
+import torch
 
-print("Loading Gemma 3 270M model...")
-device = "cuda" if torch.cuda.is_available() else "cpu"
+# 1. Flask 앱 설정
+app = Flask(__name__)
+CORS(app) # 브라우저의 교차 출처 요청 허용
+
+# 2. 모델 로드
+# --- 중요 ---
+# 아래 경로를 여러분의 로컬 모델 폴더 경로로 변경하세요.
+# 파인튜닝한 모델의 경로를 넣어도 좋습니다.
+MODEL_PATH = "google/gemma-3-270m-it" 
+
+print("Loading AI model...")
 pipe = pipeline(
     "text-generation",
-    model="google/gemma-3-270m-it",
-    model_kwargs={"torch_dtype": torch.bfloat16},
-    device=device,
+    model=MODEL_PATH,
+    torch_dtype=torch.bfloat16,
+    device_map="auto"
 )
-print(f"Model loaded on {device}!")
+print("AI model loaded successfully!")
 
-<span class="code-highlight">app = Flask(__name__)</span>
-<span class="code-highlight">CORS(app) # 모든 외부 요청을 허용</span>
-                `
-            },
-            {
-                title: "4. API 엔드포인트 만들기",
-                explanation: `
-                    <p>프론트엔드가 메시지를 보낼 '창구'를 만들어야 합니다. 이것을 <strong>API 엔드포인트</strong>라고 부릅니다.</p>
-                    <p class="mt-2"><code class="bg-gray-700 p-1 rounded">@app.route('/chat', methods=['POST'])</code>는 "누군가 우리 서버의 /chat 주소로 POST 방식의 요청을 보내면, 바로 아래 함수를 실행해!" 라는 의미의 약속입니다.</p>
-                `,
-                code: `
-# ... (이전 코드) ...
-app = Flask(__name__)
-CORS(app)
-
-<span class="code-highlight">@app.route('/chat', methods=['POST'])</span>
-<span class="code-highlight">def chat():</span>
-<span class="code-highlight">    # 프론트엔드에서 보낸 대화 기록(JSON)을 받습니다.</span>
-<span class="code-highlight">    data = request.json</span>
-<span class="code-highlight">    messages = data.get('messages')</span>
-<span class="code-highlight"></span>
-<span class="code-highlight">    if not messages:</span>
-<span class="code-highlight">        return jsonify({"error": "No messages provided"}), 400</span>
-<span class="code-highlight"></span>
-<span class="code-highlight">    # Gemma 모델로 답변 생성 (다음 슬라이드에서 계속)</span>
-<span class="code-highlight">    # ...</span>
-                `
-            },
-            {
-                title: "5. Gemma 답변 생성 및 반환",
-                explanation: `
-                    <p>프론트엔드에서 받은 대화 기록을 Gemma 파이프라인에 전달하여 AI의 답변을 생성합니다.</p>
-                    <p class="mt-2">생성된 답변은 다시 JSON 형태로 프론트엔드에 돌려줍니다. 프론트엔드는 이 JSON을 받아 화면에 표시하게 됩니다.</p>
-                `,
-                code: `
+# 3. '/chat' API 엔드포인트 생성
 @app.route('/chat', methods=['POST'])
 def chat():
     data = request.json
-    messages = data.get('messages')
+    messages = data.get('messages', [])
     
-    # Hugging Face 파이프라인 형식에 맞게 'role'과 'content'를 맞춰줍니다.
-    hf_messages = [{"role": msg["role"], "content": msg["content"]} for msg in messages]
-
-<span class="code-highlight">    outputs = pipe(hf_messages, max_new_tokens=512, do_sample=True)</span>
-<span class="code-highlight">    assistant_response = outputs[0][-1]["content"]</span>
-<span class="code-highlight">    </span>
-<span class="code-highlight">    # 생성된 답변을 JSON 형식으로 프론트엔드에 응답합니다.</span>
-<span class="code-highlight">    return jsonify({"response": assistant_response})</span>
-                `
-            },
-            {
-                title: "6. 완성된 백엔드 스크립트",
-                explanation: `
-                    <p>모든 조각을 합치면 아래와 같은 완전한 백엔드 서버 코드가 됩니다. 이 코드를 <code class="bg-gray-700 p-1 rounded">app.py</code>로 저장하세요.</p>
-                `,
-                code: `
-# app.py
-from flask import Flask, request, jsonify
-from flask_cors import CORS
-import torch
-from transformers import pipeline
-
-# 1. 모델 로딩 (서버 시작 시 한 번만)
-print("Loading Gemma 3 270M model...")
-device = "cuda" if torch.cuda.is_available() else "cpu"
-pipe = pipeline(
-    "text-generation",
-    model="google/gemma-3-270m-it",
-    model_kwargs={"torch_dtype": torch.bfloat16},
-    device=device,
-)
-print(f"Model loaded on {device}!")
-
-# 2. Flask 앱 설정
-app = Flask(__name__)
-CORS(app)
-
-# 3. API 엔드포인트 정의
-@app.route('/chat', methods=['POST'])
-def chat():
-    data = request.json
-    messages = data.get('messages')
-
     if not messages:
         return jsonify({"error": "No messages provided"}), 400
+
+    # 모델의 채팅 템플릿에 맞게 프롬프트 생성
+    prompt = pipe.tokenizer.apply_chat_template(
+        messages, 
+        tokenize=False, 
+        add_generation_prompt=True
+    )
+
+    # 답변 생성
+    outputs = pipe(
+        prompt,
+        max_new_tokens=256,
+        do_sample=True,
+        temperature=0.7,
+        top_k=50,
+        top_p=0.95
+    )
     
-    hf_messages = [{"role": msg["role"], "content": msg["content"]} for msg in messages]
+    # 생성된 텍스트에서 답변만 추출
+    response_text = outputs[0]["generated_text"][len(prompt):]
     
-    outputs = pipe(hf_messages, max_new_tokens=512, do_sample=True)
-    assistant_response = outputs[0][-1]["content"]
-    
-    return jsonify({"response": assistant_response})
+    return jsonify({"response": response_text.strip()})
 
 # 4. 서버 실행
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
-                `
+                `,
+                language: 'python'
             },
             {
-                title: "7. 실행하고 즐기기!",
+                title: "Step 4: 프론트엔드 웹 챗봇 코드",
                 explanation: `
-                    <p>이제 모든 준비가 끝났습니다. 아래 순서대로 실행하여 나만의 AI 채팅 앱을 즐겨보세요!</p>
-                    <div class="explanation-box">
-                        <p><strong>실행 순서:</strong><br>
-                        1. 터미널을 열고 <code class="bg-gray-700 p-1 rounded">app.py</code>와 <code class="bg-gray-700 p-1 rounded">chat.html</code>을 같은 폴더에 저장합니다.<br>
-                        2. 터미널에서 <code class="bg-gray-700 p-1 rounded">python app.py</code>를 입력하여 <strong>백엔드 서버를 먼저 실행</strong>합니다.<br>
-                        3. 서버가 실행되면, <code class="bg-gray-700 p-1 rounded">chat.html</code> 파일을 웹 브라우저에서 엽니다.<br>
-                        4. 이제 채팅창에 메시지를 입력하고 AI와 대화할 수 있습니다!
-                        </p>
+                    <p>이제 사용자가 실제로 보게 될 웹페이지를 만듭니다. 이 HTML 파일은 아름다운 UI와 함께, Python 서버와 통신하는 JavaScript 로직을 모두 포함하고 있습니다.</p>
+                    <p class="mt-2">JavaScript의 <code class="bg-gray-700 p-1 rounded">fetch</code> 함수를 사용하여 사용자의 메시지를 로컬 서버(<code class="bg-gray-700 p-1 rounded">http://127.0.0.1:5000/chat</code>)로 보내고 응답을 받아 화면에 표시합니다.</p>
+                    <p class="mt-2">아래 전체 코드를 다은 받아 사용하세요.</p>
+                    <div class="mt-4">
+                        <a href="./Source/web_chatbot_local.html" download="web_chatbot_local.html" class="inline-block bg-teal-500 hover:bg-teal-400 text-white font-bold py-2 px-4 rounded-lg transition duration-300">
+                            web_chatbot_local.html 다운로드
+                        </a>
                     </div>
                 `,
-                code: ``
+                language: 'html'
+            },
+            {
+                title: "Step 5: 로컬 AI 챗봇 실행하기",
+                explanation: `
+                    <p>이제 모든 준비가 끝났습니다. 2단계에 걸쳐 챗봇을 실행합니다.</p>
+                    <p class="mt-2">1. <strong>터미널 1:</strong> AI 모델을 서빙하는 Python 서버를 시작합니다.<br>
+                    2. <strong>웹 브라우저:</strong> <code class="bg-gray-700 p-1 rounded">web_chatbot_local.html</code> 파일을 직접 열어 챗봇 UI를 확인합니다.</p>
+                     <div class="explanation-box">
+                        <p class="text-red-300">서버가 성공적으로 실행되면 터미널에 "AI model loaded successfully!" 메시지가 나타납니다. 그 후 웹페이지를 열고 자유롭게 질문을 던져보세요. 여러분의 로컬 모델이 답변하는 것을 실시간으로 확인할 수 있습니다!</p>
+                    </div>
+                `,
+                code: `
+# 터미널 1에서 실행:
+python server.py
+
+# 실행 후, 웹 브라우저에서 web_chatbot_local.html 파일을 여세요.
+                `,
+                language: 'bash'
             }
         ];
 
@@ -216,44 +221,81 @@ if __name__ == '__main__':
         const prevBtn = document.getElementById('prevBtn');
         const nextBtn = document.getElementById('nextBtn');
         const slideCounter = document.getElementById('slide-counter');
+        const progressBar = document.getElementById('progress-bar-inner');
 
         function createSlide(slideData, index) {
             const slideElement = document.createElement('div');
             slideElement.className = 'slide p-4';
-            slideElement.dataset.index = index;
-
             let codeHtml = '';
             if (slideData.code) {
-                const tempDiv = document.createElement('div');
-                const codeWithPlaceholders = slideData.code.trim()
-                    .replace(/<span class="code-highlight">/g, '[[HIGHLIGHT_START]]')
-                    .replace(/<\/span>/g, '[[HIGHLIGHT_END]]');
-                tempDiv.textContent = codeWithPlaceholders;
-                const finalCode = tempDiv.innerHTML
-                    .replace(/\[\[HIGHLIGHT_START\]\]/g, '<span class="code-highlight">')
-                    .replace(/\[\[HIGHLIGHT_END\]\]/g, '</span>');
-                codeHtml = `<div class="mt-6 bg-[#282c34] rounded-lg overflow-hidden border border-gray-700"><pre class="language-python !text-sm !leading-relaxed"><code>${finalCode}</code></pre></div>`;
+                codeHtml = `
+                    <div class="mt-6 code-wrapper">
+                         <button class="copy-btn">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M4 1.5H3a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1v-8a1 1 0 0 1 1-1h1z"/><path d="M10.5 1.5a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 0 1h-2a.5.5 0 0 1-.5-.5m-5 0a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 0 1h-2a.5.5 0 0 1-.5-.5"/></svg>
+                            <span class="copy-text">Copy</span>
+                        </button>
+                        <pre class="language-${slideData.language || 'html'}"><code class="language-${slideData.language || 'html'}">${slideData.code.trim().replace(/</g, "&lt;").replace(/>/g, "&gt;")}</code></pre>
+                    </div>`;
             }
 
-            slideElement.innerHTML = `<div class="grid grid-cols-1 ${slideData.code ? 'md:grid-cols-2' : ''} gap-8 items-start"><div class="prose prose-invert max-w-none"><h2 class="text-2xl font-bold text-indigo-400 mb-4">${slideData.title}</h2><div class="text-gray-300 leading-relaxed space-y-2">${slideData.explanation}</div></div>${slideData.code ? `<div>${codeHtml}</div>` : ''}</div>`;
+            slideElement.innerHTML = `
+                <div class="grid grid-cols-1 ${slideData.code ? 'lg:grid-cols-2' : ''} gap-8 items-start">
+                    <div class="prose prose-invert max-w-none prose-p:text-gray-300 prose-a:text-red-400 prose-headings:text-white">
+                        <h2 class="text-3xl font-bold mb-4">${slideData.title}</h2>
+                        <div class="leading-relaxed space-y-3">${slideData.explanation}</div>
+                    </div>
+                    ${slideData.code ? `<div>${codeHtml}</div>` : ''}
+                </div>`;
             return slideElement;
         }
 
+        function addCopyFunctionality() {
+            document.querySelectorAll('.copy-btn').forEach(button => {
+                button.addEventListener('click', () => {
+                    const code = button.nextElementSibling.querySelector('code').innerText;
+                    navigator.clipboard.writeText(code).then(() => {
+                        const copyText = button.querySelector('.copy-text');
+                        button.classList.add('copied');
+                        copyText.textContent = 'Copied!';
+                        setTimeout(() => {
+                            button.classList.remove('copied');
+                            copyText.textContent = 'Copy';
+                        }, 2000);
+                    });
+                });
+            });
+        }
+
         function updateSlider() {
-            document.querySelectorAll('.slide').forEach((slide, index) => {
-                slide.classList.toggle('active', index === currentSlide);
+            document.querySelectorAll('.slide').forEach((el, i) => {
+                el.classList.toggle('active', i === currentSlide);
             });
             slideCounter.textContent = `${currentSlide + 1} / ${slides.length}`;
             prevBtn.disabled = currentSlide === 0;
             nextBtn.disabled = currentSlide === slides.length - 1;
+            progressBar.style.width = `${((currentSlide + 1) / slides.length) * 100}%`;
             Prism.highlightAll();
         }
-
-        prevBtn.addEventListener('click', () => { if (currentSlide > 0) { currentSlide--; updateSlider(); } });
-        nextBtn.addEventListener('click', () => { if (currentSlide < slides.length - 1) { currentSlide++; updateSlider(); } });
         
-        slides.forEach((slideData, index) => { sliderContainer.appendChild(createSlide(slideData, index)); });
-        updateSlider();
+        function initSlider() {
+             slides.forEach((slideData, index) => {
+                const el = createSlide(slideData, index);
+                el.dataset.index = index;
+                sliderContainer.appendChild(el);
+             });
+            updateSlider();
+            addCopyFunctionality();
+        }
+
+        prevBtn.addEventListener('click', () => {
+            if (currentSlide > 0) { currentSlide--; updateSlider(); }
+        });
+
+        nextBtn.addEventListener('click', () => {
+            if (currentSlide < slides.length - 1) { currentSlide++; updateSlider(); }
+        });
+        
+        initSlider();
     </script>
 </body>
 </html>
