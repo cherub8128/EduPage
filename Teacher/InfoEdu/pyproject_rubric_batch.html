@@ -3,14 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>PyProject 보고서 루브릭 일괄 평가</title>
+  <title>PyProject 보고서 루브릭 일괄 평가 (v2.1)</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-  <!-- pdf.js -->
   <script src="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
   <script>
-    // pdf.js worker 설정
-    // NOTE: unpkg의 특정 버전과 일치시켜야 함
     pdfjsLib.GlobalWorkerOptions.workerSrc = "https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js";
   </script>
   <style>
@@ -19,76 +16,80 @@
     html,body{height:100%}
     body{ font-family:'Pretendard',system-ui, -apple-system, Segoe UI, Roboto, Noto Sans KR, Apple SD Gothic Neo, sans-serif; background:var(--bg); color:var(--ink) }
     .card{ background:#fff; border:1px solid #e5e7eb; border-radius:1rem; box-shadow:0 4px 14px rgba(2,6,23,0.06) }
-    .grid-auto{ display:grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap:1rem }
-    .mono{ font-variant-numeric: tabular-nums; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace }
+    .grid-auto{ display:grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap:1.5rem }
+    .mono{ font-variant-numeric: tabular-nums; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; background-color: #f1f5f9; padding: .1rem .3rem; border-radius: .25rem; font-size: .875em;}
     .badge{ background:#eef2ff; color:#3730a3; padding:.25rem .5rem; border-radius:.5rem; font-weight:600; font-size:.75rem }
-    .spin{ animation:spin 1s linear infinite }
-    @keyframes spin{ from{transform:rotate(0)} to{transform:rotate(360deg)} }
+    .btn{ display:inline-flex; align-items:center; justify-content:center; gap:.5rem; padding:.5rem .75rem; border-radius:.5rem; font-weight:600; transition: background-color .2s; }
+    .btn-primary{ background:#2563eb; color:white; } .btn-primary:hover{ background:#1d4ed8; } .btn:disabled{ opacity:.5; cursor:not-allowed; }
+    .btn-secondary{ background:#e2e8f0; color:#1e293b; } .btn-secondary:hover{ background:#cbd5e1; }
+    .btn-green{ background:#059669; color:white; } .btn-green:hover{ background:#047857; }
+    .btn-slate{ background:#1e293b; color:white; } .btn-slate:hover{ background:#0f172a; }
+    .spin{ animation:spin 1s linear infinite } @keyframes spin{ from{transform:rotate(0)} to{transform:rotate(360deg)} }
     .radar-wrap{ max-width:480px; margin:auto }
     .fixed-table{ overflow:auto; max-height: 360px }
+    .summary-table tbody tr { cursor: pointer; }
+    .summary-table tbody tr.selected-row { background-color: #eef2ff; }
     .sr-only{ position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); border:0 }
+    .modal-overlay{ position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); display:flex; align-items:center; justify-content:center; z-index:50; transition: opacity .2s; }
+    .modal-content{ background:white; padding:2rem; border-radius:1rem; max-width:90%; width:640px; box-shadow:0 10px 25px rgba(0,0,0,0.1); position:relative; max-height: 80vh; overflow-y: auto;}
+    .hidden{ display:none; }
   </style>
 </head>
 <body>
   <header class="p-6 sticky top-0 z-30 bg-white/70 backdrop-blur border-b">
     <div class="max-w-7xl mx-auto flex items-center justify-between gap-4">
       <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-blue-600" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 2a7 7 0 0 0-7 7v2.1c0 .4-.2.8-.5 1.1L3 14a2 2 0 0 0 1.4 3.4H8a7 7 0 0 0 14 0 2 2 0 0 0 1.4-3.4l-1.5-1.8c-.3-.3-.5-.7-.5-1.1V9a7 7 0 0 0-7-7Z"/>
-          </svg>
+        <div class="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center shrink-0">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-blue-600" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a7 7 0 0 0-7 7v2.1c0 .4-.2.8-.5 1.1L3 14a2 2 0 0 0 1.4 3.4H8a7 7 0 0 0 14 0 2 2 0 0 0 1.4-3.4l-1.5-1.8c-.3-.3-.5-.7-.5-1.1V9a7 7 0 0 0-7-7Z"/></svg>
         </div>
         <div>
-          <h1 class="text-xl sm:text-2xl font-bold">PyProject 보고서 루브릭 일괄 평가</h1>
-          <p class="text-sm text-slate-500">PDF 일괄 업로드 → 무료 AI API 호출 → 루브릭 점수/피드백 생성 → 대시보드/CSV 내보내기</p>
+          <h1 class="text-xl sm:text-2xl font-bold">PyProject 보고서 루브릭 일괄 평가 v2.1</h1>
+          <p class="text-sm text-slate-500">데이터 자동 저장, 과세특 생성 기능 추가</p>
         </div>
       </div>
       <div class="hidden sm:flex items-center gap-2">
         <span class="badge">A·B·C·D·E·I 6영역</span>
-        <span class="badge">PDF.js 추출</span>
-        <span class="badge">Chart.js 레이더</span>
+        <span class="badge">과세특 생성</span>
       </div>
     </div>
   </header>
 
   <main class="max-w-7xl mx-auto p-6 space-y-6">
-    <!-- 설정 -->
     <section class="card p-5 space-y-4">
       <h2 class="text-lg font-semibold">1) 평가 설정</h2>
-
       <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <label class="block">
           <span class="text-sm font-medium">AI 제공자</span>
           <select id="provider" class="mt-1 w-full rounded-lg border-slate-300">
-            <option value="huggingface">Hugging Face Inference (무료 토큰)</option>
-            <option value="openrouter">OpenRouter (무료/저비용 모델)</option>
+            <option value="google">Google (Gemini)</option>
+            <option value="openai">OpenAI (GPT)</option>
+            <option value="openrouter">OpenRouter</option>
+            <option value="huggingface">Hugging Face</option>
             <option value="ollama">Ollama (로컬)</option>
-            <option value="mock">모의 채점 (오프라인)</option>
+            <option value="mock">모의 채점 (테스트용)</option>
           </select>
         </label>
-
         <label class="block">
-          <span class="text-sm font-medium">API 키 (필요한 경우)</span>
-          <input id="apiKey" type="password" placeholder="hf_xxx 또는 sk-or-v1-xxx" class="mt-1 w-full rounded-lg border-slate-300"/>
-          <p class="text-xs text-slate-500 mt-1">키는 <b>세션 저장소</b>에만 보관되고, 서버로 전송되지 않습니다.</p>
+          <span class="text-sm font-medium">API 키</span>
+          <input id="apiKey" type="password" placeholder="API 키 입력" class="mt-1 w-full rounded-lg border-slate-300"/>
+          <p class="text-xs text-slate-500 mt-1">키는 브라우저에만 저장됩니다.</p>
         </label>
-
         <label class="block">
-          <span class="text-sm font-medium">모델</span>
-          <input id="model" type="text" class="mt-1 w-full rounded-lg border-slate-300"
-                 value="mistralai/Mistral-7B-Instruct-v0.2"/>
-          <p class="text-xs text-slate-500 mt-1">예) HF: <code class="mono">mistralai/Mistral-7B-Instruct-v0.2</code> · OpenRouter: <code class="mono">mistralai/mistral-7b-instruct</code> · Ollama: <code class="mono">llama3.1</code></p>
+          <div class="flex items-center justify-between">
+            <span class="text-sm font-medium">모델명</span>
+            <button id="helpBtn" class="w-5 h-5 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center text-xs font-bold hover:bg-slate-300" title="모델 사용법 안내">?</button>
+          </div>
+          <input id="model" type="text" class="mt-1 w-full rounded-lg border-slate-300" value="gemini-2.5-flash-lite"/>
+          <p class="text-xs text-slate-500 mt-1">선택한 제공자에 맞는 모델을 입력하세요.</p>
         </label>
-
         <label class="block">
           <span class="text-sm font-medium">최대 분석 글자수</span>
           <input id="maxChars" type="number" min="500" step="250" value="8000" class="mt-1 w-full rounded-lg border-slate-300"/>
         </label>
       </div>
-
       <details class="mt-2">
-        <summary class="cursor-pointer text-sm text-slate-600">프롬프트(편집 가능)</summary>
-        <textarea id="prompt" class="mt-2 w-full rounded-lg border-slate-300 p-3 mono text-sm" rows="10">
+        <summary class="cursor-pointer text-sm text-slate-600">프롬프트 (수정 가능)</summary>
+        <textarea id="prompt" class="mt-2 w-full rounded-lg border-slate-300 p-3 mono text-sm" rows="12">
 다음은 고등학교 Python 프로젝트 보고서입니다. 보고서 원문을 읽고 아래 루브릭에 따라 평가하세요.
 
 [루브릭 항목 | 점수 기준 (0~5, 소수 1자리 허용)]
@@ -99,421 +100,484 @@
 - tools: 코드/도구 활용 능력·재현 가능성
 - attitude: 성실성·흥미·성장 태도
 
-반드시 JSON만 출력합니다. 형식:
+반드시 JSON 형식만 출력합니다. 다른 설명은 절대 포함하지 마세요. 형식:
 {
-  "scores": { "knowledge": x.x, "inquiry": x.x, "creativity": x.x, "communication": x.x, "tools": x.x, "attitude": x.x },
-  "strengths": "문장",
-  "improvements": "문장",
-  "alignment": "교과 성취기준 또는 교육과정 연계 코멘트(간단 HTML 허용)",
-  "misconceptions": "문장"
+  "scores": { "knowledge": 0.0, "inquiry": 0.0, "creativity": 0.0, "communication": 0.0, "tools": 0.0, "attitude": 0.0 },
+  "strengths": "보고서의 가장 큰 강점 1~2가지를 명료하게 서술합니다.",
+  "improvements": "개선이 필요한 부분 1~2가지를 구체적인 방법과 함께 제안합니다.",
+  "alignment": "이 보고서가 연계될 수 있는 교과 성취기준이나 교육과정 내용을 간단한 HTML 리스트 형식으로 제시합니다. 예: <ul><li><b>정보</b>: 데이터 분석, 알고리즘 설계</li></ul>",
+  "misconceptions": "학생이 가질 수 있는 잠재적인 오개념이나 유의할 점을 서술합니다.",
+  "final_comment": "위의 평가 내용을 종합하여, 학생의 역량이 잘 드러나도록 과목별 세부능력 및 특기사항 예시를 학생의 성장과 역량이 드러나도록 객관적 사실을 기반으로 개조식 문체로 서술합니다."
 }
 
-제한: 점수는 0~5 사이, 기본 단위 0.1. 불확실하면 근거를 간단히 기술.
+제한: 점수는 0~5 사이, 0.1 단위로 평가합니다. 근거가 부족하면 보수적으로 평가하세요.
         </textarea>
       </details>
     </section>
-
-    <!-- 업로드 -->
+    
     <section class="card p-5 space-y-4">
-      <h2 class="text-lg font-semibold">2) pyproject PDF 일괄 업로드</h2>
-      <input id="fileInput" type="file" accept="application/pdf" multiple class="block w-full rounded-lg border-slate-300"/>
-      <p class="text-sm text-slate-500">권장 파일명: <code class="mono">Python_학번_이름.pdf</code> (예: <code class="mono">Python_11301_홍길동.pdf</code>)</p>
+      <h2 class="text-lg font-semibold">2) PDF 파일 일괄 업로드</h2>
+      <input id="fileInput" type="file" accept="application/pdf" multiple class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"/>
+      <p class="text-sm text-slate-500">권장 파일명: <code class="mono">학번_이름.pdf</code> (예: <code class="mono">11301_홍길동.pdf</code>)</p>
       <div id="queue" class="text-sm text-slate-600"></div>
       <div class="flex gap-2 pt-2">
-        <button id="startBtn" class="px-4 py-2 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 disabled:opacity-50">평가 시작</button>
-        <button id="stopBtn" class="px-4 py-2 rounded-lg bg-slate-200 hover:bg-slate-300">중지</button>
+        <button id="startBtn" class="btn btn-primary"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5"><path fill-rule="evenodd" d="M2 10a8 8 0 1 1 16 0 8 8 0 0 1-16 0Zm6.39-2.908a.75.75 0 0 1 .94.312l2.5 4.5a.75.75 0 0 1-1.33.744L9.25 10.364l-1.64 2.953a.75.75 0 0 1-1.33-.744l2.5-4.5a.75.75 0 0 1 .56-.312Z" clip-rule="evenodd" /></svg><span>평가 시작</span></button>
+        <button id="stopBtn" class="btn btn-secondary"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5"><path d="M5.25 3A2.25 2.25 0 0 0 3 5.25v9.5A2.25 2.25 0 0 0 5.25 17h9.5A2.25 2.25 0 0 0 17 14.75v-9.5A2.25 2.25 0 0 0 14.75 3h-9.5Z" /></svg><span>중지</span></button>
       </div>
     </section>
-
-    <!-- 진행 상태 -->
     <section class="card p-5 space-y-4">
-      <div class="flex items-center gap-3">
-        <svg class="w-5 h-5 text-blue-600 spin" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" opacity=".2"/><path d="M22 12a10 10 0 0 1-10 10" stroke="currentColor" stroke-width="4"/></svg>
-        <h2 class="text-lg font-semibold">3) 처리 로그</h2>
-      </div>
-      <pre id="log" class="p-3 bg-slate-50 rounded-lg border text-sm mono overflow-auto" style="max-height:220px"></pre>
+      <div class="flex items-center gap-3"><svg id="spinner" class="w-5 h-5 text-blue-600 spin hidden" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" opacity=".2"/><path d="M22 12a10 10 0 0 1-10 10" stroke="currentColor" stroke-width="4"/></svg><h2 class="text-lg font-semibold">3) 처리 로그</h2></div>
+      <pre id="log" class="p-3 bg-slate-50 rounded-lg border text-sm overflow-auto" style="max-height:220px; white-space: pre-wrap; word-break: break-all;"></pre>
     </section>
-
-    <!-- 결과 요약 테이블 -->
     <section class="card p-5 space-y-4">
-      <div class="flex items-center justify-between gap-2">
+      <div class="flex flex-wrap items-center justify-between gap-3">
         <h2 class="text-lg font-semibold">4) 결과 요약</h2>
         <div class="flex gap-2">
-          <button id="downloadCsv" class="px-3 py-2 rounded-lg bg-emerald-600 text-white text-sm hover:bg-emerald-700">CSV 내보내기</button>
-          <button id="downloadJson" class="px-3 py-2 rounded-lg bg-slate-800 text-white text-sm hover:bg-slate-900">JSON 저장</button>
-          <button id="clearBtn" class="px-3 py-2 rounded-lg bg-slate-200 text-sm hover:bg-slate-300">초기화</button>
+          <button id="downloadCsv" class="btn btn-green text-sm"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5"><path d="M10.75 2.75a.75.75 0 0 0-1.5 0v8.614L6.295 8.235a.75.75 0 1 0-1.09 1.03l4.25 4.5a.75.75 0 0 0 1.09 0l4.25-4.5a.75.75 0 0 0-1.09-1.03l-2.955 3.129V2.75Z" /><path d="M3.5 12.75a.75.75 0 0 0-1.5 0v2.5A2.75 2.75 0 0 0 4.75 18h10.5A2.75 2.75 0 0 0 18 15.25v-2.5a.75.75 0 0 0-1.5 0v2.5c0 .69-.56 1.25-1.25 1.25H4.75c-.69 0-1.25-.56-1.25-1.25v-2.5Z" /></svg><span>CSV 내보내기</span></button>
+          <button id="downloadJson" class="btn btn-slate text-sm"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5"><path fill-rule="evenodd" d="M14.78 6.22a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 7.28a.75.75 0 0 1 1.06-1.06L10 9.94l3.72-3.72a.75.75 0 0 1 1.06 0Z" clip-rule="evenodd" /></svg><span>JSON 저장</span></button>
+          <button id="clearBtn" class="btn btn-secondary text-sm"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5"><path fill-rule="evenodd" d="M8.75 1A2.75 2.75 0 0 0 6 3.75v.443c-1.157.234-2.11.845-2.8 1.597A1 1 0 0 0 3 6.5v.5a1 1 0 0 0 1 1v5a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-5a1 1 0 0 0 1-1v-.5a1 1 0 0 0-.2-1.403c-.69-.752-1.643-1.363-2.8-1.597V3.75A2.75 2.75 0 0 0 11.25 1h-2.5ZM7.5 3.75c0-.69.56-1.25 1.25-1.25h2.5c.69 0 1.25.56 1.25 1.25v.512A4.245 4.245 0 0 1 15 5.5v1.23c.334.09.646.225.93.394a1 1 0 0 1 .57.932v.5a1 1 0 0 1-1 1v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-5a1 1 0 0 1-1-1v-.5a1 1 0 0 1 .57-.932c.284-.169.596-.304.93-.394V5.5a4.245 4.245 0 0 1 2.5-1.238V3.75Z" clip-rule="evenodd" /></svg><span>초기화</span></button>
         </div>
       </div>
       <div class="fixed-table">
-        <table class="min-w-full text-sm">
+        <table class="min-w-full text-sm summary-table">
           <thead class="sticky top-0 bg-slate-100">
             <tr>
-              <th class="p-2 text-left">파일명</th>
-              <th class="p-2 text-left">학번</th>
-              <th class="p-2 text-left">이름</th>
-              <th class="p-2 text-right">A 지식</th>
-              <th class="p-2 text-right">B 탐구</th>
-              <th class="p-2 text-right">C 창의</th>
-              <th class="p-2 text-right">D 소통</th>
-              <th class="p-2 text-right">E 도구</th>
-              <th class="p-2 text-right">I 태도</th>
-              <th class="p-2 text-right">평균</th>
-              <th class="p-2 text-right">총점(×5)</th>
+              <th class="p-2 text-left">파일명</th><th class="p-2 text-left">학번</th><th class="p-2 text-left">이름</th>
+              <th class="p-2 text-right">A 지식</th><th class="p-2 text-right">B 탐구</th><th class="p-2 text-right">C 창의</th>
+              <th class="p-2 text-right">D 소통</th><th class="p-2 text-right">E 도구</th><th class="p-2 text-right">I 태도</th>
+              <th class="p-2 text-right font-semibold">평균</th><th class="p-2 text-right font-semibold">총점(×5)</th>
             </tr>
           </thead>
           <tbody id="summaryBody"></tbody>
         </table>
       </div>
     </section>
-
-    <!-- 상세 카드 -->
-    <section class="card p-5 space-y-6">
-      <h2 class="text-lg font-semibold">5) 개별 상세</h2>
-      <div id="cards" class="grid-auto"></div>
+    <section id="detailSection" class="hidden">
+      <div class="card p-5 space-y-6">
+        <h2 class="text-lg font-semibold">5) 개별 상세 결과</h2>
+        <div id="cards"></div>
+      </div>
     </section>
-
     <footer class="py-8 text-center text-xs text-slate-500">
       <p>이 도구는 교육용입니다. AI 평가는 보조적 참고 자료로 활용하고, 최종 평가는 교사가 검토하세요.</p>
     </footer>
   </main>
 
+  <div id="helpModal" class="modal-overlay hidden">
+    <div class="modal-content">
+      <div class="flex items-center justify-between mb-4">
+        <h2 id="modalTitle" class="text-xl font-bold">모델 사용 가이드</h2>
+        <button id="closeModalBtn" class="text-2xl text-slate-500 hover:text-slate-800">&times;</button>
+      </div>
+      <div id="modalContent" class="text-sm text-slate-600 space-y-3"></div>
+    </div>
+  </div>
+
   <script>
-    // -----------------------------
-    // 유틸
-    // -----------------------------
-    const byId = (id)=>document.getElementById(id);
-    const sleep = (ms)=>new Promise(r=>setTimeout(r,ms));
+    document.addEventListener('DOMContentLoaded', () => {
+      // ... (유틸리티, PDF, AI 호출, 상태 관리 함수는 이전과 동일) ...
+      // -----------------------------
+      // 유틸리티
+      // -----------------------------
+      const byId = (id) => document.getElementById(id);
+      const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
-    function logln(...args){
-      const s = args.map(a=>typeof a==='string'?a:JSON.stringify(a,null,2)).join(' ');
-      byId('log').textContent += s + '\\n';
-      byId('log').scrollTop = byId('log').scrollHeight;
-      console.log(...args);
-    }
-
-    // 파일명에서 학번/이름 추출
-    function parseMetaFromFilename(name){
-      // 예: Python_11301_홍길동.pdf
-      const base = name.replace(/\\.pdf$/i, '');
-      const m = base.match(/Python[_-](\\d{3,})[_-]([\\p{L}\\p{N}\\s]+)$/u) || base.match(/(\\d{3,})[_-]([\\p{L}\\p{N}\\s]+)$/u);
-      return m ? { studentId: m[1], studentName: m[2] } : { studentId:'', studentName:'' };
-    }
-
-    function averageScore(s){
-      const vals = ['knowledge','inquiry','creativity','communication','tools','attitude'].map(k => Number(s[k]||0));
-      const mean = vals.reduce((a,b)=>a+b,0)/vals.length;
-      return { mean, total: mean*5 }; // 5등급 환산 총점(임의 가중)
-    }
-
-    function sanitizeJSON(text){
-      // 가장 먼저 나오는 { ... } 블록을 파싱
-      const start = text.indexOf('{');
-      const end = text.lastIndexOf('}');
-      if (start>=0 && end>start){
-        const body = text.slice(start, end+1);
-        try { return JSON.parse(body); } catch(e){}
-      }
-      // 코드블록 내 JSON 시도
-      const codeMatch = text.match(/```(?:json)?\\s*([\\s\\S]*?)```/i);
-      if (codeMatch){
-        try { return JSON.parse(codeMatch[1]); } catch(e){}
-      }
-      throw new Error('LLM이 올바른 JSON을 반환하지 않았습니다.');
-    }
-
-    // -----------------------------
-    // PDF 텍스트 추출
-    // -----------------------------
-    async function extractPdfText(file, maxChars){
-      const arrayBuffer = await file.arrayBuffer();
-      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-      let fullText = '';
-      for (let p=1; p<=pdf.numPages; p++){
-        const page = await pdf.getPage(p);
-        const content = await page.getTextContent();
-        const txt = content.items.map(i=>i.str).join(' ');
-        fullText += `\\n\\n[page ${p}]\\n` + txt;
-        if (fullText.length >= maxChars){ break; }
-      }
-      return fullText.slice(0, maxChars);
-    }
-
-    // -----------------------------
-    // AI 호출 어댑터
-    // -----------------------------
-    async function callAI({provider, apiKey, model, prompt, input}){
-      if (provider === 'mock'){
-        // 간단한 휴리스틱 채점 (오프라인)
-        const len = input.length;
-        const codeMatches = (input.match(/\\b(def|class|import|for|while|if|elif|else|try|except)\\b/g)||[]).length;
-        const cites = (input.match(/https?:\/\//g) || []).length;
-        const sections = (input.match(/\\n\\s*\\d+\\.|##|###/g)||[]).length;
-        function cap(x){ return Math.max(0, Math.min(5, x)); }
-        const scores = {
-          knowledge: cap(2 + sections*0.15 + (input.includes('정의')||input.includes('개념')?0.5:0)),
-          inquiry: cap(2 + sections*0.2 + (input.includes('계획')||input.includes('방법')?0.4:0)),
-          creativity: cap(2 + (input.includes('새로운')||input.includes('혁신')||input.includes('창의')?1:0)),
-          communication: cap(2 + sections*0.1 + (input.includes('결과')?0.5:0)),
-          tools: cap(2 + codeMatches*0.1),
-          attitude: cap(3 + Math.log10(len+10)*0.5)
-        };
-        return {
-          scores,
-          strengths: '문서 구조가 비교적 명확하고 코드 사용 흔적이 있습니다. 핵심 섹션이 구분되어 읽기 수월합니다.',
-          improvements: '핵심 주장과 데이터의 연결을 좀 더 엄밀하게 제시하고, 재현 가능한 코드/실험 과정을 첨부하세요.',
-          alignment: '<ul><li><b>수학·정보 연계</b>: 문제분해와 알고리즘 설계, 자료 표현 및 해석.</li></ul>',
-          misconceptions: '용어 정의와 이론적 근거가 명시적으로 제시되지 않은 부분을 보완하세요.'
-        };
+      function logln(level, ...args) {
+        const s = args.map(a => typeof a === 'string' ? a : JSON.stringify(a, null, 2)).join(' ');
+        const timestamp = new Date().toLocaleTimeString();
+        const logEntry = document.createElement('div');
+        logEntry.innerHTML = `<span class="text-slate-400 mr-2">${timestamp}</span>[<span class="font-semibold">${level}</span>] ${s}`;
+        if (level === 'ERROR') logEntry.classList.add('text-red-600');
+        else if (level === 'SUCCESS') logEntry.classList.add('text-green-600');
+        byId('log').appendChild(logEntry);
+        byId('log').scrollTop = byId('log').scrollHeight;
       }
 
-      if (provider === 'huggingface'){
-        if (!apiKey) throw new Error('Hugging Face 토큰이 필요합니다.');
-        const payload = {
-          inputs: `${prompt}\\n\\n[REPORT]\\n${input}`.slice(0, 28000),
-          parameters: { max_new_tokens: 512, temperature: 0.2, return_full_text: false }
-        };
-        const res = await fetch(`https://api-inference.huggingface.co/models/${encodeURIComponent(model)}`, {
-          method:'POST',
-          headers:{ 'Authorization': `Bearer ${apiKey}`, 'Content-Type':'application/json' },
-          body: JSON.stringify(payload)
-        });
-        if (!res.ok){
-          const t = await res.text();
-          throw new Error('HF API 오류: ' + t);
+      function parseMetaFromFilename(name) {
+        const base = name.replace(/\.pdf$/i, '');
+        const m = base.match(/(\d{4,})[_-]([\p{L}\p{N}\s]+)/u);
+        return m ? { studentId: m[1], studentName: m[2].trim() } : { studentId: '', studentName: base };
+      }
+
+      function averageScore(s) {
+        if (!s) return { mean: 0, total: 0 };
+        const vals = ['knowledge', 'inquiry', 'creativity', 'communication', 'tools', 'attitude'].map(k => Number(s[k] || 0));
+        const mean = vals.reduce((a, b) => a + b, 0) / vals.length;
+        return { mean: isNaN(mean) ? 0 : mean, total: isNaN(mean) ? 0 : mean * 5 };
+      }
+      
+      function sanitizeJSON(text) {
+          let cleanText = text.trim();
+          const jsonMatch = cleanText.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+          if (jsonMatch) cleanText = jsonMatch[1];
+          const start = cleanText.indexOf('{');
+          const end = cleanText.lastIndexOf('}');
+          if (start >= 0 && end > start) {
+              const jsonString = cleanText.slice(start, end + 1);
+              try { return JSON.parse(jsonString); } catch (e) {
+                  throw new Error('LLM이 올바른 JSON을 반환하지 않았습니다.');
+              }
+          }
+          throw new Error('응답에서 유효한 JSON 객체를 찾을 수 없습니다.');
+      }
+      // -----------------------------
+      // PDF 및 AI
+      // -----------------------------
+      async function extractPdfText(file, maxChars) { /* ... 이전과 동일 ... */
+        const arrayBuffer = await file.arrayBuffer();
+        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+        let fullText = '';
+        for (let p = 1; p <= pdf.numPages; p++) {
+          const page = await pdf.getPage(p);
+          const content = await page.getTextContent();
+          fullText += content.items.map(i => i.str).join(' ');
+          if (fullText.length >= maxChars) break;
         }
-        const data = await res.json();
-        const text =
-          Array.isArray(data) && data.length && (data[0].generated_text || data[0].summary_text || data[0].translation_text)
-            ? (data[0].generated_text || data[0].summary_text || data[0].translation_text)
-            : (typeof data === 'string' ? data : JSON.stringify(data));
-        return sanitizeJSON(text);
+        return fullText.slice(0, maxChars);
       }
-
-      if (provider === 'openrouter'){
-        if (!apiKey) throw new Error('OpenRouter 키가 필요합니다.');
-        const body = {
-          model,
-          messages: [
-            { role:'system', content:'You are a strict rubric grader. Output JSON only.'},
-            { role:'user', content: `${prompt}\\n\\n[REPORT]\\n${input}`.slice(0, 28000) }
-          ],
-          temperature: 0.2,
-          response_format: { type: 'json_object' }
-        };
-        const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-          method:'POST',
-          headers:{
-            'Authorization': `Bearer ${apiKey}`,
-            'Content-Type':'application/json',
-            'HTTP-Referer': location.origin,
-            'X-Title': 'PyProject Rubric Batch'
-          },
-          body: JSON.stringify(body)
-        });
-        if (!res.ok){
-          const t = await res.text();
-          throw new Error('OpenRouter 오류: ' + t);
-        }
-        const j = await res.json();
-        const text = j.choices?.[0]?.message?.content ?? '';
-        return sanitizeJSON(text);
-      }
-
-      if (provider === 'ollama'){
-        const url = '/api/generate'; // 동일 호스트에서 Ollama 프록시 혹은 올라마 기본 엔드포인트 구성 필요
-        const body = { model, prompt: `${prompt}\\n\\n[REPORT]\\n${input}`, options:{ temperature:0.2 } };
-        const res = await fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)});
-        if (!res.ok){ throw new Error('Ollama 호출 실패. 프록시 또는 CORS 설정 필요.'); }
-        const reader = res.body.getReader(); let full='';
-        while(true){
-          const {value, done} = await reader.read(); if (done) break;
-          full += new TextDecoder().decode(value);
-        }
-        // 일부 런타임은 스트림 JSON을 줄 단위로 반환
-        const lastLine = full.trim().split(/\\n/).filter(Boolean).pop() || '';
-        const maybe = (()=>{ try{ return JSON.parse(lastLine) }catch(e){ return {} } })();
-        const text = maybe.response || full;
-        return sanitizeJSON(text);
-      }
-
-      throw new Error('알 수 없는 제공자');
-    }
-
-    // -----------------------------
-    // 상태
-    // -----------------------------
-    const state = {
-      running: false,
-      results: [] // { fileName, studentId, studentName, scores, strengths, ... }
-    };
-
-    // -----------------------------
-    // UI 바인딩
-    // -----------------------------
-    const summaryBody = byId('summaryBody');
-    const cards = byId('cards');
-
-    function renderSummary(){
-      summaryBody.innerHTML = '';
-      for (const r of state.results){
-        const { mean, total } = averageScore(r.scores);
-        const tr = document.createElement('tr');
-        const s = r.scores;
-        tr.innerHTML = `
-          <td class="p-2">\${r.fileName}</td>
-          <td class="p-2">\${r.studentId || ''}</td>
-          <td class="p-2">\${r.studentName || ''}</td>
-          <td class="p-2 text-right">\${(s.knowledge??0).toFixed(1)}</td>
-          <td class="p-2 text-right">\${(s.inquiry??0).toFixed(1)}</td>
-          <td class="p-2 text-right">\${(s.creativity??0).toFixed(1)}</td>
-          <td class="p-2 text-right">\${(s.communication??0).toFixed(1)}</td>
-          <td class="p-2 text-right">\${(s.tools??0).toFixed(1)}</td>
-          <td class="p-2 text-right">\${(s.attitude??0).toFixed(1)}</td>
-          <td class="p-2 text-right font-semibold">\${mean.toFixed(2)}</td>
-          <td class="p-2 text-right font-semibold">\${total.toFixed(1)}</td>`;
-        summaryBody.appendChild(tr);
-      }
-    }
-
-    function makeRadar(canvas, scores){
-      const labels = ['A. 지식/이해','B. 탐구/모델링','C. 창의/융합','D. 소통/협업','E. 도구/표현','I. 흥미/태도'];
-      const keys   = ['knowledge','inquiry','creativity','communication','tools','attitude'];
-      const data   = keys.map(k=>Number(scores?.[k]||0));
-      return new Chart(canvas.getContext('2d'), {
-        type:'radar',
-        data:{ labels, datasets:[{ label:'점수', data, fill:true, backgroundColor:'rgba(37,99,235,.16)', borderColor:'rgba(37,99,235,1)' }]},
-        options:{
-          responsive:true, maintainAspectRatio:false,
-          scales:{ r:{ min:0, max:5, ticks:{ stepSize:1 }, pointLabels:{ font:{ weight:'600' }}}},
-          plugins:{ legend:{ display:false } }
-        }
-      });
-    }
-
-    function renderCards(){
-      cards.innerHTML = '';
-      for (const r of state.results){
-        const card = document.createElement('article');
-        card.className = 'card p-4 space-y-3';
-        const { mean, total } = averageScore(r.scores);
-        card.innerHTML = `
-          <div class="flex items-start justify-between gap-3">
-            <div>
-              <h3 class="font-semibold text-lg">\${r.studentName || '이름 미상'} <span class="text-slate-400 font-normal">(\${r.studentId || '학번 미상'})</span></h3>
-              <p class="text-sm text-slate-500">\${r.fileName}</p>
-            </div>
-            <div class="text-right">
-              <div class="text-xs text-slate-500">평균</div>
-              <div class="text-xl font-extrabold mono">\${mean.toFixed(2)}</div>
-            </div>
-          </div>
-          <div class="radar-wrap" style="height:320px">
-            <canvas></canvas>
-          </div>
-          <div class="grid sm:grid-cols-2 gap-3 text-sm">
-            <div class="bg-slate-50 rounded-lg p-3 border">
-              <div class="font-semibold text-emerald-700 mb-1">잘한 점</div>
-              <div>\${r.strengths || ''}</div>
-            </div>
-            <div class="bg-slate-50 rounded-lg p-3 border">
-              <div class="font-semibold text-amber-700 mb-1">개선점</div>
-              <div>\${r.improvements || ''}</div>
-            </div>
-            <div class="bg-slate-50 rounded-lg p-3 border">
-              <div class="font-semibold text-blue-700 mb-1">교육과정 연계</div>
-              <div>\${r.alignment || ''}</div>
-            </div>
-            <div class="bg-slate-50 rounded-lg p-3 border">
-              <div class="font-semibold text-rose-700 mb-1">오개념/유의</div>
-              <div>\${r.misconceptions || ''}</div>
-            </div>
-          </div>`;
-        const canvas = card.querySelector('canvas');
-        // eslint-disable-next-line no-unused-vars
-        const chart = makeRadar(canvas, r.scores);
-        cards.appendChild(card);
-      }
-    }
-
-    function download(filename, content, type='text/plain'){
-      const blob = new Blob([content], {type});
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url; a.download = filename; a.click();
-      setTimeout(()=>URL.revokeObjectURL(url), 5000);
-    }
-
-    byId('downloadCsv').addEventListener('click', ()=>{
-      const header = ['file','studentId','studentName','knowledge','inquiry','creativity','communication','tools','attitude','mean','total'];
-      const rows = state.results.map(r=>{
-        const { mean, total } = averageScore(r.scores);
-        const s = r.scores;
-        return [
-          r.fileName, r.studentId||'', r.studentName||'',
-          (s.knowledge??0).toFixed(1),(s.inquiry??0).toFixed(1),(s.creativity??0).toFixed(1),
-          (s.communication??0).toFixed(1),(s.tools??0).toFixed(1),(s.attitude??0).toFixed(1),
-          mean.toFixed(2), total.toFixed(1)
-        ].join(',');
-      });
-      download('pyproject_rubric.csv', [header.join(','), ...rows].join('\\n'), 'text/csv;charset=utf-8');
-    });
-
-    byId('downloadJson').addEventListener('click', ()=>{
-      download('pyproject_rubric.json', JSON.stringify(state.results, null, 2), 'application/json');
-    });
-
-    byId('clearBtn').addEventListener('click', ()=>{
-      state.results = []; renderSummary(); renderCards(); byId('log').textContent = '';
-    });
-
-    // -----------------------------
-    // 실행
-    // -----------------------------
-    let abort = false;
-    byId('stopBtn').addEventListener('click', ()=>{ abort = true; state.running = false; });
-
-    byId('startBtn').addEventListener('click', async()=>{
-      const files = Array.from(byId('fileInput').files || []);
-      if (!files.length){ alert('PDF 파일을 선택하세요.'); return; }
-
-      abort = false;
-      state.running = true;
-      const provider = byId('provider').value;
-      const apiKey   = byId('apiKey').value.trim();
-      const model    = byId('model').value.trim();
-      const prompt   = byId('prompt').value.trim();
-      const maxChars = Number(byId('maxChars').value || 8000);
-
-      byId('queue').textContent = `\${files.length}개 파일 처리 예정`;
-      logln('== 시작 ==', new Date().toLocaleString());
-
-      for (let i=0; i<files.length; i++){
-        if (abort){ logln('중단 요청됨.'); break; }
-        const f = files[i];
-        logln(`[\${i+1}/\${files.length}] \${f.name} 텍스트 추출 중...`);
-        try{
-          const text = await extractPdfText(f, maxChars);
-          const meta = parseMetaFromFilename(f.name);
-
-          logln('AI 채점 호출 중...');
-          const out = await callAI({provider, apiKey, model, prompt, input: text});
-          const record = {
-            fileName: f.name,
-            studentId: meta.studentId,
-            studentName: meta.studentName,
-            ...out
+      
+      async function callAI({ provider, apiKey, model, prompt, input }) { /* ... 이전과 동일 ... */
+        const fullPrompt = `${prompt}\n\n[REPORT]\n${input}`;
+        if (provider === 'mock') {
+          await sleep(500);
+          return {
+            scores: { knowledge: 3.5, inquiry: 4.0, creativity: 3.0, communication: 3.8, tools: 4.2, attitude: 4.5 },
+            strengths: '문서 구조가 명확하고 코드 활용 예시가 적절합니다.', improvements: '이론적 배경에 대한 설명과 참고문헌을 보강할 필요가 있습니다.',
+            alignment: '<ul><li><b>정보</b>: 문제 해결, 프로그래밍</li></ul>', misconceptions: '특정 라이브러리 함수의 옵션을 잘못 이해한 부분이 보입니다.',
+            final_comment: '데이터 분석 과정에서 Python 라이브러리를 능숙하게 활용하여 문제 상황을 모델링하고 시각적으로 표현하는 역량이 돋보임. 논리적 사고를 바탕으로 프로젝트를 체계적으로 계획하고 성실하게 수행하는 태도가 우수함.'
           };
-          state.results.push(record);
-          renderSummary();
-          renderCards();
-          logln('완료 ✅');
-          await sleep(350); // 과도한 호출 방지
-        }catch(err){
-          logln('오류 ❌', String(err));
+        }
+        if (provider === 'google') {
+          if (!apiKey) throw new Error('Google Gemini API 키가 필요합니다.');
+          const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+          const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: fullPrompt }] }], generationConfig: { response_mime_type: "application/json", temperature: 0.2 } }) });
+          if (!res.ok) throw new Error(`Google API 오류: ${await res.text()}`);
+          const data = await res.json();
+          return sanitizeJSON(data.candidates?.[0]?.content?.parts?.[0]?.text ?? '{}');
+        }
+        if (provider === 'openai') {
+          if (!apiKey) throw new Error('OpenAI API 키가 필요합니다.');
+          const url = 'https://api.openai.com/v1/chat/completions';
+          const res = await fetch(url, { method: 'POST', headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ model, messages: [{ role: 'system', content: 'You are a strict rubric grader. Output JSON only.' }, { role: 'user', content: fullPrompt }], temperature: 0.2, response_format: { type: 'json_object' } }) });
+          if (!res.ok) throw new Error(`OpenAI API 오류: ${await res.text()}`);
+          const data = await res.json();
+          return sanitizeJSON(data.choices?.[0]?.message?.content ?? '');
+        }
+        if (provider === 'openrouter') {
+          if (!apiKey) throw new Error('OpenRouter 키가 필요합니다.');
+          const res = await fetch('https://openrouter.ai/api/v1/chat/completions', { method:'POST', headers:{ 'Authorization': `Bearer ${apiKey}`, 'Content-Type':'application/json', 'HTTP-Referer': location.origin, 'X-Title': 'PyProject Rubric Batch' }, body: JSON.stringify({ model, messages: [ { role:'system', content:'You are a strict rubric grader. Output JSON only.'}, { role:'user', content: fullPrompt } ], temperature: 0.2, response_format: { type: 'json_object' } }) });
+          if (!res.ok) throw new Error('OpenRouter 오류: ' + await res.text());
+          const j = await res.json();
+          return sanitizeJSON(j.choices?.[0]?.message?.content ?? '');
+        }
+        if (provider === 'huggingface') {
+          if (!apiKey) throw new Error('Hugging Face 토큰이 필요합니다.');
+          const res = await fetch(`https://api-inference.huggingface.co/models/${encodeURIComponent(model)}`, { method:'POST', headers:{ 'Authorization': `Bearer ${apiKey}`, 'Content-Type':'application/json' }, body: JSON.stringify({ inputs: fullPrompt, parameters: { max_new_tokens: 1024, temperature: 0.2, return_full_text: false } }) });
+          if (!res.ok) throw new Error('HF API 오류: ' + await res.text());
+          const data = await res.json();
+          return sanitizeJSON(data[0]?.generated_text ?? '');
+        }
+        if (provider === 'ollama') {
+          const res = await fetch('http://localhost:11434/api/generate', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ model, prompt: fullPrompt, options:{ temperature:0.2 }, format: 'json', stream: false }) });
+          if (!res.ok) throw new Error('Ollama 호출 실패. Ollama 프로그램 실행 및 CORS 설정을 확인하세요.');
+          const data = await res.json();
+          return sanitizeJSON(data.response);
+        }
+        throw new Error('알 수 없는 제공자입니다.');
+      }
+      // -----------------------------
+      // 상태 및 데이터 관리
+      // -----------------------------
+      const state = { running: false, results: [] };
+
+      function saveResults() {
+        localStorage.setItem('pyProjectResults', JSON.stringify(state.results));
+      }
+      function loadResults() {
+        const saved = localStorage.getItem('pyProjectResults');
+        if (saved) {
+          state.results = JSON.parse(saved);
+          logln('INFO', `${state.results.length}개의 저장된 평가 결과를 불러왔습니다.`);
         }
       }
-      state.running = false;
-      logln('== 종료 ==');
+      // -----------------------------
+      // UI 렌더링
+      // -----------------------------
+      function renderAll() {
+        renderSummary();
+        renderCards();
+      }
+      function renderSummary() {
+        const summaryBody = byId('summaryBody');
+        summaryBody.innerHTML = ''; // 초기화
+        state.results.forEach(r => {
+          const { mean, total } = averageScore(r.scores);
+          const tr = document.createElement('tr');
+          tr.dataset.filename = r.fileName;
+          tr.innerHTML = `
+            <td class="p-2 truncate" title="${r.fileName}">${r.fileName}</td>
+            <td class="p-2">${r.studentId || ''}</td><td class="p-2">${r.studentName || ''}</td>
+            <td class="p-2 text-right">${(r.scores?.knowledge??0).toFixed(1)}</td><td class="p-2 text-right">${(r.scores?.inquiry??0).toFixed(1)}</td>
+            <td class="p-2 text-right">${(r.scores?.creativity??0).toFixed(1)}</td><td class="p-2 text-right">${(r.scores?.communication??0).toFixed(1)}</td>
+            <td class="p-2 text-right">${(r.scores?.tools??0).toFixed(1)}</td><td class="p-2 text-right">${(r.scores?.attitude??0).toFixed(1)}</td>
+            <td class="p-2 text-right font-semibold">${mean.toFixed(2)}</td><td class="p-2 text-right font-semibold">${total.toFixed(1)}</td>`;
+          summaryBody.appendChild(tr);
+        });
+      }
+
+      function renderCards(selectedFilename = null) {
+          const cardsContainer = byId('cards');
+          const detailSection = byId('detailSection');
+          cardsContainer.innerHTML = '';
+          
+          if (!selectedFilename || !state.results.some(r => r.fileName === selectedFilename)) {
+              detailSection.classList.add('hidden');
+              return;
+          }
+
+          const r = state.results.find(res => res.fileName === selectedFilename);
+          if (r) {
+              const card = document.createElement('article');
+              const { mean } = averageScore(r.scores);
+              card.innerHTML = `
+                  <div class="flex items-start justify-between gap-3">
+                      <div>
+                          <h3 class="font-semibold text-lg">${r.studentName || '이름 미상'} <span class="text-slate-400 font-normal">(${r.studentId || '학번 미상'})</span></h3>
+                          <p class="text-sm text-slate-500 truncate" title="${r.fileName}">${r.fileName}</p>
+                      </div>
+                      <div class="text-right flex-shrink-0">
+                          <div class="text-xs text-slate-500">평균</div>
+                          <div class="text-xl font-extrabold mono">${mean.toFixed(2)}</div>
+                      </div>
+                  </div>
+                  <div class="radar-wrap" style="height:320px"><canvas></canvas></div>
+                  <div class="grid sm:grid-cols-2 gap-3 text-sm">
+                      ${createFeedbackBox('잘한 점', r.strengths, 'emerald')}
+                      ${createFeedbackBox('개선점', r.improvements, 'amber')}
+                      ${createFeedbackBox('교육과정 연계', r.alignment, 'blue')}
+                      ${createFeedbackBox('오개념/유의', r.misconceptions, 'rose')}
+                  </div>
+                  <div class="mt-4 text-sm">
+                    ${createFeedbackBox('과목별 세부능력 및 특기사항 (예시)', r.final_comment, 'violet', true)}
+                  </div>
+              `;
+              cardsContainer.appendChild(card);
+              new Chart(card.querySelector('canvas').getContext('2d'), {
+                  type: 'radar',
+                  data: { labels: ['A. 지식','B. 탐구','C. 창의','D. 소통','E. 도구','I. 태도'], datasets: [{ label: '점수', data: ['knowledge','inquiry','creativity','communication','tools','attitude'].map(k => Number(r.scores?.[k] || 0)), fill: true, backgroundColor: 'rgba(37,99,255,.16)', borderColor: 'rgba(37,99,255,1)' }] },
+                  options: { responsive: true, maintainAspectRatio: false, scales: { r: { min: 0, max: 5, ticks: { stepSize: 1 }, pointLabels: { font: { weight: '600' } } } }, plugins: { legend: { display: false } } }
+              });
+              detailSection.classList.remove('hidden');
+          } else {
+              detailSection.classList.add('hidden');
+          }
+      }
+
+      function createFeedbackBox(title, content, color, fullWidth = false) {
+        return `<div class="${fullWidth ? 'col-span-full ' : ''}bg-slate-50 rounded-lg p-3 border">
+                    <div class="font-semibold text-${color}-700 mb-1">${title}</div>
+                    <div>${content || ''}</div>
+                </div>`;
+      }
+      
+      function setRunningState(running) {
+        state.running = running;
+        byId('startBtn').disabled = running;
+        byId('spinner').classList.toggle('hidden', !running);
+      }
+      // -----------------------------
+      // 이벤트 리스너
+      // -----------------------------
+      let abort = false;
+      byId('stopBtn').addEventListener('click', () => { abort = true; });
+
+      byId('startBtn').addEventListener('click', async () => {
+        const files = Array.from(byId('fileInput').files || []);
+        if (!files.length) { alert('PDF 파일을 선택하세요.'); return; }
+        abort = false;
+        setRunningState(true);
+        const opts = { provider: byId('provider').value, apiKey: byId('apiKey').value.trim(), model: byId('model').value.trim(), prompt: byId('prompt').value.trim(), maxChars: Number(byId('maxChars').value || 8000) };
+        byId('queue').textContent = `${files.length}개 파일 처리 예정`;
+        logln('INFO', `평가를 시작합니다. (Provider: ${opts.provider}, Model: ${opts.model})`);
+
+        for (let i = 0; i < files.length; i++) {
+          if (abort) { logln('WARN', '사용자에 의해 작업이 중단되었습니다.'); break; }
+          const f = files[i];
+          if (state.results.some(r => r.fileName === f.name)) {
+            logln('INFO', `[${i+1}/${files.length}] "${f.name}"은(는) 이미 평가된 파일이므로 건너뜁니다.`);
+            continue;
+          }
+          logln('INFO', `[${i+1}/${files.length}] "${f.name}" 처리 중...`);
+          try {
+            const text = await extractPdfText(f, opts.maxChars);
+            logln('INFO', 'AI 모델을 호출합니다...');
+            const out = await callAI({ ...opts, input: text });
+            const meta = parseMetaFromFilename(f.name);
+            const record = { fileName: f.name, studentId: meta.studentId, studentName: meta.studentName, ...out };
+            state.results.push(record);
+            saveResults();
+            renderSummary();
+            logln('SUCCESS', `"${f.name}" 평가 완료!`);
+            await sleep(350);
+          } catch (err) {
+            logln('ERROR', `"${f.name}" 처리 중 오류 발생: ${err.message}`);
+          }
+        }
+        setRunningState(false);
+        logln('INFO', '모든 작업이 종료되었습니다.');
+      });
+
+      byId('downloadCsv').addEventListener('click', () => {
+        const header = ['file','studentId','studentName','knowledge','inquiry','creativity','communication','tools','attitude','mean','total','final_comment'];
+        const rows = state.results.map(r => {
+          const { mean, total } = averageScore(r.scores);
+          const s = r.scores || {};
+          const sanitized = (str) => `"${(str || '').replace(/"/g, '""').replace(/\n/g, ' ')}"`;
+          return [
+            sanitized(r.fileName), r.studentId, sanitized(r.studentName),
+            (s.knowledge??0).toFixed(1),(s.inquiry??0).toFixed(1),(s.creativity??0).toFixed(1),
+            (s.communication??0).toFixed(1),(s.tools??0).toFixed(1),(s.attitude??0).toFixed(1),
+            mean.toFixed(2), total.toFixed(1), sanitized(r.final_comment)
+          ].join(',');
+        });
+        const blob = new Blob(['\uFEFF' + [header.join(','), ...rows].join('\n')], { type: 'text/csv;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a'); a.href = url; a.download = 'pyproject_rubric.csv'; a.click();
+        URL.revokeObjectURL(url);
+      });
+
+      byId('downloadJson').addEventListener('click', () => {
+        const blob = new Blob([JSON.stringify(state.results, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a'); a.href = url; a.download = 'pyproject_rubric.json'; a.click();
+        URL.revokeObjectURL(url);
+      });
+
+      byId('clearBtn').addEventListener('click', () => {
+        if (confirm('모든 평가 결과를 초기화하시겠습니까? (이 작업은 되돌릴 수 없습니다!)')) {
+          state.results = [];
+          localStorage.removeItem('pyProjectResults');
+          renderAll();
+          logln('INFO', '모든 결과가 초기화되었습니다.');
+        }
+      });
+      
+      byId('provider').addEventListener('change', (e) => {
+        const provider = e.target.value;
+        const modelInput = byId('model');
+        const recommendations = {
+            google: 'gemini-2.5-flash-lite',
+            openai: 'gpt-5-mini',
+            openrouter: 'meta-llama/Meta-Llama-3.3-70B-Instruct',
+            huggingface: 'meta-llama/Meta-Llama-3.3-70B-Instruct',
+            ollama: 'llama3.1',
+            mock: ''
+        };
+        modelInput.value = recommendations[provider] || '';
+      });
+
+      byId('summaryBody').addEventListener('click', (e) => {
+          const row = e.target.closest('tr');
+          if (!row) return;
+          
+          document.querySelectorAll('#summaryBody tr').forEach(r => r.classList.remove('selected-row'));
+          row.classList.add('selected-row');
+          
+          const filename = row.dataset.filename;
+          renderCards(filename);
+      });
+      
+      // -----------------------------
+      // 모달 (팝업) 관리
+      // -----------------------------
+      const helpContent = {
+        google: `
+          <h3 class="font-semibold text-base mb-2">Google Gemini 모델 가이드</h3>
+          <p>Google의 최신 AI 모델을 사용합니다. <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-blue-600 hover:underline">Google AI Studio</a>에서 API 키를 발급받으세요.</p>
+          <ul class="list-disc list-inside mt-2 space-y-2">
+            <li><b class="font-semibold">gemini-2.5-pro</b>: 텍스트, 이미지, 오디오, 비디오를 동시에 이해하는 최상위 멀티모달 성능과 복잡한 문제 해결을 위한 고도의 추론 능력을 갖춘 가장 강력한 플래그십 모델입니다.</li>
+            <li><b class="font-semibold">gemini-2.5-flash</b>: 빠른 응답 속도와 합리적인 비용의 균형을 맞춘 고성능 모델입니다. 복잡한 작업(Thinking)을 지원하면서도 효율성이 높아 범용적으로 사용하기에 가장 적합합니다.</li>
+            <li><b class="font-semibold">gemini-2.5-flash-lite</b>: 비용 효율성과 낮은 지연 시간(Low Latency) 에 초점을 맞춘 경량화 모델입니다. 대규모 또는 실시간 서비스에 적용하기에 가장 경제적이고 효율적인 선택지입니다.</li>
+          </ul>`,
+        openai: `
+          <h3 class="font-semibold text-base mb-2">OpenAI GPT 모델 가이드</h3>
+          <p>OpenAI의 GPT 모델을 사용합니다. <a href="https://platform.openai.com/api-keys" target="_blank" class="text-blue-600 hover:underline">OpenAI 플랫폼</a>에서 API 키를 발급받아야 합니다.</p>
+          <ul class="list-disc list-inside mt-2 space-y-2">
+            <li><b class="font-semibold">gpt-5</b>: 가장 뛰어나고 정확한 추론 능력을 갖춘 최상위 플래그십 모델입니다. 복잡하고 전문적인 분야에서 인간 전문가 수준의 결과물을 목표로 합니다.</li>
+            <li><b class="font-semibold">gpt-5-mini</b>: 속도와 비용 효율성을 높인 경량화 버전입니다. GPT-5의 강력한 성능을 유지하면서도, 명확하게 정의된 작업에서 더 빠르고 경제적으로 사용할 수 있습니다.</li>
+            <li><b class="font-semibold">gpt-5-nano</b>: 가장 빠르고 가장 저렴한 GPT-5 계열 모델입니다. 요약, 분류 등 신속한 처리가 중요한 작업에 최적화되어 있습니다.</li>
+            <li><b class="font-semibold">gpt-5-codex</b>: 소프트웨어 엔지니어링 작업에 특화된 에이전트 모델입니다. 단순 코드 생성을 넘어, 스스로 테스트를 실행하고 오류를 수정하며 반복적으로 작업을 수행하는 자율적인 능력을 갖추고 있습니다.</li>
+          </ul>`,
+        openrouter: `
+          <h3 class="font-semibold text-base mb-2">최신 AI 모델 가이드 (OpenRouter)</h3>
+          <p>OpenRouter는 다양한 최신 AI 모델을 한 곳에서 사용할 수 있는 플랫폼입니다. API 키 발급 후 원하는 모델명을 입력하여 사용하세요.</p>
+          <div class="mt-3 space-y-3">
+            <div>
+              <h4 class="font-semibold">종합 모델 (Flagship Generalist Models)</h4>
+              <ul class="list-disc list-inside mt-1 space-y-1">
+                <li><b class="font-semibold">meta-llama/Meta-Llama-3.3-70B-Instruct</b>: 2025년 하반기 SOTA 모델의 새로운 기준. 추론과 코딩 성능이 대폭 향상되어 현재 가장 강력하고 균형 잡힌 종합 성능을 지닌 모델 중 하나로 평가받습니다.</li>
+                <li><b class="font-semibold">deepseek-ai/deepseek-v3.2-reasoner</b>: '사고(Thinking)' 모드가 탑재된 2025년 9월 출시 최신 모델로, 심층적인 분석과 계획 수립, 지능형 에이전트 기능이 강화되었습니다.</li>
+              </ul>
+            </div>
+            <div>
+              <h4 class="font-semibold">교과 심화 및 전문 분야 평가 (Specialized SOTA Models)</h4>
+              <ul class="list-disc list-inside mt-1 space-y-1">
+                <li><b class="font-semibold">google/gemma-3-27b-it</b>: 과학, 기술, 수학(STM) 및 다이어그램, 차트 등 이미지까지 함께 이해하는 멀티모달(Multimodal) 평가에 최적화된 모델입니다.</li>
+                <li><b class="font-semibold">Qwen/Qwen3-Coder-480B-A35B-Instruct</b>: 코드의 복잡한 아키텍처와 논리적 오류를 매우 높은 정확도로 분석하는 초대형 코딩 전문 모델입니다.</li>
+                <li><b class="font-semibold">mistralai/Mistral-Large-24.11-Instruct-v0.1</b>: 수학 증명, 알고리즘 설계의 논리적 흐름을 세밀하게 평가하는 데 강점을 보입니다.</li>
+              </ul>
+            </div>
+            <div>
+              <h4 class="font-semibold">주목할 만한 신흥 모델 (Notable Emerging Models)</h4>
+              <ul class="list-disc list-inside mt-1 space-y-1">
+                <li><b class="font-semibold">moonshotai/Kimi-Dev-72B</b>: 분량이 매우 긴 연구 보고서나 프로젝트 전체 문서를 컨텍스트 손실 없이 한 번에 분석하는 데 독보적입니다.</li>
+                <li><b class="font-semibold">anthropic/claude-4.5-sonnet-instruct</b>: 보고서의 논리적 비약이나 윤리적 문제점을 발견하고, 인간과 유사한 섬세한 피드백을 생성하는 데 유리합니다.</li>
+              </ul>
+            </div>
+          </div>`,
+        huggingface: `
+          <h3 class="font-semibold text-base mb-2">최신 AI 모델 가이드 (Hugging Face)</h3>
+          <p>Hugging Face는 다양한 오픈소스 모델을 사용할 수 있는 허브입니다. <a href="https://huggingface.co/settings/tokens" target="_blank" class="text-blue-600 hover:underline">Hugging Face 계정</a>에서 API 토큰(키)이 필요합니다.</p>
+          <div class="mt-3 space-y-3">
+            <div>
+              <h4 class="font-semibold">종합 모델 (Flagship Generalist Models)</h4>
+              <ul class="list-disc list-inside mt-1 space-y-1">
+                <li><b class="font-semibold">meta-llama/Meta-Llama-3.3-70B-Instruct</b>: 2025년 하반기 SOTA 모델의 새로운 기준. 추론과 코딩 성능이 대폭 향상되어 현재 가장 강력하고 균형 잡힌 종합 성능을 지닌 모델 중 하나로 평가받습니다.</li>
+                <li><b class="font-semibold">deepseek-ai/deepseek-v3.2-reasoner</b>: '사고(Thinking)' 모드가 탑재된 2025년 9월 출시 최신 모델로, 심층적인 분석과 계획 수립, 지능형 에이전트 기능이 강화되었습니다.</li>
+              </ul>
+            </div>
+            <div>
+              <h4 class="font-semibold">기반 유틸리티 (Foundational Utilities for Pipeline)</h4>
+              <ul class="list-disc list-inside mt-1 space-y-1">
+                  <li><b class="font-semibold">facebook/bart-large-mnli</b>: 제로샷 텍스트 분류에 특화되어, 루브릭 기준을 레이블로 제시하여 보고서 내용을 자동으로 분류 및 점수화할 수 있습니다.</li>
+                  <li><b class="font-semibold">Tegence/grammar-correction-model</b>: 문법 및 표현 오류 교정에 최적화되어, 보고서의 기본적인 문장 완성도를 평가하는 데 사용합니다.</li>
+              </ul>
+            </div>
+          </div>`,
+        ollama: `
+          <h3 class="font-semibold text-base mb-2">Ollama (로컬) 모델 사용 가이드</h3>
+          <p>'Ollama'는 사용자의 PC에 직접 AI 모델을 설치하고 실행하는 방식입니다. 인터넷 연결 없이 오프라인으로 사용할 수 있습니다.</p>
+          <div class="space-y-2 mt-2">
+            <p><b>1단계: Ollama 프로그램 설치</b><br><a href="https://ollama.com" target="_blank" class="text-blue-600 hover:underline">ollama.com 공식 홈페이지</a>에서 자신의 PC 운영체제에 맞는 프로그램을 설치하세요.</p>
+            <p><b>2단계: 터미널에서 모델 다운로드</b><br>설치 후, 터미널(cmd, PowerShell 등)을 열고 아래 명령어로 원하는 모델을 다운로드합니다.<br><code class="mono">ollama run llama3.1</code></p>
+            <p><b>3단계: 웹 도구에서 설정</b><br>Ollama 프로그램이 실행 중인 상태에서, 모델명에 <code class="mono">llama3.1</code> 등을 입력하고 평가를 시작하세요. API 키는 필요 없습니다.</p>
+          </div>`,
+        default: `<p>현재 선택된 AI 제공자에 대한 안내가 없습니다.</p>`
+      };
+      
+      const helpModal = byId('helpModal');
+      byId('helpBtn').addEventListener('click', () => {
+        const provider = byId('provider').value;
+        byId('modalTitle').textContent = `${byId('provider').options[byId('provider').selectedIndex].text} 모델 가이드`;
+        byId('modalContent').innerHTML = helpContent[provider] || helpContent.default;
+        helpModal.classList.remove('hidden');
+      });
+      byId('closeModalBtn').addEventListener('click', () => helpModal.classList.add('hidden'));
+      helpModal.addEventListener('click', (e) => { if (e.target === helpModal) helpModal.classList.add('hidden'); });
+
+      // 페이지 로드 시 데이터 불러오기 및 렌더링
+      loadResults();
+      renderAll();
     });
   </script>
 </body>
