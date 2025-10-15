@@ -60,6 +60,15 @@
             .screenshot-container img { max-width: 100%; display: block !important; }
             #code-input { display: block !important; white-space: pre-wrap !important; word-wrap: break-word !important; border: 1px solid #e2e8f0; background-color: #f8fafc !important; color: #000000 !important; padding: 1rem; }
         }
+        /* Markdown List Style Fix */
+        .prose ul {
+            list-style-type: disc;
+            padding-left: 1.5em;
+        }
+        .prose ol {
+            list-style-type: decimal;
+            padding-left: 1.5em;
+        }
     </style>
 </head>
 <body class="bg-slate-100 text-slate-700">
@@ -330,4 +339,3 @@
     </footer>
 </body>
 </html>
-
