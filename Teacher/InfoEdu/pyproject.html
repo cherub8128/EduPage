@@ -272,6 +272,16 @@
             return isValid;
         }
 
+        function updatePrintableInputs() {
+            // Ensure all markdown previews are up-to-date before printing.
+            document.querySelectorAll('.markdown-input').forEach(textarea => {
+                // We only want to update textareas that have a preview element.
+                if (textarea.parentElement.querySelector('.markdown-preview')) {
+                    updatePreview(textarea);
+                }
+            });
+        }
+
         function saveAsPdf() {
             updatePrintableInputs();
             if (validateForm()) {
