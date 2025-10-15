@@ -157,7 +157,7 @@
             {
                 title: "Step 1: 필요한 라이브러리 설치",
                 explanation: `
-                    <p>가장 먼저, PC의 터미널을 열고 Gemma 3 실행에 필요한 도구들을 설치합니다.</p>
+                    <p>가장 먼저, PC의 터미널을 관리자 권한으로 열고 Gemma 3 실행에 필요한 도구들을 설치합니다.</p>
                     <div class="explanation-box">
                         <p class="text-indigo-300"><strong>핵심 라이브러리:</strong><br>
                         - <code class="font-bold text-white">huggingface-hub:</code> 모델 다운로드 담당<br>
@@ -176,11 +176,11 @@
                         <p class="text-indigo-300"><strong>토큰 발급 (Read 권한):</strong><br>
                         1. 로그인 후, 프로필 > <strong>Settings</strong> > <strong>Access Tokens</strong> 탭으로 이동<br>
                         2. <strong>New token</strong> 버튼 클릭<br>
-                        3. 이름(Name)을 정하고, 역할(Role)을 <strong>read</strong>로 선택 후 생성</p>
+                        3. 이름(Name)을 정하고, Repositories와 Inference 모두 체크 후 생성</p>
                     </div>
-                    <p class="mt-4">생성된 토큰을 복사한 뒤, 아래 명령어를 터미널에 입력하여 로그인을 완료하세요. 토큰을 붙여넣고 엔터를 누르면 로그인되며, 입력하는 내용은 보이지 않습니다.</p>
+                    <p class="mt-4">생성된 토큰을 복사한 뒤, 아래 명령어를 터미널에 입력하여 로그인을 완료하세요. 토큰을 오른쪽 클릭으로 붙여넣고 엔터를 누르면 로그인되며, 입력하는 내용은 보이지 않습니다.</p>
                 `,
-                code: `huggingface-cli login`,
+                code: `hf auth login`,
                 language: 'bash'
             },
             {
@@ -252,7 +252,7 @@ print("Creating a pipeline with the local model...")
 pipe = pipeline(
     "text-generation",
     model=local_model_path,
-    device="cuda", # Use GPU
+    device="cpu", # Use GPU
     dtype=torch.float32,
 )
 print("Pipeline created! Starting chat.")
@@ -400,7 +400,7 @@ print("Creating a pipeline with the local model (270M)...")
 pipe = pipeline(
     "text-generation",
     model=local_model_path,
-    device="cuda",
+    device="cpu",
     dtype=torch.float32,
 )
 print("Pipeline created! Starting chat.")

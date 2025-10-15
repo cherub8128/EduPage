@@ -17,7 +17,7 @@ CORS(app)
 # --- IMPORTANT ---
 # Change this path to the directory of your local model.
 # This can be a model you downloaded or your own fine-tuned model.
-MODEL_PATH = "google/gemma-3-270m-it" 
+MODEL_PATH = "./google/gemma-3-1b-it" 
 
 print(f"Loading AI model from: {MODEL_PATH}...")
 # Initialize the text generation pipeline
@@ -25,7 +25,7 @@ try:
     pipe = pipeline(
         "text-generation",
         model=MODEL_PATH,
-        torch_dtype=torch.bfloat16,
+        dtype=torch.float32,
         device_map="auto" # Automatically use GPU if available
     )
     print("AI model loaded successfully!")
