@@ -273,14 +273,11 @@
         }
 
         function updatePrintableInputs() {
-            // Ensure all markdown previews are up-to-date before printing.
-            document.querySelectorAll('.markdown-input').forEach(textarea => {
-                // We only want to update textareas that have a preview element.
-                if (textarea.parentElement.querySelector('.markdown-preview')) {
-                    updatePreview(textarea);
-                }
+             document.querySelectorAll('.text-input.editable-field').forEach(input => {
+                input.setAttribute('data-value', input.value);
             });
         }
+
 
         function saveAsPdf() {
             updatePrintableInputs();
