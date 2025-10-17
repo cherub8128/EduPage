@@ -74,8 +74,8 @@
                     <div><label for="student-name" class="block text-sm font-semibold text-slate-700 mb-1">이름</label><input type="text" id="student-name" placeholder="차형준" class="savable w-full border-slate-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"><div class="printable-content"></div></div>
                     <div><label for="student-info" class="block text-sm font-semibold text-slate-700 mb-1">학번</label><input type="text" id="student-info" placeholder="예: 20530" class="savable w-full border-slate-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"><div class="printable-content"></div></div>
                 </div>
-                <div class="mt-6"><label for="model-name" class="block text-sm font-semibold text-slate-700 mb-1">탐색 모델명</label><input type="text" id="model-name" placeholder="예: google/gemma-2-9b-it" class="savable w-full border-slate-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"><div class="printable-content"></div></div>
-                <div class="mt-6"><label for="model-link" class="block text-sm font-semibold text-slate-700 mb-1">Hugging Face 모델 링크</label><input type="text" id="model-link" placeholder="예: https://huggingface.co/google/gemma-2-9b-it" class="savable w-full border-slate-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"><div class="printable-content"></div></div>
+                <div class="mt-6"><label for="model-name" class="block text-sm font-semibold text-slate-700 mb-1">탐색 모델명</label><input type="text" id="model-name" placeholder="예: google/gemma-3-1b-it" class="savable w-full border-slate-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"><div class="printable-content"></div></div>
+                <div class="mt-6"><label for="model-link" class="block text-sm font-semibold text-slate-700 mb-1">Hugging Face 모델 링크</label><input type="text" id="model-link" placeholder="예: https://huggingface.co/google/gemma-3-1b-it" class="savable w-full border-slate-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"><div class="printable-content"></div></div>
                 <div class="mt-6"><label for="selection-reason" class="block text-sm font-semibold text-slate-700 mb-1">이 모델을 선택한 이유</label><textarea id="selection-reason" placeholder="모델의 특징, 최신 기술, 개인적인 흥미 등 선택하게 된 계기를 자유롭게 서술하세요." class="savable markdown-input w-full border-slate-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 min-h-[150px]"></textarea><div class="markdown-preview prose max-w-none mt-2"></div></div>
             </section>
             
@@ -348,106 +348,98 @@
             loader.style.display = 'flex';
 
             try {
-                await new Promise(resolve => setTimeout(resolve, 100));
-
-                const canvas = await html2canvas(reportContent, {
-                    scale: 2,
-                    useCORS: true,
-                    logging: false,
-                    onclone: (doc) => {
-                        // 1. 캡처 전, 복제된 문서에서 편집용 UI를 숨기고 출력용 UI를 보이게 설정
-                        doc.querySelectorAll('.savable, .no-print, #add-parameter-btn, .remove-parameter-btn').forEach(el => {
-                            if (el.style) el.style.display = 'none';
-                        });
-                        doc.querySelectorAll('.printable-content, .markdown-preview').forEach(el => {
-                            if (el.style) el.style.display = 'block';
-                        });
-                        const paramsContainerClone = doc.getElementById('parameters-container');
-                        if (paramsContainerClone && paramsContainerClone.style) {
-                            paramsContainerClone.style.display = 'none';
-                        }
-
-                        // 2. 일반 입력 필드의 값을 출력용 div로 복사
-                        doc.querySelectorAll('.savable:not(.markdown-input)').forEach(el => {
-                            const printableEl = el.nextElementSibling;
-                            if (printableEl) {
-                                printableEl.textContent = el.value.trim();
-                            }
-                        });
-
-                        // 3. 마크다운 입력 필드의 값을 HTML로 변환하여 출력용 div에 삽입
-                        doc.querySelectorAll('.savable.markdown-input').forEach(el => {
-                            const printableEl = el.nextElementSibling;
-                            if (printableEl) {
-                                printableEl.innerHTML = converter.makeHtml(el.value);
-                            }
-                        });
-
-                        // 4. 파라미터 값을 읽어와 출력용 리스트 생성 (문제 해결의 핵심)
-                        const paramsPrintableClone = doc.getElementById('parameters-printable');
-                        if (paramsPrintableClone) {
-                            let paramsHtml = '<ul style="margin: 0; padding-left: 20px; list-style-type: disc;">';
-                            document.querySelectorAll('.parameter-row').forEach(row => {
-                                const name = row.querySelector('.param-name').value.trim();
-                                const value = row.querySelector('.param-value').value.trim();
-                                if (name || value) {
-                                    paramsHtml += `<li style="font-size: 14px;"><strong>${name || ''}:</strong> ${value || ''}</li>`;
-                                }
-                            });
-                            paramsHtml += '</ul>';
-                            paramsPrintableClone.innerHTML = paramsHtml;
-                        }
-
-                        // 5. 스크린샷 이미지 복사
-                        const printableScreenshotContainerClone = doc.getElementById('printable-screenshot-container');
-                        if (printableScreenshotContainerClone) {
-                            const originalScreenshot = document.getElementById('screenshot-preview');
-                            if (originalScreenshot && originalScreenshot.src && !originalScreenshot.src.endsWith('#')) {
-                                printableScreenshotContainerClone.innerHTML = `<img src="${originalScreenshot.src}" style="max-width: 100%; border-radius: 0.5rem;" />`;
-                            } else {
-                                printableScreenshotContainerClone.innerHTML = '';
-                            }
-                        }
-
-                        // 6. 복제된 문서 전체에 KaTeX를 다시 렌더링
-                        renderMathInElement(doc.body, {
-                            delimiters: [
-                                {left: '$$', right: '$$', display: true},
-                                {left: '$', right: '$', display: false},
-                                {left: '\\(', right: '\\)', display: false},
-                                {left: '\\[', right: '\\]', display: true}
-                            ],
-                            throwOnError: false
-                        });
-                    }
-                });
-                
-                const imgData = canvas.toDataURL('image/png');
                 const { jsPDF } = window.jspdf;
                 const pdf = new jsPDF({
                     orientation: 'portrait',
                     unit: 'mm',
                     format: 'a4'
                 });
-
                 const pdfWidth = pdf.internal.pageSize.getWidth();
                 const pdfHeight = pdf.internal.pageSize.getHeight();
-                const canvasWidth = canvas.width;
-                const canvasHeight = canvas.height;
-                const canvasAspectRatio = canvasHeight / canvasWidth;
-                
-                const imgHeight = pdfWidth * canvasAspectRatio;
-                let heightLeft = imgHeight;
-                let position = 0;
+                const margin = 15;
+                const contentWidth = pdfWidth - (margin * 2);
+                let yPosition = margin;
 
-                pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
-                heightLeft -= pdfHeight;
+                const sections = Array.from(reportContent.querySelectorAll('.report-section'));
 
-                while (heightLeft > 0) {
-                    position = heightLeft - imgHeight;
-                    pdf.addPage();
-                    pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
-                    heightLeft -= pdfHeight;
+                for (const section of sections) {
+                    const canvas = await html2canvas(section, {
+                        scale: 2,
+                        useCORS: true,
+                        logging: false,
+                        onclone: (doc) => {
+                            const clonedSection = doc.body.children[0];
+                            if (!clonedSection) return;
+
+                            // 1. Prepare clone for printing
+                            clonedSection.querySelectorAll('.savable, .no-print, #add-parameter-btn, .remove-parameter-btn').forEach(el => { el.style.display = 'none'; });
+                            clonedSection.querySelectorAll('.printable-content, .markdown-preview').forEach(el => { el.style.display = 'block'; });
+                            const paramsContainerClone = clonedSection.querySelector('#parameters-container');
+                            if (paramsContainerClone) paramsContainerClone.style.display = 'none';
+
+                            // 2. Populate cloned elements with data from original elements
+                            section.querySelectorAll('.savable:not(.markdown-input)').forEach(originalEl => {
+                                const clonedEl = doc.getElementById(originalEl.id);
+                                if (clonedEl) {
+                                    const printableEl = clonedEl.nextElementSibling;
+                                    if (printableEl) printableEl.textContent = originalEl.value.trim();
+                                }
+                            });
+
+                            section.querySelectorAll('.savable.markdown-input').forEach(originalEl => {
+                                const clonedEl = doc.getElementById(originalEl.id);
+                                if(clonedEl) {
+                                    const printableEl = clonedEl.nextElementSibling;
+                                    if (printableEl) printableEl.innerHTML = converter.makeHtml(originalEl.value);
+                                }
+                            });
+
+                            const paramsPrintableClone = doc.getElementById('parameters-printable');
+                            if (paramsPrintableClone) {
+                                let paramsHtml = '<ul style="margin: 0; padding-left: 20px; list-style-type: disc;">';
+                                document.querySelectorAll('.parameter-row').forEach(row => {
+                                    const name = row.querySelector('.param-name').value.trim();
+                                    const value = row.querySelector('.param-value').value.trim();
+                                    if (name || value) {
+                                        paramsHtml += `<li style="font-size: 14px;"><strong>${name || ''}:</strong> ${value || ''}</li>`;
+                                    }
+                                });
+                                paramsHtml += '</ul>';
+                                paramsPrintableClone.innerHTML = paramsHtml;
+                            }
+
+                            const printableScreenshotContainerClone = doc.getElementById('printable-screenshot-container');
+                            if (printableScreenshotContainerClone) {
+                                const originalScreenshot = document.getElementById('screenshot-preview');
+                                if (originalScreenshot && originalScreenshot.src && !originalScreenshot.src.endsWith('#')) {
+                                    printableScreenshotContainerClone.innerHTML = `<img src="${originalScreenshot.src}" style="max-width: 100%; border-radius: 0.5rem;" />`;
+                                } else {
+                                    printableScreenshotContainerClone.innerHTML = '';
+                                }
+                            }
+                            
+                            // 3. Re-render KaTeX on the cloned document
+                            renderMathInElement(doc.body, {
+                                delimiters: [
+                                    {left: '$$', right: '$$', display: true},
+                                    {left: '$', right: '$', display: false},
+                                    {left: '\\(', right: '\\)', display: false},
+                                    {left: '\\[', right: '\\]', display: true}
+                                ],
+                                throwOnError: false
+                            });
+                        }
+                    });
+                    
+                    const imgHeight = (canvas.height * contentWidth) / canvas.width;
+
+                    if (yPosition + imgHeight > pdfHeight - margin) {
+                        pdf.addPage();
+                        yPosition = margin;
+                    }
+
+                    pdf.addImage(canvas.toDataURL('image/png'), 'PNG', margin, yPosition, contentWidth, imgHeight);
+                    yPosition += imgHeight + 5; // Add 5mm gap between sections
                 }
 
                 const studentId = document.getElementById('student-info').value.trim() || '학번';
@@ -489,6 +481,8 @@
 
         loadContent();
     });
+
+
 
 
     </script>
