@@ -335,7 +335,6 @@
 
             // --- API Call ---
             const callHuggingFaceApi = async () => {
-                // ... (API call logic remains the same)
                 const apiKey = apiKeyInput.value;
                 if (!apiKey) {
                     addMessageToUI('ai', 'Hugging Face API 키를 입력해주세요.');
@@ -349,24 +348,31 @@
                     const model = modelIdInput.value;
                     const API_URL = `https://api-inference.huggingface.co/models/${model}`;
                     
-                    let payload, headers;
-                    
-                    headers = { "Authorization": `Bearer ${apiKey}` };
+                    let response;
+                    const headers = { "Authorization": `Bearer ${apiKey}` };
+
+                    const handleApiError = async (response) => {
+                        if (response.status === 404) {
+                             throw new Error(`모델을 찾을 수 없습니다 (404 Not Found). 입력하신 모델 ID가 정확한지 확인해주세요.`);
+                        }
+                        const errorResult = await response.json();
+                        if (errorResult.error && errorResult.error.includes("is currently loading")) {
+                            const waitTime = Math.ceil(errorResult.estimated_time || 20);
+                            throw new Error(`모델을 로딩 중입니다. 약 ${waitTime}초 후에 다시 시도해주세요.`);
+                        }
+                        throw new Error(errorResult.error || `HTTP error! status: ${response.status}`);
+                    };
 
                     if (task === 'text-generation') {
                         headers["Content-Type"] = "application/json";
                         let fullPrompt = "";
-                        if (systemPromptInput.value) {
-                            fullPrompt += `<|system|>\n${systemPromptInput.value}\n`;
-                        }
+                        if (systemPromptInput.value) fullPrompt += `<|system|>\n${systemPromptInput.value}\n`;
                         chatHistory.forEach(msg => {
-                             if(msg.role === 'user' || msg.role === 'assistant') {
-                                fullPrompt += `<|${msg.role}|>\n${msg.content}\n`;
-                            }
+                             if(msg.role === 'user' || msg.role === 'assistant') fullPrompt += `<|${msg.role}|>\n${msg.content}\n`;
                         });
                         fullPrompt += "<|assistant|>\n";
-
-                        payload = {
+                        
+                        const payload = {
                             inputs: fullPrompt,
                             parameters: {
                                 temperature: parseFloat(tempSlider.value),
@@ -375,54 +381,68 @@
                                 return_full_text: false,
                             }
                         };
-                         const response = await fetch(API_URL, { method: 'POST', headers, body: JSON.stringify(payload) });
-                         const result = await response.json();
-                         if (response.ok) {
-                             const aiResponse = result[0].generated_text.trim();
-                             chatHistory.push({ role: 'assistant', content: aiResponse });
-                             addMessageToUI('ai', aiResponse);
-                         } else {
-                             throw new Error(result.error || "Unknown error");
-                         }
+                        response = await fetch(API_URL, { method: 'POST', headers, body: JSON.stringify(payload) });
+
+                        if (!response.ok) await handleApiError(response);
+                        
+                        const result = await response.json();
+                        if (Array.isArray(result) && result[0].generated_text) {
+                            const aiResponse = result[0].generated_text.trim();
+                            chatHistory.push({ role: 'assistant', content: aiResponse });
+                            addMessageToUI('ai', aiResponse);
+                        } else {
+                            throw new Error('API 응답 형식이 올바르지 않습니다.');
+                        }
+
                     } else if (task === 'text-to-image') {
                         headers["Content-Type"] = "application/json";
                         const lastUserMessage = chatHistory.slice().reverse().find(m => m.role === 'user').content;
-                        payload = { inputs: lastUserMessage };
-                         const response = await fetch(API_URL, { method: 'POST', headers, body: JSON.stringify(payload) });
-                         if (response.ok) {
-                             const imageBlob = await response.blob();
-                             const imageUrl = URL.createObjectURL(imageBlob);
-                             chatHistory.push({ role: 'assistant', content: imageUrl, isImage: true });
-                             addMessageToUI('ai', imageUrl, true);
-                         } else {
-                            const result = await response.json();
-                             throw new Error(result.error);
-                         }
+                        const payload = { inputs: lastUserMessage };
+                        response = await fetch(API_URL, { method: 'POST', headers, body: JSON.stringify(payload) });
+                         
+                        if (!response.ok) await handleApiError(response);
+                         
+                        const imageBlob = await response.blob();
+                        const imageUrl = URL.createObjectURL(imageBlob);
+                        chatHistory.push({ role: 'assistant', content: imageUrl, isImage: true });
+                        addMessageToUI('ai', imageUrl, true);
+
                     } else if (task === 'image-to-text') {
                         if (!attachedFile) throw new Error("이미지를 첨부해주세요.");
                         const binaryData = await fileToBinary(attachedFile);
-                        const response = await fetch(API_URL, { method: 'POST', headers, body: binaryData });
+                        response = await fetch(API_URL, { method: 'POST', headers, body: binaryData });
+                        
+                        if (!response.ok) await handleApiError(response);
+
                         const result = await response.json();
-                        if (response.ok) {
-                            const caption = result[0].generated_text;
-                            chatHistory.push({ role: 'assistant', content: caption });
-                            addMessageToUI('ai', caption);
+                        if (Array.isArray(result) && result[0].generated_text) {
+                             const caption = result[0].generated_text;
+                             chatHistory.push({ role: 'assistant', content: caption });
+                             addMessageToUI('ai', caption);
                         } else {
-                             throw new Error(result.error);
+                            throw new Error('API 응답 형식이 올바르지 않습니다.');
                         }
                     }
                 } catch (error) {
                     addMessageToUI('ai', `오류가 발생했습니다: ${error.message}`);
                 } finally {
-                    loadingBubble.remove();
+                    if (loadingBubble) loadingBubble.remove();
                     saveState();
                 }
             };
 
             // --- Event Listeners ---
             const toggleSidebar = () => {
-                sidebar.classList.toggle('-translate-x-[calc(100%+1rem)]');
-                sidebarOverlay.classList.toggle('hidden');
+                const isMobileHidden = sidebar.classList.contains('-translate-x-[calc(100%+1rem)]');
+                if (isMobileHidden) {
+                     sidebar.classList.remove('-translate-x-[calc(100%+1rem)]');
+                     sidebar.classList.add('translate-x-0');
+                     sidebarOverlay.classList.remove('hidden');
+                } else {
+                     sidebar.classList.add('-translate-x-[calc(100%+1rem)]');
+                     sidebar.classList.remove('translate-x-0');
+                     sidebarOverlay.classList.add('hidden');
+                }
             };
             
             sidebarToggle.addEventListener('click', toggleSidebar);
@@ -451,7 +471,7 @@
                 let userMessageContent = text;
                 if (attachedFile) {
                     const fileText = `[파일: ${attachedFile.name}]`;
-                    userMessageContent = text ? `${fileText}\n${text}` : fileText;
+                    userMessageContent = text ? `${fileText}\n${text}` : text;
                 }
                 
                 addMessageToUI('user', userMessageContent);
@@ -507,4 +527,5 @@
     </script>
 </body>
 </html>
+
 
