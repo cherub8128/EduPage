@@ -7,17 +7,34 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         @media print {
-            body * { visibility: hidden; }
-            #report-content, #report-content * { visibility: visible; }
-            #report-content { position: absolute; left: 0; top: 0; width: 100%; }
-            .no-print, .action-button, header { display: none !important; }
-            .report-section { box-shadow: none; border: 1px solid #E5E7EB; page-break-inside: avoid; }
-            input.savable, textarea.savable, select.savable { display: none; }
-            .printable-content { display: block !important; padding: 0.75rem 0; }
-             #screenshot-preview-container img { max-width: 100% !important; }
+            body { background-color: white !important; }
+            .no-print, header, footer { display: none !important; }
+            #report-content {
+                box-shadow: none;
+                border: none;
+                padding: 0; margin: 0;
+            }
+            .report-section {
+                box-shadow: none;
+                border: 1px solid #E5E7EB;
+                page-break-inside: avoid;
+            }
+            input.savable, textarea.savable, select.savable, .no-print-content {
+                display: none;
+            }
+            .printable-content {
+                display: block !important;
+                padding: 0.5rem 0;
+                min-height: 1.5rem; /* Ensure empty fields still take up space */
+                white-space: pre-wrap; /* Preserve line breaks from textareas */
+                word-break: break-word;
+            }
+             #printable-screenshot-container img {
+                max-width: 100% !important;
+                display: block !important;
+             }
         }
         body {
             font-family: 'Inter', 'Noto Sans KR', sans-serif;
@@ -94,7 +111,6 @@
                  <div class="mt-6"><label for="selection-reason">이 모델을 선택한 이유</label><textarea id="selection-reason" placeholder="모델의 특징, 최신 기술, 개인적인 흥미 등 선택하게 된 계기를 자유롭게 서술하세요." class="savable"></textarea><div class="printable-content prose max-w-none"></div></div>
             </section>
             
-            <!-- Other sections are structured similarly -->
             <section class="report-section">
                 <h2 class="report-title">2. 모델 테스트 및 분석</h2>
                 <div class="mt-6">
@@ -107,7 +123,6 @@
                     </select>
                     <div class="printable-content"></div>
                 </div>
-
                 <div class="mt-6">
                     <label>주요 파라미터 설정</label>
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-2">
@@ -116,10 +131,19 @@
                         <div><label for="param-top-p" class="text-sm font-medium text-gray-500">Top-P</label><input type="number" id="param-top-p" step="0.05" placeholder="예: 0.95" class="mt-1 savable"><div class="printable-content"></div></div>
                     </div>
                 </div>
-
                 <div class="mt-6"><label for="test-goal">테스트 목표</label><textarea id="test-goal" placeholder="이 모델의 어떤 성능을 확인하고 싶었나요?" class="savable"></textarea><div class="printable-content prose max-w-none"></div></div>
                 <div class="mt-6"><label for="test-process">테스트 과정 및 결과</label><textarea id="test-process" placeholder="어떤 프롬프트를 사용했고, 그 결과 AI는 어떻게 반응했는지 구체적으로 작성하세요." class="savable"></textarea><div class="printable-content prose max-w-none"></div></div>
-                <div class="mt-6"><label for="screenshot-upload">실제 대화 캡쳐본</label><div class="mt-2 flex items-center justify-center w-full"><label for="screenshot-file" class="flex flex-col items-center justify-center w-full h-64 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 no-print"><div id="screenshot-preview-container" class="hidden p-4"><img id="screenshot-preview" src="#" alt="Screenshot Preview" class="max-h-56 rounded-lg"/></div><div id="screenshot-placeholder" class="flex flex-col items-center justify-center pt-5 pb-6"><i class="fas fa-cloud-upload-alt text-4xl text-gray-400"></i><p class="mb-2 text-sm text-gray-500"><span class="font-semibold">클릭하여 파일 업로드</span></p><p class="text-xs text-gray-500">PNG, JPG</p></div><input id="screenshot-file" type="file" class="hidden" accept="image/*" /></label></div><div id="printable-screenshot-container" class="printable-content"></div></div>
+                <div class="mt-6">
+                    <label for="screenshot-upload">실제 대화 캡쳐본</label>
+                    <div class="mt-2 flex items-center justify-center w-full">
+                        <label for="screenshot-file" class="flex flex-col items-center justify-center w-full min-h-64 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 no-print">
+                            <div id="screenshot-preview-container" class="hidden p-4"><img id="screenshot-preview" src="#" alt="Screenshot Preview" class="max-h-56 rounded-lg"/></div>
+                            <div id="screenshot-placeholder" class="flex flex-col items-center justify-center pt-5 pb-6"><i class="fas fa-cloud-upload-alt text-4xl text-gray-400"></i><p class="mb-2 text-sm text-gray-500"><span class="font-semibold">클릭하여 파일 업로드</span></p><p class="text-xs text-gray-500">PNG, JPG</p></div>
+                            <input id="screenshot-file" type="file" class="hidden" accept="image/*" />
+                        </label>
+                    </div>
+                    <div id="printable-screenshot-container" class="printable-content mt-4"></div>
+                </div>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-6">
                     <div><label for="model-strengths">모델의 장점</label><textarea id="model-strengths" placeholder="테스트 결과, 이 모델이 특별히 잘하는 점은 무엇이었나요?" class="savable"></textarea><div class="printable-content prose max-w-none"></div></div>
                     <div><label for="model-weaknesses">모델의 단점 및 한계</label><textarea id="model-weaknesses" placeholder="테스트 결과, 아쉬웠던 점이나 개선이 필요하다고 생각되는 부분은 무엇이었나요?" class="savable"></textarea><div class="printable-content prose max-w-none"></div></div>
@@ -131,16 +155,19 @@
         </div>
 
         <!-- Action Buttons -->
-        <div class="flex flex-wrap gap-4 justify-center items-center mt-8 no-print">
-             <div id="autosave-status" class="flex items-center text-sm text-gray-500"></div>
-             <button id="download-report" class="action-button bg-blue-600 hover:bg-blue-700 text-white"><i class="fas fa-download mr-2"></i>보고서 PDF로 다운로드</button>
-        </div>
+        <footer class="text-center mt-8 no-print">
+             <div id="validation-message" class="text-red-600 font-semibold mb-4 h-6"></div>
+             <div class="flex flex-wrap gap-4 justify-center items-center">
+                <div id="autosave-status" class="flex items-center text-sm text-gray-500"></div>
+                <button id="print-report" class="action-button bg-blue-600 hover:bg-blue-700 text-white"><i class="fas fa-print mr-2"></i>보고서 출력 (PDF 저장)</button>
+             </div>
+        </footer>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const savableElements = document.querySelectorAll('.savable');
-            const downloadBtn = document.getElementById('download-report');
+            const printBtn = document.getElementById('print-report');
             const screenshotInput = document.getElementById('screenshot-file');
             const screenshotPreview = document.getElementById('screenshot-preview');
             const screenshotPlaceholder = document.getElementById('screenshot-placeholder');
@@ -156,37 +183,29 @@
                 }
             }
             
-            function scheduleSave() {
+            function saveContent(element) {
                 clearTimeout(saveTimer);
                 showSaveStatus('saving');
-                saveTimer = setTimeout(saveAllProgress, 1500);
-            }
-
-            function saveAllProgress() {
-                const data = {};
-                savableElements.forEach(el => {
-                    data[el.id] = el.value;
-                });
-                if (screenshotPreview.src && !screenshotPreview.src.endsWith('#')) {
-                    data['screenshot-preview'] = screenshotPreview.src;
-                }
-                localStorage.setItem('aiReportData', JSON.stringify(data));
-                showSaveStatus('saved');
-            }
-
-            function loadProgress() {
-                const data = JSON.parse(localStorage.getItem('aiReportData'));
-                if (data) {
-                    savableElements.forEach(el => {
-                        if (data.hasOwnProperty(el.id)) {
-                            el.value = data[el.id];
-                        }
-                    });
-                    if (data['screenshot-preview']) {
-                        screenshotPreview.src = data['screenshot-preview'];
-                        screenshotPlaceholder.classList.add('hidden');
-                        screenshotPreviewContainer.classList.remove('hidden');
+                saveTimer = setTimeout(() => {
+                    if (element.id) {
+                        localStorage.setItem(element.id, element.value);
                     }
+                    showSaveStatus('saved');
+                }, 1000); // 1초 디바운스
+            }
+
+            function loadContent() {
+                savableElements.forEach(field => {
+                    const savedValue = localStorage.getItem(field.id);
+                    if (savedValue !== null) {
+                        field.value = savedValue;
+                    }
+                });
+                const savedImage = localStorage.getItem('screenshot-preview');
+                if (savedImage) {
+                    screenshotPreview.src = savedImage;
+                    screenshotPlaceholder.classList.add('hidden');
+                    screenshotPreviewContainer.classList.remove('hidden');
                 }
             }
 
@@ -194,14 +213,15 @@
                 savableElements.forEach(el => {
                     const printableEl = el.nextElementSibling;
                     if (printableEl && printableEl.classList.contains('printable-content')) {
+                        let content = el.value.trim();
+                        // For textarea, convert newlines to <br>
                         if (el.tagName === 'TEXTAREA') {
-                             printableEl.innerHTML = el.value.replace(/\n/g, '<br>');
-                        } else {
-                            printableEl.textContent = el.value;
+                             content = content.replace(/\n/g, '<br>');
                         }
+                        printableEl.innerHTML = content;
                     }
                 });
-                 const printableScreenshotContainer = document.getElementById('printable-screenshot-container');
+                const printableScreenshotContainer = document.getElementById('printable-screenshot-container');
                 if (screenshotPreview.src && !screenshotPreview.src.endsWith('#')) {
                     printableScreenshotContainer.innerHTML = `<img src="${screenshotPreview.src}" style="max-width: 100%; border-radius: 0.5rem;" />`;
                 } else {
@@ -209,8 +229,11 @@
                 }
             }
 
-            downloadBtn.addEventListener('click', () => {
+            printBtn.addEventListener('click', () => {
                 let allFilled = true;
+                const validationMessage = document.getElementById('validation-message');
+                validationMessage.textContent = '';
+                
                 savableElements.forEach(el => {
                     el.classList.remove('is-invalid');
                     if (!el.value.trim()) {
@@ -219,35 +242,31 @@
                     }
                 });
 
+                const screenshotLabel = screenshotInput.closest('label');
+                screenshotLabel.classList.remove('is-invalid');
                 if (!screenshotPreview.src || screenshotPreview.src.endsWith('#')) {
-                     screenshotInput.parentElement.classList.add('is-invalid');
+                     screenshotLabel.classList.add('is-invalid');
                      allFilled = false;
-                } else {
-                     screenshotInput.parentElement.classList.remove('is-invalid');
                 }
 
                 if (!allFilled) {
-                    alert('모든 필수 항목을 작성하고 스크린샷을 첨부해주세요.');
+                    validationMessage.textContent = '모든 필수 항목을 작성하고 스크린샷을 첨부해주세요.';
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                     return;
                 }
                 
                 updatePrintableView();
-
-                const reportContent = document.getElementById('report-content');
+                
                 const studentId = document.getElementById('student-info').value.trim() || '학번';
                 const studentName = document.getElementById('student-name').value.trim() || '이름';
-                const fileName = `AI모델탐사보고서_${studentId}_${studentName}.pdf`;
+                const originalTitle = document.title;
+                document.title = `AI모델탐사보고서_${studentId}_${studentName}`;
 
-                const opt = {
-                    margin: [0.5, 0.5, 0.5, 0.5],
-                    filename: fileName,
-                    image: { type: 'jpeg', quality: 0.98 },
-                    html2canvas: { scale: 2, useCORS: true },
-                    jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
-                };
-                
-                html2pdf().from(reportContent).set(opt).save();
+                // Ensure content is rendered before printing
+                setTimeout(() => {
+                    window.print();
+                    document.title = originalTitle;
+                }, 100);
             });
 
             screenshotInput.addEventListener('change', (event) => {
@@ -255,20 +274,27 @@
                 if (file && file.type.startsWith('image/')) {
                     const reader = new FileReader();
                     reader.onload = (e) => {
-                        screenshotPreview.src = e.target.result;
+                        const base64Image = e.target.result;
+                        screenshotPreview.src = base64Image;
                         screenshotPlaceholder.classList.add('hidden');
                         screenshotPreviewContainer.classList.remove('hidden');
-                        scheduleSave();
+                        
+                        clearTimeout(saveTimer);
+                        showSaveStatus('saving');
+                        saveTimer = setTimeout(() => {
+                            localStorage.setItem('screenshot-preview', base64Image);
+                            showSaveStatus('saved');
+                        }, 1000);
                     };
                     reader.readAsDataURL(file);
                 }
             });
 
             savableElements.forEach(el => {
-                el.addEventListener('input', scheduleSave);
+                el.addEventListener('input', (e) => saveContent(e.target));
             });
 
-            loadProgress();
+            loadContent();
         });
     </script>
 </body>
