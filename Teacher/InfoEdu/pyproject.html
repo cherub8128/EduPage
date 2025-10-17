@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Python SDGs 프로젝트 보고서</title>
+    <title>Python 프로젝트 보고서</title>
     
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
     
     <!-- Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -18,19 +18,16 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
 
-    <!-- Standardized Script -->
-    <script src="script.js" defer></script>
-    
     <style>
         @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
         @import url('https://cdn.jsdelivr.net/gh/naen-nae/d2coding/d2coding-subset.css');
+        
         body { font-family: 'Pretendard', sans-serif; background-color: #f8fafc; }
-        .prose ul { list-style-type: disc; padding-left: 1.5em; }
-        .prose ol { list-style-type: decimal; padding-left: 1.5em; }
-        .editable-container .prose { cursor: text; min-height: 80px; padding: 0.75rem; border-radius: 0.375rem; transition: background-color 0.2s; }
-        .editable-container .prose:hover { background-color: #f8fafc; }
-        #code-input, #code-preview { font-family: 'D2Coding', monospace; font-size: 0.9rem; line-height: 1.6; }
-        #code-preview { padding: 1rem; border-radius: 0.5rem; }
+        .editable-container .prose, .editable-container pre { cursor: text; transition: background-color 0.2s; }
+        .editable-container .prose { min-height: 80px; padding: 0.75rem; border-radius: 0.375rem; border: 1px solid transparent; }
+        .editable-container .prose:hover, .editable-container pre:hover { background-color: #f8fafc; border-color: #e2e8f0;}
+        #code-input { font-family: 'D2Coding', monospace; font-size: 0.9rem; line-height: 1.6; }
+        .code-preview { font-family: 'D2Coding', monospace; font-size: 0.9rem; line-height: 1.6; padding: 1rem; border-radius: 0.5rem; }
     </style>
 </head>
 <body class="p-4 sm:p-8">
@@ -41,7 +38,7 @@
                  <div class="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center">
                     <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m18 16 4-4-4-4"/><path d="m6 8-4 4 4 4"/><path d="m14.5 4-5 16"/></svg>
                  </div>
-                <h1 class="text-4xl font-extrabold text-slate-800">Python SDGs 프로젝트 보고서</h1>
+                <h1 class="text-4xl font-extrabold text-slate-800">Python 프로젝트 보고서</h1>
             </div>
             <p class="text-slate-500">각 항목에 내용을 입력하고 스크린샷을 첨부하여 보고서를 완성하세요.</p>
         </header>
@@ -63,13 +60,31 @@
                 <h2 class="text-2xl font-bold text-slate-800 border-b-2 border-slate-200 pb-3 mb-6">1. 프로젝트 개요</h2>
                 <h3 class="text-lg font-semibold mt-4 text-slate-700">🎯 선택한 SDGs 항목 (또는 희망 진로)</h3>
                 <div class="editable-container mt-2">
-                    <textarea class="savable markdown-input w-full border-slate-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 min-h-[100px] hidden" id="section1-1" placeholder="* SDGs 항목: (선택하지 않을 경우 비워두세요)&#10;* 희망 진로: 합성생물학자"></textarea>
+                    <textarea class="savable markdown-input w-full border-slate-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 min-h-[100px] hidden" id="section1-1" placeholder="* SDGs 항목: 14번 (해양 생태계 보전)&#10;* 희망 진로: 데이터 과학자"></textarea>
                     <div class="markdown-preview prose max-w-none"></div>
                 </div>
-
                 <h3 class="text-lg font-semibold mt-6 text-slate-700">💡 프로젝트 주제 및 요약</h3>
                 <div class="editable-container mt-2">
-                    <textarea class="savable markdown-input w-full border-slate-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 min-h-[120px] hidden" id="section1-2" placeholder="SDGs를 선택한 경우: 목표 달성에 도움이 되는 앱..."></textarea>
+                    <textarea class="savable markdown-input w-full border-slate-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 min-h-[120px] hidden" id="section1-2" placeholder="**주제: Python을 활용한 해양 플라스틱 쓰레기 분포 시각화 및 이동 경로 예측**&#10;&#10;본 프로젝트는 전 세계적인 환경 문제인 해양 플라스틱 오염의 심각성을 알리고, 문제 해결에 기여하고자 Python을 사용하여 해양 쓰레기 데이터를 시각화하고, 해류 데이터를 기반으로 특정 지역의 쓰레기 이동 경로를 예측하는 모델을 개발하는 것을 목표로 합니다."></textarea>
+                    <div class="markdown-preview prose max-w-none"></div>
+                </div>
+            </section>
+
+            <section class="report-section p-8 break-inside-avoid">
+                <h2 class="text-2xl font-bold text-slate-800 border-b-2 border-slate-200 pb-3 mb-6">2. 문제 분석 및 해결 계획</h2>
+                <h3 class="text-lg font-semibold mt-4 text-slate-700">📌 문제 정의</h3>
+                <div class="editable-container mt-2">
+                    <textarea class="savable markdown-input w-full border-slate-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 min-h-[150px] hidden" id="section2-1" placeholder="해양 플라스틱 쓰레기는 해류를 따라 전 세계 바다로 퍼져나가 거대한 쓰레기 섬(Garbage Patch)을 형성하며 해양 생태계를 파괴하고 있습니다. 하지만 이 쓰레기들이 어디에서 발생하여 어떻게 이동하고, 어느 곳에 집중적으로 모이는지에 대한 정보는 일반 대중에게 잘 알려져 있지 않습니다. 효과적인 수거 및 정화 활동을 위해서는 플라스틱 쓰레기의 분포와 이동 경로에 대한 과학적인 분석과 예측이 필수적입니다."></textarea>
+                    <div class="markdown-preview prose max-w-none"></div>
+                </div>
+                <h3 class="text-lg font-semibold mt-6 text-slate-700">🛠️ 해결 아이디어 및 방법</h3>
+                <div class="editable-container mt-2">
+                    <textarea class="savable markdown-input w-full border-slate-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 min-h-[120px] hidden" id="section2-2" placeholder="* **해결 아이디어**: 전 세계 해양 쓰레기 발견 위치 데이터와 해류 데이터를 Python으로 분석하여, 쓰레기 분포 현황을 세계 지도 위에 시각화하고, 특정 지점에서 출발한 쓰레기가 일정 시간 후 어디로 이동할지 예측하는 시뮬레이션을 제작합니다.&#10;* **구현 방법**:&#10;  1.  `pandas` 라이브러리를 사용해 NOAA(미국 해양대기청)에서 제공하는 해양 쓰레기 데이터를 불러와 전처리합니다.&#10;  2.  `matplotlib`와 `cartopy` 라이브러리를 사용해 세계 지도 위에 쓰레기 발견 위치를 히트맵(heatmap) 형태로 시각화합니다.&#10;  3.  해류 벡터 데이터를 이용해, 특정 좌표에 위치한 가상의 쓰레기 입자가 시간에 따라 이동하는 경로를 계산하고, 이를 지도 위에 애니메이션으로 구현합니다."></textarea>
+                    <div class="markdown-preview prose max-w-none"></div>
+                </div>
+                <h3 class="text-lg font-semibold mt-6 text-slate-700">📈 예상 동작 결과</h3>
+                <div class="editable-container mt-2">
+                    <textarea class="savable markdown-input w-full border-slate-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 min-h-[120px] hidden" id="section2-3" placeholder="1.  프로그램을 실행하면, 전 세계 해양 쓰레기 분포가 시각화된 세계 지도가 나타난다. 태평양 거대 쓰레기 섬(GPGP)과 같은 주요 오염 지역이 붉은색으로 강조되어 보인다.&#10;2.  사용자가 지도 위의 특정 지점(예: 동해)을 클릭하면, 해당 위치에서 쓰레기가 유출되었다고 가정한다.&#10;3.  '시뮬레이션 시작' 버튼을 누르면, 해류 데이터를 따라 해당 쓰레기가 시간이 지남에 따라 이동하는 경로가 지도 위에 선으로 그려진다.&#10;4.  최종적으로 수십일 후 쓰레기가 어느 해역에 도달할지 예측 결과를 보여준다."></textarea>
                     <div class="markdown-preview prose max-w-none"></div>
                 </div>
             </section>
@@ -78,13 +93,28 @@
                 <h2 class="text-2xl font-bold text-slate-800 border-b-2 border-slate-200 pb-3 mb-6">3. 프로그램 설계</h2>
                 <h3 class="text-lg font-semibold mt-4 text-slate-700">💻 작성한 코드</h3>
                 <div class="editable-container mt-2">
-                    <textarea id="code-input" class="savable w-full border-slate-300 rounded-md shadow-sm bg-slate-800 text-slate-200 min-h-[250px] hidden" placeholder="import tkinter as tk ..."></textarea>
-                    <pre><code id="code-preview" class="language-python"></code></pre>
+                    <textarea id="code-input" class="savable w-full border-slate-300 rounded-md shadow-sm bg-slate-800 text-slate-200 min-h-[250px] hidden" placeholder="import tkinter as tk&#10;&#10;# 윈도우 생성&#10;window = tk.Tk()&#10;window.title(&quot;나의 첫 GUI 앱&quot;)&#10;window.geometry(&quot;400x300&quot;)&#10;&#10;# 라벨 생성&#10;label = tk.Label(window, text=&quot;안녕하세요, Tkinter!&quot;, font=(&quot;Helvetica&quot;, 16))&#10;label.pack(pady=20)&#10;&#10;# 버튼 클릭 이벤트 핸들러&#10;def on_button_click():&#10;    label.config(text=&quot;버튼이 클릭되었습니다!&quot;)&#10;&#10;# 버튼 생성&#10;button = tk.Button(window, text=&quot;여기를 클릭하세요&quot;, command=on_button_click)&#10;button.pack(pady=10)&#10;&#10;# 윈도우 실행&#10;window.mainloop()"></textarea>
+                    <pre class="bg-slate-800 rounded-md"><code class="code-preview language-python"></code></pre>
+                </div>
+                <h3 class="text-lg font-semibold mt-6 text-slate-700">🗺️ 코드 구조 및 흐름도</h3>
+                <div class="editable-container mt-2">
+                    <textarea class="savable markdown-input w-full border-slate-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 min-h-[120px] hidden" id="section3-2" placeholder="1.  **데이터 로딩 및 전처리**: `pandas`를 사용해 CSV 형식의 해양 쓰레기 데이터를 불러온 후, 위도/경도 정보가 없는 무효 데이터를 제거합니다.&#10;2.  **전역 분포 시각화**: `matplotlib`와 `cartopy`를 이용해 세계 지도를 생성하고, 전처리된 데이터의 위도/경도 값을 이용해 쓰레기 위치를 산점도(scatter plot)로 표시합니다.&#10;3.  **이동 경로 예측 함수 정의**: 위도, 경도, 시간, 해류 속도를 입력받아 다음 위치를 계산하는 간단한 물리 모델 함수를 정의합니다.&#10;4.  **시뮬레이션 실행**: 특정 시작점과 기간을 설정하여 예측 함수를 호출하고, 결과를 출력합니다."></textarea>
+                    <div class="markdown-preview prose max-w-none"></div>
+                </div>
+                <h3 class="text-lg font-semibold mt-6 text-slate-700">📚 사용한 함수, 모듈, 라이브러리</h3>
+                <div class="editable-container mt-2">
+                    <textarea class="savable markdown-input w-full border-slate-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 min-h-[120px] hidden" id="section3-3" placeholder="* **pandas**: 대용량 데이터를 효율적으로 다루고, CSV 파일 로딩 및 결측치 제거 등 데이터 정제 작업을 위해 사용했습니다.&#10;* **matplotlib**: 데이터 시각화의 핵심 라이브러리로, 산점도, 히트맵 등 다양한 그래프를 생성하기 위해 사용했습니다.&#10;* **cartopy**: matplotlib 기반의 지도 시각화 라이브러리로, 실제 세계 지도 위에 데이터를 투영(projection)하여 지리 정보를 정확하게 표현하기 위해 사용했습니다."></textarea>
+                    <div class="markdown-preview prose max-w-none"></div>
+                </div>
+                <h3 class="text-lg font-semibold mt-6 text-slate-700">💡 관련 교과 지식 탐구</h3>
+                <div class="editable-container mt-2">
+                    <textarea class="savable markdown-input w-full border-slate-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 min-h-[120px] hidden" id="section3-4" placeholder="* **수학 - 벡터**: 해류의 방향과 속도를 나타내는 벡터($\vec{v} = (u, v)$) 개념을 이동 경로 예측 모델에 적용했습니다. 특정 시간($t$) 후의 위치 변화량은 $\Delta P = \vec{v} \cdot t$로 계산할 수 있으며, 이는 벡터의 스칼라 곱 연산과 동일합니다.&#10;* **지구과학 - 해수의 표층 순환**: 프로젝트의 기본 원리가 되는 전 지구적 해류의 순환(북태평양 아열대 순환 등)에 대해 탐구했습니다. 지도에 시각화된 쓰레기 집중 지역이 주요 환류(Gyre)의 중심부와 일치하는 경향을 통해, 교과서에서 배운 지식이 실제 데이터로 검증되는 것을 확인했습니다."></textarea>
+                    <div class="markdown-preview prose max-w-none"></div>
                 </div>
             </section>
-
+            
             <section class="report-section p-8 break-inside-avoid">
-                <h2 class="text-2xl font-bold text-slate-800 border-b-2 border-slate-200 pb-3 mb-6">4. 프로그램 구현 결과</h2>
+                 <h2 class="text-2xl font-bold text-slate-800 border-b-2 border-slate-200 pb-3 mb-6">4. 프로그램 구현 결과</h2>
                 <h3 class="text-lg font-semibold mt-4 text-slate-700">🖼️ 주요 실행 결과 (스크린샷 첨부)</h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
                     <div class="screenshot-wrapper">
@@ -108,40 +138,336 @@
                         <input type="file" accept="image/*" class="hidden" id="screenshot-input-2">
                     </div>
                 </div>
+                <h3 class="text-lg font-semibold mt-6 text-slate-700">🔍 결과 해석</h3>
+                <div class="editable-container mt-2">
+                    <textarea class="savable markdown-input w-full border-slate-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 min-h-[120px] hidden" id="section4-2" placeholder="첫 번째 스크린샷은 전 세계 해양 쓰레기 분포를 시각화한 결과입니다. 북태평양 중앙(하와이와 북미 대륙 사이)에 쓰레기가 집중적으로 분포하는 것을 명확히 확인할 수 있으며, 이는 태평양 거대 쓰레기 섬(GPGP)의 위치와 일치합니다.&#10;&#10;두 번째 스크린샷은 일본 남동쪽 해상에서 유출된 쓰레기의 90일간 이동 경로를 시뮬레이션한 결과입니다. 쿠로시오 해류의 영향을 받아 북동쪽으로 빠르게 이동하는 것을 보여주며, 이는 해류가 쓰레기 이동에 미치는 지대한 영향을 직관적으로 증명합니다. 이를 통해, 특정 지역의 오염이 단기간에 주변국 및 공해상으로 확산될 수 있음을 알 수 있습니다."></textarea>
+                    <div class="markdown-preview prose max-w-none"></div>
+                </div>
             </section>
             
-            <!-- Other sections omitted for brevity -->
+            <section class="report-section p-8 break-inside-avoid">
+                <h2 class="text-2xl font-bold text-slate-800 border-b-2 border-slate-200 pb-3 mb-6">5. 프로젝트 후기 및 느낀 점</h2>
+                <h3 class="text-lg font-semibold mt-4 text-slate-700">🤔 진행 중 어려웠던 점과 해결 방법</h3>
+                <div class="editable-container mt-2">
+                    <textarea class="savable markdown-input w-full border-slate-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 min-h-[120px] hidden" id="section5-1" placeholder="* **어려웠던 점**: 지리 정보를 다루는 `cartopy` 라이브러리의 설치와 사용법이 생소하여 초기 환경 설정에 많은 시간을 소요했습니다. 특히, 지도 투영법(projection)에 대한 수학적 이해가 부족하여 원하는 형태로 데이터를 표현하는 데 어려움을 겪었습니다.&#10;* **해결 방법**: `cartopy` 공식 문서의 예제 코드를 하나씩 실행해보며 각 함수의 역할을 파악했습니다. 또한, '메르카토르 도법', '판 투영법' 등 다양한 지도 투영법의 원리를 인터넷 강의를 통해 학습하며, 위도/경도 데이터를 지도 좌표로 변환하는 과정을 이해하려 노력했습니다."></textarea>
+                    <div class="markdown-preview prose max-w-none"></div>
+                </div>
+                <h3 class="text-lg font-semibold mt-6 text-slate-700">🌱 앞으로의 개선 방향</h3>
+                <div class="editable-container mt-2">
+                    <textarea class="savable markdown-input w-full border-slate-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 min-h-[120px] hidden" id="section5-2" placeholder="현재의 이동 예측 모델은 평균 해류만을 고려한 단순한 모델입니다. 향후에는 바람의 영향, 조류, 계절적 변화 등 더 다양한 환경 변수를 포함하는 복잡한 모델(예: 랑그라주 입자 추적 모델)을 구현해보고 싶습니다. 또한, `scikit-learn`의 머신러닝 모델을 사용하여 특정 지역의 미래 쓰레기 발생량을 예측하고, 이를 시각화 자료와 통합하여 보다 종합적인 해양 오염 분석 시스템을 구축하는 것을 목표로 하고 싶습니다."></textarea>
+                    <div class="markdown-preview prose max-w-none"></div>
+                </div>
+            </section>
+
+            <section class="report-section p-8 break-inside-avoid">
+                <h2 class="text-2xl font-bold text-slate-800 border-b-2 border-slate-200 pb-3 mb-6">6. 참고자료</h2>
+                <div class="editable-container mt-2">
+                    <textarea class="savable markdown-input w-full border-slate-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 min-h-[100px] hidden" id="section6-1" placeholder="* NOAA Marine Debris Program. (2023). *Marine Debris Monitoring and Assessment Project (MDMAP) Data*. Retrieved from https://www.fisheries.noaa.gov/west-coast/habitat-conservation/marine-debris-monitoring-and-assessment-project&#10;* SciTools. (2023). *Cartopy: a cartographic python library with a matplotlib interface*. Retrieved from https://scitools.org.uk/cartopy/docs/latest/&#10;* Wes McKinney. (2010). Data Structures for Statistical Computing in Python. *Proceedings of the 9th Python in Science Conference*."></textarea>
+                    <div class="markdown-preview prose max-w-none"></div>
+                </div>
+            </section>
         </div>
         
         <footer class="text-center mt-8 py-6 no-print">
             <div id="validation-message" class="text-red-600 font-semibold mb-4 h-6"></div>
-            <button id="export-pdf" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg ...">
+            <button id="export-pdf" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg flex items-center gap-2 mx-auto">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
                 보고서 PDF로 저장
             </button>
         </footer>
     </main>
 
-    <!-- Overlays and Status indicators -->
-    <div id="autosave-status" class="no-print fixed bottom-6 right-6 flex items-center bg-slate-800 text-white ...">
-        <svg id="autosave-icon-saving" class="animate-spin h-5 w-5 mr-3 hidden" ...></svg>
-        <svg id="autosave-icon-saved" class="h-5 w-5 mr-3 hidden text-green-400" ...></svg>
+    <div id="autosave-status" class="no-print fixed bottom-6 right-6 flex items-center bg-slate-800 text-white py-2 px-4 rounded-lg shadow-lg opacity-0 transition-opacity duration-500 z-50">
+        <svg id="autosave-icon-saving" class="animate-spin h-5 w-5 mr-3 hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+        <svg id="autosave-icon-saved" class="h-5 w-5 mr-3 hidden text-green-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>
         <span id="autosave-text"></span>
     </div>
-    <div id="loader-overlay" class="fixed inset-0 bg-black bg-opacity-60 flex-col items-center justify-center hidden z-50">
-        <!-- Loader content -->
-    </div>
 
+    <div id="loader-overlay" class="fixed inset-0 bg-black bg-opacity-60 flex-col items-center justify-center hidden z-50">
+        <div class="bg-white p-8 rounded-lg shadow-xl text-center">
+            <svg class="animate-spin h-10 w-10 text-blue-600 mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <p class="text-lg font-semibold text-slate-700">PDF 생성 중...</p>
+            <p class="text-sm text-slate-500 mt-1">보고서 내용을 변환하고 있습니다. 잠시만 기다려주세요.</p>
+        </div>
+    </div>
+    
     <script>
+        // Self-contained script for this specific report to ensure stability.
         document.addEventListener('DOMContentLoaded', () => {
-            if (window.createReportApp) {
-                window.createReportApp({
-                    storageKey: 'pyProjectData',
-                    savableSelector: '.savable',
-                    screenshotCount: 2,
-                    hasCodeBlock: true
+            
+            const config = {
+                storageKey: 'pyProjectData',
+                savableSelector: '.savable',
+                screenshotCount: 2,
+                hasCodeBlock: true
+            };
+            
+            const { storageKey, savableSelector, screenshotCount, hasCodeBlock } = config;
+            const converter = new showdown.Converter({ simpleLineBreaks: true, tables: true, strikethrough: true, ghCompatibleHeaderId: true, emoji: true });
+            const exportBtn = document.getElementById('export-pdf');
+            const autosaveStatusEl = document.getElementById('autosave-status');
+            let saveTimer, statusTimer;
+
+            function showSaveStatus(state) {
+                if (!autosaveStatusEl) return;
+                const textEl = autosaveStatusEl.querySelector('#autosave-text');
+                const iconSaving = autosaveStatusEl.querySelector('#autosave-icon-saving');
+                const iconSaved = autosaveStatusEl.querySelector('#autosave-icon-saved');
+                
+                clearTimeout(statusTimer);
+                autosaveStatusEl.classList.remove('opacity-0');
+
+                if (state === 'saving') {
+                    if(textEl) textEl.textContent = '저장 중...';
+                    if(iconSaving) iconSaving.classList.remove('hidden');
+                    if(iconSaved) iconSaved.classList.add('hidden');
+                } else if (state === 'saved') {
+                    if(textEl) textEl.textContent = '모든 변경사항이 저장되었습니다.';
+                    if(iconSaving) iconSaving.classList.add('hidden');
+                    if(iconSaved) iconSaved.classList.remove('hidden');
+                    statusTimer = setTimeout(() => autosaveStatusEl.classList.add('opacity-0'), 2000);
+                }
+            }
+
+            function updateMarkdownPreview(textareaElement) {
+                if (!textareaElement) return;
+                const container = textareaElement.closest('.editable-container');
+                if (!container) return;
+                const preview = container.querySelector('.markdown-preview');
+                if (preview) {
+                    const placeholder = '<p class="text-slate-400">내용을 입력하세요...</p>';
+                    const html = textareaElement.value ? converter.makeHtml(textareaElement.value) : placeholder;
+                    preview.innerHTML = html;
+                    if(window.renderMathInElement) {
+                        renderMathInElement(preview, { delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}] });
+                    }
+                }
+            }
+
+            function updateCodePreview() {
+                if (!hasCodeBlock || typeof hljs === 'undefined') return;
+                const textarea = document.getElementById('code-input');
+                const preview = document.querySelector('.code-preview');
+                if (textarea && preview) {
+                    preview.textContent = textarea.value || '// 코드를 입력하세요...';
+                    hljs.highlightElement(preview);
+                }
+            }
+            
+            function autoResizeTextarea(textarea) {
+                textarea.style.height = 'auto';
+                textarea.style.height = (textarea.scrollHeight) + 'px';
+            }
+
+            function saveContent() {
+                clearTimeout(saveTimer);
+                showSaveStatus('saving');
+                saveTimer = setTimeout(() => {
+                    const data = {};
+                    document.querySelectorAll(savableSelector).forEach(el => {
+                        data[el.id] = el.value;
+                    });
+                    for (let i = 1; i <= screenshotCount; i++) {
+                        const img = document.getElementById(`screenshot-preview-${i}`);
+                        if (img && img.src && !img.src.includes('placeholder')) {
+                            data[`screenshot-preview-${i}`] = img.src;
+                        }
+                    }
+                    localStorage.setItem(storageKey, JSON.stringify(data));
+                    showSaveStatus('saved');
+                }, 1000);
+            }
+
+            function loadContent() {
+                const data = JSON.parse(localStorage.getItem(storageKey));
+                const textareas = document.querySelectorAll('.markdown-input, #code-input');
+
+                if (!data) {
+                    textareas.forEach(el => {
+                        el.value = ''; // Ensure textareas are empty
+                        if(el.id === 'code-input') updateCodePreview();
+                        else updateMarkdownPreview(el);
+                    });
+                    return;
+                }
+
+                document.querySelectorAll(savableSelector).forEach(field => {
+                    if (data.hasOwnProperty(field.id)) {
+                        field.value = data[field.id];
+                    }
+                });
+                
+                for (let i = 1; i <= screenshotCount; i++) {
+                    if (data[`screenshot-preview-${i}`]) {
+                        const preview = document.getElementById(`screenshot-preview-${i}`);
+                        const placeholder = document.getElementById(`screenshot-placeholder-${i}`);
+                        preview.src = data[`screenshot-preview-${i}`];
+                        preview.classList.remove('hidden');
+                        if (placeholder) placeholder.classList.add('hidden');
+                    }
+                }
+
+                textareas.forEach(el => {
+                    if(el.id === 'code-input') updateCodePreview();
+                    else updateMarkdownPreview(el);
                 });
             }
+
+            async function exportToPdf() {
+                const loader = document.getElementById('loader-overlay');
+                const reportContent = document.getElementById('report-content');
+                const validationMessage = document.getElementById('validation-message');
+                let allFilled = true;
+
+                if(validationMessage) validationMessage.textContent = '';
+                document.querySelectorAll(savableSelector).forEach(el => {
+                    el.classList.remove('border-red-400');
+                    if (!el.value.trim()) {
+                        el.classList.add('border-red-400');
+                        allFilled = false;
+                    }
+                });
+                for (let i = 1; i <= screenshotCount; i++) {
+                    const img = document.getElementById(`screenshot-preview-${i}`);
+                    if (!img) continue;
+                    const wrapper = img.closest('.screenshot-wrapper');
+                    if (wrapper) {
+                         wrapper.classList.remove('border-red-400', 'border-2');
+                        if (!img.src || img.src.includes('placeholder')) {
+                            wrapper.classList.add('border-red-400', 'border-2', 'rounded-lg');
+                            allFilled = false;
+                        }
+                    }
+                }
+
+                if (!allFilled) {
+                    if(validationMessage) validationMessage.textContent = '모든 필수 항목을 작성하고 스크린샷을 첨부해주세요.';
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                    return;
+                }
+                
+                if(loader) loader.style.display = 'flex';
+
+                try {
+                    const { jsPDF } = window.jspdf;
+                    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+                    const pdfWidth = pdf.internal.pageSize.getWidth();
+                    const margin = 15;
+                    const contentWidth = pdfWidth - (margin * 2);
+                    let yPosition = margin;
+
+                    const sections = Array.from(reportContent.querySelectorAll('.report-section'));
+
+                    for (const section of sections) {
+                        const canvas = await html2canvas(section, {
+                            scale: 2,
+                            useCORS: true,
+                            logging: false,
+                            onclone: (doc) => {
+                                const clonedSection = doc.body.children[0];
+                                if (!clonedSection) return;
+                                clonedSection.querySelectorAll('.editable-container').forEach(container => {
+                                    const editor = container.querySelector('textarea');
+                                    const preview = container.querySelector('.markdown-preview, pre');
+                                    if(editor) editor.style.display = 'none';
+                                    if(preview) preview.style.display = 'block';
+                                });
+                                if(window.renderMathInElement) {
+                                    renderMathInElement(clonedSection, { delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}] });
+                                }
+                            }
+                        });
+                        
+                        const imgHeight = (canvas.height * contentWidth) / canvas.width;
+
+                        if (yPosition + imgHeight > pdf.internal.pageSize.getHeight() - margin) {
+                            pdf.addPage();
+                            yPosition = margin;
+                        }
+
+                        pdf.addImage(canvas.toDataURL('image/png'), 'PNG', margin, yPosition, contentWidth, imgHeight);
+                        yPosition += imgHeight + 5;
+                    }
+
+                    const studentId = document.getElementById('student-id').value.trim() || '학번';
+                    const studentName = document.getElementById('student-name').value.trim() || '이름';
+                    const docTitle = document.title.split(' ')[0] || '보고서';
+                    const filename = `${docTitle}_${studentId}_${studentName}.pdf`;
+                    pdf.save(filename);
+
+                } catch(error) {
+                    console.error("PDF generation error:", error);
+                    alert("PDF를 생성하는 데 실패했습니다. 콘솔을 확인해주세요.");
+                } finally {
+                    if(loader) loader.style.display = 'none';
+                }
+            }
+
+            function initialize() {
+                document.querySelectorAll('.editable-container').forEach(container => {
+                    const preview = container.querySelector('.markdown-preview, pre');
+                    const editor = container.querySelector('textarea');
+
+                    if (preview && editor) {
+                        preview.addEventListener('click', () => {
+                            preview.classList.add('hidden');
+                            editor.classList.remove('hidden');
+                            editor.focus();
+                            autoResizeTextarea(editor);
+                        });
+
+                        editor.addEventListener('blur', () => {
+                            editor.classList.add('hidden');
+                            preview.classList.remove('hidden');
+                            
+                            if (editor.id === 'code-input' && hasCodeBlock) {
+                                updateCodePreview();
+                            } else {
+                                updateMarkdownPreview(editor);
+                            }
+                        });
+                    }
+                });
+
+                document.querySelectorAll(savableSelector).forEach(el => {
+                    el.addEventListener('input', () => {
+                        saveContent();
+                        if (el.tagName === 'TEXTAREA') autoResizeTextarea(el);
+                    });
+                });
+
+                for (let i = 1; i <= screenshotCount; i++) {
+                    const input = document.getElementById(`screenshot-input-${i}`);
+                    if (input) {
+                        input.addEventListener('change', (event) => {
+                            const preview = document.getElementById(`screenshot-preview-${i}`);
+                            const placeholder = document.getElementById(`screenshot-placeholder-${i}`);
+                            const file = event.target.files[0];
+                            if (file) {
+                                const reader = new FileReader();
+                                reader.onload = (e) => {
+                                    preview.src = e.target.result;
+                                    preview.classList.remove('hidden');
+                                    if (placeholder) placeholder.classList.add('hidden');
+                                    saveContent();
+                                }
+                                reader.readAsDataURL(file);
+                            }
+                        });
+                    }
+                }
+                
+                if (exportBtn) exportBtn.addEventListener('click', exportToPdf);
+
+                loadContent();
+            }
+
+            initialize();
         });
     </script>
 </body>
 </html>
+
