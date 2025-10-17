@@ -61,6 +61,16 @@
             .input-as-text::before { content: attr(data-value); white-space: pre-wrap; }
         }
 
+        /* Markdown List Style Fix */
+        .prose ul {
+            list-style-type: disc;
+            padding-left: 1.5em;
+        }
+        .prose ol {
+            list-style-type: decimal;
+            padding-left: 1.5em;
+        }
+
         
     </style>
 </head>
@@ -234,7 +244,7 @@
             const html = converter.makeHtml(markdownText);
             preview.innerHTML = html;
             if (window.renderMathInElement) {
-                renderMathInElement(preview, { delimiters: [ {left: '$', right: '$', display: true}, {left: ', right: ', display: false} ] });
+                renderMathInElement(preview, { delimiters: [ {left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false} ] });
             }
         }
 
@@ -382,4 +392,3 @@
     </footer>
 </body>
 </html>
-
