@@ -64,7 +64,7 @@
         }
         input, textarea, select {
             width: 100%;
-            padding: 0.75rem 1rem;
+            padding: 0.875rem 1.25rem; 
             border: 1px solid #D1D5DB;
             border-radius: 0.5rem;
             background-color: #F9FAFB;
@@ -154,14 +154,24 @@
             <section class="report-section"><h2 class="report-title">4. 느낀점</h2><div><label for="reflections">활동을 통해 배우고 느낀 점</label><textarea id="reflections" placeholder="이번 활동을 통해 새롭게 알게 된 점, 느낀 점 등을 자유롭게 작성하세요." class="savable"></textarea><div class="printable-content prose max-w-none"></div></div></section>
         </div>
 
-        <!-- Action Buttons -->
         <footer class="text-center mt-8 no-print">
              <div id="validation-message" class="text-red-600 font-semibold mb-4 h-6"></div>
              <div class="flex flex-wrap gap-4 justify-center items-center">
-                <div id="autosave-status" class="flex items-center text-sm text-gray-500"></div>
                 <button id="print-report" class="action-button bg-blue-600 hover:bg-blue-700 text-white"><i class="fas fa-print mr-2"></i>보고서 출력 (PDF 저장)</button>
              </div>
         </footer>
+    </div>
+    
+    <!-- Autosave Status Indicator -->
+    <div id="autosave-status" class="no-print fixed bottom-6 right-6 flex items-center bg-slate-800 text-white py-2 px-4 rounded-lg shadow-lg opacity-0 transition-opacity duration-500 z-50">
+        <svg id="autosave-icon-saving" class="animate-spin h-5 w-5 mr-3 hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <svg id="autosave-icon-saved" class="h-5 w-5 mr-3 hidden text-green-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+        </svg>
+        <span id="autosave-text"></span>
     </div>
 
     <script>
@@ -172,14 +182,30 @@
             const screenshotPreview = document.getElementById('screenshot-preview');
             const screenshotPlaceholder = document.getElementById('screenshot-placeholder');
             const screenshotPreviewContainer = document.getElementById('screenshot-preview-container');
-            const autosaveStatus = document.getElementById('autosave-status');
+            const autosaveStatusEl = document.getElementById('autosave-status');
             let saveTimer;
+            let statusTimer;
 
-            function showSaveStatus(status) {
-                if (status === 'saving') {
-                    autosaveStatus.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i> 저장 중...`;
-                } else if (status === 'saved') {
-                    autosaveStatus.innerHTML = `<i class="fas fa-check mr-2"></i> 모든 변경사항이 저장되었습니다.`;
+            function showSaveStatus(state) {
+                if (!autosaveStatusEl) return;
+                const textEl = document.getElementById('autosave-text');
+                const iconSaving = document.getElementById('autosave-icon-saving');
+                const iconSaved = document.getElementById('autosave-icon-saved');
+
+                clearTimeout(statusTimer);
+                autosaveStatusEl.classList.remove('opacity-0');
+
+                if (state === 'saving') {
+                    textEl.textContent = '저장 중...';
+                    iconSaving.classList.remove('hidden');
+                    iconSaved.classList.add('hidden');
+                } else if (state === 'saved') {
+                    textEl.textContent = '모든 변경사항이 저장되었습니다.';
+                    iconSaving.classList.add('hidden');
+                    iconSaved.classList.remove('hidden');
+                    statusTimer = setTimeout(() => {
+                        autosaveStatusEl.classList.add('opacity-0');
+                    }, 2000);
                 }
             }
             
@@ -187,18 +213,39 @@
                 clearTimeout(saveTimer);
                 showSaveStatus('saving');
                 saveTimer = setTimeout(() => {
+                    const data = JSON.parse(localStorage.getItem('aiReportDataV2')) || {};
                     if (element.id) {
-                        localStorage.setItem(element.id, element.value);
+                         data[element.id] = element.value;
                     }
+                    localStorage.setItem('aiReportDataV2', JSON.stringify(data));
                     showSaveStatus('saved');
-                }, 1000); // 1초 디바운스
+                }, 1000);
             }
 
             function loadContent() {
+                // Try loading from the new unified key first
+                const newData = JSON.parse(localStorage.getItem('aiReportDataV2'));
+                if (newData) {
+                    savableElements.forEach(field => {
+                        if (newData.hasOwnProperty(field.id)) {
+                            field.value = newData[field.id];
+                        }
+                    });
+                    if (newData['screenshot-preview']) {
+                        screenshotPreview.src = newData['screenshot-preview'];
+                        screenshotPlaceholder.classList.add('hidden');
+                        screenshotPreviewContainer.classList.remove('hidden');
+                    }
+                    return; // Exit if new data is loaded
+                }
+
+                // Fallback for old data (individual keys + separate image)
+                let oldDataFound = false;
                 savableElements.forEach(field => {
                     const savedValue = localStorage.getItem(field.id);
                     if (savedValue !== null) {
                         field.value = savedValue;
+                        oldDataFound = true;
                     }
                 });
                 const savedImage = localStorage.getItem('screenshot-preview');
@@ -206,6 +253,16 @@
                     screenshotPreview.src = savedImage;
                     screenshotPlaceholder.classList.add('hidden');
                     screenshotPreviewContainer.classList.remove('hidden');
+                    oldDataFound = true;
+                }
+                
+                if (oldDataFound) {
+                    alert('이전 버전에서 작성한 보고서 내용을 불러왔습니다. 다음에 저장될 때는 새로운 형식으로 통합 저장됩니다.');
+                    // Immediately save in the new format to migrate
+                    const data = {};
+                    savableElements.forEach(el => { data[el.id] = el.value; });
+                    if (savedImage) { data['screenshot-preview'] = savedImage; }
+                    localStorage.setItem('aiReportDataV2', JSON.stringify(data));
                 }
             }
 
@@ -214,7 +271,6 @@
                     const printableEl = el.nextElementSibling;
                     if (printableEl && printableEl.classList.contains('printable-content')) {
                         let content = el.value.trim();
-                        // For textarea, convert newlines to <br>
                         if (el.tagName === 'TEXTAREA') {
                              content = content.replace(/\n/g, '<br>');
                         }
@@ -262,7 +318,6 @@
                 const originalTitle = document.title;
                 document.title = `AI모델탐사보고서_${studentId}_${studentName}`;
 
-                // Ensure content is rendered before printing
                 setTimeout(() => {
                     window.print();
                     document.title = originalTitle;
@@ -282,7 +337,9 @@
                         clearTimeout(saveTimer);
                         showSaveStatus('saving');
                         saveTimer = setTimeout(() => {
-                            localStorage.setItem('screenshot-preview', base64Image);
+                            const data = JSON.parse(localStorage.getItem('aiReportDataV2')) || {};
+                            data['screenshot-preview'] = base64Image;
+                            localStorage.setItem('aiReportDataV2', JSON.stringify(data));
                             showSaveStatus('saved');
                         }, 1000);
                     };
