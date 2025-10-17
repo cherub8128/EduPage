@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 모델 탐사 보고서</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- PDF 생성을 위한 라이브러리 추가 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        @media print {
+            body * { visibility: hidden; }
+            #report-content, #report-content * { visibility: visible; }
+            #report-content { position: absolute; left: 0; top: 0; width: 100%; }
+            .no-print { display: none; }
+        }
+        body {
+            font-family: 'Inter', 'Noto Sans KR', sans-serif;
+            background-color: #F9FAFB;
+        }
+        .report-section {
+            background-color: white;
+            border: 1px solid #E5E7EB;
+            border-radius: 0.75rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+        }
+        .report-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #111827;
+            border-bottom: 2px solid #D1D5DB;
+            padding-bottom: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+        label {
+            display: block;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 0.5rem;
+        }
+        input[type="text"], input[type="number"], textarea, select {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid #D1D5DB;
+            border-radius: 0.5rem;
+            background-color: #F9FAFB;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        input[type="text"]:focus, input[type="number"]:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #3B82F6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+        }
+        textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+        .action-button {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: all 0.2s ease-in-out;
+            border: 1px solid transparent;
+        }
+    </style>
+</head>
+<body class="p-4 sm:p-8">
+    <div class="max-w-4xl mx-auto">
+        
+        <header class="text-center mb-10 no-print">
+            <div class="flex justify-center items-center gap-4 mb-4">
+                 <i class="fas fa-rocket text-4xl text-blue-600"></i>
+                <h1 class="text-4xl font-extrabold text-gray-800">AI 모델 탐사 보고서</h1>
+            </div>
+            <p class="text-gray-600">Hugging Face의 AI 모델을 탐험하고, 여러분의 분석과 창의적인 아이디어를 기록해보세요.</p>
+        </header>
+
+        <div id="report-content">
+            <!-- Section 1: AI 모델 탐색 -->
+            <section class="report-section">
+                <h2 class="report-title">1. AI 모델 탐색</h2>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div>
+                        <label for="student-name">이름</label>
+                        <input type="text" id="student-name" placeholder="홍길동">
+                    </div>
+                    <div>
+                        <label for="student-info">학번</label>
+                        <input type="text" id="student-info" placeholder="예: 20501">
+                    </div>
+                </div>
+                <div class="mt-6">
+                    <label for="model-name">탐색 모델명</label>
+                    <input type="text" id="model-name" placeholder="예: google/gemma-3-1b-it">
+                </div>
+                <div class="mt-6">
+                    <label for="model-link">Hugging Face 모델 링크</label>
+                    <input type="text" id="model-link" placeholder="예: https://huggingface.co/google/gemma-3-1b-it">
+                </div>
+                 <div class="mt-6">
+                    <label for="selection-reason">이 모델을 선택한 이유</label>
+                    <textarea id="selection-reason" placeholder="모델의 특징, 최신 기술, 개인적인 흥미 등 선택하게 된 계기를 자유롭게 서술하세요."></textarea>
+                </div>
+            </section>
+
+            <!-- Section 2: 모델 테스트 및 분석 -->
+            <section class="report-section">
+                <h2 class="report-title">2. 모델 테스트 및 분석</h2>
+                <div class="bg-blue-50 border border-blue-200 text-blue-800 p-4 rounded-lg mb-6 no-print">
+                    <p class="font-semibold">모델 테스트는 'AI Playground'에서 진행하고 결과를 기록하세요!</p>
+                    <a href="ai_playground.html" target="_blank" class="text-blue-600 font-bold hover:underline">AI Playground 바로가기 &rarr;</a>
+                </div>
+                
+                <div class="mt-6">
+                    <label for="model-type">모델 종류 (Task)</label>
+                    <select id="model-type">
+                        <option value="text-generation">Text Generation (텍스트 생성)</option>
+                        <option value="text-to-image">Text-to-Image (이미지 생성)</option>
+                        <option value="image-to-text">Image-to-Text (이미지 설명)</option>
+                        <option value="other">기타 (직접 입력)</option>
+                    </select>
+                </div>
+
+                <div class="mt-6">
+                    <label>주요 파라미터 설정</label>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-2">
+                        <div>
+                            <label for="param-temperature" class="text-sm font-medium text-gray-500">Temperature</label>
+                            <input type="number" id="param-temperature" step="0.1" placeholder="예: 0.7" class="mt-1">
+                        </div>
+                        <div>
+                            <label for="param-max-tokens" class="text-sm font-medium text-gray-500">Max New Tokens</label>
+                            <input type="number" id="param-max-tokens" step="32" placeholder="예: 512" class="mt-1">
+                        </div>
+                        <div>
+                            <label for="param-top-p" class="text-sm font-medium text-gray-500">Top-P</label>
+                            <input type="number" id="param-top-p" step="0.05" placeholder="예: 0.95" class="mt-1">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-6">
+                    <label for="test-goal">테스트 목표</label>
+                    <textarea id="test-goal" placeholder="이 모델의 어떤 성능을 확인하고 싶었나요? (예: 한국어 글 창작 능력, 코딩 능력, 이미지 묘사 정확도 등)"></textarea>
+                </div>
+                <div class="mt-6">
+                    <label for="test-process">테스트 과정 및 결과</label>
+                    <textarea id="test-process" placeholder="어떤 프롬프트를 사용했고, 파라미터는 어떻게 조절했나요? 그 결과 AI는 어떻게 반응했는지 구체적으로 작성하세요. (결과물 일부 복사/붙여넣기 가능)"></textarea>
+                </div>
+
+                <div class="mt-6">
+                    <label for="screenshot-upload">실제 대화 캡쳐본</label>
+                    <div class="mt-2 flex items-center justify-center w-full">
+                        <label for="screenshot-file" class="flex flex-col items-center justify-center w-full h-64 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100">
+                            <div id="screenshot-preview-container" class="hidden p-4">
+                                 <img id="screenshot-preview" src="#" alt="Screenshot Preview" class="max-h-56 rounded-lg"/>
+                            </div>
+                            <div id="screenshot-placeholder" class="flex flex-col items-center justify-center pt-5 pb-6">
+                                <i class="fas fa-cloud-upload-alt text-4xl text-gray-400"></i>
+                                <p class="mb-2 text-sm text-gray-500"><span class="font-semibold">클릭하여 파일 업로드</span></p>
+                                <p class="text-xs text-gray-500">PNG, JPG (MAX. 800x400px)</p>
+                            </div>
+                            <input id="screenshot-file" type="file" class="hidden" accept="image/*" />
+                        </label>
+                    </div> 
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-6">
+                    <div>
+                        <label for="model-strengths">모델의 장점</label>
+                        <textarea id="model-strengths" placeholder="테스트 결과, 이 모델이 특별히 잘하는 점은 무엇이었나요?"></textarea>
+                    </div>
+                    <div>
+                        <label for="model-weaknesses">모델의 단점 및 한계</label>
+                        <textarea id="model-weaknesses" placeholder="테스트 결과, 아쉬웠던 점이나 개선이 필요하다고 생각되는 부분은 무엇이었나요?"></textarea>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section 3: AI 서비스 아이디어 제안 -->
+            <section class="report-section">
+                 <h2 class="report-title">3. AI 서비스 아이디어 제안</h2>
+                <div>
+                    <label for="service-name">AI 서비스 이름</label>
+                    <input type="text" id="service-name" placeholder="예: 코딩 질문 해결사 '코드버디'">
+                </div>
+                <div class="mt-6">
+                    <label for="service-concept">핵심 컨셉 및 목표</label>
+                    <textarea id="service-concept" placeholder="누구를 위한 서비스인가요? 어떤 문제를 해결해주나요? 서비스의 핵심 목표를 설명해주세요."></textarea>
+                </div>
+                <div class="mt-6">
+                    <label for="service-working">작동 방식</label>
+                    <textarea id="service-working" placeholder="위에서 분석한 AI 모델이 이 서비스에서 어떤 역할을 하나요? 사용자가 서비스를 이용하는 과정을 구체적으로 설명해주세요."></textarea>
+                </div>
+                 <div class="mt-6">
+                    <label for="service-impact">기대 효과</label>
+                    <textarea id="service-impact" placeholder="이 서비스가 만들어진다면 우리 사회나 사용자에게 어떤 긍정적인 영향을 줄 수 있을까요?"></textarea>
+                </div>
+            </section>
+
+            <!-- Section 4: 느낀점 -->
+            <section class="report-section">
+                <h2 class="report-title">4. 느낀점</h2>
+                <div>
+                    <label for="reflections">활동을 통해 배우고 느낀 점</label>
+                    <textarea id="reflections" placeholder="이번 AI 모델 탐사 활동을 통해 새롭게 알게 된 점, 느낀 점, 앞으로 더 탐구하고 싶은 점 등을 자유롭게 작성하세요."></textarea>
+                </div>
+            </section>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex flex-wrap gap-4 justify-center items-center mt-8 no-print">
+            <button id="save-progress" class="action-button bg-gray-200 hover:bg-gray-300 text-gray-800">
+                <i class="fas fa-save mr-2"></i>임시 저장
+            </button>
+            <button id="load-progress" class="action-button bg-gray-200 hover:bg-gray-300 text-gray-800">
+                <i class="fas fa-upload mr-2"></i>불러오기
+            </button>
+            <button id="print-report" class="action-button bg-blue-600 hover:bg-blue-700 text-white">
+                <i class="fas fa-download mr-2"></i>보고서 PDF로 다운로드
+            </button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const formElements = document.querySelectorAll('input, textarea, select');
+            const saveBtn = document.getElementById('save-progress');
+            const loadBtn = document.getElementById('load-progress');
+            const printBtn = document.getElementById('print-report');
+            const screenshotInput = document.getElementById('screenshot-file');
+            const screenshotPreview = document.getElementById('screenshot-preview');
+            const screenshotPlaceholder = document.getElementById('screenshot-placeholder');
+            const screenshotPreviewContainer = document.getElementById('screenshot-preview-container');
+
+            const saveProgress = () => {
+                const data = {};
+                formElements.forEach(el => {
+                    if (el.type !== 'file') {
+                        data[el.id] = el.value;
+                    }
+                });
+                // 이미지 데이터는 Base64로 저장
+                if (screenshotPreview.src && !screenshotPreview.src.endsWith('#')) {
+                    data['screenshot-preview'] = screenshotPreview.src;
+                }
+                localStorage.setItem('aiReportData', JSON.stringify(data));
+                alert('보고서 내용이 브라우저에 임시 저장되었습니다.');
+            };
+
+            const loadProgress = () => {
+                const data = JSON.parse(localStorage.getItem('aiReportData'));
+                if (data) {
+                    formElements.forEach(el => {
+                        if (data[el.id] && el.type !== 'file') {
+                            el.value = data[el.id];
+                        }
+                    });
+                     // 이미지 데이터 불러오기
+                    if (data['screenshot-preview']) {
+                        screenshotPreview.src = data['screenshot-preview'];
+                        screenshotPlaceholder.classList.add('hidden');
+                        screenshotPreviewContainer.classList.remove('hidden');
+                    }
+                    alert('저장된 보고서 내용을 불러왔습니다.');
+                } else {
+                    alert('저장된 내용이 없습니다.');
+                }
+            };
+            
+            saveBtn.addEventListener('click', saveProgress);
+            loadBtn.addEventListener('click', loadProgress);
+            
+            printBtn.addEventListener('click', () => {
+                const reportContent = document.getElementById('report-content');
+                const studentId = document.getElementById('student-info').value.trim() || '학번';
+                const studentName = document.getElementById('student-name').value.trim() || '이름';
+                const fileName = `AI모델탐사보고서_${studentId}_${studentName}.pdf`;
+
+                const opt = {
+                    margin:       [0.5, 0.5, 0.5, 0.5],
+                    filename:     fileName,
+                    image:        { type: 'jpeg', quality: 0.98 },
+                    html2canvas:  { scale: 2, useCORS: true },
+                    jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+                };
+                
+                html2pdf().from(reportContent).set(opt).save();
+            });
+
+            screenshotInput.addEventListener('change', (event) => {
+                const file = event.target.files[0];
+                if (file && file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        screenshotPreview.src = e.target.result;
+                        screenshotPlaceholder.classList.add('hidden');
+                        screenshotPreviewContainer.classList.remove('hidden');
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        });
+    </script>
+</body>
+</html>
+

@@ -335,7 +335,6 @@
 
             // --- API Call ---
             const callHuggingFaceApi = async () => {
-                // ... (API call logic remains the same)
                 const apiKey = apiKeyInput.value;
                 if (!apiKey) {
                     addMessageToUI('ai', 'Hugging Face API 키를 입력해주세요.');
@@ -353,6 +352,7 @@
                     
                     headers = { "Authorization": `Bearer ${apiKey}` };
 
+                    // Task-specific logic
                     if (task === 'text-generation') {
                         headers["Content-Type"] = "application/json";
                         let fullPrompt = "";
@@ -365,7 +365,6 @@
                             }
                         });
                         fullPrompt += "<|assistant|>\n";
-
                         payload = {
                             inputs: fullPrompt,
                             parameters: {
@@ -377,38 +376,63 @@
                         };
                          const response = await fetch(API_URL, { method: 'POST', headers, body: JSON.stringify(payload) });
                          const result = await response.json();
-                         if (response.ok) {
-                             const aiResponse = result[0].generated_text.trim();
-                             chatHistory.push({ role: 'assistant', content: aiResponse });
-                             addMessageToUI('ai', aiResponse);
-                         } else {
-                             throw new Error(result.error || "Unknown error");
+
+                         if (!response.ok) {
+                            if (result.error && result.error.includes("is currently loading")) {
+                                const waitTime = Math.ceil(result.estimated_time);
+                                throw new Error(`모델을 로딩 중입니다. 약 ${waitTime}초 후에 다시 시도해주세요.`);
+                            }
+                             throw new Error(result.error || `HTTP error! status: ${response.status}`);
                          }
+                         
+                         if (Array.isArray(result) && result[0].generated_text) {
+                            const aiResponse = result[0].generated_text.trim();
+                            chatHistory.push({ role: 'assistant', content: aiResponse });
+                            addMessageToUI('ai', aiResponse);
+                         } else {
+                            throw new Error('API 응답 형식이 올바르지 않습니다.');
+                         }
+
                     } else if (task === 'text-to-image') {
                         headers["Content-Type"] = "application/json";
                         const lastUserMessage = chatHistory.slice().reverse().find(m => m.role === 'user').content;
                         payload = { inputs: lastUserMessage };
                          const response = await fetch(API_URL, { method: 'POST', headers, body: JSON.stringify(payload) });
-                         if (response.ok) {
-                             const imageBlob = await response.blob();
-                             const imageUrl = URL.createObjectURL(imageBlob);
-                             chatHistory.push({ role: 'assistant', content: imageUrl, isImage: true });
-                             addMessageToUI('ai', imageUrl, true);
-                         } else {
+                         
+                         if (!response.ok) {
                             const result = await response.json();
-                             throw new Error(result.error);
+                             if (result.error && result.error.includes("is currently loading")) {
+                                const waitTime = Math.ceil(result.estimated_time);
+                                throw new Error(`모델을 로딩 중입니다. 약 ${waitTime}초 후에 다시 시도해주세요.`);
+                            }
+                             throw new Error(result.error || `HTTP error! status: ${response.status}`);
                          }
+                         
+                         const imageBlob = await response.blob();
+                         const imageUrl = URL.createObjectURL(imageBlob);
+                         chatHistory.push({ role: 'assistant', content: imageUrl, isImage: true });
+                         addMessageToUI('ai', imageUrl, true);
+
                     } else if (task === 'image-to-text') {
                         if (!attachedFile) throw new Error("이미지를 첨부해주세요.");
                         const binaryData = await fileToBinary(attachedFile);
                         const response = await fetch(API_URL, { method: 'POST', headers, body: binaryData });
                         const result = await response.json();
-                        if (response.ok) {
-                            const caption = result[0].generated_text;
-                            chatHistory.push({ role: 'assistant', content: caption });
-                            addMessageToUI('ai', caption);
+
+                        if (!response.ok) {
+                           if (result.error && result.error.includes("is currently loading")) {
+                                const waitTime = Math.ceil(result.estimated_time);
+                                throw new Error(`모델을 로딩 중입니다. 약 ${waitTime}초 후에 다시 시도해주세요.`);
+                            }
+                             throw new Error(result.error || `HTTP error! status: ${response.status}`);
+                         }
+
+                        if (Array.isArray(result) && result[0].generated_text) {
+                             const caption = result[0].generated_text;
+                             chatHistory.push({ role: 'assistant', content: caption });
+                             addMessageToUI('ai', caption);
                         } else {
-                             throw new Error(result.error);
+                            throw new Error('API 응답 형식이 올바르지 않습니다.');
                         }
                     }
                 } catch (error) {
