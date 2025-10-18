@@ -45,6 +45,9 @@
         /* Color Picker Style */
         .color-picker-wrapper { position: relative; width: 32px; height: 32px; border-radius: 50%; border: 2px solid #e2e8f0; overflow: hidden; }
         .color-picker-wrapper input[type="color"] { position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: pointer; opacity: 0; }
+        
+        .component-settings { display: none; }
+        .component:hover .component-settings { display: flex; }
     </style>
 </head>
 <body class="bg-slate-100">
@@ -57,6 +60,10 @@
             <!-- Global Settings -->
             <div class="space-y-4 mb-8 border-b pb-6">
                 <h2 class="font-semibold text-slate-600">전체 설정</h2>
+                 <div>
+                    <label for="report-name" class="text-sm font-medium">보고서 이름</label>
+                    <input type="text" id="report-name" value="나의 보고서" class="w-full mt-1 p-2 border rounded-md text-sm">
+                </div>
                 <div>
                     <label for="paper-size" class="text-sm font-medium">용지 사이즈</label>
                     <select id="paper-size" class="w-full mt-1 p-2 border rounded-md text-sm">
@@ -145,6 +152,7 @@
     <script>
         const app = {
             config: {
+                reportName: '나의 보고서',
                 paperSize: 'a4',
                 themeColor: '#3b82f6',
                 backgroundColor: '#ffffff',
@@ -157,6 +165,7 @@
             },
             
             elements: {
+                reportName: document.getElementById('report-name'),
                 paperSize: document.getElementById('paper-size'),
                 themeColor: document.getElementById('theme-color'),
                 bgColor: document.getElementById('bg-color'),
@@ -178,6 +187,7 @@
             },
 
             attachEventListeners() {
+                this.elements.reportName.addEventListener('input', (e) => { this.config.reportName = e.target.value; });
                 this.elements.paperSize.addEventListener('change', (e) => { this.config.paperSize = e.target.value; this.updateGlobalStyles(); });
                 this.elements.themeColor.addEventListener('input', (e) => { this.config.themeColor = e.target.value; this.updateGlobalStyles(); e.target.parentElement.style.backgroundColor = e.target.value; });
                 this.elements.bgColor.addEventListener('input', (e) => { this.config.backgroundColor = e.target.value; this.updateGlobalStyles(); e.target.parentElement.style.backgroundColor = e.target.value; });
@@ -205,11 +215,10 @@
                 const component = this.findComponent(componentEl.dataset.id);
                 if (!component) return;
 
+                const field = e.target.dataset.field || 'content';
                 if (e.target.isContentEditable) {
-                    const field = e.target.dataset.field || 'content';
                     component[field] = e.target.innerHTML;
-                } else if (e.target.matches('textarea.interactive-code')) {
-                    const field = e.target.dataset.field;
+                } else {
                     component[field] = e.target.value;
                 }
             },
@@ -304,8 +313,10 @@
                     case 'h4': newComponent.content = '소제목'; break;
                     case 'input': newComponent.label = '라벨'; newComponent.placeholder = '안내 문구'; break;
                     case 'static-markdown': newComponent.content = '이곳은 보고서 양식의 일부로, 최종 사용자는 수정할 수 없는 설명글입니다.'; break;
-                    case 'markdown': newComponent.content = '사용자가 이 영역에 텍스트를 입력합니다. **마크다운**과 수식($$y=ax+b$$)을 지원합니다.'; break;
-                    case 'code': newComponent.content = 'print("Hello, World!")'; break;
+                    case 'markdown': newComponent.content = '사용자가 이 영역에 텍스트를 입력합니다.'; newComponent.height = 150; break;
+                    case 'code': newComponent.content = 'print("Hello, World!")'; newComponent.height=200; break;
+                    case 'image-embed': newComponent.width = 100; break;
+                    case 'image-upload': newComponent.width = 100; break;
                     case 'interactive': newComponent.html = `<div style="padding: 1rem; border: 1px solid #ccc; border-radius: 8px;">\n  <p>카운터: <span id="count-${newComponent.id}">0</span></p>\n  <button id="btn-${newComponent.id}" style="padding: 4px 8px; border-radius: 4px;">증가</button>\n</div>`; newComponent.js = `let count = 0;\nconst countSpan = document.getElementById('count-${newComponent.id}');\ndocument.getElementById('btn-${newComponent.id}').addEventListener('click', () => {\n  count++;\n  countSpan.textContent = count;\n});`; break;
                     case 'columns-2': newComponent.columns = [[], []]; break;
                     case 'columns-3': newComponent.columns = [[], [], []]; break;
@@ -347,6 +358,12 @@
                     <div class="delete-btn"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></div>
                 </div>`;
                 
+                const settings = (fields) => `<div class="component-settings absolute top-0 right-0 bg-white/50 backdrop-blur-sm p-1 rounded-bl-lg shadow text-xs items-center gap-2">
+                    ${fields}
+                </div>`;
+                const widthSetting = `<div><label>너비:</label><input type="number" min="10" max="100" value="${component.width}" data-field="width" class="w-12 text-center border rounded"> %</div>`;
+                const heightSetting = `<div><label>높이:</label><input type="number" min="50" step="10" value="${component.height}" data-field="height" class="w-16 text-center border rounded"> px</div>`;
+
                 switch(component.type) {
                     case 'h1': contentHtml = `<h1 class="text-4xl font-bold" style="color: var(--theme-color);" contenteditable="true" data-field="content">${component.content}</h1>`; break;
                     case 'h2': contentHtml = `<h2 class="text-2xl font-bold border-b-2 pb-2 mb-4" style="border-color: var(--theme-color);" contenteditable="true" data-field="content">${component.content}</h2>`; break;
@@ -354,15 +371,16 @@
                     case 'h4': contentHtml = `<h4 class="text-lg font-semibold text-slate-600" contenteditable="true" data-field="content">${component.content}</h4>`; break;
                     case 'input': contentHtml = `<div><label class="font-medium" contenteditable="true" data-field="label">${component.label}</label><div class="w-full border border-slate-300 rounded-md p-2 mt-1"><span class="placeholder-editor" contenteditable="true" data-field="placeholder">${component.placeholder}</span></div></div>`; break;
                     case 'static-markdown': contentHtml = `<div class="prose max-w-none" contenteditable="true" data-field="content">${component.content}</div>`; break;
-                    case 'markdown': contentHtml = `<div class="prose max-w-none text-slate-400 border-2 border-dashed rounded-lg p-4">사용자가 마크다운을 입력하는 영역</div>`; break;
-                    case 'code': contentHtml = `<pre class="bg-slate-800 text-white p-4 rounded-md"><code contenteditable="true" data-field="content" class="language-python">${component.content}</code></pre>`; break;
-                    case 'image-upload': contentHtml = `<div class="bg-slate-100 border-2 border-dashed rounded-lg flex items-center justify-center h-48 text-slate-500">이미지 입력 영역</div>`; break;
+                    case 'markdown': contentHtml = `<div class="relative prose max-w-none text-slate-400 border-2 border-dashed rounded-lg p-4" style="min-height:${component.height}px">사용자가 마크다운을 입력하는 영역 ${settings(heightSetting)}</div>`; break;
+                    case 'code': contentHtml = `<div class="relative"><pre class="bg-slate-800 text-white p-4 rounded-md" style="min-height:${component.height}px"><code contenteditable="true" data-field="content" class="language-python">${component.content}</code></pre>${settings(heightSetting)}</div>`; break;
+                    case 'image-upload': contentHtml = `<div class="relative bg-slate-100 border-2 border-dashed rounded-lg flex items-center justify-center h-48 text-slate-500" style="width:${component.width}%; margin: 0 auto;">이미지 입력 영역 ${settings(widthSetting)}</div>`; break;
                     case 'image-embed': 
                         const imgPrev = component.content ? `<img src="${component.content}" class="w-full h-auto object-contain rounded-md">` : '';
-                        contentHtml = `<div class="flex flex-col items-center justify-center h-auto text-slate-500">
+                        contentHtml = `<div class="relative flex flex-col items-center justify-center h-auto text-slate-500" style="width:${component.width}%; margin: 0 auto;">
                                         ${imgPrev}
                                         <label for="embed-input-${component.id}" class="mt-2 text-sm bg-slate-200 text-slate-700 font-medium py-1 px-3 rounded-md cursor-pointer hover:bg-slate-300">이미지 선택</label>
                                         <input type="file" accept="image/*" class="embed-image-input hidden" id="embed-input-${component.id}">
+                                        ${settings(widthSetting)}
                                        </div>`; 
                         break;
                     case 'interactive': contentHtml = `<div class="border-2 border-dashed border-blue-300 bg-blue-50 p-4 rounded-lg"><h4 class="font-semibold text-blue-800">인터랙티브 활동</h4><div class="mt-2"><label class="text-sm font-medium text-slate-700">HTML</label><textarea data-field="html" class="interactive-code w-full h-24 p-2 mt-1 font-mono text-sm border rounded-md">${component.html}</textarea></div><div class="mt-2"><label class="text-sm font-medium text-slate-700">JavaScript</label><textarea data-field="js" class="interactive-code w-full h-24 p-2 mt-1 font-mono text-sm border rounded-md">${component.js}</textarea></div></div>`; break;
@@ -448,10 +466,10 @@
                         case 'h4': content = `<h4 class="text-lg font-semibold text-slate-600">${component.content}</h4>`; break;
                         case 'input': content = `<div><label class="block font-medium mb-1">${component.label}</label><input type="text" id="input-${component.id}" class="savable w-full p-2 border border-slate-300 rounded-md" placeholder="${component.placeholder}"></div>`; break;
                         case 'static-markdown': content = `<div class="prose max-w-none">${this.showdownConverter.makeHtml(component.content)}</div>`; break;
-                        case 'markdown': content = `<div class="editable-container"><textarea class="savable markdown-input hidden w-full p-2 border rounded-md" id="md-${component.id}" placeholder="내용을 입력하세요..."></textarea><div class="markdown-preview prose max-w-none"></div></div>`; break;
-                        case 'code': content = `<div class="editable-container"><textarea id="code-${component.id}" class="savable code-input hidden w-full p-2 border rounded-md bg-slate-800 text-white">${component.content}</textarea><pre class="bg-slate-800 rounded-md"><code class="code-preview language-python"></code></pre></div>`; break;
-                        case 'image-upload': content = `<div class="screenshot-wrapper"><label for="screenshot-input-${component.id}" class="flex flex-col items-center justify-center w-full min-h-48 border-2 border-slate-300 border-dashed rounded-lg cursor-pointer bg-slate-50 hover:bg-slate-100"><img id="screenshot-preview-${component.id}" class="hidden w-full h-full object-contain rounded-lg"><div id="screenshot-placeholder-${component.id}" class="text-center text-slate-500 p-4">이미지 첨부</div></label><input type="file" accept="image/*" class="hidden" id="screenshot-input-${component.id}"></div>`; break;
-                        case 'image-embed': content = `<img src="${component.content}" class="w-full h-auto object-contain">`; break;
+                        case 'markdown': content = `<div class="editable-container"><textarea class="savable markdown-input hidden w-full p-2 border rounded-md" id="md-${component.id}" placeholder="내용을 입력하세요..." style="min-height: ${component.height}px;"></textarea><div class="markdown-preview prose max-w-none"></div></div>`; break;
+                        case 'code': content = `<div class="editable-container"><textarea id="code-${component.id}" class="savable code-input hidden w-full p-2 border rounded-md bg-slate-800 text-white" style="min-height: ${component.height}px;">${component.content}</textarea><pre class="bg-slate-800 rounded-md"><code class="code-preview language-python"></code></pre></div>`; break;
+                        case 'image-upload': content = `<div class="screenshot-wrapper" style="width: ${component.width}%; margin: 0 auto;"><label for="screenshot-input-${component.id}" class="flex flex-col items-center justify-center w-full min-h-48 border-2 border-slate-300 border-dashed rounded-lg cursor-pointer bg-slate-50 hover:bg-slate-100"><img id="screenshot-preview-${component.id}" class="hidden w-full h-full object-contain rounded-lg"><div id="screenshot-placeholder-${component.id}" class="text-center text-slate-500 p-4">이미지 첨부</div></label><input type="file" accept="image/*" class="hidden" id="screenshot-input-${component.id}"></div>`; break;
+                        case 'image-embed': content = `<img src="${component.content}" class="block w-full h-auto object-contain" style="width: ${component.width}%; margin: 0 auto;">`; break;
                         case 'divider': content = `<hr style="border-color: ${this.config.borderColor}; border-top-width: 2px; margin: 1rem 0;">`; break;
                         case 'columns-2': content = `<div class="flex gap-6">${component.columns.map(col => `<div class="flex-1">${col.map(c => generateComponentHTML(c, true)).join('')}</div>`).join('')}</div>`; break;
                         case 'columns-3': content = `<div class="flex gap-6">${component.columns.map(col => `<div class="flex-1">${col.map(c => generateComponentHTML(c, true)).join('')}</div>`).join('')}</div>`; break;
@@ -464,9 +482,56 @@
                 const bodyContent = `<div id="report-content" class="p-12" style="background-color: ${this.config.backgroundColor}; color: ${this.config.textColor}">${this.config.components.map(c => `<div class="report-section mb-8 break-inside-avoid">${generateComponentHTML(c)}</div>`).join('')}</div>`;
                 const styleContent = this.generateStyleHTML();
                 const scriptContent = this.generateScriptHTML();
-                const overlays = `...`; // Omitted for brevity
-                const fullHtml = `...`; // Omitted for brevity
-                this.downloadFile(fullHtml, 'report.html', 'text/html');
+                const overlays = `
+    <div id="loader-overlay" class="fixed inset-0 bg-black bg-opacity-60 flex-col items-center justify-center hidden z-50">
+        <div class="bg-white p-8 rounded-lg shadow-xl text-center">
+            <svg class="animate-spin h-10 w-10" style="color: ${this.config.themeColor}" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"><\/circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"><\/path>
+            <\/svg>
+            <p class="text-lg font-semibold text-slate-700 mt-4">PDF 생성 중...<\/p>
+        <\/div>
+    <\/div>
+    <div id="autosave-status" class="no-print fixed bottom-6 right-6 flex items-center bg-slate-800 text-white py-2 px-4 rounded-lg shadow-lg opacity-0 transition-opacity duration-500 z-50">
+        <svg id="autosave-icon-saving" class="animate-spin h-5 w-5 mr-3 hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"><\/circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"><\/path><\/svg>
+        <svg id="autosave-icon-saved" class="h-5 w-5 mr-3 hidden text-green-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /><\/svg>
+        <span id="autosave-text"><\/span>
+    <\/div>`;
+
+                const fullHtml = `
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${this.config.reportName}<\/title>
+    <script src="https://cdn.tailwindcss.com?plugins=typography"><\/script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"><\/script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"><\/script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/showdown/2.1.0/showdown.min.js"><\/script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"><\/script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"><\/script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"><\/script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"><\/script>
+    ${styleContent}
+<\/head>
+<body class="p-4 sm:p-8 bg-slate-100">
+    <main class="max-w-4xl mx-auto bg-white shadow-lg">
+        ${bodyContent}
+    <\/main>
+    <footer class="text-center mt-8 py-6 no-print">
+        <button id="export-pdf" class="text-white font-bold py-3 px-6 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg flex items-center gap-2 mx-auto" style="background-color: ${this.config.themeColor};">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"><\/path><polyline points="7 10 12 15 17 10"><\/polyline><line x1="12" y1="15" x2="12" y2="3"><\/line><\/svg>
+            PDF로 저장
+        <\/button>
+    </footer>
+    ${overlays}
+    ${scriptContent}
+<\/body>
+<\/html>`;
+                this.downloadFile(fullHtml, `${this.config.reportName}.html`, 'text/html');
             },
 
             generateStyleHTML() {
@@ -474,7 +539,19 @@
                     ? `@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap');`
                     : `@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600&display=swap');`;
                 const fontFamily = this.config.fontFamily === 'serif' ? "'Noto Serif KR', serif" : "'Noto Sans KR', sans-serif";
-                return `...`; // Omitted for brevity
+                
+                return `
+<style>
+    ${fontImport}
+    body { font-family: ${fontFamily}; color: ${this.config.textColor}; }
+    .editable-container .prose, .editable-container pre { cursor: text; transition: background-color 0.2s; }
+    .editable-container .prose { min-height: 80px; padding: 0.75rem; border-radius: 0.375rem; border: 1px solid transparent; }
+    .editable-container .prose:hover, .editable-container pre:hover { background-color: #f8fafc; border-color: #e2e8f0;}
+    .code-preview, .code-input { font-family: 'D2Coding', monospace, 'Courier New'; font-size: 0.9rem; line-height: 1.6; }
+    .code-preview { padding: 1rem; border-radius: 0.5rem; }
+    .no-print { display: block; }
+    @media print { .no-print { display: none; } #report-content { margin: 0; padding: 0; box-shadow: none; } }
+<\/style>`;
             },
             
             generateScriptHTML() {
@@ -483,7 +560,193 @@
                     .map(c => `// Interactive component: ${c.id}\n(function() { try { ${c.js} } catch(e) { console.error('Error in interactive component ${c.id}:', e) } })();`)
                     .join('\n\n');
 
-                const mainScript = `...`; // Omitted for brevity
+                const mainScript = `
+        const config = {
+            storageKey: 'exportedReportData_${Date.now()}',
+            savableSelector: '.savable',
+            screenshotCount: ${this.config.components.filter(c => c.type === 'image-upload').length},
+            hasCodeBlock: ${this.config.components.some(c => c.type === 'code')},
+            paperSize: '${this.config.paperSize}'
+        };
+        const converter = new showdown.Converter({ simpleLineBreaks: true, tables: true, strikethrough: true, ghCompatibleHeaderId: true, emoji: true });
+        const exportBtn = document.getElementById('export-pdf');
+        let saveTimer;
+
+        function showSaveStatus(state) {
+            const statusEl = document.getElementById('autosave-status');
+            if(!statusEl) return;
+            const textEl = statusEl.querySelector('#autosave-text');
+            const iconSaving = statusEl.querySelector('#autosave-icon-saving');
+            const iconSaved = statusEl.querySelector('#autosave-icon-saved');
+            statusEl.classList.remove('opacity-0');
+            if (state === 'saved') {
+                textEl.textContent = '저장 완료';
+                iconSaving.classList.add('hidden');
+                iconSaved.classList.remove('hidden');
+                setTimeout(() => statusEl.classList.add('opacity-0'), 2000);
+            } else {
+                textEl.textContent = '저장 중...';
+                iconSaving.classList.remove('hidden');
+                iconSaved.classList.add('hidden');
+            }
+        }
+        
+        function saveContent() {
+            clearTimeout(saveTimer);
+            showSaveStatus('saving');
+            saveTimer = setTimeout(() => {
+                const data = {};
+                document.querySelectorAll(config.savableSelector).forEach(el => data[el.id] = el.value);
+                // Also save image data if any
+                document.querySelectorAll('input[type="file"]').forEach(input => {
+                    const preview = document.getElementById(input.id.replace('input', 'preview'));
+                    if (preview && preview.src && !preview.src.endsWith('#')) data[preview.id] = preview.src;
+                });
+                localStorage.setItem(config.storageKey, JSON.stringify(data));
+                showSaveStatus('saved');
+            }, 1000);
+        }
+
+        function loadSavedContent() {
+            const data = JSON.parse(localStorage.getItem(config.storageKey));
+            if (!data) return;
+            document.querySelectorAll(config.savableSelector).forEach(el => {
+                if(data[el.id]) el.value = data[el.id];
+            });
+            document.querySelectorAll('img[id^="screenshot-preview-"]').forEach(img => {
+                 if(data[img.id]) {
+                     img.src = data[img.id];
+                     img.classList.remove('hidden');
+                     const placeholder = document.getElementById(img.id.replace('preview', 'placeholder'));
+                     if(placeholder) placeholder.classList.add('hidden');
+                 }
+            });
+        }
+
+        function updateMarkdownPreview(textareaElement) {
+            const container = textareaElement.closest('.editable-container');
+            if (!container) return;
+            const preview = container.querySelector('.markdown-preview');
+            if (preview) {
+                const placeholder = '<p class="text-slate-400">' + (textareaElement.placeholder || '내용을 입력하세요...') + '<\\/p>';
+                const html = textareaElement.value ? converter.makeHtml(textareaElement.value) : placeholder;
+                preview.innerHTML = html;
+                if(window.renderMathInElement) renderMathInElement(preview, { delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}] });
+            }
+        }
+
+        function updateCodePreview() {
+            if (!config.hasCodeBlock || typeof hljs === 'undefined') return;
+            document.querySelectorAll('.code-input').forEach(textarea => {
+                const container = textarea.closest('.editable-container');
+                if (!container) return;
+                const preview = container.querySelector('.code-preview');
+                if (preview) {
+                    preview.textContent = textarea.value || '// 코드를 입력하세요...';
+                    delete preview.dataset.highlighted;
+                    hljs.highlightElement(preview);
+                }
+            });
+        }
+        
+        function autoResizeTextarea(textarea) { textarea.style.height = 'auto'; textarea.style.height = (textarea.scrollHeight) + 'px'; }
+
+        function loadContent() {
+            loadSavedContent();
+            document.querySelectorAll('.markdown-input').forEach(updateMarkdownPreview);
+            if (config.hasCodeBlock) updateCodePreview();
+        }
+        
+        async function exportToPdf() {
+            const loader = document.getElementById('loader-overlay');
+            if(loader) loader.style.display = 'flex';
+            const reportContent = document.getElementById('report-content');
+            try {
+                const { jsPDF } = window.jspdf;
+                let format = config.paperSize.startsWith('a') || config.paperSize.startsWith('b') ? config.paperSize : 'a4';
+                const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: format });
+                
+                document.querySelectorAll('.editable-container textarea').forEach(el => el.style.display = 'none');
+                document.querySelectorAll('.editable-container .markdown-preview, .editable-container pre').forEach(el => el.style.display = 'block');
+                
+                const canvas = await html2canvas(reportContent, {
+                     scale: 2,
+                     useCORS: true,
+                     windowWidth: reportContent.scrollWidth,
+                     windowHeight: reportContent.scrollHeight
+                });
+                
+                document.querySelectorAll('.editable-container textarea').forEach(el => el.style.display = '');
+                document.querySelectorAll('.editable-container .markdown-preview, .editable-container pre').forEach(el => el.style.display = '');
+
+                const imgData = canvas.toDataURL('image/png');
+                const pdfWidth = pdf.internal.pageSize.getWidth();
+                const pdfHeight = pdf.internal.pageSize.getHeight();
+                const imgHeight = (canvas.height * pdfWidth) / canvas.width;
+                let heightLeft = imgHeight;
+                let position = 0;
+                
+                pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, imgHeight);
+                heightLeft -= pdfHeight;
+
+                while (heightLeft > 0) {
+                    position = -heightLeft;
+                    pdf.addPage();
+                    pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
+                    heightLeft -= pdfHeight;
+                }
+                pdf.save(document.title + '.pdf');
+            } catch(e) { console.error("PDF Export Error:", e); }
+            finally { if(loader) loader.style.display = 'none'; }
+        }
+
+        function initialize() {
+            document.querySelectorAll('.editable-container').forEach(container => {
+                const preview = container.querySelector('.markdown-preview, pre');
+                const editor = container.querySelector('textarea');
+                if (preview && editor) {
+                    preview.addEventListener('click', () => {
+                        preview.classList.add('hidden');
+                        editor.classList.remove('hidden');
+                        editor.focus();
+                        autoResizeTextarea(editor);
+                    });
+                    editor.addEventListener('blur', () => {
+                        editor.classList.add('hidden');
+                        preview.classList.remove('hidden');
+                        if (editor.classList.contains('code-input')) updateCodePreview();
+                        else updateMarkdownPreview(editor);
+                        saveContent();
+                    });
+                }
+            });
+            document.querySelectorAll('input[type="file"]').forEach(input => {
+                input.addEventListener('change', (event) => {
+                    const preview = document.getElementById(input.id.replace('input', 'preview'));
+                    const placeholder = document.getElementById(input.id.replace('input', 'placeholder'));
+                    const file = event.target.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = (e) => {
+                            preview.src = e.target.result;
+                            preview.classList.remove('hidden');
+                            if (placeholder) placeholder.classList.add('hidden');
+                            saveContent();
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                });
+            });
+            document.querySelectorAll('.savable').forEach(el => el.addEventListener('input', saveContent));
+            if (exportBtn) exportBtn.addEventListener('click', exportToPdf);
+            loadContent();
+        }
+        
+        initialize();
+        
+        // --- Appended Interactive Scripts ---
+        ${interactiveScripts}
+    `;
                  return `<script>document.addEventListener('DOMContentLoaded', () => { try { ${mainScript} } catch(e) { console.error('Error initializing report script:', e); } });<\/script>`;
             },
             
