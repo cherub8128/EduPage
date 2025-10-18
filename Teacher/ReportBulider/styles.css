@@ -1,0 +1,42 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600&display=swap');
+
+body { font-family: 'Noto Sans KR', sans-serif; }
+.preview-serif { font-family: 'Noto Serif KR', serif; }
+.preview-sans { font-family: 'Noto Sans KR', sans-serif; }
+
+/* Paper Sizes */
+.preview-a0 { width: 841mm; min-height: 1189mm; }
+.preview-a1 { width: 594mm; min-height: 841mm; }
+.preview-a2 { width: 420mm; min-height: 594mm; }
+.preview-a3 { width: 297mm; min-height: 420mm; }
+.preview-a4 { width: 210mm; min-height: 297mm; }
+.preview-b4 { width: 250mm; min-height: 353mm; }
+.preview-b5 { width: 176mm; min-height: 250mm; }
+.preview-letter { width: 8.5in; min-height: 11in; }
+.preview-web { width: 100%; max-width: 900px; min-height: 1280px; }
+
+.component { position: relative; padding: 0.5rem; margin-bottom: 1rem; border: 1px dashed transparent; transition: background-color 0.2s; }
+.component:hover { border-color: #93c5fd; background-color: rgba(239, 246, 255, 0.5); }
+.component.dragging { opacity: 0.4; }
+
+.component-controls { position: absolute; top: 50%; left: -32px; transform: translateY(-50%); display: flex; align-items: center; gap: 4px; opacity: 0; transition: opacity 0.2s; z-index: 10; }
+.component:hover > .component-controls { opacity: 1; }
+
+.component-handle { cursor: grab; }
+.component-handle:active { cursor: grabbing; }
+.delete-btn { cursor: pointer; color: #9ca3af; }
+.delete-btn:hover { color: #ef4444; }
+
+.drop-zone { min-height: 60px; padding: 0.5rem; border-radius: 0.5rem; transition: background-color 0.2s; }
+.drop-zone.drag-over { background-color: #dbeafe; }
+
+[contenteditable]:focus { outline: 2px solid #60a5fa; box-shadow: 0 0 0 2px #bfdbfe; }
+.placeholder-editor { color: #9ca3af; border: 1px dashed #cbd5e1; padding: 2px 4px; border-radius: 4px; background-color: white; }
+
+/* Color Picker Style */
+.color-picker-wrapper { position: relative; width: 32px; height: 32px; border-radius: 50%; border: 2px solid #e2e8f0; overflow: hidden; }
+.color-picker-wrapper input[type="color"] { position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: pointer; opacity: 0; }
+
+.component-settings { display: none; }
+.component:hover .component-settings { display: flex; }
