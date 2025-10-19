@@ -9,10 +9,10 @@
     <script src="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
     <script>
       pdfjsLib.GlobalWorkerOptions.workerSrc =
-        "https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js";
+        'https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
     </script>
     <style>
-      @import url("https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700&display=swap");
+      @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700&display=swap');
       :root {
         --brand-color: #4f46e5;
         --brand-color-light: #e0e7ff;
@@ -26,7 +26,7 @@
         scroll-behavior: smooth;
       }
       body {
-        font-family: "Pretendard", sans-serif;
+        font-family: 'Pretendard', sans-serif;
         background-color: var(--bg-light);
       }
       .card {
@@ -74,8 +74,7 @@
         transition: opacity 0.3s;
       }
       .mono {
-        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
-          monospace;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
         background-color: #f3f4f6;
         padding: 0.1rem 0.3rem;
         border-radius: 0.25rem;
@@ -99,17 +98,17 @@
           transform: rotate(360deg);
         }
       }
-      input[type="text"],
-      input[type="password"],
-      input[type="number"],
+      input[type='text'],
+      input[type='password'],
+      input[type='number'],
       select,
       textarea {
         border-color: #d1d5db;
         transition: border-color 0.2s, box-shadow 0.2s;
       }
-      input[type="text"]:focus,
-      input[type="password"]:focus,
-      input[type="number"]:focus,
+      input[type='text']:focus,
+      input[type='password']:focus,
+      input[type='number']:focus,
       select:focus,
       textarea:focus {
         border-color: var(--brand-color);
@@ -130,20 +129,14 @@
   </head>
   <body class="text-slate-800">
     <!-- 사이드바 (API 설정) -->
-    <div
-      id="sidebar-overlay"
-      class="fixed inset-0 bg-black/50 z-30 hidden opacity-0"
-    ></div>
+    <div id="sidebar-overlay" class="fixed inset-0 bg-black/50 z-30 hidden opacity-0"></div>
     <aside
       id="sidebar"
       class="fixed top-0 left-0 h-full w-full max-w-sm bg-white z-40 p-6 space-y-6 overflow-y-auto sidebar border-r"
     >
       <div class="flex items-center justify-between">
         <h2 class="text-2xl font-bold text-slate-900">설정</h2>
-        <button
-          id="closeSidebarBtn"
-          class="p-1 rounded-full hover:bg-slate-100"
-        >
+        <button id="closeSidebarBtn" class="p-1 rounded-full hover:bg-slate-100">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             class="w-6 h-6"
@@ -163,9 +156,7 @@
 
       <!-- API 설정 -->
       <details open class="space-y-4">
-        <summary
-          class="flex items-center justify-between py-2 font-semibold text-lg"
-        >
+        <summary class="flex items-center justify-between py-2 font-semibold text-lg">
           <span>API 설정</span>
           <svg
             class="w-5 h-5 transition-transform transform details-arrow"
@@ -213,15 +204,10 @@
 
     <!-- 메인 콘텐츠 -->
     <div class="flex flex-col h-screen">
-      <header
-        class="p-4 bg-white/80 backdrop-blur-sm border-b sticky top-0 z-20"
-      >
+      <header class="p-4 bg-white/80 backdrop-blur-sm border-b sticky top-0 z-20">
         <div class="max-w-7xl mx-auto flex items-center justify-between">
           <div class="flex items-center gap-3">
-            <button
-              id="openSidebarBtn"
-              class="p-2 rounded-lg hover:bg-slate-100"
-            >
+            <button id="openSidebarBtn" class="p-2 rounded-lg hover:bg-slate-100">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 class="w-6 h-6"
@@ -237,9 +223,7 @@
                 />
               </svg>
             </button>
-            <h1 class="text-xl sm:text-2xl font-bold text-slate-900">
-              범용 루브릭 평가
-            </h1>
+            <h1 class="text-xl sm:text-2xl font-bold text-slate-900">루브릭 평가 도우미</h1>
           </div>
           <div class="flex items-center gap-2">
             <svg
@@ -248,19 +232,8 @@
               viewBox="0 0 24 24"
               fill="none"
             >
-              <circle
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                stroke-width="4"
-                opacity=".2"
-              />
-              <path
-                d="M22 12a10 10 0 0 1-10 10"
-                stroke="currentColor"
-                stroke-width="4"
-              />
+              <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" opacity=".2" />
+              <path d="M22 12a10 10 0 0 1-10 10" stroke="currentColor" stroke-width="4" />
             </svg>
             <button id="startBtn" class="btn btn-primary">
               <svg
@@ -273,7 +246,9 @@
                   fill-rule="evenodd"
                   d="M2 10a8 8 0 1 1 16 0 8 8 0 0 1-16 0Zm6.39-2.908a.75.75 0 0 1 .94.312l2.5 4.5a.75.75 0 0 1-1.33.744L9.25 10.364l-1.64 2.953a.75.75 0 0 1-1.33-.744l2.5-4.5a.75.75 0 0 1 .56-.312Z"
                   clip-rule="evenodd"
-                /></svg><span>평가 시작</span>
+                />
+              </svg>
+              <span>평가 시작</span>
             </button>
             <button id="stopBtn" class="btn btn-secondary">
               <svg
@@ -291,14 +266,10 @@
         </div>
       </header>
 
-      <main
-        class="max-w-7xl mx-auto p-4 sm:p-6 w-full flex-grow overflow-y-auto"
-      >
+      <main class="max-w-7xl mx-auto p-4 sm:p-6 w-full flex-grow overflow-y-auto">
         <div class="space-y-6">
           <details class="card" open>
-            <summary
-              class="p-5 flex items-center justify-between cursor-pointer"
-            >
+            <summary class="p-5 flex items-center justify-between cursor-pointer">
               <h2 class="text-lg font-semibold">1. 평가 기준 설정</h2>
               <svg
                 class="w-6 h-6 transition-transform transform details-arrow"
@@ -324,16 +295,8 @@
                       class="btn btn-secondary text-sm w-full cursor-pointer"
                       >JSON 가져오기</label
                     >
-                    <input
-                      type="file"
-                      id="preset-upload"
-                      class="hidden"
-                      accept=".json"
-                    />
-                    <button
-                      id="preset-save"
-                      class="btn btn-secondary text-sm w-full"
-                    >
+                    <input type="file" id="preset-upload" class="hidden" accept=".json" />
+                    <button id="preset-save" class="btn btn-secondary text-sm w-full">
                       JSON 저장
                     </button>
                   </div>
@@ -347,27 +310,14 @@
                     placeholder="평가 기준,평가 내용,점수..."
                   ></textarea>
                   <div class="flex gap-2">
-                    <button
-                      id="apply-pasted-rubric"
-                      class="btn btn-secondary text-sm w-full"
-                    >
+                    <button id="apply-pasted-rubric" class="btn btn-secondary text-sm w-full">
                       텍스트 적용
                     </button>
-                    <label
-                      for="csv-upload"
-                      class="btn btn-secondary text-sm w-full cursor-pointer"
+                    <label for="csv-upload" class="btn btn-secondary text-sm w-full cursor-pointer"
                       >CSV 업로드</label
                     >
-                    <input
-                      type="file"
-                      id="csv-upload"
-                      class="hidden"
-                      accept=".csv,text/csv"
-                    />
-                    <button
-                      id="downloadTemplate"
-                      class="btn btn-secondary text-sm w-full"
-                    >
+                    <input type="file" id="csv-upload" class="hidden" accept=".csv,text/csv" />
+                    <button id="downloadTemplate" class="btn btn-secondary text-sm w-full">
                       양식 다운로드
                     </button>
                   </div>
@@ -429,17 +379,12 @@
                 <button id="downloadCsv" class="btn btn-secondary text-sm">
                   결과 CSV 내보내기
                 </button>
-                <button id="clearBtn" class="btn btn-secondary text-sm">
-                  초기화
-                </button>
+                <button id="clearBtn" class="btn btn-secondary text-sm">초기화</button>
               </div>
             </div>
             <div class="overflow-auto" style="max-height: 400px">
               <table class="min-w-full text-sm summary-table">
-                <thead
-                  id="summaryHeader"
-                  class="sticky top-0 bg-slate-100 z-10"
-                ></thead>
+                <thead id="summaryHeader" class="sticky top-0 bg-slate-100 z-10"></thead>
                 <tbody id="summaryBody"></tbody>
               </table>
             </div>
