@@ -94,8 +94,8 @@ document.addEventListener('DOMContentLoaded', () => {
   overlay.addEventListener('click', closeSidebar);
 
   const providers = {
-    google: { name: 'Google (Gemini)', defaultModel: 'gemini-1.5-flash-latest' },
-    openai: { name: 'OpenAI (GPT)', defaultModel: 'gpt-4o-mini' },
+    google: { name: 'Google (Gemini)', defaultModel: 'gemini-2.5-flash' },
+    openai: { name: 'OpenAI (GPT)', defaultModel: 'gpt-5-mini' },
     openrouter: { name: 'OpenRouter', defaultModel: 'meta-llama/llama-3-8b-instruct' },
     ollama: { name: 'Ollama (로컬)', defaultModel: 'llama3' },
     mock: { name: '모의 채점 (Test)', defaultModel: '' },
