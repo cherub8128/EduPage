@@ -58,6 +58,13 @@ document.addEventListener('DOMContentLoaded', () => {
   // --- 유틸리티 ---
   const byId = (id) => document.getElementById(id);
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+  const autoResizeTextarea = (el) => {
+    // requestAnimationFrame을 사용하여 브라우저 렌더링 후 높이를 계산합니다.
+    requestAnimationFrame(() => {
+      el.style.height = 'auto';
+      el.style.height = el.scrollHeight + 'px';
+    });
+  };
 
   function logln(level, ...args) {
     const s = args.map((a) => (typeof a === 'string' ? a : JSON.stringify(a, null, 2))).join(' ');
@@ -173,7 +180,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (field === 'name')
       itemDiv.querySelector('.item-name').textContent = item.name = e.target.value;
     if (level) item.scores[level] = parseFloat(e.target.value) || 0;
-    if (descLevel) item.descriptions[descLevel] = e.target.value;
+    if (descLevel) {
+      item.descriptions[descLevel] = e.target.value;
+      autoResizeTextarea(e.target);
+    }
   });
 
   rubricAccordion.addEventListener('change', (e) => {
@@ -230,6 +240,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }</textarea>
             `;
       criteriaContainer.appendChild(div);
+      autoResizeTextarea(div.querySelector('textarea'));
     });
   }
 
@@ -248,19 +259,36 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  criteriaContainer.addEventListener('input', (e) => {
-    const level = e.target.dataset.criteriaLevel;
-    if (level) {
-      state.overview.criteria.levels[level] = e.target.value;
-    }
-  });
+  function setupDynamicTextareas() {
+    const textareas = document.querySelectorAll(
+      '#task-overview, #achievement-standards, #core-ideas'
+    );
+    textareas.forEach((textarea) => {
+      textarea.addEventListener('input', () => autoResizeTextarea(textarea));
+      autoResizeTextarea(textarea); // 초기 로드 시 높이 조절
+    });
 
-  byId('task-overview').addEventListener('input', (e) => (state.overview.task = e.target.value));
-  byId('achievement-standards').addEventListener(
-    'input',
-    (e) => (state.overview.standards = e.target.value)
-  );
-  byId('core-ideas').addEventListener('input', (e) => (state.overview.ideas = e.target.value));
+    criteriaContainer.addEventListener('input', (e) => {
+      const level = e.target.dataset.criteriaLevel;
+      if (level) {
+        state.overview.criteria.levels[level] = e.target.value;
+        autoResizeTextarea(e.target);
+      }
+    });
+  }
+
+  byId('task-overview').addEventListener('input', (e) => {
+    state.overview.task = e.target.value;
+    autoResizeTextarea(e.target);
+  });
+  byId('achievement-standards').addEventListener('input', (e) => {
+    state.overview.standards = e.target.value;
+    autoResizeTextarea(e.target);
+  });
+  byId('core-ideas').addEventListener('input', (e) => {
+    state.overview.ideas = e.target.value;
+    autoResizeTextarea(e.target);
+  });
 
   function updateAllUI() {
     byId('task-overview').value = state.overview.task;
@@ -268,6 +296,7 @@ document.addEventListener('DOMContentLoaded', () => {
     byId('core-ideas').value = state.overview.ideas;
     renderEvaluationCriteriaUI();
     renderRubric();
+    setupDynamicTextareas();
   }
 
   // --- 파일/텍스트 기반 루브릭 관리 ---

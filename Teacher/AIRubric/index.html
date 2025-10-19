@@ -130,6 +130,10 @@
         color: white;
         border-color: var(--brand-color);
       }
+      textarea {
+        resize: none;
+        overflow: hidden;
+      }
     </style>
   </head>
   <body class="text-slate-800">
@@ -344,48 +348,42 @@
               </svg>
             </summary>
             <div class="p-5 border-t space-y-4">
-              <div class="grid md:grid-cols-2 gap-x-6 gap-y-4">
-                <div class="md:col-span-2 grid md:grid-cols-2 gap-x-6 gap-y-4">
-                  <div>
-                    <label for="task-overview" class="font-semibold text-sm">수행 과제</label>
-                    <textarea
-                      id="task-overview"
-                      class="w-full rounded-lg text-sm mt-1"
-                      rows="4"
-                    ></textarea>
-                  </div>
-                  <div>
-                    <label for="achievement-standards" class="font-semibold text-sm"
-                      >성취기준</label
-                    >
-                    <textarea
-                      id="achievement-standards"
-                      class="w-full rounded-lg text-sm mt-1"
-                      rows="4"
-                    ></textarea>
+              <div>
+                <label for="task-overview" class="font-semibold text-sm">수행 과제</label>
+                <textarea
+                  id="task-overview"
+                  class="w-full rounded-lg text-sm mt-1"
+                  rows="2"
+                ></textarea>
+              </div>
+              <div>
+                <label for="achievement-standards" class="font-semibold text-sm">성취기준</label>
+                <textarea
+                  id="achievement-standards"
+                  class="w-full rounded-lg text-sm mt-1"
+                  rows="2"
+                ></textarea>
+              </div>
+              <div>
+                <label for="core-ideas" class="font-semibold text-sm">핵심 아이디어</label>
+                <textarea
+                  id="core-ideas"
+                  class="w-full rounded-lg text-sm mt-1"
+                  rows="2"
+                ></textarea>
+              </div>
+              <div>
+                <div class="flex items-center justify-between mb-1">
+                  <label class="font-semibold text-sm">종합 평가 기준</label>
+                  <div
+                    id="criteria-type-selector"
+                    class="flex items-center text-xs p-0.5 bg-slate-100 rounded-md radio-group"
+                  >
+                    <!-- Radio buttons will be generated here by JS -->
                   </div>
                 </div>
-                <div>
-                  <label for="core-ideas" class="font-semibold text-sm">핵심 아이디어</label>
-                  <textarea
-                    id="core-ideas"
-                    class="w-full rounded-lg text-sm mt-1"
-                    rows="5"
-                  ></textarea>
-                </div>
-                <div>
-                  <div class="flex items-center justify-between mb-1">
-                    <label class="font-semibold text-sm">종합 평가 기준</label>
-                    <div
-                      id="criteria-type-selector"
-                      class="flex items-center text-xs p-0.5 bg-slate-100 rounded-md radio-group"
-                    >
-                      <!-- Radio buttons will be generated here by JS -->
-                    </div>
-                  </div>
-                  <div id="evaluation-criteria-inputs" class="space-y-2">
-                    <!-- Input fields (A, B, C...) will be generated here by JS -->
-                  </div>
+                <div id="evaluation-criteria-inputs" class="space-y-2">
+                  <!-- Input fields (A, B, C...) will be generated here by JS -->
                 </div>
               </div>
             </div>
@@ -418,7 +416,7 @@
                 >
                   <path
                     fill-rule="evenodd"
-                    d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+                    d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110 -2h5V4a1 1 0 011-1z"
                     clip-rule="evenodd"
                   />
                 </svg>
