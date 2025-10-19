@@ -35,49 +35,15 @@ document.addEventListener('DOMContentLoaded', () => {
           },
         },
       ],
-      overview: '기본 수행평가에 대한 개요입니다.',
-    },
-    project: {
-      name: '프로젝트 루브릭 (탐구 보고서)',
-      rubric: [
-        {
-          name: '문제인식',
-          type: '5-point',
-          scores: { A: 5, B: 4, C: 3, D: 2, E: 1 },
-          descriptions: {
-            A: '연구 문제의 중요성과 필요성을 명확하게 제시함',
-            B: '연구 문제가 비교적 잘 정의됨',
-            C: '연구 문제가 다소 평이하거나 일반적임',
-            D: '연구 문제가 불분명함',
-            E: '연구 문제가 부적절함',
-          },
+      overview: {
+        task: '기본 수행평가 과제 설명',
+        standards: '기본 성취기준',
+        ideas: '기본 핵심 아이디어',
+        criteria: {
+          type: '3-point',
+          levels: { A: '매우 우수', B: '우수', C: '보통' },
         },
-        {
-          name: '탐구과정',
-          type: '5-point',
-          scores: { A: 5, B: 4, C: 3, D: 2, E: 1 },
-          descriptions: {
-            A: '논리적이고 체계적인 방법으로 탐구를 수행함',
-            B: '탐구 과정이 대체로 체계적임',
-            C: '탐구 방법에 일부 비논리적인 부분이 있음',
-            D: '탐구 방법이 부적절하거나 오류가 있음',
-            E: '탐구 과정이 거의 수행되지 않음',
-          },
-        },
-        {
-          name: '결론도출',
-          type: '5-point',
-          scores: { A: 5, B: 4, C: 3, D: 2, E: 1 },
-          descriptions: {
-            A: '탐구 결과를 바탕으로 타당한 결론을 도출함',
-            B: '결론이 탐구 결과를 잘 반영함',
-            C: '결론이 일부 결과와 일치하지 않음',
-            D: '결론 도출 과정에 논리적 비약이 있음',
-            E: '결론이 없거나 부적절함',
-          },
-        },
-      ],
-      overview: '탐구 보고서 프로젝트 평가에 대한 개요입니다.',
+      },
     },
   };
 
@@ -86,7 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
     running: false,
     results: [],
     rubric: JSON.parse(JSON.stringify(presets.default.rubric)),
-    overview: presets.default.overview,
+    overview: JSON.parse(JSON.stringify(presets.default.overview)),
   };
 
   // --- 유틸리티 ---
@@ -104,14 +70,22 @@ document.addEventListener('DOMContentLoaded', () => {
     byId('log').scrollTop = byId('log').scrollHeight;
   }
 
-  // --- 사이드바 UI ---
+  // --- 사이드바 및 API 설정 ---
   const sidebar = byId('sidebar');
   const overlay = byId('sidebar-overlay');
-  byId('openSidebarBtn').addEventListener('click', () => sidebar.classList.add('open'));
-  byId('closeSidebarBtn').addEventListener('click', () => sidebar.classList.remove('open'));
-  overlay.addEventListener('click', () => sidebar.classList.remove('open'));
+  byId('openSidebarBtn').addEventListener('click', () => {
+    sidebar.classList.add('open');
+    overlay.classList.remove('hidden');
+    overlay.style.opacity = 1;
+  });
+  const closeSidebar = () => {
+    sidebar.classList.remove('open');
+    overlay.style.opacity = 0;
+    setTimeout(() => overlay.classList.add('hidden'), 300);
+  };
+  byId('closeSidebarBtn').addEventListener('click', closeSidebar);
+  overlay.addEventListener('click', closeSidebar);
 
-  // --- API 설정 UI ---
   const providers = {
     google: { name: 'Google (Gemini)', defaultModel: 'gemini-1.5-flash-latest' },
     openai: { name: 'OpenAI (GPT)', defaultModel: 'gpt-4o-mini' },
@@ -120,12 +94,11 @@ document.addEventListener('DOMContentLoaded', () => {
     mock: { name: '모의 채점 (Test)', defaultModel: '' },
   };
   const providerSelect = byId('provider');
-  Object.entries(providers).forEach(([key, { name }]) => {
-    providerSelect.add(new Option(name, key));
-  });
-  providerSelect.addEventListener('change', (e) => {
-    byId('model').value = providers[e.target.value].defaultModel;
-  });
+  Object.entries(providers).forEach(([key, { name }]) => providerSelect.add(new Option(name, key)));
+  providerSelect.addEventListener(
+    'change',
+    (e) => (byId('model').value = providers[e.target.value].defaultModel)
+  );
   providerSelect.dispatchEvent(new Event('change'));
 
   // --- 루브릭 UI 및 로직 ---
@@ -145,56 +118,37 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const summary = document.createElement('summary');
       summary.className = 'p-3 flex items-center justify-between font-semibold cursor-pointer';
-      summary.innerHTML = `
-                <span class="item-name">${item.name}</span>
-                <div class="flex items-center gap-2">
-                    <span class="text-sm font-normal bg-slate-100 px-2 py-1 rounded">${
-                      scoreTypeConfig[item.type].label
-                    }</span>
-                    <svg class="w-5 h-5 transition-transform transform details-arrow" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
-                </div>`;
+      summary.innerHTML = `<span class="item-name">${
+        item.name
+      }</span><div class="flex items-center gap-2"><span class="text-sm font-normal bg-slate-100 px-2 py-1 rounded">${
+        scoreTypeConfig[item.type].label
+      }</span><svg class="w-5 h-5 transition-transform transform details-arrow" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" /></svg></div>`;
 
       const content = document.createElement('div');
       content.className = 'p-4 border-t space-y-4';
-
       const levels = scoreTypeConfig[item.type].levels;
       const descriptionInputs = levels
         .map(
-          (level) => `
-                <div class="grid grid-cols-12 gap-2 items-start">
-                    <label class="col-span-1 text-sm font-bold text-slate-600 text-center pt-2">${level}</label>
-                    <div class="col-span-9">
-                        <textarea class="w-full rounded-lg text-sm" rows="2" data-desc-level="${level}" placeholder="${level}일 때의 만족 기준 서술...">${
-            item.descriptions[level] || ''
-          }</textarea>
-                    </div>
-                    <div class="col-span-2">
-                         <input type="number" class="w-full rounded-lg text-center" data-level="${level}" value="${
-            item.scores[level] || 0
-          }">
-                    </div>
-                </div>`
+          (level) =>
+            `<div class="grid grid-cols-12 gap-2 items-start"><label class="col-span-1 text-sm font-bold text-slate-600 text-center pt-2">${level}</label><div class="col-span-9"><textarea class="w-full rounded-lg text-sm" rows="2" data-desc-level="${level}" placeholder="${level}일 때의 만족 기준 서술...">${
+              item.descriptions[level] || ''
+            }</textarea></div><div class="col-span-2"><input type="number" class="w-full rounded-lg text-center" data-level="${level}" value="${
+              item.scores[level] || 0
+            }"></div></div>`
         )
         .join('');
-
-      content.innerHTML = `
-                <div class="flex items-end gap-2">
-                    <div class="flex-1"><label class="text-sm font-medium">항목명</label><input type="text" class="w-full font-semibold rounded mt-1" value="${
-                      item.name
-                    }" data-field="name"></div>
-                    <div class="flex-1"><label class="text-sm font-medium">유형</label><select data-field="type" class="w-full rounded mt-1">${Object.entries(
-                      scoreTypeConfig
-                    )
-                      .map(
-                        ([k, v]) =>
-                          `<option value="${k}" ${item.type === k ? 'selected' : ''}>${
-                            v.label
-                          }</option>`
-                      )
-                      .join('')}</select></div>
-                    <button class="delete-rubric-item p-2 text-slate-400 hover:text-red-600" title="항목 삭제"><svg class="w-5 h-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd" /></svg></button>
-                </div>
-                <div><p class="text-sm font-medium mt-2">만족 기준 및 점수</p><div class="space-y-2 mt-1">${descriptionInputs}</div></div>`;
+      content.innerHTML = `<div class="flex items-end gap-2"><div class="flex-1"><label class="text-sm font-medium">항목명</label><input type="text" class="w-full font-semibold rounded mt-1" value="${
+        item.name
+      }" data-field="name"></div><div class="flex-1"><label class="text-sm font-medium">유형</label><select data-field="type" class="w-full rounded mt-1">${Object.entries(
+        scoreTypeConfig
+      )
+        .map(
+          ([k, v]) =>
+            `<option value="${k}" ${item.type === k ? 'selected' : ''}>${v.label}</option>`
+        )
+        .join(
+          ''
+        )}</select></div><button class="delete-rubric-item p-2 text-slate-400 hover:text-red-600" title="항목 삭제"><svg class="w-5 h-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd" /></svg></button></div><div><p class="text-sm font-medium mt-2">만족 기준 및 점수</p><div class="space-y-2 mt-1">${descriptionInputs}</div></div>`;
 
       details.append(summary, content);
       rubricAccordion.append(details);
@@ -247,24 +201,86 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  byId('evaluation-overview').addEventListener('input', (e) => {
-    state.overview = e.target.value;
+  // --- 평가 개요 UI ---
+  const criteriaContainer = byId('evaluation-criteria-inputs');
+  const criteriaTypeSelector = byId('criteria-type-selector');
+
+  function renderEvaluationCriteriaUI() {
+    criteriaTypeSelector.innerHTML = `
+            <input type="radio" name="criteria-type" value="3-point" id="3-point-radio" class="hidden" ${
+              state.overview.criteria.type === '3-point' ? 'checked' : ''
+            }>
+            <label for="3-point-radio" class="cursor-pointer px-2 py-1 rounded-md border transition">3단계</label>
+            <input type="radio" name="criteria-type" value="5-point" id="5-point-radio" class="hidden" ${
+              state.overview.criteria.type === '5-point' ? 'checked' : ''
+            }>
+            <label for="5-point-radio" class="cursor-pointer px-2 py-1 rounded-md border transition">5단계</label>
+        `;
+
+    criteriaContainer.innerHTML = '';
+    const levels =
+      state.overview.criteria.type === '3-point' ? ['A', 'B', 'C'] : ['A', 'B', 'C', 'D', 'E'];
+    levels.forEach((level) => {
+      const div = document.createElement('div');
+      div.className = 'flex items-start gap-2';
+      div.innerHTML = `
+                <label class="font-bold text-slate-600 pt-2 w-8 text-center flex-shrink-0">${level}</label>
+                <textarea class="w-full rounded-lg text-sm" data-criteria-level="${level}" rows="1" placeholder="${level} 등급의 평가 기준 서술...">${
+        state.overview.criteria.levels[level] || ''
+      }</textarea>
+            `;
+      criteriaContainer.appendChild(div);
+    });
+  }
+
+  criteriaTypeSelector.addEventListener('change', (e) => {
+    if (e.target.name === 'criteria-type') {
+      state.overview.criteria.type = e.target.value;
+      const currentLevels = state.overview.criteria.levels;
+      const newLevels = {};
+      const levels =
+        state.overview.criteria.type === '3-point' ? ['A', 'B', 'C'] : ['A', 'B', 'C', 'D', 'E'];
+      levels.forEach((l) => {
+        newLevels[l] = currentLevels[l] || '';
+      });
+      state.overview.criteria.levels = newLevels;
+      renderEvaluationCriteriaUI();
+    }
   });
+
+  criteriaContainer.addEventListener('input', (e) => {
+    const level = e.target.dataset.criteriaLevel;
+    if (level) {
+      state.overview.criteria.levels[level] = e.target.value;
+    }
+  });
+
+  byId('task-overview').addEventListener('input', (e) => (state.overview.task = e.target.value));
+  byId('achievement-standards').addEventListener(
+    'input',
+    (e) => (state.overview.standards = e.target.value)
+  );
+  byId('core-ideas').addEventListener('input', (e) => (state.overview.ideas = e.target.value));
+
+  function updateAllUI() {
+    byId('task-overview').value = state.overview.task;
+    byId('achievement-standards').value = state.overview.standards;
+    byId('core-ideas').value = state.overview.ideas;
+    renderEvaluationCriteriaUI();
+    renderRubric();
+  }
 
   // --- 파일/텍스트 기반 루브릭 관리 ---
   function setupPresets() {
     const presetSelect = byId('preset-select');
     presetSelect.innerHTML = '<option value="">프리셋 선택...</option>';
-    Object.entries(presets).forEach(([key, { name }]) => {
-      presetSelect.add(new Option(name, key));
-    });
+    Object.entries(presets).forEach(([key, { name }]) => presetSelect.add(new Option(name, key)));
     presetSelect.addEventListener('change', (e) => {
       const key = e.target.value;
       if (key && presets[key]) {
         state.rubric = JSON.parse(JSON.stringify(presets[key].rubric));
-        state.overview = presets[key].overview || '';
-        byId('evaluation-overview').value = state.overview;
-        renderRubric();
+        state.overview = JSON.parse(JSON.stringify(presets[key].overview));
+        updateAllUI();
         logln('INFO', `"${presets[key].name}" 프리셋을 불러왔습니다.`);
       }
     });
@@ -276,18 +292,15 @@ document.addEventListener('DOMContentLoaded', () => {
     reader.onload = (e) => {
       try {
         const result = parser(e.target.result);
-        const newRubric = result.rubric || result;
-        if (newRubric && newRubric.length > 0) {
-          state.rubric = newRubric;
-          if (result.overview) {
-            state.overview = result.overview;
-            byId('evaluation-overview').value = state.overview;
-          }
-          renderRubric();
-          logln('SUCCESS', successMsg);
-        } else {
-          throw new Error('파일 내용이 비어있거나 형식이 잘못되었습니다.');
-        }
+        state.rubric = result.rubric || [];
+        state.overview = result.overview || {
+          task: '',
+          standards: '',
+          ideas: '',
+          criteria: { type: '5-point', levels: {} },
+        };
+        updateAllUI();
+        logln('SUCCESS', successMsg);
       } catch (error) {
         logln('ERROR', `파일 처리 중 오류: ${error.message}`);
         alert(`파일을 처리하는 중 오류가 발생했습니다: ${error.message}`);
@@ -300,122 +313,225 @@ document.addEventListener('DOMContentLoaded', () => {
     const text = byId('rubric-paste-area').value;
     try {
       const { overview, rubric } = parsePastedText(text);
-      if (rubric && rubric.length > 0) {
-        state.rubric = rubric;
-        state.overview = overview;
-        byId('evaluation-overview').value = overview;
-        renderRubric();
-        logln('SUCCESS', '텍스트로 루브릭을 적용했습니다.');
-      } else {
-        throw new Error('텍스트에서 유효한 채점 요소를 찾을 수 없습니다.');
-      }
+      state.rubric = rubric;
+      state.overview = overview;
+      updateAllUI();
+      logln('SUCCESS', '텍스트로 평가 계획을 적용했습니다.');
     } catch (error) {
       logln('ERROR', `텍스트 처리 중 오류: ${error.message}`);
       alert(`텍스트를 처리하는 중 오류가 발생했습니다: ${error.message}`);
     }
   });
 
-  byId('preset-upload').addEventListener('change', (e) =>
-    handleFileUpload(e.target.files[0], JSON.parse, '프리셋(.json)을 불러왔습니다.')
+  byId('json-upload').addEventListener('change', (e) =>
+    handleFileUpload(e.target.files[0], JSON.parse, 'JSON 파일을 불러왔습니다.')
   );
   byId('csv-upload').addEventListener('change', (e) =>
-    handleFileUpload(
-      e.target.files[0],
-      (text) => ({ rubric: parseRubricCSV(text) }),
-      'CSV 파일을 불러왔습니다.'
-    )
+    handleFileUpload(e.target.files[0], parseCSV, 'CSV 파일을 불러왔습니다.')
   );
 
-  byId('preset-save').addEventListener('click', () => {
+  byId('json-save').addEventListener('click', () => {
     const dataToSave = { overview: state.overview, rubric: state.rubric };
     const blob = new Blob([JSON.stringify(dataToSave, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = Object.assign(document.createElement('a'), {
       href: url,
-      download: 'rubric_preset.json',
+      download: 'rubric_config.json',
     });
     a.click();
     URL.revokeObjectURL(url);
   });
 
-  byId('downloadTemplate').addEventListener('click', () => {
-    const content = `"평가 기준","평가 내용","점수"\n"지식","지식 성취 A수준",10\n"지식","지식 성취 B수준",8\n"지식","지식 성취 C수준",6\n"태도","성실하게 참여함",5`;
-    const blob = new Blob([content], { type: 'text/csv;charset=utf-8' });
+  byId('csv-save').addEventListener('click', () => {
+    const csvContent = generateCSV();
+    const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = Object.assign(document.createElement('a'), {
       href: url,
-      download: 'rubric_template.csv',
+      download: 'rubric_config.csv',
     });
     a.click();
     URL.revokeObjectURL(url);
   });
 
-  function parseRubricCSV(csvText) {
-    const lines = csvText.trim().split(/\r?\n/);
-    const headerTest = (lines[0] || '').toLowerCase();
-    if (headerTest.includes('평가 기준') && headerTest.includes('평가 내용')) {
-      lines.shift();
+  function escapeCSV(str) {
+    if (typeof str !== 'string') return str;
+    if (str.includes('"') || str.includes(',') || str.includes('\n')) {
+      return `"${str.replace(/"/g, '""')}"`;
     }
+    return str;
+  }
 
-    const rubricMap = new Map();
-    lines.forEach((line) => {
-      const parts = line.split(',').map((s) => s.trim().replace(/"/g, ''));
-      const [criterion, description, scoreStr] = parts;
-      if (!criterion || !description || isNaN(parseFloat(scoreStr))) return;
-      if (!rubricMap.has(criterion)) {
-        rubricMap.set(criterion, []);
+  function generateCSV() {
+    const rows = [];
+    // Overview Section
+    rows.push(['key', 'value']);
+    Object.entries(state.overview).forEach(([key, value]) => {
+      if (key !== 'criteria') {
+        rows.push([key, escapeCSV(value)]);
       }
-      rubricMap.get(criterion).push({ description, score: parseFloat(scoreStr) });
+    });
+    rows.push(['criteria_type', state.overview.criteria.type]);
+    Object.entries(state.overview.criteria.levels).forEach(([level, desc]) => {
+      rows.push([`criteria_${level}`, escapeCSV(desc)]);
     });
 
-    return createRubricFromMap(rubricMap);
+    rows.push([]); // Blank line separator
+
+    // Rubric Section
+    rows.push(['rubric_name', 'rubric_type', 'level', 'description', 'score']);
+    state.rubric.forEach((item) => {
+      Object.entries(item.descriptions).forEach(([level, description]) => {
+        rows.push([
+          escapeCSV(item.name),
+          escapeCSV(item.type),
+          escapeCSV(level),
+          escapeCSV(description),
+          item.scores[level],
+        ]);
+      });
+    });
+    return rows.map((row) => row.join(',')).join('\n');
+  }
+
+  function parseCSV(csvText) {
+    const overview = {
+      task: '',
+      standards: '',
+      ideas: '',
+      criteria: { type: '5-point', levels: {} },
+    };
+    const rubricMap = new Map();
+    let isRubricSection = false;
+
+    const lines = csvText.trim().split('\n');
+    lines.forEach((line) => {
+      const columns = line
+        .split(',')
+        .map((col) => col.trim().replace(/^"|"$/g, '').replace(/""/g, '"'));
+      if (columns.length < 2 && !isRubricSection) {
+        isRubricSection = true;
+        return;
+      }
+
+      if (!isRubricSection) {
+        const [key, value] = columns;
+        if (key === 'criteria_type') {
+          overview.criteria.type = value;
+        } else if (key.startsWith('criteria_')) {
+          const level = key.split('_')[1];
+          overview.criteria.levels[level] = value;
+        } else if (overview.hasOwnProperty(key)) {
+          overview[key] = value;
+        }
+      } else {
+        if (columns[0] === 'rubric_name') return; // Skip header
+        const [name, type, level, description, scoreStr] = columns;
+        if (!name) return;
+
+        if (!rubricMap.has(name)) {
+          rubricMap.set(name, { type, levels: [] });
+        }
+        rubricMap.get(name).levels.push({ level, description, score: parseFloat(scoreStr) });
+      }
+    });
+
+    const rubric = [];
+    for (const [name, data] of rubricMap.entries()) {
+      const scores = {};
+      const descriptions = {};
+      data.levels.forEach(({ level, description, score }) => {
+        scores[level] = score;
+        descriptions[level] = description;
+      });
+      rubric.push({ name, type: data.type, scores, descriptions });
+    }
+
+    return { overview, rubric };
   }
 
   function parsePastedText(text) {
-    const overviewParts = [];
+    const overview = {
+      task: '',
+      standards: '',
+      ideas: '',
+      criteria: { type: '5-point', levels: {} },
+    };
     const rubricLines = [];
-    let isRubricSection = false;
 
-    text
-      .trim()
-      .split('\n')
-      .forEach((line) => {
-        if (line.includes('채점 요소') && line.includes('채점 기준')) {
-          isRubricSection = true;
-          return; // Skip header line
+    const keywords = {
+      '수행 과제': 'task',
+      성취기준: 'standards',
+      '핵심 아이디어': 'ideas',
+      '평가 기준': 'criteria',
+      '채점 요소': 'rubric',
+    };
+
+    const lines = text.trim().split('\n');
+    let currentSectionKey = null;
+
+    for (const line of lines) {
+      const trimmedLine = line.trim();
+      let matchedKeyword = false;
+
+      for (const [keyword, key] of Object.entries(keywords)) {
+        if (trimmedLine.startsWith(keyword) && !trimmedLine.startsWith('평가 방법')) {
+          currentSectionKey = key;
+          matchedKeyword = true;
+          if (key === 'rubric') {
+            break;
+          }
+          overview[key] =
+            (overview[key] || '') + trimmedLine.substring(keyword.length).trim() + '\n';
+          break;
         }
-        if (isRubricSection) {
-          rubricLines.push(line);
+      }
+      if (matchedKeyword && currentSectionKey === 'rubric') continue;
+      if (matchedKeyword) continue;
+
+      if (currentSectionKey && overview[currentSectionKey] !== undefined) {
+        if (currentSectionKey === 'criteria') {
+          const match = trimmedLine.match(/^([A-E])\s+(.*)/);
+          if (match) {
+            overview.criteria.levels[match[1]] = match[2].trim();
+          }
         } else {
-          overviewParts.push(line);
+          overview[currentSectionKey] += trimmedLine + '\n';
         }
-      });
+      } else {
+        rubricLines.push(line);
+      }
+    }
 
-    const overview = overviewParts.join('\n').trim();
+    Object.keys(overview).forEach((key) => {
+      if (key !== 'criteria') overview[key] = overview[key].trim();
+    });
+
+    const foundLevels = Object.keys(overview.criteria.levels);
+    if (foundLevels.length > 3) overview.criteria.type = '5-point';
+    else if (foundLevels.length > 0) overview.criteria.type = '3-point';
+
     const rubricMap = new Map();
     let currentCriterion = '';
+    rubricLines
+      .filter((line) => line.trim())
+      .forEach((line) => {
+        if (line.includes('채점 기준') && line.includes('배점')) return;
+        const parts = line.trim().split(/\s{2,}|	/);
+        if (parts.length >= 2 && !isNaN(parseFloat(parts[parts.length - 1]))) {
+          const score = parseFloat(parts.pop());
+          const criterionText = parts.length > 1 ? parts.shift().trim() : '';
+          currentCriterion = criterionText
+            ? criterionText.replace(/[·\s-]/g, '')
+            : currentCriterion;
+          const description = parts.join(' ').trim();
 
-    rubricLines.forEach((line) => {
-      const parts = line.trim().split(/\s{2,}|	/); // 두 칸 이상 공백 또는 탭으로 분리
-      if (parts.length >= 3 && !isNaN(parseFloat(parts[parts.length - 1]))) {
-        currentCriterion = parts[0].trim() ? parts[0].trim().replace(/·/g, '') : currentCriterion;
-        const description = parts.slice(1, -1).join(' ').trim();
-        const score = parseFloat(parts[parts.length - 1]);
-        if (!rubricMap.has(currentCriterion)) {
-          rubricMap.set(currentCriterion, []);
+          if (currentCriterion && description) {
+            if (!rubricMap.has(currentCriterion)) rubricMap.set(currentCriterion, []);
+            rubricMap.get(currentCriterion).push({ description, score });
+          }
         }
-        rubricMap.get(currentCriterion).push({ description, score });
-      } else if (
-        parts.length >= 2 &&
-        !isNaN(parseFloat(parts[parts.length - 1])) &&
-        currentCriterion
-      ) {
-        // 기준 이름이 생략된 경우 (이전 기준을 그대로 사용)
-        const description = parts.slice(0, -1).join(' ').trim();
-        const score = parseFloat(parts[parts.length - 1]);
-        rubricMap.get(currentCriterion).push({ description, score });
-      }
-    });
+      });
 
     return { overview, rubric: createRubricFromMap(rubricMap) };
   }
@@ -425,16 +541,17 @@ document.addEventListener('DOMContentLoaded', () => {
     for (const [name, levelsData] of rubricMap.entries()) {
       levelsData.sort((a, b) => b.score - a.score);
       const numLevels = levelsData.length;
-      let type = 'single';
-      if (numLevels === 3) type = '3-point';
-      else if (numLevels === 5) type = '5-point';
-      else {
-        logln(
-          'WARN',
-          `'${name}' 항목은 ${numLevels}개 수준을 가져 비표준입니다. 단일 항목들로 분리 처리합니다.`
-        );
+      let type;
+      if (numLevels === 5) type = '5-point';
+      else if (numLevels === 3) type = '3-point';
+      else type = 'single';
+
+      if (type === 'single') {
         levelsData.forEach((ld) => {
-          const subName = `${name}: ${ld.description.substring(0, 15)}...`;
+          const subName =
+            ld.description.length > 15
+              ? `${name}: ${ld.description.substring(0, 15)}...`
+              : `${name}: ${ld.description}`;
           newRubric.push({
             name: subName,
             type: 'single',
@@ -442,25 +559,24 @@ document.addEventListener('DOMContentLoaded', () => {
             descriptions: { 득점: ld.description },
           });
         });
-        continue;
+      } else {
+        const typeLevels = scoreTypeConfig[type].levels;
+        const scores = {};
+        const descriptions = {};
+        levelsData.forEach((levelData, i) => {
+          const levelKey = typeLevels[i];
+          if (levelKey) {
+            scores[levelKey] = levelData.score;
+            descriptions[levelKey] = levelData.description;
+          }
+        });
+        newRubric.push({ name, type, scores, descriptions });
       }
-
-      const typeLevels = scoreTypeConfig[type].levels;
-      const scores = {};
-      const descriptions = {};
-      levelsData.forEach((levelData, i) => {
-        const levelKey = typeLevels[i];
-        if (levelKey) {
-          scores[levelKey] = levelData.score;
-          descriptions[levelKey] = levelData.description;
-        }
-      });
-      newRubric.push({ name, type, scores, descriptions });
     }
     return newRubric;
   }
 
-  // --- 평가 로직 ---
+  // --- 평가 로직 (이하 동일) ---
   let abort = false;
   byId('stopBtn').addEventListener('click', () => {
     abort = true;
@@ -539,6 +655,10 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function buildPrompt(input) {
+    const criteriaText = Object.entries(state.overview.criteria.levels)
+      .map(([level, desc]) => `${level}: ${desc}`)
+      .join('\n');
+    const overviewText = `[수행 과제]\n${state.overview.task}\n\n[성취기준]\n${state.overview.standards}\n\n[핵심 아이디어]\n${state.overview.ideas}\n\n[종합 평가 기준]\n${criteriaText}`;
     const rubricText = state.rubric
       .map((item) => {
         const descriptions = scoreTypeConfig[item.type].levels
@@ -547,7 +667,6 @@ document.addEventListener('DOMContentLoaded', () => {
         return `- ${item.name}:\n${descriptions}`;
       })
       .join('\n');
-
     const scoreKeys = state.rubric
       .map((item) => {
         const key = item.name
@@ -563,31 +682,7 @@ document.addEventListener('DOMContentLoaded', () => {
       })
       .join(',\n    ');
 
-    return `다음 보고서를 읽고, 아래의 평가 개요와 상세한 루브릭 기준에 따라 각 항목을 평가하세요.
-
-[평가 개요]
-${state.overview}
-
-[루브릭 평가 기준]
-${rubricText}
-
-[출력 형식]
-반드시 JSON 형식만 출력하며, 다른 설명은 절대 포함하지 마세요.
-'scores' 객체에는 각 항목에 대해 가장 적합하다고 판단되는 등급(문자열) 또는 점수(숫자)를 할당하세요.
-- 단계별 항목 (3/5단계): 해당하는 등급(예: "A", "B")을 문자열로 부여하세요.
-- 단일 기준 항목: 만점을 기준으로 점수를 숫자로 직접 부여하세요.
-
-{
-  "scores": {
-    ${scoreKeys}
-  },
-  "strengths": "보고서의 가장 큰 강점 1~2가지를 명료하게 서술합니다.",
-  "improvements": "개선이 필요한 부분 1~2가지를 구체적인 방법과 함께 제안합니다.",
-  "final_comment": "위의 평가 내용을 종합하여, 학생의 역량이 잘 드러나도록 과목별 세부능력 및 특기사항 예시를 학생의 성장과 역량이 드러나도록 객관적 사실을 기반으로 개조식 문체로 서술합니다."
-}
-
-[보고서 원문]
-${input}`;
+    return `다음 보고서를 읽고, 아래의 평가 개요와 상세한 루브릭 기준에 따라 각 항목을 평가하세요.\n\n${overviewText}\n\n[상세 채점 루브릭]\n${rubricText}\n\n[출력 형식]\n반드시 아래 형식의 JSON만 출력하며, 다른 설명은 절대 포함하지 마세요.\n'scores' 객체에는 각 항목에 대해 가장 적합하다고 판단되는 등급(문자열) 또는 점수(숫자)를 할당하세요.\n- 단계별 항목 (3/5단계): 해당하는 등급(예: "A", "B")을 문자열로 부여하세요.\n- 단일 기준 항목: 만점을 기준으로 점수를 숫자로 직접 부여하세요.\n\n{\n  "scores": {\n    ${scoreKeys}\n  },\n  "strengths": "보고서의 가장 큰 강점 1~2가지를 명료하게 서술합니다.",\n  "improvements": "개선이 필요한 부분 1~2가지를 구체적인 방법과 함께 제안합니다.",\n  "final_comment": "위의 평가 내용을 종합하여, 학생의 역량이 잘 드러나도록 과목별 세부능력 및 특기사항 예시를 학생의 성장과 역량이 드러나도록 객관적 사실을 기반으로 개조식 문체로 서술합니다."\n}\n\n[보고서 원문]\n${input}`;
   }
 
   async function callAI({ provider, apiKey, model, input }) {
@@ -724,10 +819,7 @@ ${input}`;
     }
 
     const { meanScore, scoreValues, labels } = calculateScores(r.scores);
-    const maxPossibleScores = state.rubric.map((item) => {
-      if (item.type === 'single') return item.scores['득점'] || 0;
-      return Math.max(...Object.values(item.scores));
-    });
+    const maxPossibleScores = state.rubric.map((item) => Math.max(...Object.values(item.scores)));
     const maxPossibleScore = Math.max(...maxPossibleScores, 1);
 
     const card = document.createElement('article');
@@ -773,16 +865,8 @@ ${input}`;
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        scales: {
-          r: {
-            min: 0,
-            max: Math.ceil(maxPossibleScore),
-            ticks: { stepSize: 1 },
-          },
-        },
-        plugins: {
-          legend: { display: false },
-        },
+        scales: { r: { min: 0, max: Math.ceil(maxPossibleScore), ticks: { stepSize: 1 } } },
+        plugins: { legend: { display: false } },
       },
     });
     detailSection.classList.remove('hidden');
@@ -838,7 +922,7 @@ ${input}`;
     if (state.results.length === 0) return;
     const rubricHeaders = state.rubric.flatMap((item) => [
       `${item.name}_점수`,
-      `${item.name}_등급`,
+      `${item.name}_등급/값`,
     ]);
     const headers = [
       'file',
@@ -859,7 +943,7 @@ ${input}`;
         let score, level;
         if (item.type === 'single') {
           score = (typeof value === 'number' ? value : 0).toFixed(1);
-          level = 'N/A';
+          level = value;
         } else {
           level = value ?? '-';
           score = (item.scores[level] ?? 0).toFixed(1);
@@ -915,7 +999,18 @@ ${input}`;
     const saved = localStorage.getItem('rubricAppResults');
     if (saved) {
       const data = JSON.parse(saved);
-      state.overview = data.overview || '';
+      state.overview = data.overview || {
+        task: '',
+        standards: '',
+        ideas: '',
+        criteria: { type: '5-point', levels: {} },
+      };
+      if (typeof state.overview.criteria === 'string' || !state.overview.criteria.levels) {
+        state.overview.criteria = {
+          type: '5-point',
+          levels: { A: '매우 우수', B: '우수', C: '보통', D: '미흡', E: '개선 필요' },
+        };
+      }
       state.results = data.results || [];
       if (data.rubric && data.rubric.length > 0) state.rubric = data.rubric;
       if (data.settings) {
@@ -923,7 +1018,7 @@ ${input}`;
         byId('apiKey').value = data.settings.apiKey || '';
         byId('model').value = data.settings.model || providers[byId('provider').value].defaultModel;
       }
-      byId('evaluation-overview').value = state.overview;
+      updateAllUI();
       logln('INFO', `${state.results.length}개의 저장된 평가 결과를 불러왔습니다.`);
     }
   }
@@ -933,6 +1028,6 @@ ${input}`;
   // --- 초기화 ---
   loadResults();
   setupPresets();
-  renderRubric();
+  updateAllUI();
   renderSummary();
 });
