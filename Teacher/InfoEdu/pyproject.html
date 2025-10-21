@@ -354,14 +354,20 @@
 
                 try {
                     const { jsPDF } = window.jspdf;
-                    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-                    const pdfWidth = pdf.internal.pageSize.getWidth();
+                    
+                    // --- 수정된 부분 시작 ---
+
                     const margin = 15;
+                    // 표준 A4 너비를 가져오기 위해 임시 PDF 생성
+                    const tempPdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+                    const pdfWidth = tempPdf.internal.pageSize.getWidth();
                     const contentWidth = pdfWidth - (margin * 2);
-                    let yPosition = margin;
 
                     const sections = Array.from(reportContent.querySelectorAll('.report-section'));
+                    const capturedCanvases = [];
+                    let totalHeight = margin; // 상단 여백으로 시작
 
+                    // 1. 모든 섹션을 캔버스로 변환하고 총 높이 계산
                     for (const section of sections) {
                         const canvas = await html2canvas(section, {
                             scale: 2,
@@ -383,15 +389,29 @@
                         });
                         
                         const imgHeight = (canvas.height * contentWidth) / canvas.width;
-
-                        if (yPosition + imgHeight > pdf.internal.pageSize.getHeight() - margin) {
-                            pdf.addPage();
-                            yPosition = margin;
-                        }
-
-                        pdf.addImage(canvas.toDataURL('image/png'), 'PNG', margin, yPosition, contentWidth, imgHeight);
-                        yPosition += imgHeight + 5;
+                        capturedCanvases.push({ canvas, imgHeight });
+                        totalHeight += imgHeight + 5; // 캔버스 높이 + 섹션 간 5mm 여백
                     }
+
+                    // 마지막 여백(5)을 빼고 하단 여백(15)을 더함
+                    totalHeight = totalHeight - 5 + margin;
+
+                    // 2. 계산된 총 높이로 커스텀 PDF 생성
+                    const pdf = new jsPDF({
+                        orientation: 'portrait',
+                        unit: 'mm',
+                        format: [pdfWidth, totalHeight] // [너비, 높이]로 커스텀 사이즈 지정
+                    });
+
+                    let yPosition = margin;
+
+                    // 3. 캡처된 캔버스를 PDF에 순서대로 추가 (페이지 나눔 없음)
+                    for (const item of capturedCanvases) {
+                        pdf.addImage(item.canvas.toDataURL('image/png'), 'PNG', margin, yPosition, contentWidth, item.imgHeight);
+                        yPosition += item.imgHeight + 5; // 다음 이미지 위치로 이동
+                    }
+                    
+                    // --- 수정된 부분 끝 ---
 
                     const studentId = document.getElementById('student-id').value.trim() || '학번';
                     const studentName = document.getElementById('student-name').value.trim() || '이름';
