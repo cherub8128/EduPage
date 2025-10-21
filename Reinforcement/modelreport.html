@@ -4,364 +4,508 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI 모델 탐사 보고서</title>
+    
+    <!-- Tailwind CSS CDN 다시 사용 -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- 고급 PDF 내보내기를 위한 라이브러리 추가 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    
+    <!-- Markdown 변환기 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/showdown/2.1.0/showdown.min.js" defer></script>
+    
+    <!-- KaTeX(수학 렌더링) 라이브러리 추가 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" xintegrity="sha384-n8MVd4RsNIU0KOVEMQNogPSesLpv7qwX5GKT6Aqc2LSYQyIYc0OFtGhfgMLlA6oB" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" xintegrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzUOEleOLALmuqehneUG+vnGctmUb0ZY0l8" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" xintegrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous"></script>
+    
     <style>
+        /* Pretendard 폰트 import */
+        @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+        
+        body {
+            font-family: 'Pretendard', sans-serif;
+            background-color: #f8fafc; /* slate-50 */
+        }
+        
+        /* 인쇄 시 페이지 나눔 방지 클래스 */
+        .break-inside-avoid {
+            break-inside: avoid;
+            page-break-inside: avoid;
+        }
+
+        /* Prose 스타일(마크다운)에서 리스트 여백 조정 */
+        .prose :where(ul):not(:where([class~="not-prose"] *)) {
+            padding-left: 1.2em;
+        }
+        .prose ul { list-style-type: disc; }
+        .prose ol { list-style-type: decimal; }
+
         @media print {
             body { background-color: white !important; }
             .no-print, header, footer { display: none !important; }
-            #report-content {
-                box-shadow: none;
-                border: none;
-                padding: 0; margin: 0;
-            }
+            #report-content { box-shadow: none; border: none; padding: 0; margin: 0; }
             .report-section {
                 box-shadow: none;
                 border: 1px solid #E5E7EB;
                 page-break-inside: avoid;
                 break-inside: avoid;
             }
-
-            .report-section > div {
-                break-inside: avoid; /* 최신 표준 속성 */
-                page-break-inside: avoid; /* 하위 호환성을 위한 속성 */
-            }
-
-            input.savable, textarea.savable, select.savable, .no-print-content {
-                display: none;
-            }
-            .printable-content {
-                display: block !important;
-                padding: 0.5rem 0;
-                min-height: 1.5rem; /* Ensure empty fields still take up space */
-                white-space: pre-wrap; /* Preserve line breaks from textareas */
-                word-break: break-word;
-                break-inside: avoid;
-            }
-             #printable-screenshot-container img {
-                max-width: 100% !important;
-                display: block !important;
-                break-inside: avoid;
-             }
         }
-        body {
-            font-family: 'Inter', 'Noto Sans KR', sans-serif;
-            background-color: #F9FAFB;
-        }
-        .report-section {
-            background-color: white;
-            border: 1px solid #E5E7EB;
-            border-radius: 0.75rem;
-            padding: 2rem;
-            margin-bottom: 2rem;
-            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
-        }
-        .report-title {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: #111827;
-            border-bottom: 2px solid #D1D5DB;
-            padding-bottom: 0.75rem;
-            margin-bottom: 1.5rem;
-        }
-        label {
-            display: block;
-            font-weight: 600;
-            color: #374151;
-            margin-bottom: 0.5rem;
-        }
-        input, textarea, select {
-            width: 100%;
-            padding: 0.875rem 1.25rem; 
-            border: 1px solid #D1D5DB;
-            border-radius: 0.5rem;
-            background-color: #F9FAFB;
-            transition: border-color 0.2s, box-shadow 0.2s;
-        }
-        input:focus, textarea:focus, select:focus {
-            outline: none;
-            border-color: #3B82F6;
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
-        }
-        textarea { resize: vertical; min-height: 120px; }
-        .action-button {
-            padding: 0.75rem 1.5rem;
-            border-radius: 0.5rem;
-            font-weight: 600;
-            transition: all 0.2s ease-in-out;
-            border: 1px solid transparent;
-        }
-        .printable-content { display: none; }
-        .is-invalid { border-color: #EF4444 !important; }
     </style>
 </head>
 <body class="p-4 sm:p-8">
     <div class="max-w-4xl mx-auto">
         
         <header class="text-center mb-10 no-print">
-            <div class="flex justify-center items-center gap-4 mb-4">
-                 <i class="fas fa-rocket text-4xl text-blue-600"></i>
-                <h1 class="text-4xl font-extrabold text-gray-800">AI 모델 탐사 보고서</h1>
+            <div class="flex justify-center items-center gap-3 mb-4">
+                 <div class="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15.05 5A5 5 0 0 1 19 8.95M15.05 1A9 9 0 0 1 23 8.94m-1 7.98v3a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3m0 0V1a2 2 0 0 1 2-2h3.06a2 2 0 0 1 2 2v2Z"/><path d="M7 15h7"/><path d="M10 11h7"/></svg>
+                 </div>
+                <h1 class="text-4xl font-extrabold text-slate-800">AI 모델 탐사 보고서</h1>
             </div>
-            <p class="text-gray-600">Hugging Face의 AI 모델을 탐험하고, 여러분의 분석과 창의적인 아이디어를 기록해보세요.</p>
+            <p class="text-slate-500">Hugging Face의 AI 모델을 탐험하고, 여러분의 분석과 창의적인 아이디어를 기록해보세요.</p>
         </header>
 
-        <div id="report-content">
+        <div id="report-content" class="bg-white rounded-lg">
             <!-- Section 1: AI 모델 탐색 -->
-            <section class="report-section">
-                <h2 class="report-title">1. AI 모델 탐색</h2>
+            <section class="report-section p-8 break-inside-avoid">
+                <h2 class="report-title text-2xl font-bold text-slate-800 border-b-2 border-slate-200 pb-3 mb-6">1. AI 모델 탐색</h2>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                    <div><label for="student-name">이름</label><input type="text" id="student-name" placeholder="홍길동" class="savable"><div class="printable-content"></div></div>
-                    <div><label for="student-info">학번</label><input type="text" id="student-info" placeholder="예: 20501" class="savable"><div class="printable-content"></div></div>
+                    <div><label for="student-name" class="block text-sm font-semibold text-slate-700 mb-1">이름</label><input type="text" id="student-name" placeholder="차형준" class="savable w-full border-slate-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"><div class="printable-content"></div></div>
+                    <div><label for="student-info" class="block text-sm font-semibold text-slate-700 mb-1">학번</label><input type="text" id="student-info" placeholder="예: 20530" class="savable w-full border-slate-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"><div class="printable-content"></div></div>
                 </div>
-                <div class="mt-6"><label for="model-name">탐색 모델명</label><input type="text" id="model-name" placeholder="예: google/gemma-3-1b-it" class="savable"><div class="printable-content"></div></div>
-                <div class="mt-6"><label for="model-link">Hugging Face 모델 링크</label><input type="text" id="model-link" placeholder="예: https://huggingface.co/google/gemma-3-1b-it" class="savable"><div class="printable-content"></div></div>
-                 <div class="mt-6"><label for="selection-reason">이 모델을 선택한 이유</label><textarea id="selection-reason" placeholder="모델의 특징, 최신 기술, 개인적인 흥미 등 선택하게 된 계기를 자유롭게 서술하세요." class="savable"></textarea><div class="printable-content prose max-w-none"></div></div>
+                <div class="mt-6"><label for="model-name" class="block text-sm font-semibold text-slate-700 mb-1">탐색 모델명</label><input type="text" id="model-name" placeholder="예: google/gemma-2-9b-it" class="savable w-full border-slate-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"><div class="printable-content"></div></div>
+                <div class="mt-6"><label for="model-link" class="block text-sm font-semibold text-slate-700 mb-1">Hugging Face 모델 링크</label><input type="text" id="model-link" placeholder="예: https://huggingface.co/google/gemma-2-9b-it" class="savable w-full border-slate-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"><div class="printable-content"></div></div>
+                <div class="mt-6"><label for="selection-reason" class="block text-sm font-semibold text-slate-700 mb-1">이 모델을 선택한 이유</label><textarea id="selection-reason" placeholder="모델의 특징, 최신 기술, 개인적인 흥미 등 선택하게 된 계기를 자유롭게 서술하세요." class="savable markdown-input w-full border-slate-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 min-h-[150px]"></textarea><div class="markdown-preview prose max-w-none mt-2"></div></div>
             </section>
             
-            <section class="report-section">
-                <h2 class="report-title">2. 모델 테스트 및 분석</h2>
+            <section class="report-section p-8 break-inside-avoid">
+                <h2 class="report-title text-2xl font-bold text-slate-800 border-b-2 border-slate-200 pb-3 mb-6">2. 모델 테스트 및 분석</h2>
+                <div class="mt-6"><label for="model-type" class="block text-sm font-semibold text-slate-700 mb-1">모델 종류 (Task)</label><input type="text" id="model-type" placeholder="예: Text Generation" class="savable w-full border-slate-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"><div class="printable-content"></div></div>
                 <div class="mt-6">
-                    <label for="model-type">모델 종류 (Task)</label>
-                    <select id="model-type" class="savable">
-                        <option value="text-generation">Text Generation (텍스트 생성)</option>
-                        <option value="text-to-image">Text-to-Image (이미지 생성)</option>
-                        <option value="image-to-text">Image-to-Text (이미지 설명)</option>
-                        <option value="other">기타 (직접 입력)</option>
-                    </select>
-                    <div class="printable-content"></div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">주요 파라미터 설정</label>
+                    <div id="parameters-container" class="space-y-3 mt-2"></div>
+                    <button id="add-parameter-btn" type="button" class="no-print mt-3 text-sm bg-slate-100 hover:bg-slate-200 text-slate-600 font-semibold py-2 px-3 rounded-md transition flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                        파라미터 추가
+                    </button>
+                    <div id="parameters-printable" class="printable-content prose max-w-none"></div>
                 </div>
+                <div class="mt-6"><label for="test-goal" class="block text-sm font-semibold text-slate-700 mb-1">테스트 목표</label><textarea id="test-goal" placeholder="이 모델의 어떤 성능을 확인하고 싶었나요?" class="savable markdown-input w-full border-slate-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 min-h-[120px]"></textarea><div class="markdown-preview prose max-w-none mt-2"></div></div>
+                <div class="mt-6"><label for="test-process" class="block text-sm font-semibold text-slate-700 mb-1">테스트 과정 및 결과</label><textarea id="test-process" placeholder="어떤 프롬프트를 사용했고, 그 결과 AI는 어떻게 반응했는지 구체적으로 작성하세요." class="savable markdown-input w-full border-slate-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 min-h-[180px]"></textarea><div class="markdown-preview prose max-w-none mt-2"></div></div>
                 <div class="mt-6">
-                    <label>주요 파라미터 설정</label>
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-2">
-                        <div><label for="param-temperature" class="text-sm font-medium text-gray-500">Temperature</label><input type="number" id="param-temperature" step="0.1" placeholder="예: 0.7" class="mt-1 savable"><div class="printable-content"></div></div>
-                        <div><label for="param-max-tokens" class="text-sm font-medium text-gray-500">Max New Tokens</label><input type="number" id="param-max-tokens" step="32" placeholder="예: 512" class="mt-1 savable"><div class="printable-content"></div></div>
-                        <div><label for="param-top-p" class="text-sm font-medium text-gray-500">Top-P</label><input type="number" id="param-top-p" step="0.05" placeholder="예: 0.95" class="mt-1 savable"><div class="printable-content"></div></div>
-                    </div>
-                </div>
-                <div class="mt-6"><label for="test-goal">테스트 목표</label><textarea id="test-goal" placeholder="이 모델의 어떤 성능을 확인하고 싶었나요?" class="savable"></textarea><div class="printable-content prose max-w-none"></div></div>
-                <div class="mt-6"><label for="test-process">테스트 과정 및 결과</label><textarea id="test-process" placeholder="어떤 프롬프트를 사용했고, 그 결과 AI는 어떻게 반응했는지 구체적으로 작성하세요." class="savable"></textarea><div class="printable-content prose max-w-none"></div></div>
-                <div class="mt-6">
-                    <label for="screenshot-upload">실제 대화 캡쳐본</label>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">실제 대화 캡쳐본</label>
                     <div class="mt-2 flex items-center justify-center w-full">
-                        <label for="screenshot-file" class="flex flex-col items-center justify-center w-full min-h-64 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 no-print">
+                        <label for="screenshot-file" class="flex flex-col items-center justify-center w-full min-h-64 border-2 border-slate-300 border-dashed rounded-lg cursor-pointer bg-slate-50 hover:bg-slate-100 no-print">
                             <div id="screenshot-preview-container" class="hidden p-4"><img id="screenshot-preview" src="#" alt="Screenshot Preview" class="max-h-56 rounded-lg"/></div>
-                            <div id="screenshot-placeholder" class="flex flex-col items-center justify-center pt-5 pb-6"><i class="fas fa-cloud-upload-alt text-4xl text-gray-400"></i><p class="mb-2 text-sm text-gray-500"><span class="font-semibold">클릭하여 파일 업로드</span></p><p class="text-xs text-gray-500">PNG, JPG</p></div>
+                            <div id="screenshot-placeholder" class="flex flex-col items-center justify-center pt-5 pb-6 text-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-slate-400 mb-3"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                                <p class="mb-2 text-sm text-slate-500"><span class="font-semibold">클릭하여 파일 업로드</span></p><p class="text-xs text-slate-500">PNG, JPG</p>
+                            </div>
                             <input id="screenshot-file" type="file" class="hidden" accept="image/*" />
                         </label>
                     </div>
                     <div id="printable-screenshot-container" class="printable-content mt-4"></div>
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-6">
-                    <div><label for="model-strengths">모델의 장점</label><textarea id="model-strengths" placeholder="테스트 결과, 이 모델이 특별히 잘하는 점은 무엇이었나요?" class="savable"></textarea><div class="printable-content prose max-w-none"></div></div>
-                    <div><label for="model-weaknesses">모델의 단점 및 한계</label><textarea id="model-weaknesses" placeholder="테스트 결과, 아쉬웠던 점이나 개선이 필요하다고 생각되는 부분은 무엇이었나요?" class="savable"></textarea><div class="printable-content prose max-w-none"></div></div>
+                    <div><label for="model-strengths" class="block text-sm font-semibold text-slate-700 mb-1">모델의 장점</label><textarea id="model-strengths" placeholder="테스트 결과, 이 모델이 특별히 잘하는 점은 무엇이었나요?" class="savable markdown-input w-full border-slate-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 min-h-[150px]"></textarea><div class="markdown-preview prose max-w-none mt-2"></div></div>
+                    <div><label for="model-weaknesses" class="block text-sm font-semibold text-slate-700 mb-1">모델의 단점 및 한계</label><textarea id="model-weaknesses" placeholder="테스트 결과, 아쉬웠던 점이나 개선이 필요하다고 생각되는 부분은 무엇이었나요?" class="savable markdown-input w-full border-slate-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 min-h-[150px]"></textarea><div class="markdown-preview prose max-w-none mt-2"></div></div>
                 </div>
             </section>
             
-            <section class="report-section"><h2 class="report-title">3. AI 서비스 아이디어 제안</h2><div><label for="service-name">AI 서비스 이름</label><input type="text" id="service-name" placeholder="예: 코딩 질문 해결사 '코드버디'" class="savable"><div class="printable-content"></div></div><div class="mt-6"><label for="service-concept">핵심 컨셉 및 목표</label><textarea id="service-concept" placeholder="누구를 위한 서비스인가요? 어떤 문제를 해결해주나요?" class="savable"></textarea><div class="printable-content prose max-w-none"></div></div><div class="mt-6"><label for="service-working">작동 방식</label><textarea id="service-working" placeholder="분석한 AI 모델이 이 서비스에서 어떤 역할을 하나요?" class="savable"></textarea><div class="printable-content prose max-w-none"></div></div><div class="mt-6"><label for="service-impact">기대 효과</label><textarea id="service-impact" placeholder="이 서비스가 사회나 사용자에게 어떤 긍정적인 영향을 줄 수 있을까요?" class="savable"></textarea><div class="printable-content prose max-w-none"></div></div></section>
-            <section class="report-section"><h2 class="report-title">4. 느낀점</h2><div><label for="reflections">활동을 통해 배우고 느낀 점</label><textarea id="reflections" placeholder="이번 활동을 통해 새롭게 알게 된 점, 느낀 점 등을 자유롭게 작성하세요." class="savable"></textarea><div class="printable-content prose max-w-none"></div></div></section>
+            <section class="report-section p-8 break-inside-avoid"><h2 class="report-title text-2xl font-bold text-slate-800 border-b-2 border-slate-200 pb-3 mb-6">3. AI 서비스 아이디어 제안</h2><div><label for="service-name" class="block text-sm font-semibold text-slate-700 mb-1">AI 서비스 이름</label><input type="text" id="service-name" placeholder="예: 코딩 질문 해결사 '코드버디'" class="savable w-full border-slate-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"><div class="printable-content"></div></div><div class="mt-6"><label for="service-concept" class="block text-sm font-semibold text-slate-700 mb-1">핵심 컨셉 및 목표</label><textarea id="service-concept" placeholder="누구를 위한 서비스인가요? 어떤 문제를 해결해주나요?" class="savable markdown-input w-full border-slate-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 min-h-[120px]"></textarea><div class="markdown-preview prose max-w-none mt-2"></div></div><div class="mt-6"><label for="service-working" class="block text-sm font-semibold text-slate-700 mb-1">작동 방식</label><textarea id="service-working" placeholder="분석한 AI 모델이 이 서비스에서 어떤 역할을 하나요?" class="savable markdown-input w-full border-slate-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 min-h-[120px]"></textarea><div class="markdown-preview prose max-w-none mt-2"></div></div><div class="mt-6"><label for="service-impact" class="block text-sm font-semibold text-slate-700 mb-1">기대 효과</label><textarea id="service-impact" placeholder="이 서비스가 사회나 사용자에게 어떤 긍정적인 영향을 줄 수 있을까요?" class="savable markdown-input w-full border-slate-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 min-h-[120px]"></textarea><div class="markdown-preview prose max-w-none mt-2"></div></div></section>
+            <section class="report-section p-8 break-inside-avoid"><h2 class="report-title text-2xl font-bold text-slate-800 border-b-2 border-slate-200 pb-3 mb-6">4. 느낀점</h2><div><label for="reflections" class="block text-sm font-semibold text-slate-700 mb-1">활동을 통해 배우고 느낀 점</label><textarea id="reflections" placeholder="이번 활동을 통해 새롭게 알게 된 점, 느낀 점 등을 자유롭게 작성하세요." class="savable markdown-input w-full border-slate-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 min-h-[180px]"></textarea><div class="markdown-preview prose max-w-none mt-2"></div></div></section>
         </div>
 
-        <footer class="text-center mt-8 no-print">
+        <footer class="text-center mt-8 py-6 no-print">
              <div id="validation-message" class="text-red-600 font-semibold mb-4 h-6"></div>
              <div class="flex flex-wrap gap-4 justify-center items-center">
-                <button id="print-report" class="action-button bg-blue-600 hover:bg-blue-700 text-white"><i class="fas fa-print mr-2"></i>보고서 출력 (PDF 저장)</button>
+                <button id="export-pdf" class="action-button bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                    PDF로 내보내기
+                </button>
              </div>
         </footer>
     </div>
     
-    <!-- Autosave Status Indicator -->
+    <!-- 자동 저장 상태 표시 UI -->
     <div id="autosave-status" class="no-print fixed bottom-6 right-6 flex items-center bg-slate-800 text-white py-2 px-4 rounded-lg shadow-lg opacity-0 transition-opacity duration-500 z-50">
-        <svg id="autosave-icon-saving" class="animate-spin h-5 w-5 mr-3 hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-        </svg>
-        <svg id="autosave-icon-saved" class="h-5 w-5 mr-3 hidden text-green-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-        </svg>
+        <svg id="autosave-icon-saving" class="animate-spin h-5 w-5 mr-3 hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+        <svg id="autosave-icon-saved" class="h-5 w-5 mr-3 hidden text-green-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>
         <span id="autosave-text"></span>
     </div>
 
+    <!-- PDF 생성 로더 -->
+    <div id="loader-overlay" class="fixed inset-0 bg-black bg-opacity-60 flex-col items-center justify-center hidden z-50">
+        <div class="bg-white p-8 rounded-lg shadow-xl text-center">
+            <svg class="animate-spin h-10 w-10 text-blue-600 mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <p class="text-lg font-semibold text-slate-700">PDF 생성 중...</p>
+            <p class="text-sm text-slate-500 mt-1">보고서 내용을 변환하고 있습니다. 잠시만 기다려주세요.</p>
+        </div>
+    </div>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const savableElements = document.querySelectorAll('.savable');
-            const printBtn = document.getElementById('print-report');
-            const screenshotInput = document.getElementById('screenshot-file');
-            const screenshotPreview = document.getElementById('screenshot-preview');
-            const screenshotPlaceholder = document.getElementById('screenshot-placeholder');
-            const screenshotPreviewContainer = document.getElementById('screenshot-preview-container');
-            const autosaveStatusEl = document.getElementById('autosave-status');
-            let saveTimer;
-            let statusTimer;
+        // 필수 라이브러리가 로드되었는지 확인
+        if (typeof showdown === 'undefined' || typeof html2canvas === 'undefined' || typeof jspdf === 'undefined' || typeof renderMathInElement === 'undefined') {
+            console.error("One or more required libraries (Showdown, html2canvas, jsPDF, KaTeX) are not loaded.");
+            alert("페이지에 필요한 라이브러리를 로드하지 못했습니다. 인터넷 연결을 확인 후 새로고침 해주세요.");
+            return;
+        }
+        
+        const converter = new showdown.Converter({ simpleLineBreaks: true, tables: true, strikethrough: true });
+        const exportBtn = document.getElementById('export-pdf');
+        const screenshotInput = document.getElementById('screenshot-file');
+        const screenshotPreview = document.getElementById('screenshot-preview');
+        const screenshotPlaceholder = document.getElementById('screenshot-placeholder');
+        const screenshotPreviewContainer = document.getElementById('screenshot-preview-container');
+        const autosaveStatusEl = document.getElementById('autosave-status');
+        const addParamBtn = document.getElementById('add-parameter-btn');
+        const paramsContainer = document.getElementById('parameters-container');
+        let saveTimer;
+        let statusTimer;
+        let previewTimer;
 
-            function showSaveStatus(state) {
-                if (!autosaveStatusEl) return;
-                const textEl = document.getElementById('autosave-text');
-                const iconSaving = document.getElementById('autosave-icon-saving');
-                const iconSaved = document.getElementById('autosave-icon-saved');
+        function showSaveStatus(state) {
+            if (!autosaveStatusEl) return;
+            const textEl = document.getElementById('autosave-text');
+            const iconSaving = document.getElementById('autosave-icon-saving');
+            const iconSaved = document.getElementById('autosave-icon-saved');
 
-                clearTimeout(statusTimer);
-                autosaveStatusEl.classList.remove('opacity-0');
+            clearTimeout(statusTimer);
+            autosaveStatusEl.classList.remove('opacity-0');
 
-                if (state === 'saving') {
-                    textEl.textContent = '저장 중...';
-                    iconSaving.classList.remove('hidden');
-                    iconSaved.classList.add('hidden');
-                } else if (state === 'saved') {
-                    textEl.textContent = '모든 변경사항이 저장되었습니다.';
-                    iconSaving.classList.add('hidden');
-                    iconSaved.classList.remove('hidden');
-                    statusTimer = setTimeout(() => {
-                        autosaveStatusEl.classList.add('opacity-0');
-                    }, 2000);
+            if (state === 'saving') {
+                textEl.textContent = '저장 중...';
+                iconSaving.classList.remove('hidden');
+                iconSaved.classList.add('hidden');
+            } else if (state === 'saved') {
+                textEl.textContent = '모든 변경사항이 저장되었습니다.';
+                iconSaving.classList.add('hidden');
+                iconSaved.classList.remove('hidden');
+                statusTimer = setTimeout(() => {
+                    autosaveStatusEl.classList.add('opacity-0');
+                }, 2000);
+            }
+        }
+        
+        function saveContent() {
+            clearTimeout(saveTimer);
+            showSaveStatus('saving');
+            saveTimer = setTimeout(() => {
+                const data = {};
+                document.querySelectorAll('.savable').forEach(el => {
+                    data[el.id] = el.value;
+                });
+                
+                const parameters = [];
+                document.querySelectorAll('.parameter-row').forEach(row => {
+                    const nameInput = row.querySelector('.param-name');
+                    const valueInput = row.querySelector('.param-value');
+                    if (nameInput.value.trim() || valueInput.value.trim()) {
+                        parameters.push({ name: nameInput.value, value: valueInput.value });
+                    }
+                });
+                data['parameters'] = parameters;
+
+                if (screenshotPreview.src && !screenshotPreview.src.endsWith('#')) {
+                    data['screenshot-preview'] = screenshotPreview.src;
+                }
+                localStorage.setItem('aiReportData', JSON.stringify(data));
+                showSaveStatus('saved');
+            }, 1000);
+        }
+
+        function addParameterRow(name = '', value = '') {
+            const row = document.createElement('div');
+            row.className = 'parameter-row flex items-center gap-2';
+            row.innerHTML = `
+                <input type="text" placeholder="파라미터 이름" class="param-name flex-1 w-full border-slate-300 rounded-md shadow-sm text-sm focus:ring-blue-500 focus:border-blue-500" value="${name}">
+                <input type="text" placeholder="값" class="param-value flex-1 w-full border-slate-300 rounded-md shadow-sm text-sm focus:ring-blue-500 focus:border-blue-500" value="${value}">
+                <button type="button" class="remove-parameter-btn no-print text-slate-400 hover:text-red-500 hover:bg-red-100 p-2 rounded-full transition">
+                    <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>
+                </button>
+            `;
+            paramsContainer.appendChild(row);
+            row.querySelector('.remove-parameter-btn').addEventListener('click', () => {
+                row.remove();
+                saveContent();
+            });
+            row.querySelectorAll('input').forEach(input => input.addEventListener('input', saveContent));
+        }
+
+        function loadContent() {
+            let data = JSON.parse(localStorage.getItem('aiReportData'));
+
+            if (!data) {
+                console.log("Consolidated data not found. Checking for legacy field-by-field data...");
+                const legacyData = {};
+                let foundLegacyData = false;
+                const legacyFieldIds = ['student-name', 'student-info', 'model-name', 'model-link', 'selection-reason', 'model-type', 'test-goal', 'test-process', 'model-strengths', 'model-weaknesses', 'service-name', 'service-concept', 'service-working', 'service-impact', 'reflections', 'param-temperature', 'param-max-tokens', 'param-top-p'];
+                
+                legacyFieldIds.forEach(id => {
+                    const savedValue = localStorage.getItem(id);
+                    if (savedValue !== null) {
+                        legacyData[id] = savedValue;
+                        foundLegacyData = true;
+                    }
+                });
+
+                const savedImage = localStorage.getItem('screenshot-preview');
+                if (savedImage) {
+                    legacyData['screenshot-preview'] = savedImage;
+                    foundLegacyData = true;
+                }
+
+                if (foundLegacyData) {
+                    console.log("Legacy data found. Migrating to new format.");
+                    data = legacyData;
+                    data.parameters = [];
+                    if (data['param-temperature']) data.parameters.push({ name: 'Temperature', value: data['param-temperature'] });
+                    if (data['param-max-tokens']) data.parameters.push({ name: 'Max New Tokens', value: data['param-max-tokens'] });
+                    if (data['param-top-p']) data.parameters.push({ name: 'Top-P', value: data['param-top-p'] });
                 }
             }
             
-            function saveContent(element) {
-                clearTimeout(saveTimer);
-                showSaveStatus('saving');
-                saveTimer = setTimeout(() => {
-                    const data = JSON.parse(localStorage.getItem('aiReportData')) || {};
-                    if (element.id) {
-                         data[element.id] = element.value;
-                    }
-                    localStorage.setItem('aiReportData', JSON.stringify(data));
-                    showSaveStatus('saved');
-                }, 1000);
+            if (!data) {
+                addParameterRow('Temperature', '0.7');
+                addParameterRow('Max New Tokens', '1024');
+                return;
             }
 
-            function loadContent() {
-                // Try loading from the new unified key first
-                const newData = JSON.parse(localStorage.getItem('aiReportData'));
-                if (newData) {
-                    savableElements.forEach(field => {
-                        if (newData.hasOwnProperty(field.id)) {
-                            field.value = newData[field.id];
-                        }
+            document.querySelectorAll('.savable').forEach(field => {
+                if (data.hasOwnProperty(field.id)) {
+                    field.value = data[field.id];
+                    updatePreview(field);
+                }
+            });
+
+            paramsContainer.innerHTML = '';
+            if (data.parameters && Array.isArray(data.parameters) && data.parameters.length > 0) {
+                data.parameters.forEach(p => addParameterRow(p.name, p.value));
+            } else {
+                addParameterRow('Temperature', '0.7');
+                addParameterRow('Max New Tokens', '1024');
+            }
+
+            if (data['screenshot-preview']) {
+                screenshotPreview.src = data['screenshot-preview'];
+                screenshotPlaceholder.classList.add('hidden');
+                screenshotPreviewContainer.classList.remove('hidden');
+            }
+        }
+
+        function updatePreview(element) {
+            if (!element || !element.classList.contains('markdown-input')) return;
+            
+            clearTimeout(previewTimer);
+            previewTimer = setTimeout(() => {
+                const preview = element.nextElementSibling;
+                if (preview && preview.classList.contains('markdown-preview')) {
+                    const html = converter.makeHtml(element.value);
+                    preview.innerHTML = html;
+                    renderMathInElement(preview, {
+                        delimiters: [
+                            {left: '$$', right: '$$', display: true},
+                            {left: '$', right: '$', display: false},
+                            {left: '\\(', right: '\\)', display: false},
+                            {left: '\\[', right: '\\]', display: true}
+                        ],
+                        throwOnError: false
                     });
-                    if (newData['screenshot-preview']) {
-                        screenshotPreview.src = newData['screenshot-preview'];
-                        screenshotPlaceholder.classList.add('hidden');
-                        screenshotPreviewContainer.classList.remove('hidden');
-                    }
-                    return; // Exit if new data is loaded
                 }
-
-                // Fallback for old data (individual keys + separate image)
-                let oldDataFound = false;
-                savableElements.forEach(field => {
-                    const savedValue = localStorage.getItem(field.id);
-                    if (savedValue !== null) {
-                        field.value = savedValue;
-                        oldDataFound = true;
-                    }
-                });
-                const savedImage = localStorage.getItem('screenshot-preview');
-                if (savedImage) {
-                    screenshotPreview.src = savedImage;
-                    screenshotPlaceholder.classList.add('hidden');
-                    screenshotPreviewContainer.classList.remove('hidden');
-                    oldDataFound = true;
+            }, 300);
+        }
+        
+        async function exportToPdf() {
+            const loader = document.getElementById('loader-overlay');
+            const reportContent = document.getElementById('report-content');
+            
+            let allFilled = true;
+            const validationMessage = document.getElementById('validation-message');
+            validationMessage.textContent = '';
+            document.querySelectorAll('.savable').forEach(el => {
+                el.classList.remove('border-red-400');
+                if (!el.value.trim()) {
+                    el.classList.add('border-red-400');
+                    allFilled = false;
                 }
-                
-                if (oldDataFound) {
-                    alert('이전 버전에서 작성한 보고서 내용을 불러왔습니다. 다음에 저장될 때는 새로운 형식으로 통합 저장됩니다.');
-                    // Immediately save in the new format to migrate
-                    const data = {};
-                    savableElements.forEach(el => { data[el.id] = el.value; });
-                    if (savedImage) { data['screenshot-preview'] = savedImage; }
-                    localStorage.setItem('aiReportData', JSON.stringify(data));
-                }
+            });
+            const screenshotLabel = screenshotInput.closest('label');
+            screenshotLabel.classList.remove('border-red-400');
+            if (!screenshotPreview.src || screenshotPreview.src.endsWith('#')) {
+                screenshotLabel.classList.add('border-red-400');
+                allFilled = false;
+            }
+            if (!allFilled) {
+                validationMessage.textContent = '모든 필수 항목을 작성하고 스크린샷을 첨부해주세요.';
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                return;
             }
 
-            function updatePrintableView() {
-                savableElements.forEach(el => {
-                    const printableEl = el.nextElementSibling;
-                    if (printableEl && printableEl.classList.contains('printable-content')) {
-                        let content = el.value.trim();
-                        if (el.tagName === 'TEXTAREA') {
-                             content = content.replace(/\n/g, '<br>');
+            loader.style.display = 'flex';
+
+            try {
+                await new Promise(resolve => setTimeout(resolve, 100));
+
+                const canvas = await html2canvas(reportContent, {
+                    scale: 2,
+                    useCORS: true,
+                    logging: false,
+                    onclone: (doc) => {
+                        // 1. 캡처 전, 복제된 문서에서 편집용 UI를 숨기고 출력용 UI를 보이게 설정
+                        doc.querySelectorAll('.savable, .no-print, #add-parameter-btn, .remove-parameter-btn').forEach(el => {
+                            if (el.style) el.style.display = 'none';
+                        });
+                        doc.querySelectorAll('.printable-content, .markdown-preview').forEach(el => {
+                            if (el.style) el.style.display = 'block';
+                        });
+                        const paramsContainerClone = doc.getElementById('parameters-container');
+                        if (paramsContainerClone && paramsContainerClone.style) {
+                            paramsContainerClone.style.display = 'none';
                         }
-                        printableEl.innerHTML = content;
-                    }
+
+                        // 2. 일반 입력 필드의 값을 출력용 div로 복사
+                        doc.querySelectorAll('.savable:not(.markdown-input)').forEach(el => {
+                            const printableEl = el.nextElementSibling;
+                            if (printableEl) {
+                                printableEl.textContent = el.value.trim();
+                            }
+                        });
+
+                        // 3. (수정됨) 마크다운 영역은 이미 렌더링되었으므로 주석 처리합니다.
+                        /*
+                        doc.querySelectorAll('.savable.markdown-input').forEach(el => {
+                            const printableEl = el.nextElementSibling;
+                            if (printableEl) {
+                                printableEl.innerHTML = converter.makeHtml(el.value);
+                            }
+                        });
+                        */
+
+                        // 4. 파라미터 값을 읽어와 출력용 리스트 생성 (기존과 동일)
+                        //    (여기서 paramsPrintableClone이 'const'로 선언됩니다)
+                        const paramsPrintableClone = doc.getElementById('parameters-printable');
+                        if (paramsPrintableClone) {
+                            let paramsHtml = '<ul style="margin: 0; padding-left: 20px; list-style-type: disc;">';
+                            document.querySelectorAll('.parameter-row').forEach(row => {
+                                const name = row.querySelector('.param-name').value.trim();
+                                const value = row.querySelector('.param-value').value.trim();
+                                if (name || value) {
+                                    paramsHtml += `<li style="font-size: 14px;"><strong>${name || ''}:</strong> ${value || ''}</li>`;
+                                }
+                            });
+                            paramsHtml += '</ul>';
+                            paramsPrintableClone.innerHTML = paramsHtml;
+                        }
+
+                        // 5. 스크린샷 이미지 복사 (기존과 동일)
+                        const printableScreenshotContainerClone = doc.getElementById('printable-screenshot-container');
+                        if (printableScreenshotContainerClone) {
+                            const originalScreenshot = document.getElementById('screenshot-preview');
+                            if (originalScreenshot && originalScreenshot.src && !originalScreenshot.src.endsWith('#')) {
+                                printableScreenshotContainerClone.innerHTML = `<img src="${originalScreenshot.src}" style="max-width: 100%; border-radius: 0.5rem;" />`;
+                            } else {
+                                printableScreenshotContainerClone.innerHTML = '';
+                            }
+                        }
+
+                        // 6. (수정됨) 기존 6번을 이 코드로 대체합니다.
+                        // 'paramsPrintableClone'를 다시 선언하지 않는 것이 중요합니다.
+                        const delimiters = [
+                            {left: '$$', right: '$$', display: true},
+                            {left: '$', right: '$', display: false},
+                            {left: '\\(', right: '\\)', display: false},
+                            {left: '\\[', right: '\\]', display: true}
+                        ];
+                        
+                        // 2번 단계에서 채워진 일반 텍스트 필드들
+                        doc.querySelectorAll('.printable-content').forEach(el => {
+                            renderMathInElement(el, { delimiters, throwOnError: false });
+                        });
+                        
+                        // 4번 단계에서 채워진 파라미터 영역
+                        // 4번 단계에서 선언한 'paramsPrintableClone' 변수를 그대로 사용합니다. (const 없음!)
+                        if (paramsPrintableClone) { 
+                            renderMathInElement(paramsPrintableClone, { delimiters, throwOnError: false });
+                        }
+    
+                    } // <--- 여기가 onclone 함수의 닫힘 괄호 '}' 입니다.
                 });
-                const printableScreenshotContainer = document.getElementById('printable-screenshot-container');
-                if (screenshotPreview.src && !screenshotPreview.src.endsWith('#')) {
-                    printableScreenshotContainer.innerHTML = `<img src="${screenshotPreview.src}" style="max-width: 100%; border-radius: 0.5rem;" />`;
-                } else {
-                    printableScreenshotContainer.innerHTML = '';
-                }
-            }
-
-            printBtn.addEventListener('click', () => {
-                let allFilled = true;
-                const validationMessage = document.getElementById('validation-message');
-                validationMessage.textContent = '';
                 
-                savableElements.forEach(el => {
-                    el.classList.remove('is-invalid');
-                    if (!el.value.trim()) {
-                        el.classList.add('is-invalid');
-                        allFilled = false;
-                    }
+                const imgData = canvas.toDataURL('image/png');
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF({
+                    orientation: 'portrait',
+                    unit: 'mm',
+                    format: 'a4'
                 });
 
-                const screenshotLabel = screenshotInput.closest('label');
-                screenshotLabel.classList.remove('is-invalid');
-                if (!screenshotPreview.src || screenshotPreview.src.endsWith('#')) {
-                     screenshotLabel.classList.add('is-invalid');
-                     allFilled = false;
+                const pdfWidth = pdf.internal.pageSize.getWidth();
+                const pdfHeight = pdf.internal.pageSize.getHeight();
+                const canvasWidth = canvas.width;
+                const canvasHeight = canvas.height;
+                const canvasAspectRatio = canvasHeight / canvasWidth;
+                
+                const imgHeight = pdfWidth * canvasAspectRatio;
+                let heightLeft = imgHeight;
+                let position = 0;
+
+                pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
+                heightLeft -= pdfHeight;
+
+                while (heightLeft > 0) {
+                    position = heightLeft - imgHeight;
+                    pdf.addPage();
+                    pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
+                    heightLeft -= pdfHeight;
                 }
 
-                if (!allFilled) {
-                    validationMessage.textContent = '모든 필수 항목을 작성하고 스크린샷을 첨부해주세요.';
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                    return;
-                }
-                
-                updatePrintableView();
-                
                 const studentId = document.getElementById('student-info').value.trim() || '학번';
                 const studentName = document.getElementById('student-name').value.trim() || '이름';
-                const originalTitle = document.title;
-                document.title = `AI모델탐사보고서_${studentId}_${studentName}`;
+                const filename = `AI모델탐사보고서_${studentId}_${studentName}.pdf`;
+                pdf.save(filename);
 
-                setTimeout(() => {
-                    window.print();
-                    document.title = originalTitle;
-                }, 100);
-            });
+            } catch(error) {
+                console.error("PDF 생성 중 오류 발생:", error);
+                alert("PDF를 생성하는 데 실패했습니다. 콘솔을 확인해주세요.");
+            } finally {
+                loader.style.display = 'none';
+            }
+        }
 
-            screenshotInput.addEventListener('change', (event) => {
-                const file = event.target.files[0];
-                if (file && file.type.startsWith('image/')) {
-                    const reader = new FileReader();
-                    reader.onload = (e) => {
-                        const base64Image = e.target.result;
-                        screenshotPreview.src = base64Image;
-                        screenshotPlaceholder.classList.add('hidden');
-                        screenshotPreviewContainer.classList.remove('hidden');
-                        
-                        clearTimeout(saveTimer);
-                        showSaveStatus('saving');
-                        saveTimer = setTimeout(() => {
-                            const data = JSON.parse(localStorage.getItem('aiReportData')) || {};
-                            data['screenshot-preview'] = base64Image;
-                            localStorage.setItem('aiReportData', JSON.stringify(data));
-                            showSaveStatus('saved');
-                        }, 1000);
-                    };
-                    reader.readAsDataURL(file);
-                }
-            });
+        exportBtn.addEventListener('click', exportToPdf);
 
-            savableElements.forEach(el => {
-                el.addEventListener('input', (e) => saveContent(e.target));
-            });
-
-            loadContent();
+        screenshotInput.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                screenshotPreview.src = e.target.result;
+                screenshotPlaceholder.classList.add('hidden');
+                screenshotPreviewContainer.classList.remove('hidden');
+                saveContent();
+            };
+            reader.readAsDataURL(file);
         });
+        
+        addParamBtn.addEventListener('click', () => addParameterRow());
+
+        document.querySelectorAll('.savable').forEach(el => {
+            el.addEventListener('input', saveContent);
+            if (el.classList.contains('markdown-input')) {
+                el.addEventListener('input', () => updatePreview(el));
+            }
+        });
+
+        loadContent();
+    });
+
+
     </script>
 </body>
 </html>
