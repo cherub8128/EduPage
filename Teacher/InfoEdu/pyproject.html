@@ -28,12 +28,48 @@
         .editable-container .prose:hover, .editable-container pre:hover { background-color: #f8fafc; border-color: #e2e8f0;}
         #code-input { font-family: 'D2Coding', monospace; font-size: 0.9rem; line-height: 1.6; }
         .code-preview { font-family: 'D2Coding', monospace; font-size: 0.9rem; line-height: 1.6; padding: 1rem; border-radius: 0.5rem; }
-        .report-section h2,
-        .report-section h3, 
-        .report-section .editable-container, 
-        .report-section .screenshot-wrapper,
-        .report-section table {
-            break-inside: avoid; /* 페이지 나눔 방지 */
+        @media print {
+        @page { size: A4; margin: 15mm; }        /* 필요 시 Letter로 교체 가능 */
+        html, body { background: #fff !important; }
+        body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+        /* 큰 컨테이너가 페이지를 강제 점유하지 않도록 */
+        /* (특정 클래스가 있다면 그대로 두고, 없으면 무시됨) */
+        .report-section { break-inside: auto !important; page-break-inside: auto !important; }
+
+        /* 잘리면 안 되는 덩어리들 */
+        figure, table, .screenshot-wrapper {
+            break-inside: avoid-page !important; page-break-inside: avoid !important;
+        }
+
+        /* 이미지는 페이지 안에 맞추되 비율 유지, 절단 방지 */
+        img {
+            max-width: 100% !important;
+            height: auto !important;
+            max-height: calc(297mm - 40mm) !important; /* A4 높이-여백 */
+            object-fit: contain !important;
+            break-inside: avoid-page !important; page-break-inside: avoid !important;
+        }
+
+        /* 긴 본문/코드: 줄바꿈 허용 + 페이지 사이 분할 허용 */
+        pre, code {
+            white-space: pre-wrap !important;
+            word-break: break-word !important;
+            overflow-wrap: anywhere !important;
+        }
+        pre { break-inside: auto !important; page-break-inside: auto !important; }
+
+        /* 표가 폭 때문에 튀어나갈 때를 대비 (선택) */
+        table { table-layout: fixed; width: 100%; }
+        th, td { word-break: break-word; }
+        }
+
+        /* 인쇄 시 글자 크기만 약간 조정(화면엔 영향 없음) */
+        @media print {
+        body { font-size: 11pt; line-height: 1.45; }
+        h1 { font-size: 20pt; }
+        h2 { font-size: 16pt; }
+        h3 { font-size: 13pt; }
         }
     </style>
 </head>
@@ -325,122 +361,49 @@
             }
 
             async function exportToPdf() {
-                const loader = document.getElementById('loader-overlay');
-                const reportContent = document.getElementById('report-content');
-                const validationMessage = document.getElementById('validation-message');
-                let allFilled = true;
+                const root = document.getElementById('report-content') || document.body;
 
-                // --- 1. 유효성 검사 (기존과 동일) ---
-                if(validationMessage) validationMessage.textContent = '';
-                
-                const savableSelector = '.savable';
-                const screenshotCount = 2;
-                
-                document.querySelectorAll(savableSelector).forEach(el => {
-                    el.classList.remove('border-red-400');
-                    if (!el.value.trim()) {
-                        el.classList.add('border-red-400');
-                        allFilled = false;
-                    }
-                });
-                
-                for (let i = 1; i <= screenshotCount; i++) {
-                    const img = document.getElementById(`screenshot-preview-${i}`);
-                    if (!img) continue;
-                    const wrapper = img.closest('.screenshot-wrapper');
-                    if (wrapper) {
-                         wrapper.classList.remove('border-red-400', 'border-2');
-                        if (!img.src || img.src.includes('placeholder') || img.classList.contains('hidden')) {
-                            wrapper.classList.add('border-red-400', 'border-2', 'rounded-lg');
-                            allFilled = false;
-                        }
-                    }
-                }
+                // 1) 인쇄 직전 상태 준비 (있으면 적용; 없으면 무시됨)
+                const editors  = root.querySelectorAll('.editable-container textarea');
+                const previews = root.querySelectorAll('.editable-container .markdown-preview, .editable-container pre');
+                editors.forEach(el  => el.style.display = 'none');   // 에디터 숨김
+                previews.forEach(el => el.style.display = 'block');  // 미리보기 노출
 
-                if (!allFilled) {
-                    if(validationMessage) validationMessage.textContent = '모든 필수 항목을 작성하고 스크린샷을 첨부해주세요.';
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                    return;
-                }
-                
-                if(loader) loader.style.display = 'flex';
-
-                // --- 2. 렌더링을 위해 DOM 준비 (기존과 동일) ---
-                const editors = reportContent.querySelectorAll('.editable-container textarea');
-                const previews = reportContent.querySelectorAll('.editable-container .markdown-preview, .editable-container pre');
-                
-                editors.forEach(el => el.style.display = 'none');
-                previews.forEach(el => el.style.display = 'block');
-
+                // 2) 수식/코드 재렌더링 (존재할 때만)
                 if (window.renderMathInElement) {
-                    renderMathInElement(reportContent, {
-                        delimitERS: [ {left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false} ]
+                    window.renderMathInElement(root, {
+                    delimiters: [
+                        { left: '$$', right: '$$', display: true },
+                        { left: '$',  right: '$',  display: false }
+                    ]
                     });
                 }
-                reportContent.querySelectorAll('pre code').forEach(el => {
-                    delete el.dataset.highlighted;
-                    if(typeof hljs !== 'undefined') hljs.highlightElement(el);
-                });
-                
-                // --- 3. [수정됨] html2canvas로 각 섹션을 직접 렌더링하여 PDF에 추가 ---
-                try {
-                    const { jsPDF } = window.jspdf;
-                    const pdf = new jsPDF('p', 'mm', 'a4'); // A4 용지 (세로)
-                    const margin = 15; // 여백 (mm)
-                    const pdfWidth = pdf.internal.pageSize.getWidth();
-                    const pdfHeight = pdf.internal.pageSize.getHeight();
-                    const contentWidth = pdfWidth - (margin * 2);
-                    const contentHeight = pdfHeight - (margin * 2);
-                    
-                    const sections = reportContent.querySelectorAll('.report-section');
-                    let currentY = margin; // PDF 페이지 내의 현재 Y 좌표
-
-                    for (const section of sections) {
-                        // html2canvas로 현재 섹션을 캔버스로 변환 (이미지 스크린샷)
-                        const canvas = await html2canvas(section, {
-                            scale: 2, // 고해상도 렌더링
-                            useCORS: true, // CDN의 KaTeX 폰트 등 로드
-                            logging: false
-                        });
-                        
-                        const imgData = canvas.toDataURL('image/png');
-                        const imgWidth = canvas.width;
-                        const imgHeight = canvas.height;
-                        
-                        // 캔버스(이미지)의 비율을 유지하면서 PDF 너비에 맞게 높이 계산
-                        // (이미지 높이 / 이미지 너비) * PDF 컨텐츠 너비
-                        const scaledImgHeight = (imgHeight / imgWidth) * contentWidth;
-                        
-                        // 현재 페이지에 이미지가 들어갈 공간이 없는지 확인
-                        // (이미지가 페이지 높이보다 큰 경우도 처리)
-                        if (currentY + scaledImgHeight > contentHeight && currentY > margin) {
-                            pdf.addPage(); // 새 페이지 추가
-                            currentY = margin; // Y 좌표 리셋
-                        }
-                        
-                        // 이미지를 PDF에 추가
-                        pdf.addImage(imgData, 'PNG', margin, currentY, contentWidth, scaledImgHeight);
-                        
-                        // 다음 섹션이 그려질 Y 좌표 업데이트
-                        currentY += scaledImgHeight + 5; // 섹션 간 5mm 간격
-                    }
-                    
-                    // --- 4. PDF 저장 (기존과 동일) ---
-                    const studentId = document.getElementById('student-id').value.trim() || '학번';
-                    const studentName = document.getElementById('student-name').value.trim() || '이름';
-                    const docTitle = document.title.split(' ')[0] || '보고서';
-                    const filename = `${docTitle}_${studentId}_${studentName}.pdf`;
-                    pdf.save(filename);
-
-                } catch (error) {
-                    console.error("PDF generation error:", error);
-                    alert("PDF를 생성하는 데 실패했습니다. 콘솔을 확인해주세요.");
-                } finally {
-                    // --- 5. 페이지 원상 복구 (기존과 동일) ---
-                    if(loader) loader.style.display = 'none';
-                    editors.forEach(el => el.style.display = '');
-                    previews.forEach(el => el.style.display = '');
+                if (typeof hljs !== 'undefined') {
+                    root.querySelectorAll('pre code').forEach(el => { delete el.dataset.highlighted; hljs.highlightElement(el); });
                 }
+
+                // 3) 폰트/이미지 로딩 보장 → 인쇄 (텍스트/수식이 벡터로 유지됨)
+                try { await document.fonts.ready; } catch (e) {}
+                const imgs = Array.from(root.querySelectorAll('img'));
+                await Promise.all(imgs.map(img => {
+                    if (img.complete) return Promise.resolve();
+                    return new Promise(res => { img.addEventListener('load', res); img.addEventListener('error', res); });
+                }));
+
+                // (선택) 파일명 제안: 문서 제목을 잠시 바꿨다가 복구
+                const prevTitle = document.title;
+                document.title = prevTitle || 'document';
+
+                const cleanup = () => {
+                    editors.forEach(el  => el.style.display = '');
+                    previews.forEach(el => el.style.display = '');
+                    document.title = prevTitle;
+                    window.removeEventListener('afterprint', cleanup);
+                };
+                window.addEventListener('afterprint', cleanup);
+
+                // 4) 브라우저의 인쇄 → "PDF로 저장" 선택
+                window.print();
             }
 
             function initialize() {

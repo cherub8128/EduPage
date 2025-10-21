@@ -49,15 +49,46 @@
         }
 
         @media print {
-            body { background-color: white !important; }
-            .no-print, header, footer { display: none !important; }
-            #report-content { box-shadow: none; border: none; padding: 0; margin: 0; }
-            .report-section {
-                box-shadow: none;
-                border: 1px solid #E5E7EB;
-                page-break-inside: avoid;
-                break-inside: avoid;
-            }
+        @page { size: A4; margin: 15mm; }
+
+        /* 배경/그림자/패딩 정리 */
+        html, body { background: #fff !important; }
+        body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        #report-content { box-shadow: none !important; border: none !important; padding: 0 !important; margin: 0 !important; }
+
+        /* 분할 허용/방지 규칙 */
+        .report-section { break-inside: auto !important; page-break-inside: auto !important; }
+        .report-section h2,
+        figure, table, .screenshot-wrapper { break-inside: avoid-page !important; page-break-inside: avoid !important; }
+
+        /* 이미지: 페이지에 맞게 축소, 절단 금지 */
+        img {
+            max-width: 100% !important;
+            height: auto !important;
+            max-height: calc(297mm - 40mm) !important; /* A4높이-여백 */
+            object-fit: contain !important;
+            break-inside: avoid-page !important; page-break-inside: avoid !important;
+        }
+
+        /* 코드/긴 텍스트: 줄바꿈 허용 + 페이지 분할 허용 */
+        pre, code {
+            white-space: pre-wrap !important;
+            word-break: break-word !important;
+            overflow-wrap: anywhere !important;
+        }
+        pre { break-inside: auto !important; page-break-inside: auto !important; }
+
+        /* 표가 넘칠 때 */
+        table { table-layout: fixed; width: 100% !important; }
+        th, td { word-break: break-word; }
+        }
+
+        /* 인쇄 가독성: 화면엔 영향 없음 */
+        @media print {
+        body { font-size: 11pt; line-height: 1.45; }
+        h1 { font-size: 20pt; }
+        h2 { font-size: 16pt; }
+        h3 { font-size: 13pt; }
         }
     </style>
 </head>
@@ -353,20 +384,19 @@
             });
         }
 
-        // 2. 기존 exportToPdf 함수를 아래 코드로 *전체 교체* 하세요.
         async function exportToPdf() {
             const loader = document.getElementById('loader-overlay');
             const reportContent = document.getElementById('report-content');
-            
-            // --- 1. 유효성 검사 (기존과 동일) ---
-            let allFilled = true;
             const validationMessage = document.getElementById('validation-message');
+
+            // --- 1) 기존과 동일한 유효성 검사 ---
+            let allFilled = true;
             validationMessage.textContent = '';
             document.querySelectorAll('.savable').forEach(el => {
                 el.classList.remove('border-red-400');
                 if (!el.value.trim()) {
-                    el.classList.add('border-red-400');
-                    allFilled = false;
+                el.classList.add('border-red-400');
+                allFilled = false;
                 }
             });
             const screenshotLabel = document.getElementById('screenshot-file').closest('label');
@@ -384,104 +414,117 @@
 
             loader.style.display = 'flex';
 
-            try {
-                const { jsPDF } = window.jspdf;
-                const pdf = new jsPDF({
-                    orientation: 'portrait',
-                    unit: 'mm',
-                    format: 'a4'
-                });
-
-                // --- 2. 렌더링을 위해 DOM 준비 ---
-                
-                // 2a. 편집용 UI (입력창, 버튼) 숨기기
-                reportContent.querySelectorAll('.savable, #add-parameter-btn, .remove-parameter-btn, #parameters-container').forEach(el => el.style.display = 'none');
+            // --- 2) 인쇄용 DOM 준비: 편집 UI 숨기고, 출력용 콘텐츠 채우기 ---
+            const hideForEdit = () => {
+                reportContent.querySelectorAll('.savable, #add-parameter-btn, .remove-parameter-btn, #parameters-container')
+                .forEach(el => el.style.display = 'none');
                 screenshotLabel.style.display = 'none';
+                reportContent.querySelectorAll('.printable-content, .markdown-preview')
+                .forEach(el => el.style.display = 'block');
+            };
 
-                // 2b. 출력용 UI (미리보기, 복사될 영역) 보이기
-                reportContent.querySelectorAll('.printable-content, .markdown-preview').forEach(el => el.style.display = 'block');
-
-                // 2c. 일반 입력 필드(이름, 학번 등) 값을 출력용 div로 복사
+            const fillPrintableFields = () => {
+                // 일반 입력값을 옆의 .printable-content에 복사
                 reportContent.querySelectorAll('.savable:not(.markdown-input)').forEach(el => {
-                    const printableEl = el.nextElementSibling;
-                    if (printableEl && printableEl.classList.contains('printable-content')) {
-                        printableEl.textContent = el.value.trim();
-                    }
+                const printableEl = el.nextElementSibling;
+                if (printableEl && printableEl.classList.contains('printable-content')) {
+                    printableEl.textContent = el.value.trim();
+                }
                 });
-                
-                // 2d. 파라미터 리스트를 HTML(ul/li)로 생성
+                // 파라미터 UL 생성
                 const paramsPrintable = document.getElementById('parameters-printable');
                 if (paramsPrintable) {
-                    let paramsHtml = '<ul style="margin: 0; padding-left: 20px; list-style-type: disc;">';
-                    document.querySelectorAll('.parameter-row').forEach(row => {
-                        const name = row.querySelector('.param-name').value.trim();
-                        const value = row.querySelector('.param-value').value.trim();
-                        if (name || value) {
-                            // XSS 방지를 위해 간단한 HTML 이스케이프 처리
-                            const safeName = name.replace(/</g, '&lt;').replace(/>/g, '&gt;');
-                            const safeValue = value.replace(/</g, '&lt;').replace(/>/g, '&gt;');
-                            paramsHtml += `<li style="font-size: 14px;"><strong>${safeName || ''}:</strong> ${safeValue || ''}</li>`;
-                        }
-                    });
-                    paramsHtml += '</ul>';
-                    paramsPrintable.innerHTML = paramsHtml;
-                }
-
-                // 2e. 스크린샷 이미지를 출력용 div로 복사
-                const printableScreenshotContainer = document.getElementById('printable-screenshot-container');
-                if (printableScreenshotContainer) {
-                    if (screenshotPreview.src && !screenshotPreview.src.endsWith('#')) {
-                        printableScreenshotContainer.innerHTML = `<img src="${screenshotPreview.src}" style="max-width: 100%; border-radius: 0.5rem;" />`;
-                    } else {
-                        printableScreenshotContainer.innerHTML = '';
-                    }
-                }
-
-                // 2f. KaTeX 수학 공식이 포함될 수 있으므로 전체 DOM 렌더링
-                if (window.renderMathInElement) {
-                    renderMathInElement(reportContent, {
-                        delimiters: [
-                            {left: '$$', right: '$$', display: true},
-                            {left: '$', right: '$', display: false},
-                            {left: '\\(', right: '\\)', display: false},
-                            {left: '\\[', right: '\\]', display: true}
-                        ],
-                        throwOnError: false
-                    });
-                }
-                
-                // --- 3. pdf.html() 실행 (텍스트 기반 PDF 생성) ---
-                await pdf.html(reportContent, {
-                    callback: function (doc) {
-                        // --- 4. PDF 저장 ---
-                        const studentId = document.getElementById('student-info').value.trim() || '학번';
-                        const studentName = document.getElementById('student-name').value.trim() || '이름';
-                        const filename = `AI모델탐사보고서_${studentId}_${studentName}.pdf`;
-                        doc.save(filename);
-
-                        // --- 5. 페이지 원상 복구 ---
-                        cleanupDomForEditing();
-                    },
-                    margin: [15, 15, 15, 15], // [top, right, bottom, left]
-                    autoPaging: 'text', // CSS의 'break-inside: avoid' 규칙을 존중
-                    width: pdf.internal.pageSize.getWidth() - 30, // A4 너비에 맞춤
-                    windowWidth: reportContent.scrollWidth,
-                    html2canvas: { // 스크린샷 등 이미지를 위한 옵션
-                        scale: 2, 
-                        useCORS: true,
-                        logging: false
+                let paramsHtml = '<ul style="margin:0; padding-left:20px; list-style-type:disc;">';
+                document.querySelectorAll('.parameter-row').forEach(row => {
+                    const name = row.querySelector('.param-name').value.trim();
+                    const value = row.querySelector('.param-value').value.trim();
+                    if (name || value) {
+                    const safe = s => s.replace(/</g,'&lt;').replace(/>/g,'&gt;');
+                    paramsHtml += `<li style="font-size:14px;"><strong>${safe(name)}:</strong> ${safe(value)}</li>`;
                     }
                 });
+                paramsHtml += '</ul>';
+                paramsPrintable.innerHTML = paramsHtml;
+                }
+                // 스크린샷 복사
+                const printableScreenshotContainer = document.getElementById('printable-screenshot-container');
+                if (printableScreenshotContainer) {
+                if (screenshotPreview.src && !screenshotPreview.src.endsWith('#')) {
+                    printableScreenshotContainer.innerHTML = `<img src="${screenshotPreview.src}" style="max-width:100%; border-radius:0.5rem;" />`;
+                } else {
+                    printableScreenshotContainer.innerHTML = '';
+                }
+                }
+            };
 
-            } catch(error) {
-                console.error("PDF 생성 중 오류 발생:", error);
-                alert("PDF를 생성하는 데 실패했습니다. 콘솔을 확인해주세요.");
-                // --- 6. 에러 시에도 페이지 원상 복구 ---
-                cleanupDomForEditing();
-            } finally {
+            const restoreForEdit = () => {
+                // 편집 UI 복구
+                reportContent.querySelectorAll('.savable, #add-parameter-btn, .remove-parameter-btn, #parameters-container')
+                .forEach(el => el.style.display = '');
+                // 출력 UI 원복
+                reportContent.querySelectorAll('.printable-content, .markdown-preview')
+                .forEach(el => el.style.display = '');
+                const paramsPrintable = document.getElementById('parameters-printable');
+                if (paramsPrintable) paramsPrintable.innerHTML = '';
+                const printableScreenshotContainer = document.getElementById('printable-screenshot-container');
+                if (printableScreenshotContainer) printableScreenshotContainer.innerHTML = '';
+            };
+
+            try {
+                hideForEdit();
+                fillPrintableFields();
+
+                // --- 3) 수식/코드 최신화(존재할 때만) ---
+                if (window.renderMathInElement) {
+                renderMathInElement(reportContent, {
+                    delimiters: [
+                    {left: '$$', right: '$$', display: true},
+                    {left: '$',  right: '$',  display: false},
+                    {left: '\\(', right: '\\)', display: false},
+                    {left: '\\[', right: '\\]', display: true}
+                    ],
+                    throwOnError: false
+                });
+                }
+                if (typeof hljs !== 'undefined') {
+                reportContent.querySelectorAll('pre code').forEach(el => {
+                    delete el.dataset.highlighted; hljs.highlightElement(el);
+                });
+                }
+
+                // --- 4) 파일명 제안: h1_학번_이름 → document.title 일시 변경 ---
+                const h1 = document.querySelector('h1');
+                const title = (h1?.textContent || 'AI_모델_탐사_보고서').trim().replace(/\s+/g,'_');
+                const sid = (document.getElementById('student-info')?.value || '학번').trim().replace(/\s+/g,'_') || '학번';
+                const sname = (document.getElementById('student-name')?.value || '이름').trim().replace(/\s+/g,'_') || '이름';
+                const suggested = `${title}_${sid}_${sname}`;
+                const prevTitle = document.title;
+                document.title = suggested;
+
+                // 폰트/이미지 로딩 대기(가능하면)
+                try { await document.fonts.ready; } catch(e) {}
+                await Promise.all(Array.from(reportContent.querySelectorAll('img')).map(img => {
+                if (img.complete) return;
+                return new Promise(res => { img.addEventListener('load', res); img.addEventListener('error', res); });
+                }));
+
+                // --- 5) 인쇄 → 사용자가 “PDF로 저장” 선택 ---
+                const cleanup = () => {
+                restoreForEdit();
+                document.title = prevTitle;
+                loader.style.display = 'none';
+                window.removeEventListener('afterprint', cleanup);
+                };
+                window.addEventListener('afterprint', cleanup);
+                window.print();
+
+            } catch (err) {
+                console.error(err);
+                alert('인쇄용 PDF 준비 중 오류가 발생했습니다.');
+                restoreForEdit();
                 loader.style.display = 'none';
             }
-        }
+            }
 
         exportBtn.addEventListener('click', exportToPdf);
 
