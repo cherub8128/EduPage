@@ -42,6 +42,12 @@
         .prose ul { list-style-type: disc; }
         .prose ol { list-style-type: decimal; }
 
+        .report-section h2,
+        .report-section > div {
+            break-inside: avoid;
+            page-break-inside: avoid;
+        }
+
         @media print {
             body { background-color: white !important; }
             .no-print, header, footer { display: none !important; }
@@ -321,10 +327,38 @@
             }, 300);
         }
         
+        function cleanupDomForEditing() {
+            const reportContent = document.getElementById('report-content');
+            
+            // 숨겼던 편집용 UI 다시 보이기
+            reportContent.querySelectorAll('.savable, #add-parameter-btn, .remove-parameter-btn, #parameters-container').forEach(el => el.style.display = '');
+            const screenshotLabel = document.getElementById('screenshot-file').closest('label');
+            if (screenshotLabel) screenshotLabel.style.display = '';
+
+            // 보였던 출력용 UI 다시 숨기기
+            reportContent.querySelectorAll('.printable-content, .markdown-preview').forEach(el => el.style.display = '');
+            
+            // PDF 생성용으로 채웠던 내용 비우기
+            const paramsPrintable = document.getElementById('parameters-printable');
+            if(paramsPrintable) paramsPrintable.innerHTML = '';
+            
+            const printableScreenshotContainer = document.getElementById('printable-screenshot-container');
+            if(printableScreenshotContainer) printableScreenshotContainer.innerHTML = '';
+            
+            reportContent.querySelectorAll('.savable:not(.markdown-input)').forEach(el => {
+                const printableEl = el.nextElementSibling;
+                if (printableEl && printableEl.classList.contains('printable-content')) {
+                    printableEl.textContent = '';
+                }
+            });
+        }
+
+        // 2. 기존 exportToPdf 함수를 아래 코드로 *전체 교체* 하세요.
         async function exportToPdf() {
             const loader = document.getElementById('loader-overlay');
             const reportContent = document.getElementById('report-content');
             
+            // --- 1. 유효성 검사 (기존과 동일) ---
             let allFilled = true;
             const validationMessage = document.getElementById('validation-message');
             validationMessage.textContent = '';
@@ -335,8 +369,9 @@
                     allFilled = false;
                 }
             });
-            const screenshotLabel = screenshotInput.closest('label');
+            const screenshotLabel = document.getElementById('screenshot-file').closest('label');
             screenshotLabel.classList.remove('border-red-400');
+            const screenshotPreview = document.getElementById('screenshot-preview');
             if (!screenshotPreview.src || screenshotPreview.src.endsWith('#')) {
                 screenshotLabel.classList.add('border-red-400');
                 allFilled = false;
@@ -350,94 +385,6 @@
             loader.style.display = 'flex';
 
             try {
-                await new Promise(resolve => setTimeout(resolve, 100));
-
-                const canvas = await html2canvas(reportContent, {
-                    scale: 2,
-                    useCORS: true,
-                    logging: false,
-                    onclone: (doc) => {
-                        // 1. 캡처 전, 복제된 문서에서 편집용 UI를 숨기고 출력용 UI를 보이게 설정
-                        doc.querySelectorAll('.savable, .no-print, #add-parameter-btn, .remove-parameter-btn').forEach(el => {
-                            if (el.style) el.style.display = 'none';
-                        });
-                        doc.querySelectorAll('.printable-content, .markdown-preview').forEach(el => {
-                            if (el.style) el.style.display = 'block';
-                        });
-                        const paramsContainerClone = doc.getElementById('parameters-container');
-                        if (paramsContainerClone && paramsContainerClone.style) {
-                            paramsContainerClone.style.display = 'none';
-                        }
-
-                        // 2. 일반 입력 필드의 값을 출력용 div로 복사
-                        doc.querySelectorAll('.savable:not(.markdown-input)').forEach(el => {
-                            const printableEl = el.nextElementSibling;
-                            if (printableEl) {
-                                printableEl.textContent = el.value.trim();
-                            }
-                        });
-
-                        // 3. (수정됨) 마크다운 영역은 이미 렌더링되었으므로 주석 처리합니다.
-                        /*
-                        doc.querySelectorAll('.savable.markdown-input').forEach(el => {
-                            const printableEl = el.nextElementSibling;
-                            if (printableEl) {
-                                printableEl.innerHTML = converter.makeHtml(el.value);
-                            }
-                        });
-                        */
-
-                        // 4. 파라미터 값을 읽어와 출력용 리스트 생성 (기존과 동일)
-                        //    (여기서 paramsPrintableClone이 'const'로 선언됩니다)
-                        const paramsPrintableClone = doc.getElementById('parameters-printable');
-                        if (paramsPrintableClone) {
-                            let paramsHtml = '<ul style="margin: 0; padding-left: 20px; list-style-type: disc;">';
-                            document.querySelectorAll('.parameter-row').forEach(row => {
-                                const name = row.querySelector('.param-name').value.trim();
-                                const value = row.querySelector('.param-value').value.trim();
-                                if (name || value) {
-                                    paramsHtml += `<li style="font-size: 14px;"><strong>${name || ''}:</strong> ${value || ''}</li>`;
-                                }
-                            });
-                            paramsHtml += '</ul>';
-                            paramsPrintableClone.innerHTML = paramsHtml;
-                        }
-
-                        // 5. 스크린샷 이미지 복사 (기존과 동일)
-                        const printableScreenshotContainerClone = doc.getElementById('printable-screenshot-container');
-                        if (printableScreenshotContainerClone) {
-                            const originalScreenshot = document.getElementById('screenshot-preview');
-                            if (originalScreenshot && originalScreenshot.src && !originalScreenshot.src.endsWith('#')) {
-                                printableScreenshotContainerClone.innerHTML = `<img src="${originalScreenshot.src}" style="max-width: 100%; border-radius: 0.5rem;" />`;
-                            } else {
-                                printableScreenshotContainerClone.innerHTML = '';
-                            }
-                        }
-
-                        // 6. (수정됨) 기존 6번을 이 코드로 대체합니다.
-                        // 'paramsPrintableClone'를 다시 선언하지 않는 것이 중요합니다.
-                        const delimiters = [
-                            {left: '$$', right: '$$', display: true},
-                            {left: '$', right: '$', display: false},
-                            {left: '\\(', right: '\\)', display: false},
-                            {left: '\\[', right: '\\]', display: true}
-                        ];
-                        
-                        // 2번 단계에서 채워진 일반 텍스트 필드들
-                        doc.querySelectorAll('.printable-content').forEach(el => {
-                            renderMathInElement(el, { delimiters, throwOnError: false });
-                        });
-                        
-                        // 4번 단계에서 채워진 파라미터 영역
-                        // 4번 단계에서 선언한 'paramsPrintableClone' 변수를 그대로 사용합니다. (const 없음!)
-                        if (paramsPrintableClone) { 
-                            renderMathInElement(paramsPrintableClone, { delimiters, throwOnError: false });
-                        }
-    
-                    } // <--- 여기가 onclone 함수의 닫힘 괄호 '}' 입니다.
-                });
-                
-                const imgData = canvas.toDataURL('image/png');
                 const { jsPDF } = window.jspdf;
                 const pdf = new jsPDF({
                     orientation: 'portrait',
@@ -445,34 +392,92 @@
                     format: 'a4'
                 });
 
-                const pdfWidth = pdf.internal.pageSize.getWidth();
-                const pdfHeight = pdf.internal.pageSize.getHeight();
-                const canvasWidth = canvas.width;
-                const canvasHeight = canvas.height;
-                const canvasAspectRatio = canvasHeight / canvasWidth;
+                // --- 2. 렌더링을 위해 DOM 준비 ---
                 
-                const imgHeight = pdfWidth * canvasAspectRatio;
-                let heightLeft = imgHeight;
-                let position = 0;
+                // 2a. 편집용 UI (입력창, 버튼) 숨기기
+                reportContent.querySelectorAll('.savable, #add-parameter-btn, .remove-parameter-btn, #parameters-container').forEach(el => el.style.display = 'none');
+                screenshotLabel.style.display = 'none';
 
-                pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
-                heightLeft -= pdfHeight;
+                // 2b. 출력용 UI (미리보기, 복사될 영역) 보이기
+                reportContent.querySelectorAll('.printable-content, .markdown-preview').forEach(el => el.style.display = 'block');
 
-                while (heightLeft > 0) {
-                    position = heightLeft - imgHeight;
-                    pdf.addPage();
-                    pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
-                    heightLeft -= pdfHeight;
+                // 2c. 일반 입력 필드(이름, 학번 등) 값을 출력용 div로 복사
+                reportContent.querySelectorAll('.savable:not(.markdown-input)').forEach(el => {
+                    const printableEl = el.nextElementSibling;
+                    if (printableEl && printableEl.classList.contains('printable-content')) {
+                        printableEl.textContent = el.value.trim();
+                    }
+                });
+                
+                // 2d. 파라미터 리스트를 HTML(ul/li)로 생성
+                const paramsPrintable = document.getElementById('parameters-printable');
+                if (paramsPrintable) {
+                    let paramsHtml = '<ul style="margin: 0; padding-left: 20px; list-style-type: disc;">';
+                    document.querySelectorAll('.parameter-row').forEach(row => {
+                        const name = row.querySelector('.param-name').value.trim();
+                        const value = row.querySelector('.param-value').value.trim();
+                        if (name || value) {
+                            // XSS 방지를 위해 간단한 HTML 이스케이프 처리
+                            const safeName = name.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                            const safeValue = value.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                            paramsHtml += `<li style="font-size: 14px;"><strong>${safeName || ''}:</strong> ${safeValue || ''}</li>`;
+                        }
+                    });
+                    paramsHtml += '</ul>';
+                    paramsPrintable.innerHTML = paramsHtml;
                 }
 
-                const studentId = document.getElementById('student-info').value.trim() || '학번';
-                const studentName = document.getElementById('student-name').value.trim() || '이름';
-                const filename = `AI모델탐사보고서_${studentId}_${studentName}.pdf`;
-                pdf.save(filename);
+                // 2e. 스크린샷 이미지를 출력용 div로 복사
+                const printableScreenshotContainer = document.getElementById('printable-screenshot-container');
+                if (printableScreenshotContainer) {
+                    if (screenshotPreview.src && !screenshotPreview.src.endsWith('#')) {
+                        printableScreenshotContainer.innerHTML = `<img src="${screenshotPreview.src}" style="max-width: 100%; border-radius: 0.5rem;" />`;
+                    } else {
+                        printableScreenshotContainer.innerHTML = '';
+                    }
+                }
+
+                // 2f. KaTeX 수학 공식이 포함될 수 있으므로 전체 DOM 렌더링
+                if (window.renderMathInElement) {
+                    renderMathInElement(reportContent, {
+                        delimiters: [
+                            {left: '$$', right: '$$', display: true},
+                            {left: '$', right: '$', display: false},
+                            {left: '\\(', right: '\\)', display: false},
+                            {left: '\\[', right: '\\]', display: true}
+                        ],
+                        throwOnError: false
+                    });
+                }
+                
+                // --- 3. pdf.html() 실행 (텍스트 기반 PDF 생성) ---
+                await pdf.html(reportContent, {
+                    callback: function (doc) {
+                        // --- 4. PDF 저장 ---
+                        const studentId = document.getElementById('student-info').value.trim() || '학번';
+                        const studentName = document.getElementById('student-name').value.trim() || '이름';
+                        const filename = `AI모델탐사보고서_${studentId}_${studentName}.pdf`;
+                        doc.save(filename);
+
+                        // --- 5. 페이지 원상 복구 ---
+                        cleanupDomForEditing();
+                    },
+                    margin: [15, 15, 15, 15], // [top, right, bottom, left]
+                    autoPaging: 'text', // CSS의 'break-inside: avoid' 규칙을 존중
+                    width: pdf.internal.pageSize.getWidth() - 30, // A4 너비에 맞춤
+                    windowWidth: reportContent.scrollWidth,
+                    html2canvas: { // 스크린샷 등 이미지를 위한 옵션
+                        scale: 2, 
+                        useCORS: true,
+                        logging: false
+                    }
+                });
 
             } catch(error) {
                 console.error("PDF 생성 중 오류 발생:", error);
                 alert("PDF를 생성하는 데 실패했습니다. 콘솔을 확인해주세요.");
+                // --- 6. 에러 시에도 페이지 원상 복구 ---
+                cleanupDomForEditing();
             } finally {
                 loader.style.display = 'none';
             }
