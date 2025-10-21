@@ -399,7 +399,15 @@
 
                 // (선택) 파일명 제안: 문서 제목을 잠시 바꿨다가 복구
                 const prevTitle = document.title;
-                document.title = prevTitle || 'document';
+                // 학번과 이름 input에서 값을 가져옵니다. (값이 없으면 '학번', '이름'으로 대체)
+                const studentId = document.getElementById('student-id')?.value.trim() || '학번';
+                const studentName = document.getElementById('student-name')?.value.trim() || '이름';
+                
+                // 기본 제목 (페이지 제목이 비어있으면 '보고서' 사용)
+                const baseTitle = prevTitle.trim() || '보고서';
+                
+                // '제목_학번_이름' 형식으로 새 파일명을 설정합니다.
+                document.title = `${baseTitle}_${studentId}_${studentName}`;
 
                 const cleanup = () => {
                     editors.forEach(el  => el.style.display = '');
