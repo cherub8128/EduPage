@@ -222,18 +222,18 @@
                 clearTimeout(saveTimer);
                 showSaveStatus('saving');
                 saveTimer = setTimeout(() => {
-                    const data = JSON.parse(localStorage.getItem('aiReportDataV2')) || {};
+                    const data = JSON.parse(localStorage.getItem('aiReportData')) || {};
                     if (element.id) {
                          data[element.id] = element.value;
                     }
-                    localStorage.setItem('aiReportDataV2', JSON.stringify(data));
+                    localStorage.setItem('aiReportData', JSON.stringify(data));
                     showSaveStatus('saved');
                 }, 1000);
             }
 
             function loadContent() {
                 // Try loading from the new unified key first
-                const newData = JSON.parse(localStorage.getItem('aiReportDataV2'));
+                const newData = JSON.parse(localStorage.getItem('aiReportData'));
                 if (newData) {
                     savableElements.forEach(field => {
                         if (newData.hasOwnProperty(field.id)) {
@@ -271,7 +271,7 @@
                     const data = {};
                     savableElements.forEach(el => { data[el.id] = el.value; });
                     if (savedImage) { data['screenshot-preview'] = savedImage; }
-                    localStorage.setItem('aiReportDataV2', JSON.stringify(data));
+                    localStorage.setItem('aiReportData', JSON.stringify(data));
                 }
             }
 
@@ -346,9 +346,9 @@
                         clearTimeout(saveTimer);
                         showSaveStatus('saving');
                         saveTimer = setTimeout(() => {
-                            const data = JSON.parse(localStorage.getItem('aiReportDataV2')) || {};
+                            const data = JSON.parse(localStorage.getItem('aiReportData')) || {};
                             data['screenshot-preview'] = base64Image;
-                            localStorage.setItem('aiReportDataV2', JSON.stringify(data));
+                            localStorage.setItem('aiReportData', JSON.stringify(data));
                             showSaveStatus('saved');
                         }, 1000);
                     };
