@@ -11,18 +11,19 @@
     <style>
         body {
             font-family: 'Noto Serif KR', serif;
-            background-color: #FDF6E3; /* 파피루스 느낌의 배경색 */
+            background-color: #FDF6E3;
         }
         .card {
             background-color: #FFFBF0;
             border: 1px solid #D8CDBA;
             border-radius: 0.75rem;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
-            transition: all 0.3s ease-in-out;
         }
         .card-title {
-            color: #583E26; /* 고동색 */
+            color: #583E26;
             border-bottom: 2px solid #EAE1C9;
+            display: flex;
+            align-items: center;
         }
         .input-field {
             background-color: #FDF6E3;
@@ -36,406 +37,454 @@
             border-color: #A38A6A;
             box-shadow: 0 0 0 2px rgba(163, 138, 106, 0.3);
         }
-        .input-field:disabled {
-            background-color: #EAE1C9;
-            cursor: not-allowed;
-            color: #A38A6A;
-        }
-        .sub-total {
-            color: #8C6A48;
-            font-weight: 600;
-        }
-        .total-score-display {
-            background-color: #583E26;
-            color: #FDF6E3;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
-        }
-        .btn-reset {
-            background-color: #8C6A48;
-            color: #FFFBF0;
-        }
-        .btn-reset:hover {
-            background-color: #583E26;
-        }
-        details > summary {
+        .player-tab {
+            transition: all 0.3s ease;
             cursor: pointer;
-            list-style: none;
+            border: 2px solid transparent;
+            position: relative;
         }
-        details > summary::-webkit-details-marker {
-            display: none;
+        .player-tab.active {
+            border-color: #8C6A48;
+            background-color: #FFFBF0;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
         }
-        .details-content {
-            border-top: 1px solid #EAE1C9;
-            margin-top: 1rem;
-            padding-top: 1rem;
+        .btn {
+            color: #FFFBF0;
+            transition: all 0.3s;
+            font-weight: bold;
+            border-radius: 0.5rem;
+            padding: 0.5rem 1rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
-        /* 입력 필드 화살표 숨기기 */
+        .btn-add { background-color: #6D8B74; }
+        .btn-add:hover { background-color: #557153; }
+        .btn-delete {
+            background-color: #D57E7E;
+            position: absolute;
+            top: -0.5rem;
+            right: -0.5rem;
+            width: 1.5rem;
+            height: 1.5rem;
+            border-radius: 9999px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            opacity: 0;
+            transform: scale(0.5);
+            transition: all 0.2s ease;
+        }
+        .btn-reset-all { background-color: #c84a4a; }
+        .btn-reset-all:hover { background-color: #a83232; }
+        .player-tab:hover .btn-delete {
+            opacity: 1;
+            transform: scale(1);
+        }
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+        .custom-checkbox {
+            width: 1.5rem;
+            height: 1.5rem;
+            border: 2px solid #D8CDBA;
+            border-radius: 0.375rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            background-color: #FDF6E3;
+            flex-shrink: 0;
+        }
+        .custom-checkbox svg {
+            opacity: 0;
+            transform: scale(0.5);
+            transition: all 0.2s;
+            color: #583E26;
+        }
+        input[type="checkbox"]:checked + .custom-checkbox {
+            background-color: #D8CDBA;
+        }
+        input[type="checkbox"]:checked + .custom-checkbox svg {
+            opacity: 1;
+            transform: scale(1);
+        }
         input[type="number"]::-webkit-inner-spin-button,
         input[type="number"]::-webkit-outer-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
+            -webkit-appearance: none; margin: 0;
         }
-        input[type="number"] {
-            -moz-appearance: textfield;
-        }
+        input[type="number"] { -moz-appearance: textfield; }
+        #calculator-body { display: none; }
+        #calculator-body.active { display: grid; }
+        details > summary { cursor: pointer; list-style: none; }
+        details > summary::-webkit-details-marker { display: none; }
+        .details-content { border-top: 1px solid #EAE1C9; margin-top: 1rem; padding-top: 1rem; }
+        input[type=range] { -webkit-appearance: none; background: transparent; }
+        input[type=range]::-webkit-slider-runnable-track { height: 8px; background: #D8CDBA; border-radius: 4px; }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; margin-top: -6px; width: 20px; height: 20px; background: #8C6A48; border-radius: 50%; }
     </style>
 </head>
-<body class="min-h-screen flex items-center justify-center p-4">
+<body class="p-4">
 
-    <div class="w-full max-w-4xl mx-auto">
+    <div class="w-full max-w-5xl mx-auto">
         
         <header class="text-center mb-8">
             <h1 class="text-4xl md:text-5xl font-bold text-[#583E26] tracking-wider">7 Wonders</h1>
             <p class="text-lg text-[#8C6A48] mt-2">상세 점수 계산기</p>
         </header>
-        
-        <div class="total-score-display rounded-xl shadow-lg p-6 mb-8 text-center sticky top-4 z-10">
-            <h2 class="text-2xl font-semibold tracking-wide">총 점수</h2>
-            <p id="total-score" class="text-6xl font-bold mt-2">0</p>
-        </div>
 
-        <main class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <!-- 1. 군사 충돌 -->
+        <!-- 플레이어 관리 -->
+        <section id="player-manager" class="card p-5 mb-8">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-semibold text-[#583E26]">플레이어 관리</h2>
+                <button id="reset-all-btn" class="btn btn-reset-all">전체 초기화</button>
+            </div>
+            <div class="flex flex-wrap gap-4 mb-4">
+                <input type="text" id="new-player-name" class="input-field flex-grow h-12 p-2 text-lg" placeholder="플레이어 이름">
+                <button id="add-player-btn" class="btn btn-add h-12">플레이어 추가</button>
+            </div>
+            <div id="player-tabs" class="flex flex-wrap gap-3">
+                <!-- Player tabs will be injected here -->
+            </div>
+        </section>
+
+        <!-- 계산기 본문 -->
+        <main id="calculator-body" class="grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            
+            <!-- 자동 계산을 위한 정보 -->
+            <div class="card p-5 lg:col-span-3">
+                <details open>
+                    <summary class="card-title pb-3 text-xl font-semibold">자동 계산 정보</summary>
+                    <div class="details-content grid grid-cols-2 sm:grid-cols-4 gap-4">
+                        <div><label>갈색 카드 수:</label><input type="number" data-key="brown" class="player-data input-field w-full mt-1 h-9 text-center card-count" min="0" value="0"></div>
+                        <div><label>회색 카드 수:</label><input type="number" data-key="grey" class="player-data input-field w-full mt-1 h-9 text-center card-count" min="0" value="0"></div>
+                        <div><label>보라색 카드 수:</label><input type="number" data-key="purple" class="player-data input-field w-full mt-1 h-9 text-center card-count" min="0" value="0"></div>
+                        <div><label>패배 토큰 수:</label><input type="number" data-key="defeats" class="player-data input-field w-full mt-1 h-9 text-center" min="0" value="0" id="defeat-tokens-count"></div>
+                        <div><label>파랑 카드 수:</label><input type="number" data-key="blue" class="player-data input-field w-full mt-1 h-9 text-center card-count" min="0" value="0"></div>
+                        <div><label>초록 카드 수:</label><input type="number" data-key="green" class="player-data input-field w-full mt-1 h-9 text-center card-count" min="0" value="0"></div>
+                        <div><label>빨강 카드 수:</label><input type="number" data-key="red" class="player-data input-field w-full mt-1 h-9 text-center card-count" min="0" value="0"></div>
+                        <div><label>노랑 카드 수:</label><input type="number" data-key="yellow" class="player-data input-field w-full mt-1 h-9 text-center card-count" min="0" value="0"></div>
+                    </div>
+                </details>
+            </div>
+
+            <!-- 군사 충돌 -->
+            <div class="card p-5">
+                 <details open>
+                    <summary class="card-title pb-3 flex justify-between items-center">
+                        <div class="flex items-center"><svg class="w-8 h-8 mr-3 text-red-600" fill="currentColor" viewBox="0 0 20 20"><path d="M18 8.5c0 4.23-6.63 9.47-7.35 10.14a.5.5 0 01-.65 0C9.37 17.97 2 12.73 2 8.5a8 8 0 1116 0zM10 6a.5.5 0 00-1 0v2H7a.5.5 0 000 1h2v2a.5.5 0 001 0v-2h2a.5.5 0 000-1h-2V6z"/></svg><h2 class="text-xl font-semibold">군사 충돌</h2></div>
+                        <span class="font-bold text-lg" id="military-total">0점</span>
+                    </summary>
+                    <div class="details-content space-y-3">
+                        <div class="flex items-center justify-between"><label>1시대 승리 (+1):</label><input type="number" data-key="v1" class="player-data input-field w-20 h-9 text-center" min="0" value="0"></div>
+                        <div class="flex items-center justify-between"><label>2시대 승리 (+3):</label><input type="number" data-key="v2" class="player-data input-field w-20 h-9 text-center" min="0" value="0"></div>
+                        <div class="flex items-center justify-between"><label>3시대 승리 (+5):</label><input type="number" data-key="v3" class="player-data input-field w-20 h-9 text-center" min="0" value="0"></div>
+                    </div>
+                </details>
+            </div>
+            
+            <!-- 금고 -->
+            <div class="card p-5">
+                <h2 class="card-title pb-3 text-xl font-semibold"><svg class="w-8 h-8 mr-3 text-yellow-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.414-1.414L11 10.586V6z" clip-rule="evenodd" /></svg>금고</h2>
+                <div class="details-content flex items-center justify-between">
+                    <label for="coins" class="text-lg">동전 개수:</label>
+                    <input type="number" data-key="coins" class="player-data input-field w-24 h-10 text-center text-lg" value="0" min="0">
+                </div>
+                <p class="text-right mt-2">점수: <span id="coins-score" class="font-bold text-lg">0</span></p>
+            </div>
+
+            <!-- 불가사의 -->
+            <div class="card p-5">
+                 <h2 class="card-title pb-3 text-xl font-semibold"><svg class="w-8 h-8 mr-3 text-purple-600" fill="currentColor" viewBox="0 0 20 20"><path d="M2 10a8 8 0 018-8v8h8a8 8 0 11-16 0z" /><path d="M12 2.252A8.014 8.014 0 0117.748 8H12V2.252z" /></svg>불가사의</h2>
+                 <div class="details-content space-y-4">
+                    <div class="flex items-center justify-between">
+                         <label class="text-lg">총 단계:</label>
+                         <input type="number" data-key="totalWonderStages" class="player-data input-field w-24 h-10 text-center text-lg" value="3" min="0" max="4">
+                     </div>
+                     <div class="flex items-center justify-between">
+                         <label class="text-lg">건설 단계:</label>
+                         <div class="flex items-center gap-2">
+                            <input type="range" data-key="wonderStages" class="player-data w-32" value="0" min="0" max="3" step="1">
+                            <span class="font-bold text-lg w-4 text-center" id="wonder-stages-display">0</span>
+                         </div>
+                     </div>
+                     <div class="flex items-center justify-between">
+                         <label class="text-lg">획득 점수:</label>
+                         <input type="number" data-key="wonderScore" class="player-data input-field w-24 h-10 text-center text-lg" value="0" min="0">
+                     </div>
+                 </div>
+            </div>
+
+            <!-- 민간 건물 -->
+            <div class="card p-5">
+                <h2 class="card-title pb-3 text-xl font-semibold"><svg class="w-8 h-8 mr-3 text-blue-600" fill="currentColor" viewBox="0 0 20 20"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" /></svg>민간 건물 (파랑)</h2>
+                <div class="details-content flex items-center justify-between">
+                    <label class="text-lg">카드 점수 총합:</label>
+                    <input type="number" data-key="civilianScore" class="player-data input-field w-24 h-10 text-center text-lg" value="0" min="0">
+                </div>
+            </div>
+
+            <!-- 과학 건물 -->
             <div class="card p-5">
                 <details open>
-                    <summary class="flex items-center card-title pb-3">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-red-700 mr-3" viewBox="0 0 20 20" fill="currentColor"><path d="M10 3.5a1.5 1.5 0 013 0V4a1 1 0 001 1h1a1 1 0 011 1v3.5a1.5 1.5 0 01-3 0V9a1 1 0 00-1-1h-1a1 1 0 01-1-1V3.5zM3 5.5a1.5 1.5 0 013 0V6a1 1 0 001 1h1a1 1 0 011 1v3.5a1.5 1.5 0 01-3 0V10a1 1 0 00-1-1H5a1 1 0 01-1-1V5.5z" /><path d="M10 18a8 8 0 100-16 8 8 0 000 16z" /></svg>
-                        <h2 class="text-xl font-semibold">군사 충돌</h2>
-                        <span class="ml-auto font-bold text-lg" id="military-total">0점</span>
+                    <summary class="card-title pb-3 flex justify-between items-center">
+                        <div class="flex items-center"><svg class="w-8 h-8 mr-3 text-green-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.532 1.532 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.532 1.532 0 01-.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd" /></svg><h2 class="text-xl font-semibold">과학 건물 (초록)</h2></div>
+                        <span class="font-bold text-lg" id="science-total">0점</span>
                     </summary>
-                    <div class="space-y-3 details-content">
-                        <p class="text-xs text-gray-400 text-center mb-3">각 시대 종료 시 얻은 군사 토큰 개수를 입력하세요.</p>
-                        <div class="flex items-center justify-between"><label>1시대 승리 토큰 (+1):</label><input type="number" id="victory-age1" class="input-field w-20 h-9 text-center" min="0" placeholder="0"></div>
-                        <div class="flex items-center justify-between"><label>2시대 승리 토큰 (+3):</label><input type="number" id="victory-age2" class="input-field w-20 h-9 text-center" min="0" placeholder="0"></div>
-                        <div class="flex items-center justify-between"><label>3시대 승리 토큰 (+5):</label><input type="number" id="victory-age3" class="input-field w-20 h-9 text-center" min="0" placeholder="0"></div>
-                        <div class="flex items-center justify-between"><label>패배 토큰 (-1):</label><input type="number" id="defeat-tokens" class="input-field w-20 h-9 text-center" min="0" placeholder="0"></div>
-                    </div>
-                </details>
-            </div>
-
-            <!-- 2. 금고 -->
-            <div class="card p-5">
-                <div class="flex items-center card-title pb-3 mb-4">
-                     <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-yellow-500 mr-3" viewBox="0 0 20 20" fill="currentColor"><path d="M8.433 7.418c.158-.103.346-.196.567-.267v1.698a2.5 2.5 0 00-2.12 2.15c0 .35.07 1.04.268 1.595.306.846.935 1.556 1.852 1.765v1.698c-.22.071-.408.164-.567.267C6.165 16.083 5 14.433 5 12.5 5 10.567 6.165 8.917 8.433 7.418zM11.567 7.418c2.268 1.5 3.433 3.15 3.433 5.082 0 1.933-1.165 3.583-3.433 5.082-.158.103-.346-.196-.567.267v-1.698c.917-.209 1.546-.919 1.852-1.765.198-.555.268-1.245.268-1.595a2.5 2.5 0 00-2.12-2.15V7.685c.22-.071.408-.164.567-.267z" /><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9 6a1 1 0 011-1h.01a1 1 0 110 2H10a1 1 0 01-1-1z" clip-rule="evenodd" /></svg>
-                    <h2 class="text-xl font-semibold">금고</h2>
-                </div>
-                <div class="flex items-center justify-between">
-                    <label for="coins" class="text-lg">동전 개수:</label>
-                    <input type="number" id="coins" class="input-field w-24 h-10 text-center text-lg" placeholder="0" min="0">
-                </div>
-                <p class="text-xs text-gray-400 mt-2">동전 3개당 1점으로 계산됩니다.</p>
-                <p class="text-right mt-1">점수: <span id="coins-score" class="sub-total">0</span></p>
-            </div>
-
-            <!-- 3. 불가사의 -->
-             <div class="card p-5">
-                <div class="flex items-center card-title pb-3 mb-4">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-indigo-500 mr-3" viewBox="0 0 20 20" fill="currentColor"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" /></svg>
-                    <h2 class="text-xl font-semibold">불가사의</h2>
-                </div>
-                <div class="flex items-center justify-between">
-                    <label for="wonder-score" class="text-lg">획득 점수 총합:</label>
-                    <input type="number" id="wonder-score" class="input-field w-24 h-10 text-center text-lg" placeholder="0">
-                </div>
-                <p class="text-xs text-gray-400 mt-2">건설한 불가사의 단계에서 얻는 점수 총합입니다.</p>
-            </div>
-
-            <!-- 4. 민간 건물 (파란색) -->
-            <div class="card p-5">
-                 <div class="flex items-center card-title pb-3 mb-4">
-                     <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-blue-500 mr-3" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a1 1 0 110 2h-3a1 1 0 01-1-1v-2a1 1 0 00-1-1H9a1 1 0 00-1 1v2a1 1 0 01-1 1H4a1 1 0 110-2V4zm3 1h2v2H7V5zm2 4H7v2h2V9zm2-4h2v2h-2V5zm2 4h-2v2h2V9z" clip-rule="evenodd" /></svg>
-                    <h2 class="text-xl font-semibold">민간 건물</h2>
-                </div>
-                <div class="flex items-center justify-between">
-                    <label class="text-lg">카드 점수 총합:</label>
-                    <input type="number" id="civilian-score" class="input-field w-24 h-10 text-center text-lg" placeholder="0">
-                </div>
-                 <p class="text-xs text-gray-400 mt-2">파란색 카드에 표시된 점수들을 모두 더하세요.</p>
-            </div>
-
-            <!-- 5. 과학 건물 (초록색) -->
-            <div class="card p-5 md:col-span-2">
-                 <details open>
-                    <summary class="flex items-center card-title pb-3">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-green-600 mr-3" viewBox="0 0 20 20" fill="currentColor"><path d="M11 17a1 1 0 001.447.894l4-2A1 1 0 0017 15V5a1 1 0 00-1.447-.894l-4 2A1 1 0 0011 7v10zM4 17a1 1 0 001.447.894l4-2A1 1 0 0010 15V5a1 1 0 00-1.447-.894l-4 2A1 1 0 004 7v10z" /></svg>
-                        <h2 class="text-xl font-semibold">과학 건물</h2>
-                        <span class="ml-auto font-bold text-lg" id="science-total">0점</span>
-                    </summary>
-                    <div class="details-content">
-                        <p class="text-xs text-gray-400 text-center mb-3">동일 심볼은 개수의 제곱, 다른 심볼 3종은 세트당 7점입니다.</p>
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                            <div class="text-center"><label for="tablets" class="text-lg">태블릿(점토판)</label><input type="number" id="tablets" class="input-field w-full mt-1 h-10 text-center text-lg science-input" placeholder="0" min="0"></div>
-                            <div class="text-center"><label for="compasses" class="text-lg">컴퍼스</label><input type="number" id="compasses" class="input-field w-full mt-1 h-10 text-center text-lg science-input" placeholder="0" min="0"></div>
-                            <div class="text-center"><label for="gears" class="text-lg">톱니바퀴</label><input type="number" id="gears" class="input-field w-full mt-1 h-10 text-center text-lg science-input" placeholder="0" min="0"></div>
-                        </div>
-                        <p class="text-xs text-gray-400 mt-2 text-center">* 과학자 조합, 바빌론 불가사의 등으로 얻는 추가 심볼도 여기에 포함하세요.</p>
+                    <div class="details-content space-y-3">
+                        <div class="flex items-center justify-between"><label>태블릿(점토판):</label><input type="number" data-key="tablets" class="player-data input-field w-20 h-9 text-center" min="0" value="0"></div>
+                        <div class="flex items-center justify-between"><label>컴퍼스:</label><input type="number" data-key="compasses" class="player-data input-field w-20 h-9 text-center" min="0" value="0"></div>
+                        <div class="flex items-center justify-between"><label>톱니바퀴:</label><input type="number" data-key="gears" class="player-data input-field w-20 h-9 text-center" min="0" value="0"></div>
                     </div>
                 </details>
             </div>
             
-            <!-- 6. 상업 건물 (노란색) -->
-            <div class="card p-5 md:col-span-2">
+            <!-- 상업 건물 -->
+            <div class="card p-5">
                  <details>
-                    <summary class="flex items-center card-title pb-3">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-yellow-600 mr-3" viewBox="0 0 20 20" fill="currentColor"><path d="M8.433 7.418c.158-.103.346-.196.567-.267v1.698a2.5 2.5 0 00-2.12 2.15c0 .35.07 1.04.268 1.595.306.846.935 1.556 1.852 1.765v1.698c-.22.071-.408.164-.567.267C6.165 16.083 5 14.433 5 12.5 5 10.567 6.165 8.917 8.433 7.418zM11.567 7.418c2.268 1.5 3.433 3.15 3.433 5.082 0 1.933-1.165 3.583-3.433 5.082-.158.103-.346-.196-.567.267v-1.698c.917-.209 1.546-.919 1.852-1.765.198-.555.268-1.245.268-1.595a2.5 2.5 0 00-2.12-2.15V7.685c.22-.071.408-.164.567-.267z" /><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9 6a1 1 0 011-1h.01a1 1 0 110 2H10a1 1 0 01-1-1z" clip-rule="evenodd" /></svg>
-                        <h2 class="text-xl font-semibold">상업 건물</h2>
-                        <span class="ml-auto font-bold text-lg" id="commercial-total">0점</span>
+                    <summary class="card-title pb-3 flex justify-between items-center">
+                        <div class="flex items-center"><svg class="w-8 h-8 mr-3 text-yellow-600" fill="currentColor" viewBox="0 0 20 20"><path d="M8.433 7.418c.158-.103.346-.196.567-.267v1.698a2.5 2.5 0 00-2.12 2.15c0 .35.07 1.04.268 1.595.306.846.935 1.556 1.852 1.765v1.698c-.22.071-.408.164-.567.267C6.165 16.083 5 14.433 5 12.5 5 10.567 6.165 8.917 8.433 7.418zM11.567 7.418c2.268 1.5 3.433 3.15 3.433 5.082 0 1.933-1.165 3.583-3.433 5.082-.158.103-.346-.196-.567.267v-1.698c.917-.209 1.546-.919 1.852-1.765.198-.555.268-1.245.268-1.595a2.5 2.5 0 00-2.12-2.15V7.685c.22-.071.408-.164.567-.267z" /><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9 6a1 1 0 011-1h.01a1 1 0 110 2H10a1 1 0 01-1-1z" clip-rule="evenodd" /></svg><h2 class="text-xl font-semibold">상업 건물 (노랑)</h2></div>
+                        <span class="font-bold text-lg" id="commercial-total">0점</span>
                     </summary>
-                    <div class="space-y-3 details-content">
-                        <p class="text-xs text-gray-400 text-center mb-3">먼저 보유한 상업 카드 수를 입력하면, 점수 계산칸이 활성화됩니다.</p>
-                        
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-x-4 gap-y-3 p-2 border-b border-gray-200/50">
-                            <label class="flex items-center sm:col-span-1" title="Haven: 자신의 갈색 카드 1장당 1점">
-                                <svg class="w-6 h-6 mr-2 fill-amber-700" viewBox="0 0 20 20"><path d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4z" /></svg>
-                                <span>항구 (Haven):</span>
-                            </label>
-                             <div class="flex items-center space-x-1"><label class="text-xs text-gray-500">카드수</label><input type="number" id="haven-card-count" class="input-field w-14 h-9 text-center commercial-card-count" min="0" placeholder="0" data-target="haven-cards"></div>
-                            <div class="flex items-center space-x-1"><label class="text-xs text-gray-500">갈색카드</label><input type="number" id="haven-cards" class="input-field w-14 h-9 text-center commercial-item-count" min="0" placeholder="0" disabled></div>
-                        </div>
-
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-x-4 gap-y-3 p-2 border-b border-gray-200/50">
-                            <label class="flex items-center sm:col-span-1" title="Chamber of Commerce: 자신의 회색 카드 1장당 2점">
-                                <svg class="w-6 h-6 mr-2 fill-gray-500" viewBox="0 0 20 20"><path d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4z" /></svg>
-                                <span>상공회의소:</span>
-                            </label>
-                             <div class="flex items-center space-x-1"><label class="text-xs text-gray-500">카드수</label><input type="number" id="commerce-card-count" class="input-field w-14 h-9 text-center commercial-card-count" min="0" placeholder="0" data-target="commerce-cards"></div>
-                            <div class="flex items-center space-x-1"><label class="text-xs text-gray-500">회색카드</label><input type="number" id="commerce-cards" class="input-field w-14 h-9 text-center commercial-item-count" min="0" placeholder="0" disabled></div>
-                        </div>
-
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-x-4 gap-y-3 p-2 border-b border-gray-200/50">
-                           <label class="flex items-center sm:col-span-1" title="Arena: 자신의 불가사의 단계 1개당 1점">
-                                <svg class="w-6 h-6 mr-2 fill-indigo-500" viewBox="0 0 20 20" fill="currentColor"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" /></svg>
-                                <span>경기장 (Arena):</span>
-                            </label>
-                             <div class="flex items-center space-x-1"><label class="text-xs text-gray-500">카드수</label><input type="number" id="arena-card-count" class="input-field w-14 h-9 text-center commercial-card-count" min="0" placeholder="0" data-target="arena-wonders"></div>
-                            <div class="flex items-center space-x-1"><label class="text-xs text-gray-500">불가사의</label><input type="number" id="arena-wonders" class="input-field w-14 h-9 text-center commercial-item-count" min="0" placeholder="0" disabled></div>
-                        </div>
-
-                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-x-4 gap-y-3 p-2">
-                            <label class="flex items-center sm:col-span-1" title="Lighthouse: 자신의 노란색 카드 1장당 1점">
-                                <svg class="w-6 h-6 mr-2 fill-yellow-500" viewBox="0 0 20 20"><path d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4z" /></svg>
-                                <span>등대 (Lighthouse):</span>
-                            </label>
-                            <div class="flex items-center space-x-1"><label class="text-xs text-gray-500">카드수</label><input type="number" id="lighthouse-card-count" class="input-field w-14 h-9 text-center commercial-card-count" min="0" placeholder="0" data-target="lighthouse-cards"></div>
-                            <div class="flex items-center space-x-1"><label class="text-xs text-gray-500">노랑카드</label><input type="number" id="lighthouse-cards" class="input-field w-14 h-9 text-center commercial-item-count" min="0" placeholder="0" disabled></div>
-                        </div>
+                    <div class="details-content space-y-4">
+                        <label class="checkbox-label"><input type="checkbox" data-key="hasHaven" class="player-data hidden"><div class="custom-checkbox"></div><span class="ml-3">항구 (갈색 카드당 1점)</span></label>
+                        <label class="checkbox-label"><input type="checkbox" data-key="hasCommerce" class="player-data hidden"><div class="custom-checkbox"></div><span class="ml-3">상공회의소 (회색 카드당 2점)</span></label>
+                        <label class="checkbox-label"><input type="checkbox" data-key="hasArena" class="player-data hidden"><div class="custom-checkbox"></div><span class="ml-3">투기장 (불가사의 단계당 1점)</span></label>
+                        <label class="checkbox-label"><input type="checkbox" data-key="hasLighthouse" class="player-data hidden"><div class="custom-checkbox"></div><span class="ml-3">등대 (노랑 카드당 1점)</span></label>
+                        <label class="checkbox-label"><input type="checkbox" data-key="hasLudus" class="player-data hidden"><div class="custom-checkbox"></div><span class="ml-3">검투사 양성소 (빨강 카드당 1점)</span></label>
                     </div>
                 </details>
             </div>
             
-            <!-- 7. 조합 (보라색) -->
-            <div class="card p-5 md:col-span-2">
-                 <details>
-                    <summary class="flex items-center card-title pb-3">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-purple-600 mr-3" viewBox="0 0 20 20" fill="currentColor"><path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z" /></svg>
-                        <h2 class="text-xl font-semibold">조합</h2>
-                        <span class="ml-auto font-bold text-lg" id="guild-total">0점</span>
+            <!-- 조합 -->
+            <div class="card p-5 lg:col-span-3">
+                <details>
+                    <summary class="card-title pb-3 flex justify-between items-center">
+                        <div class="flex items-center"><svg class="w-8 h-8 mr-3 text-indigo-800" fill="currentColor" viewBox="0 0 20 20"><path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z" /></svg><h2 class="text-xl font-semibold">조합 (보라)</h2></div>
+                        <span class="font-bold text-lg" id="guild-total">0점</span>
                     </summary>
-                     <div class="space-y-3 details-content">
-                        <p class="text-xs text-gray-400 text-center mb-3">먼저 보유한 조합 카드 수를 입력하면, 점수 계산칸이 활성화됩니다.</p>
-                        
-                        <!-- 각 조합별 입력 필드 -->
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-x-4 gap-y-3 p-2 border-b border-gray-200/50">
-                            <label class="flex items-center sm:col-span-1">
-                                <svg class="w-6 h-6 mr-2 fill-amber-700" viewBox="0 0 20 20"><path d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4z" /></svg>
-                                <span>일꾼 조합:</span>
-                            </label>
-                            <div class="flex items-center space-x-1"><label class="text-xs text-gray-500">카드수</label><input type="number" id="guild-brown-card" class="input-field w-14 h-9 text-center guild-card-count" min="0" placeholder="0" data-target="guild-brown-item"></div>
-                            <div class="flex items-center space-x-1"><label class="text-xs text-gray-500">이웃갈색</label><input type="number" id="guild-brown-item" class="input-field w-14 h-9 text-center guild-item-count" min="0" placeholder="0" disabled></div>
-                        </div>
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-x-4 gap-y-3 p-2 border-b border-gray-200/50">
-                            <label class="flex items-center sm:col-span-1">
-                                <svg class="w-6 h-6 mr-2 fill-gray-500" viewBox="0 0 20 20"><path d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4z" /></svg>
-                                <span>장인 조합:</span>
-                            </label>
-                            <div class="flex items-center space-x-1"><label class="text-xs text-gray-500">카드수</label><input type="number" id="guild-grey-card" class="input-field w-14 h-9 text-center guild-card-count" min="0" placeholder="0" data-target="guild-grey-item"></div>
-                            <div class="flex items-center space-x-1"><label class="text-xs text-gray-500">이웃회색</label><input type="number" id="guild-grey-item" class="input-field w-14 h-9 text-center guild-item-count" min="0" placeholder="0" disabled></div>
-                        </div>
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-x-4 gap-y-3 p-2 border-b border-gray-200/50">
-                            <label class="flex items-center sm:col-span-1">
-                                <svg class="w-6 h-6 mr-2 fill-yellow-500" viewBox="0 0 20 20"><path d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4z" /></svg>
-                                <span>상인 조합:</span>
-                            </label>
-                            <div class="flex items-center space-x-1"><label class="text-xs text-gray-500">카드수</label><input type="number" id="guild-yellow-card" class="input-field w-14 h-9 text-center guild-card-count" min="0" placeholder="0" data-target="guild-yellow-item"></div>
-                            <div class="flex items-center space-x-1"><label class="text-xs text-gray-500">이웃노랑</label><input type="number" id="guild-yellow-item" class="input-field w-14 h-9 text-center guild-item-count" min="0" placeholder="0" disabled></div>
-                        </div>
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-x-4 gap-y-3 p-2 border-b border-gray-200/50">
-                            <label class="flex items-center sm:col-span-1">
-                                <svg class="w-6 h-6 mr-2 fill-green-600" viewBox="0 0 20 20"><path d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4z" /></svg>
-                                <span>철학자 조합:</span>
-                            </label>
-                            <div class="flex items-center space-x-1"><label class="text-xs text-gray-500">카드수</label><input type="number" id="guild-green-card" class="input-field w-14 h-9 text-center guild-card-count" min="0" placeholder="0" data-target="guild-green-item"></div>
-                            <div class="flex items-center space-x-1"><label class="text-xs text-gray-500">이웃초록</label><input type="number" id="guild-green-item" class="input-field w-14 h-9 text-center guild-item-count" min="0" placeholder="0" disabled></div>
-                        </div>
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-x-4 gap-y-3 p-2 border-b border-gray-200/50">
-                            <label class="flex items-center sm:col-span-1">
-                                <svg class="w-6 h-6 mr-2 fill-red-700" viewBox="0 0 20 20"><path d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4z" /></svg>
-                                <span>첩자 조합:</span>
-                            </label>
-                            <div class="flex items-center space-x-1"><label class="text-xs text-gray-500">카드수</label><input type="number" id="guild-red-card" class="input-field w-14 h-9 text-center guild-card-count" min="0" placeholder="0" data-target="guild-red-item"></div>
-                            <div class="flex items-center space-x-1"><label class="text-xs text-gray-500">이웃빨강</label><input type="number" id="guild-red-item" class="input-field w-14 h-9 text-center guild-item-count" min="0" placeholder="0" disabled></div>
-                        </div>
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-x-4 gap-y-3 p-2 border-b border-gray-200/50">
-                            <label class="flex items-center sm:col-span-1">
-                                <svg class="w-6 h-6 mr-2 fill-blue-500" viewBox="0 0 20 20"><path d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4z" /></svg>
-                                <span>판사 조합:</span>
-                            </label>
-                            <div class="flex items-center space-x-1"><label class="text-xs text-gray-500">카드수</label><input type="number" id="guild-blue-card" class="input-field w-14 h-9 text-center guild-card-count" min="0" placeholder="0" data-target="guild-blue-item"></div>
-                            <div class="flex items-center space-x-1"><label class="text-xs text-gray-500">이웃파랑</label><input type="number" id="guild-blue-item" class="input-field w-14 h-9 text-center guild-item-count" min="0" placeholder="0" disabled></div>
-                        </div>
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-x-4 gap-y-3 p-2 border-b border-gray-200/50">
-                            <label class="flex items-center sm:col-span-1">
-                                <svg class="w-6 h-6 mr-2 text-red-700" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 1a9 9 0 100 18 9 9 0 000-18zM6.707 6.293a1 1 0 011.414 0L10 8.586l1.879-1.88a1 1 0 111.414 1.414L11.414 10l1.88 1.879a1 1 0 01-1.414 1.414L10 11.414l-1.879 1.88a1 1 0 01-1.414-1.414L8.586 10 6.707 8.121a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
-                                <span>전략가 조합:</span>
-                            </label>
-                            <div class="flex items-center space-x-1"><label class="text-xs text-gray-500">카드수</label><input type="number" id="guild-defeats-card" class="input-field w-14 h-9 text-center guild-card-count" min="0" placeholder="0" data-target="guild-defeats-item"></div>
-                            <div class="flex items-center space-x-1"><label class="text-xs text-gray-500">이웃패배</label><input type="number" id="guild-defeats-item" class="input-field w-14 h-9 text-center guild-item-count" min="0" placeholder="0" disabled></div>
-                        </div>
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-x-4 gap-y-3 p-2 border-b border-gray-200/50">
-                            <label class="flex items-center sm:col-span-1">
-                                <div class="flex mr-2"><svg class="w-4 h-4 fill-amber-700" viewBox="0 0 20 20"><path d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4z" /></svg><svg class="w-4 h-4 fill-gray-500 -ml-1" viewBox="0 0 20 20"><path d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4z" /></svg><svg class="w-4 h-4 fill-purple-600 -ml-1" viewBox="0 0 20 20"><path d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4z" /></svg></div>
-                                <span>선주 조합:</span>
-                            </label>
-                            <div class="flex items-center space-x-1"><label class="text-xs text-gray-500">카드수</label><input type="number" id="guild-self-cards-card" class="input-field w-14 h-9 text-center guild-card-count" min="0" placeholder="0" data-target="guild-self-cards-item"></div>
-                            <div class="flex items-center space-x-1"><label class="text-xs text-gray-500">자신</label><input type="number" id="guild-self-cards-item" class="input-field w-14 h-9 text-center guild-item-count" min="0" placeholder="0" disabled></div>
-                        </div>
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-x-4 gap-y-3 p-2">
-                            <label class="flex items-center sm:col-span-1">
-                                <svg class="w-6 h-6 mr-2 fill-indigo-500" viewBox="0 0 20 20" fill="currentColor"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" /></svg>
-                                <span>건축가 조합:</span>
-                            </label>
-                            <div class="flex items-center space-x-1"><label class="text-xs text-gray-500">카드수</label><input type="number" id="guild-wonders-card" class="input-field w-14 h-9 text-center guild-card-count" min="0" placeholder="0" data-target="guild-wonders-item"></div>
-                            <div class="flex items-center space-x-1"><label class="text-xs text-gray-500">모두</label><input type="number" id="guild-wonders-item" class="input-field w-14 h-9 text-center guild-item-count" min="0" placeholder="0" disabled></div>
-                        </div>
-                    </div>
+                     <div class="details-content grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <label class="checkbox-label"><input type="checkbox" data-key="hasGuildWorkers" class="player-data hidden"><div class="custom-checkbox"></div><span class="ml-3">일꾼 조합 (이웃 갈색당 1점)</span></label>
+                        <label class="checkbox-label"><input type="checkbox" data-key="hasGuildCraftsmens" class="player-data hidden"><div class="custom-checkbox"></div><span class="ml-3">장인 조합 (이웃 회색당 2점)</span></label>
+                        <label class="checkbox-label"><input type="checkbox" data-key="hasGuildTraders" class="player-data hidden"><div class="custom-checkbox"></div><span class="ml-3">상인 조합 (이웃 노랑당 1점)</span></label>
+                        <label class="checkbox-label"><input type="checkbox" data-key="hasGuildPhilosophers" class="player-data hidden"><div class="custom-checkbox"></div><span class="ml-3">철학자 조합 (이웃 초록당 1점)</span></label>
+                        <label class="checkbox-label"><input type="checkbox" data-key="hasGuildSpies" class="player-data hidden"><div class="custom-checkbox"></div><span class="ml-3">정보원 조합 (이웃 빨강당 1점)</span></label>
+                        <label class="checkbox-label"><input type="checkbox" data-key="hasGuildMagistrates" class="player-data hidden"><div class="custom-checkbox"></div><span class="ml-3">법률가 조합 (이웃 파랑당 1점)</span></label>
+                        <label class="checkbox-label"><input type="checkbox" data-key="hasGuildShipowners" class="player-data hidden"><div class="custom-checkbox"></div><span class="ml-3">선주 조합 (자신 갈/회/보라 카드당 1점)</span></label>
+                        <label class="checkbox-label"><input type="checkbox" data-key="hasGuildBuilders" class="player-data hidden"><div class="custom-checkbox"></div><span class="ml-3">건축가 조합 (자신/이웃 불가사의 단계당 1점)</span></label>
+                        <label class="checkbox-label"><input type="checkbox" data-key="hasGuildDecorators" class="player-data hidden"><div class="custom-checkbox"></div><span class="ml-3">장식가 조합 (불가사의 완성 시 7점)</span></label>
+                        <label class="checkbox-label"><input type="checkbox" data-key="hasGuildScientists" class="player-data hidden"><div class="custom-checkbox"></div><span class="ml-3">과학자 조합 (과학 기호 +1)</span></label>
+                     </div>
                 </details>
             </div>
         </main>
-        
-        <footer class="mt-8 text-center">
-            <button id="reset-button" class="btn-reset font-bold py-3 px-8 rounded-lg shadow-md hover:shadow-lg transition-all duration-300">
-                초기화
-            </button>
-        </footer>
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const inputs = document.querySelectorAll('input[type="number"]');
-            const totalScoreEl = document.getElementById('total-score');
-            
-            const subTotalEls = {
-                military: document.getElementById('military-total'),
-                coins: document.getElementById('coins-score'),
-                science: document.getElementById('science-total'),
-                commercial: document.getElementById('commercial-total'),
-                guild: document.getElementById('guild-total'),
-            };
+    document.addEventListener('DOMContentLoaded', () => {
+        let players = [];
+        let currentPlayerId = null;
 
-            const resetButton = document.getElementById('reset-button');
-            const guildCardCountInputs = document.querySelectorAll('.guild-card-count');
-            const commercialCardCountInputs = document.querySelectorAll('.commercial-card-count');
+        const newPlayerNameInput = document.getElementById('new-player-name');
+        const addPlayerBtn = document.getElementById('add-player-btn');
+        const playerTabsContainer = document.getElementById('player-tabs');
+        const calculatorBody = document.getElementById('calculator-body');
+        const resetAllBtn = document.getElementById('reset-all-btn');
 
-            function calculateTotalScore() {
-                // 1. 군사력 점수
-                const v1 = parseInt(document.getElementById('victory-age1').value) || 0;
-                const v2 = parseInt(document.getElementById('victory-age2').value) || 0;
-                const v3 = parseInt(document.getElementById('victory-age3').value) || 0;
-                const d = parseInt(document.getElementById('defeat-tokens').value) || 0;
-                const militaryScore = (v1 * 1) + (v2 * 3) + (v3 * 5) - (d * 1);
-                subTotalEls.military.textContent = `${militaryScore}점`;
-
-                // 2. 금고 점수
-                const coins = parseInt(document.getElementById('coins').value) || 0;
-                const coinsScore = Math.floor(coins / 3);
-                subTotalEls.coins.textContent = coinsScore;
-
-                // 3. 불가사의 점수
-                const wonderScore = parseInt(document.getElementById('wonder-score').value) || 0;
-
-                // 4. 민간 건물 점수
-                const civilianScore = parseInt(document.getElementById('civilian-score').value) || 0;
-
-                // 5. 과학 건물 점수
-                const tablets = parseInt(document.getElementById('tablets').value) || 0;
-                const compasses = parseInt(document.getElementById('compasses').value) || 0;
-                const gears = parseInt(document.getElementById('gears').value) || 0;
-                const identicalSymbolsScore = (tablets ** 2) + (compasses ** 2) + (gears ** 2);
-                const setsOfDifferentSymbols = Math.min(tablets, compasses, gears);
-                const differentSymbolsScore = setsOfDifferentSymbols * 7;
-                const scienceScore = identicalSymbolsScore + differentSymbolsScore;
-                subTotalEls.science.textContent = `${scienceScore}점`;
-
-                // 6. 상업 건물 점수
-                const haven = (parseInt(document.getElementById('haven-card-count').value) || 0) * (parseInt(document.getElementById('haven-cards').value) || 0) * 1;
-                const commerce = (parseInt(document.getElementById('commerce-card-count').value) || 0) * (parseInt(document.getElementById('commerce-cards').value) || 0) * 2;
-                const arena = (parseInt(document.getElementById('arena-card-count').value) || 0) * (parseInt(document.getElementById('arena-wonders').value) || 0) * 1;
-                const lighthouse = (parseInt(document.getElementById('lighthouse-card-count').value) || 0) * (parseInt(document.getElementById('lighthouse-cards').value) || 0) * 1;
-                const commercialScore = haven + commerce + arena + lighthouse;
-                subTotalEls.commercial.textContent = `${commercialScore}점`;
-                
-                // 7. 조합 점수
-                const guildBrown = (parseInt(document.getElementById('guild-brown-card').value) || 0) * (parseInt(document.getElementById('guild-brown-item').value) || 0) * 1;
-                const guildGrey = (parseInt(document.getElementById('guild-grey-card').value) || 0) * (parseInt(document.getElementById('guild-grey-item').value) || 0) * 2;
-                const guildYellow = (parseInt(document.getElementById('guild-yellow-card').value) || 0) * (parseInt(document.getElementById('guild-yellow-item').value) || 0) * 1;
-                const guildGreen = (parseInt(document.getElementById('guild-green-card').value) || 0) * (parseInt(document.getElementById('guild-green-item').value) || 0) * 1;
-                const guildRed = (parseInt(document.getElementById('guild-red-card').value) || 0) * (parseInt(document.getElementById('guild-red-item').value) || 0) * 1;
-                const guildBlue = (parseInt(document.getElementById('guild-blue-card').value) || 0) * (parseInt(document.getElementById('guild-blue-item').value) || 0) * 1;
-                const guildDefeats = (parseInt(document.getElementById('guild-defeats-card').value) || 0) * (parseInt(document.getElementById('guild-defeats-item').value) || 0) * 1;
-                const guildSelf = (parseInt(document.getElementById('guild-self-cards-card').value) || 0) * (parseInt(document.getElementById('guild-self-cards-item').value) || 0) * 1;
-                const guildWonders = (parseInt(document.getElementById('guild-wonders-card').value) || 0) * (parseInt(document.getElementById('guild-wonders-item').value) || 0) * 1;
-                
-                const guildScore = guildBrown + guildGrey + guildYellow + guildGreen + guildRed + guildBlue + guildDefeats + guildSelf + guildWonders;
-                subTotalEls.guild.textContent = `${guildScore}점`;
-
-                const totalScore = militaryScore + coinsScore + wonderScore + civilianScore + scienceScore + commercialScore + guildScore;
-                totalScoreEl.textContent = totalScore;
-            }
-            
-            function handleCardCountChange(event) {
-                const cardCountInput = event.target;
-                const targetItemId = cardCountInput.dataset.target;
-                const itemInput = document.getElementById(targetItemId);
-                
-                if (itemInput) {
-                    const count = parseInt(cardCountInput.value) || 0;
-                    if (count > 0) {
-                        itemInput.disabled = false;
-                    } else {
-                        itemInput.disabled = true;
-                        itemInput.value = '';
-                    }
-                }
-                calculateTotalScore();
-            }
-            
-            commercialCardCountInputs.forEach(input => {
-                input.addEventListener('input', handleCardCountChange);
-            });
-            
-            guildCardCountInputs.forEach(input => {
-                input.addEventListener('input', handleCardCountChange);
-            });
-
-            inputs.forEach(input => {
-                input.addEventListener('input', calculateTotalScore);
-            });
-
-            resetButton.addEventListener('click', () => {
-                inputs.forEach(input => {
-                    input.value = '';
-                });
-                document.querySelectorAll('.commercial-item-count, .guild-item-count').forEach(itemInput => {
-                    itemInput.disabled = true;
-                });
-                calculateTotalScore();
-            });
-
-            // Initial calculation and setup
-            calculateTotalScore();
+        const createDefaultPlayerData = () => ({
+            name: '', brown: 0, grey: 0, purple: 0, defeats: 0, blue: 0, green: 0, red: 0, yellow: 0,
+            v1: 0, v2: 0, v3: 0,
+            coins: 0, wonderStages: 0, totalWonderStages: 3, wonderScore: 0,
+            civilianScore: 0, tablets: 0, compasses: 0, gears: 0,
+            hasHaven: false, hasCommerce: false, hasArena: false, hasLighthouse: false, hasLudus: false,
+            hasGuildWorkers: false, hasGuildCraftsmens: false, hasGuildTraders: false,
+            hasGuildPhilosophers: false, hasGuildSpies: false, hasGuildMagistrates: false,
+            hasGuildShipowners: false, hasGuildBuilders: false, hasGuildDecorators: false, hasGuildScientists: false
         });
-    </script>
 
+        const savePlayersToLocalStorage = () => {
+            localStorage.setItem('7wondersPlayers', JSON.stringify(players));
+        };
+
+        const loadPlayersFromLocalStorage = () => {
+            const savedPlayers = localStorage.getItem('7wondersPlayers');
+            if (savedPlayers) {
+                players = JSON.parse(savedPlayers);
+                if (players.length > 0) {
+                    switchPlayer(players[0].id);
+                } else {
+                    renderPlayerTabs();
+                }
+            }
+        };
+
+        const renderPlayerTabs = () => {
+            playerTabsContainer.innerHTML = '';
+            players.forEach(player => {
+                const tab = document.createElement('div');
+                tab.className = `player-tab card p-3 flex justify-between items-center ${player.id === currentPlayerId ? 'active' : ''}`;
+                tab.dataset.id = player.id;
+                
+                const nameSpan = document.createElement('span'); nameSpan.className = 'font-semibold text-lg'; nameSpan.textContent = player.name;
+                const scoreSpan = document.createElement('span'); scoreSpan.className = 'ml-4 font-bold text-xl text-[#8C6A48]'; scoreSpan.id = `total-score-${player.id}`;
+                const deleteBtn = document.createElement('button'); deleteBtn.className = 'btn btn-delete'; deleteBtn.innerHTML = '&times;'; deleteBtn.dataset.id = player.id;
+                
+                tab.appendChild(nameSpan); tab.appendChild(scoreSpan); tab.appendChild(deleteBtn);
+                playerTabsContainer.appendChild(tab);
+            });
+            calculateAllPlayersScores();
+        };
+
+        const addPlayer = () => {
+            const name = newPlayerNameInput.value.trim();
+            if (name === '') { alert('플레이어 이름을 입력해주세요.'); return; }
+            const newPlayer = { id: Date.now(), name: name, data: createDefaultPlayerData() };
+            players.push(newPlayer);
+            newPlayerNameInput.value = '';
+            savePlayersToLocalStorage();
+            switchPlayer(newPlayer.id);
+        };
+        
+        const deletePlayer = (id) => {
+            players = players.filter(p => p.id !== id);
+            if (currentPlayerId === id) {
+                currentPlayerId = null;
+                calculatorBody.classList.remove('active');
+                if (players.length > 0) { switchPlayer(players[0].id); }
+            }
+            savePlayersToLocalStorage();
+            renderPlayerTabs();
+        };
+
+        const switchPlayer = (id) => {
+            if (currentPlayerId) saveCurrentPlayerData();
+            currentPlayerId = id;
+            loadPlayerData(id);
+            renderPlayerTabs();
+            calculatorBody.classList.add('active');
+        };
+
+        const saveCurrentPlayerData = () => {
+            if (!currentPlayerId) return;
+            const player = players.find(p => p.id === currentPlayerId);
+            if (!player) return;
+            document.querySelectorAll('.player-data').forEach(input => {
+                const key = input.dataset.key;
+                if (input.type === 'checkbox') { player.data[key] = input.checked; } 
+                else { player.data[key] = parseInt(input.value) || 0; }
+            });
+            savePlayersToLocalStorage();
+        };
+
+        const loadPlayerData = (id) => {
+            const player = players.find(p => p.id === id);
+            if (!player) return;
+            document.querySelectorAll('.player-data').forEach(input => {
+                const key = input.dataset.key;
+                if (input.type === 'checkbox') { input.checked = player.data[key] || false; } 
+                else { input.value = player.data[key] || 0; }
+            });
+            const wonderStagesSlider = document.querySelector('input[data-key="wonderStages"]');
+            const wonderStagesDisplay = document.getElementById('wonder-stages-display');
+            if(wonderStagesSlider && wonderStagesDisplay) {
+                wonderStagesDisplay.textContent = wonderStagesSlider.value;
+            }
+        };
+
+        const calculateAllPlayersScores = () => {
+            players.forEach((_, index) => {
+                const score = calculatePlayerScore(players[index].id);
+                const scoreEl = document.getElementById(`total-score-${players[index].id}`);
+                if (scoreEl) scoreEl.textContent = `${score}점`;
+            });
+        };
+
+        const calculatePlayerScore = (playerId) => {
+            const playerIndex = players.findIndex(p => p.id === playerId);
+            if (playerIndex === -1) return 0;
+
+            const pData = players[playerIndex].data;
+            const playerCount = players.length;
+            const leftNeighbor = players[(playerIndex - 1 + playerCount) % playerCount]?.data || createDefaultPlayerData();
+            const rightNeighbor = players[(playerIndex + 1) % playerCount]?.data || createDefaultPlayerData();
+
+            const militaryScore = (pData.v1 * 1) + (pData.v2 * 3) + (pData.v3 * 5) - pData.defeats;
+            const coinsScore = Math.floor(pData.coins / 3);
+            
+            let scienceScore;
+            const t = pData.tablets, c = pData.compasses, g = pData.gears;
+            const scoreFn = (t, c, g) => (t**2) + (c**2) + (g**2) + (Math.min(t,c,g) * 7);
+            if (pData.hasGuildScientists) {
+                scienceScore = Math.max(scoreFn(t+1,c,g), scoreFn(t,c+1,g), scoreFn(t,c,g+1));
+            } else {
+                scienceScore = scoreFn(t, c, g);
+            }
+
+            let commercialScore = 0;
+            if (pData.hasHaven) commercialScore += pData.brown;
+            if (pData.hasCommerce) commercialScore += pData.grey * 2;
+            if (pData.hasArena) commercialScore += pData.wonderStages;
+            if (pData.hasLighthouse) commercialScore += pData.yellow;
+            if (pData.hasLudus) commercialScore += pData.red;
+
+            let guildScore = 0;
+            if (pData.hasGuildWorkers) guildScore += leftNeighbor.brown + rightNeighbor.brown;
+            if (pData.hasGuildCraftsmens) guildScore += (leftNeighbor.grey + rightNeighbor.grey) * 2;
+            if (pData.hasGuildTraders) guildScore += leftNeighbor.yellow + rightNeighbor.yellow;
+            if (pData.hasGuildPhilosophers) guildScore += leftNeighbor.green + rightNeighbor.green;
+            if (pData.hasGuildSpies) guildScore += leftNeighbor.red + rightNeighbor.red;
+            if (pData.hasGuildMagistrates) guildScore += leftNeighbor.blue + rightNeighbor.blue;
+            if (pData.hasGuildShipowners) guildScore += pData.brown + pData.grey + pData.purple;
+            if (pData.hasGuildBuilders) guildScore += pData.wonderStages + leftNeighbor.wonderStages + rightNeighbor.wonderStages;
+            if (pData.hasGuildDecorators && pData.wonderStages >= pData.totalWonderStages && pData.totalWonderStages > 0) guildScore += 7;
+
+            if (playerId === currentPlayerId) {
+                document.getElementById('military-total').textContent = `${militaryScore}점`;
+                document.getElementById('coins-score').textContent = `${coinsScore}점`;
+                document.getElementById('science-total').textContent = `${scienceScore}점`;
+                document.getElementById('commercial-total').textContent = `${commercialScore}점`;
+                document.getElementById('guild-total').textContent = `${guildScore}점`;
+            }
+
+            return militaryScore + coinsScore + pData.wonderScore + pData.civilianScore + scienceScore + commercialScore + guildScore;
+        };
+
+        addPlayerBtn.addEventListener('click', addPlayer);
+        newPlayerNameInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') addPlayer(); });
+        playerTabsContainer.addEventListener('click', (e) => {
+            const tab = e.target.closest('.player-tab');
+            const deleteBtn = e.target.closest('.btn-delete');
+            if (deleteBtn) {
+                e.stopPropagation();
+                if (confirm('플레이어를 삭제하시겠습니까?')) { deletePlayer(parseInt(deleteBtn.dataset.id)); }
+            } else if (tab) { switchPlayer(parseInt(tab.dataset.id)); }
+        });
+        resetAllBtn.addEventListener('click', () => {
+            if (confirm('모든 플레이어 데이터가 영구적으로 삭제됩니다. 정말 초기화하시겠습니까?')) {
+                localStorage.removeItem('7wondersPlayers');
+                players = [];
+                currentPlayerId = null;
+                playerTabsContainer.innerHTML = '';
+                calculatorBody.classList.remove('active');
+            }
+        });
+        calculatorBody.addEventListener('input', (e) => {
+            if (!currentPlayerId) return;
+            if(e.target.dataset.key === 'wonderStages') {
+                document.getElementById('wonder-stages-display').textContent = e.target.value;
+            }
+            saveCurrentPlayerData();
+            calculateAllPlayersScores();
+        });
+        
+        document.querySelectorAll('.custom-checkbox').forEach(el => {
+            el.innerHTML = '<svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>';
+        });
+
+        loadPlayersFromLocalStorage();
+    });
+    </script>
 </body>
 </html>
-

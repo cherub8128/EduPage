@@ -21,12 +21,6 @@
                 border: 1px solid #E5E7EB;
                 page-break-inside: avoid;
             }
-
-            .report-section > div {
-                break-inside: avoid; /* 최신 표준 속성 */
-                page-break-inside: avoid; /* 하위 호환성을 위한 속성 */
-            }
-
             input.savable, textarea.savable, select.savable, .no-print-content {
                 display: none;
             }
@@ -36,13 +30,10 @@
                 min-height: 1.5rem; /* Ensure empty fields still take up space */
                 white-space: pre-wrap; /* Preserve line breaks from textareas */
                 word-break: break-word;
-                page-break-inside: avoid;
-                break-inside: avoid;
             }
              #printable-screenshot-container img {
                 max-width: 100% !important;
                 display: block !important;
-                break-inside: avoid;
              }
         }
         body {

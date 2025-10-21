@@ -3,392 +3,477 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Orange3 데이터 분석 프로젝트 보고서</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
-    <!-- KaTeX: LaTeX 수식 렌더링 라이브러리 -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" xintegrity="sha384-n8MVd4RsNIU07vaPkpxUalGOz4A6PCgbNEOFJMYGfCKijWLLbsc1nlCATRTeDD5b" crossorigin="anonymous">
-    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" xintegrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzUOEleOLALmuqehneUG+vnGctmImQXLwlu" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" xintegrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous"></script>
+    <title>Orange3 데이터 분석 보고서</title>
+    
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    
+    <!-- Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/showdown/2.1.0/showdown.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+
     <style>
-        /* 라이트 모드 전용 색상 변수 */
-        :root {
-            --bg-primary: #f1f5f9;
-            --bg-secondary: #ffffff;
-            --bg-tertiary: #f8fafc;
-            --text-primary: #1e293b;
-            --text-secondary: #475569;
-            --border-primary: #e2e8f0;
-            --border-secondary: #cbd5e1;
-            --accent-color: #f97316; /* Orange3 테마 색상 */
-            --invalid-color: #ef4444;
-            --code-bg: #1e293b;
-            --code-text: #e2e8f0;
-        }
-        body {
-            font-family: 'Inter', 'Noto Sans KR', sans-serif;
-            -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
-            background-color: var(--bg-primary); color: var(--text-secondary);
-        }
-        .section-card { background-color: var(--bg-secondary); }
-        h1, h2, h3, h4, h5, h6 { color: var(--text-primary); }
-        .markdown-input, .text-input {
-            width: 100%; border: 1px solid var(--border-secondary); border-radius: 0.5rem; padding: 0.75rem 1rem;
-            font-family: 'Noto Sans KR', sans-serif; font-size: 1rem; line-height: 1.75;
-            background-color: var(--bg-secondary); color: var(--text-primary);
-            transition: border-color 0.2s, box-shadow 0.2s;
-        }
-        .markdown-input { min-height: 150px; resize: vertical; }
-        .markdown-input:focus, .text-input:focus { outline: none; border-color: var(--accent-color); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-color) 25%, transparent); }
-        .markdown-preview { margin-top: 1rem; padding: 1rem; background-color: var(--bg-tertiary); border-radius: 0.5rem; border: 1px solid var(--border-primary); min-height: 120px; }
-        .is-invalid { border-color: var(--invalid-color) !important; }
-        .is-invalid:focus { box-shadow: 0 0 0 2px color-mix(in srgb, var(--invalid-color) 25%, transparent) !important; }
-        .prose { --tw-prose-body: var(--text-primary); --tw-prose-headings: var(--text-primary); --tw-prose-links: var(--accent-color); --tw-prose-bold: var(--text-primary); --tw-prose-code: var(--text-primary); --tw-prose-bullets: var(--text-secondary); }
-        .file-upload-label { cursor: pointer; background-color: var(--bg-tertiary); color: var(--text-secondary); padding: 0.5rem 1rem; border-radius: 0.375rem; border: 1px solid var(--border-secondary); font-size: 0.875rem; font-weight: 500; transition: background-color 0.2s, border-color 0.2s; }
-        .file-upload-label:hover { background-color: #f1f5f9; border-color: var(--accent-color); }
+        @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
         
-        @media print {
-            html, body { -webkit-print-color-adjust: exact; print-color-adjust: exact; background-color: #ffffff !important; color: #000000 !important; }
-            .section-card { box-shadow: none !important; border: 1px solid #e2e8f0; page-break-inside: avoid; background-color: #ffffff !important; }
-            h1, h2, h3, h4, h5, h6 { color: #000000 !important; }
-            .print-hidden { display: none !important; }
-            .markdown-input, .image-upload-ui, .text-input { display: none !important; }
-            .markdown-preview { margin: 0 !important; padding: 0 !important; background: transparent !important; border: none !important; color: #000000 !important; }
-            .prose { --tw-prose-body: #000; --tw-prose-headings: #000; --tw-prose-links: #000; --tw-prose-bold: #000; --tw-prose-code: #000; --tw-prose-bullets: #000; }
-            .screenshot-container img { max-width: 100%; display: block !important; }
-            .input-as-text::before { content: attr(data-value); white-space: pre-wrap; }
-        }
-
-        /* Markdown List Style Fix */
-        .prose ul {
-            list-style-type: disc;
-            padding-left: 1.5em;
-        }
-        .prose ol {
-            list-style-type: decimal;
-            padding-left: 1.5em;
-        }
-
+        body { font-family: 'Pretendard', sans-serif; background-color: #f8fafc; }
+        .editable-container .prose { cursor: text; min-height: 80px; padding: 0.75rem; border-radius: 0.375rem; border: 1px solid transparent; transition: background-color 0.2s; }
+        .editable-container .prose:hover { background-color: #f8fafc; border-color: #e2e8f0; }
         
+        /* Orange Theme */
+        .theme-orange { color: #f97316; }
+        .bg-orange-600 { background-color: #ea580c; }
+        .hover\:bg-orange-700:hover { background-color: #c2410c; }
+        .border-orange-500 { border-color: #f97316; }
+        .focus\:ring-orange-200:focus { --tw-ring-color: #fed7aa; }
+        .ring-orange-500 { --tw-ring-color: #f97316; }
+        .border-orange-500 { border-color: #f97316; }
     </style>
 </head>
-<body class="bg-slate-100 text-slate-700">
+<body class="p-4 sm:p-8">
 
-    <main class="container mx-auto max-w-4xl p-4 sm:p-8">
-        <header class="relative text-center mb-12 print-hidden">
-            <h1 class="text-4xl sm:text-5xl font-bold tracking-tight">🍊 Orange3 데이터 분석 프로젝트 보고서</h1>
-            <p class="mt-4 text-lg">아래의 각 항목에 내용을 직접 입력하여 보고서를 완성하세요. (안내 문구는 입력 시 사라집니다)</p>
+    <main class="max-w-4xl mx-auto">
+        <header class="text-center mb-10 no-print">
+            <div class="flex justify-center items-center gap-3 mb-4">
+                 <div class="w-12 h-12 bg-orange-600 rounded-lg flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-share-2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" x2="15.42" y1="13.51" y2="17.49"/><line x1="15.41" x2="8.59" y1="6.51" y2="10.49"/></svg>
+                 </div>
+                <h1 class="text-4xl font-extrabold text-slate-800">Orange3 데이터 분석 보고서</h1>
+            </div>
+            <p class="text-slate-500">각 항목에 내용을 입력하여 보고서를 완성하세요.</p>
         </header>
 
-        <section class="bg-white p-6 sm:p-8 rounded-xl shadow-lg mb-8 section-card">
-            <div class="space-y-6">
-                <div><label for="project-title" class="text-xl font-semibold">🚀 프로젝트 제목</label><input type="text" id="project-title" placeholder="예: 붓꽃(Iris) 품종 분류 모델 개발" class="text-input mt-2 editable-field"></div>
-                <div><label for="student-id" class="text-xl font-semibold">🔢 학번</label><input type="text" id="student-id" placeholder="예: 30101" class="text-input mt-2 editable-field"></div>
-                <div><label for="student-name" class="text-xl font-semibold">🆎 이름</label><input type="text" id="student-name" placeholder="예: 홍길동" class="text-input mt-2 editable-field"></div>
-            </div>
-        </section>
-
-        <section class="bg-white p-6 sm:p-8 rounded-xl shadow-lg mb-8 section-card">
-            <h2 class="text-3xl font-bold border-b-2 border-orange-500 pb-3 mb-6">제작 동기</h2>
-            <div class="markdown-editor-container"><textarea class="markdown-input editable-field" oninput="updatePreview(this)" id="motivation" placeholder="이 프로젝트를 만들게 된 이유를 자신의 진로나 관심사, 보강하고 싶은 교과목과 관련지어 구체적으로 작성해주세요."></textarea><div class="markdown-preview prose max-w-none"></div></div>
-        </section>
-
-        <section class="bg-white p-6 sm:p-8 rounded-xl shadow-lg mb-8 section-card">
-            <h2 class="text-3xl font-bold border-b-2 border-orange-500 pb-3 mb-6">만들면서 어려웠던 점과 극복 방식</h2>
-            <h3 class="text-xl font-semibold mt-4">😥 만들면서 어려웠던 점</h3>
-            <div class="markdown-editor-container"><textarea class="markdown-input editable-field" oninput="updatePreview(this)" id="difficulty" placeholder="데이터 전처리 과정, 적절한 위젯 선택, 모델 성능 해석 등 프로젝트를 진행하며 겪었던 기술적, 개념적 어려움을 구체적으로 서술하세요."></textarea><div class="markdown-preview prose max-w-none"></div></div>
-            <h3 class="text-xl font-semibold mt-8">💪 극복한 방법</h3>
-            <div class="markdown-editor-container"><textarea class="markdown-input editable-field" oninput="updatePreview(this)" id="solution" placeholder="어려움을 해결하기 위해 참고한 자료(공식 문서, 블로그 등), 시도했던 방법, 그리고 그 과정에서 무엇을 배웠는지 상세히 작성해주세요."></textarea><div class="markdown-preview prose max-w-none"></div></div>
-        </section>
-
-        <section class="bg-white p-6 sm:p-8 rounded-xl shadow-lg mb-8 section-card">
-            <h2 class="text-3xl font-bold border-b-2 border-orange-500 pb-3 mb-6">프로젝트 사용 개념</h2>
-            <h3 class="text-xl font-semibold mt-4">📊 사용 데이터 설명</h3>
-            <div class="markdown-editor-container"><textarea class="markdown-input editable-field" oninput="updatePreview(this)" id="data-desc" placeholder="사용한 데이터셋의 출처와 주제를 설명하고, 전체 데이터 수, 훈련/테스트 데이터 분할 비율, 사용한 데이터 훈련 방식(예: Cross Validation k=5) 등을 기입하세요."></textarea><div class="markdown-preview prose max-w-none"></div></div>
+        <div id="report-content" class="bg-white rounded-lg shadow-md">
+            <section class="report-section p-8 break-inside-avoid">
+                <div class="space-y-4">
+                    <div>
+                        <label for="project-title" class="text-lg font-semibold text-slate-700">🚀 프로젝트 제목</label>
+                        <input type="text" id="project-title" placeholder="예: 붓꽃(Iris) 품종 분류 모델 개발" class="savable w-full border border-slate-300 rounded-md p-2 mt-2 focus:outline-none focus:ring-2 focus:ring-orange-200">
+                    </div>
+                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        <div>
+                            <label for="student-id" class="text-lg font-semibold text-slate-700">🔢 학번</label>
+                            <input type="text" id="student-id" placeholder="예: 30101" class="savable w-full border border-slate-300 rounded-md p-2 mt-2 focus:outline-none focus:ring-2 focus:ring-orange-200">
+                        </div>
+                        <div>
+                            <label for="student-name" class="text-lg font-semibold text-slate-700">🆎 이름</label>
+                            <input type="text" id="student-name" placeholder="예: 홍길동" class="savable w-full border border-slate-300 rounded-md p-2 mt-2 focus:outline-none focus:ring-2 focus:ring-orange-200">
+                        </div>
+                    </div>
+                </div>
+            </section>
             
-            <h4 class="text-lg font-semibold mt-6 mb-2">수치 데이터의 경우 (변수 설명)</h4>
-            <div class="markdown-editor-container"><textarea class="markdown-input editable-field" oninput="updatePreview(this)" id="data-numeric" placeholder="Target, Feature, Meta, Skip으로 설정한 각 변수들의 이름, 종류(수치형/범주형), 그리고 데이터 내에서의 의미를 설명합니다.&#10;예:&#10;- mpg(Target): 수치형, 자동차 연비 (miles per gallon)&#10;- cylinders(Feature): 범주형, 엔진의 실린더 개수"></textarea><div class="markdown-preview prose max-w-none"></div></div>
-
-            <h4 class="text-lg font-semibold mt-6 mb-2">사진 분류 데이터 경우 (카테고리 예시)</h4>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
-                <div>
-                    <input type="text" id="category1-name" class="text-input editable-field mb-2" placeholder="카테고리 1 이름 (예: 강아지)">
-                    <div class="screenshot-container"><div class="bg-slate-100 border-2 border-dashed border-slate-300 aspect-video rounded-lg flex items-center justify-center font-medium"><img id="screenshot-preview-1" alt="카테고리 1 이미지" class="w-full h-full object-contain hidden rounded-lg"><span id="screenshot-placeholder-1" class="text-slate-500">이미지 첨부</span></div><div class="mt-2 image-upload-ui text-center"><input type="file" accept="image/*" onchange="previewImage(event, 1)" class="hidden" id="screenshot-input-1"><label for="screenshot-input-1" class="file-upload-label">이미지 선택</label></div></div>
+            <section class="report-section p-8 break-inside-avoid">
+                <h2 class="text-2xl font-bold text-slate-800 border-b-2 border-orange-500 pb-3 mb-6">제작 동기</h2>
+                <div class="editable-container mt-2">
+                    <textarea class="savable markdown-input w-full border-slate-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 hidden" id="motivation" placeholder="이 프로젝트를 만들게 된 이유를 자신의 진로나 관심사, 보강하고 싶은 교과목과 관련지어 구체적으로 작성해주세요."></textarea>
+                    <div class="markdown-preview prose max-w-none"></div>
                 </div>
-                <div>
-                    <input type="text" id="category2-name" class="text-input editable-field mb-2" placeholder="카테고리 2 이름 (예: 고양이)">
-                    <div class="screenshot-container"><div class="bg-slate-100 border-2 border-dashed border-slate-300 aspect-video rounded-lg flex items-center justify-center font-medium"><img id="screenshot-preview-2" alt="카테고리 2 이미지" class="w-full h-full object-contain hidden rounded-lg"><span id="screenshot-placeholder-2" class="text-slate-500">이미지 첨부</span></div><div class="mt-2 image-upload-ui text-center"><input type="file" accept="image/*" onchange="previewImage(event, 2)" class="hidden" id="screenshot-input-2"><label for="screenshot-input-2" class="file-upload-label">이미지 선택</label></div></div>
+            </section>
+
+            <section class="report-section p-8 break-inside-avoid">
+                <h2 class="text-2xl font-bold text-slate-800 border-b-2 border-orange-500 pb-3 mb-6">만들면서 어려웠던 점과 극복 방식</h2>
+                <h3 class="text-lg font-semibold mt-4 text-slate-700">😥 만들면서 어려웠던 점</h3>
+                <div class="editable-container mt-2">
+                    <textarea class="savable markdown-input w-full border-slate-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 hidden" id="difficulty" placeholder="데이터 전처리 과정, 적절한 위젯 선택, 모델 성능 해석 등 프로젝트를 진행하며 겪었던 기술적, 개념적 어려움을 구체적으로 서술하세요."></textarea>
+                    <div class="markdown-preview prose max-w-none"></div>
                 </div>
-            </div>
-
-            <h3 class="text-xl font-semibold mt-8">⚙️ Orange3 워크플로우</h3>
-            <p class="text-slate-600 mb-4">Orange3에서 구성한 전체 워크플로우 화면을 캡처하여 업로드해주세요.</p>
-            <div class="screenshot-container">
-                <div class="bg-slate-100 border-2 border-dashed border-slate-300 aspect-[16/9] rounded-lg flex items-center justify-center font-medium">
-                    <img id="screenshot-preview-3" alt="워크플로우 이미지" class="w-full h-full object-contain hidden rounded-lg">
-                    <span id="screenshot-placeholder-3" class="text-slate-500">워크플로우 스크린샷 첨부</span>
+                <h3 class="text-lg font-semibold mt-6 text-slate-700">💪 극복한 방법</h3>
+                 <div class="editable-container mt-2">
+                    <textarea class="savable markdown-input w-full border-slate-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 hidden" id="solution" placeholder="어려움을 해결하기 위해 참고한 자료(공식 문서, 블로그 등), 시도했던 방법, 그리고 그 과정에서 무엇을 배웠는지 상세히 작성해주세요."></textarea>
+                    <div class="markdown-preview prose max-w-none"></div>
                 </div>
-                <div class="mt-2 image-upload-ui text-center">
-                    <input type="file" accept="image/*" onchange="previewImage(event, 3)" class="hidden" id="screenshot-input-3">
-                    <label for="screenshot-input-3" class="file-upload-label">이미지 선택</label>
+            </section>
+
+            <section class="report-section p-8 break-inside-avoid">
+                <h2 class="text-2xl font-bold text-slate-800 border-b-2 border-orange-500 pb-3 mb-6">프로젝트 사용 개념</h2>
+                <h3 class="text-lg font-semibold mt-4 text-slate-700">📊 사용 데이터 설명</h3>
+                 <div class="editable-container mt-2">
+                    <textarea class="savable markdown-input w-full border-slate-300 rounded-md shadow-sm hidden" id="data-desc" placeholder="사용한 데이터셋의 출처와 주제를 설명하고, 전체 데이터 수, 훈련/테스트 데이터 분할 비율, 사용한 데이터 훈련 방식(예: Cross Validation k=5) 등을 기입하세요."></textarea>
+                    <div class="markdown-preview prose max-w-none"></div>
                 </div>
-            </div>
-            <div class="markdown-editor-container mt-4">
-                <textarea class="markdown-input editable-field" oninput="updatePreview(this)" id="workflow-desc" placeholder="업로드한 워크플로우에 대해 간단히 설명해주세요. (데이터의 흐름, 사용된 주요 위젯의 역할 등)"></textarea>
-                <div class="markdown-preview prose max-w-none"></div>
-            </div>
-        </section>
-
-        <section class="bg-white p-6 sm:p-8 rounded-xl shadow-lg mb-8 section-card">
-            <h2 class="text-3xl font-bold border-b-2 border-orange-500 pb-3 mb-6">학습 결과 분석 (Test & Score / 혼동 행렬)</h2>
-            <p class="text-slate-600 mb-4">Test & Score 또는 Confusion Matrix 위젯의 결과 화면을 캡처하여 업로드해주세요.</p>
-            <div class="screenshot-container">
-                <div class="bg-slate-100 border-2 border-dashed border-slate-300 aspect-[16/9] rounded-lg flex items-center justify-center font-medium">
-                    <img id="screenshot-preview-4" alt="학습 결과 이미지" class="w-full h-full object-contain hidden rounded-lg">
-                    <span id="screenshot-placeholder-4" class="text-slate-500">학습 결과 스크린샷 첨부</span>
+                
+                <h4 class="text-md font-semibold mt-6 mb-2 text-slate-600">수치 데이터의 경우 (변수 설명)</h4>
+                <div class="editable-container mt-2">
+                    <textarea class="savable markdown-input w-full border-slate-300 rounded-md shadow-sm hidden" id="data-numeric" placeholder="Target, Feature, Meta, Skip으로 설정한 각 변수들의 이름, 종류(수치형/범주형), 그리고 데이터 내에서의 의미를 설명합니다."></textarea>
+                    <div class="markdown-preview prose max-w-none"></div>
                 </div>
-                <div class="mt-2 image-upload-ui text-center">
-                    <input type="file" accept="image/*" onchange="previewImage(event, 4)" class="hidden" id="screenshot-input-4">
-                    <label for="screenshot-input-4" class="file-upload-label">이미지 선택</label>
+
+                <h4 class="text-md font-semibold mt-6 mb-2 text-slate-600">사진 분류 데이터 경우 (카테고리 예시)</h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+                    <div>
+                        <input type="text" id="category1-name" class="savable w-full border border-slate-300 rounded-md p-2 mb-2 focus:outline-none focus:ring-2 focus:ring-orange-200" placeholder="카테고리 1 이름 (예: 강아지)">
+                        <div class="screenshot-wrapper"><label for="screenshot-input-1" class="flex flex-col items-center justify-center w-full min-h-48 border-2 border-slate-300 border-dashed rounded-lg cursor-pointer bg-slate-50 hover:bg-slate-100"><img id="screenshot-preview-1" class="hidden w-full h-full object-contain rounded-lg"><div id="screenshot-placeholder-1" class="text-center text-slate-500 p-4"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="mx-auto mb-2 text-slate-400"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>이미지 첨부</div></label><input type="file" accept="image/*" class="hidden" id="screenshot-input-1"></div>
+                    </div>
+                    <div>
+                        <input type="text" id="category2-name" class="savable w-full border border-slate-300 rounded-md p-2 mb-2 focus:outline-none focus:ring-2 focus:ring-orange-200" placeholder="카테고리 2 이름 (예: 고양이)">
+                        <div class="screenshot-wrapper"><label for="screenshot-input-2" class="flex flex-col items-center justify-center w-full min-h-48 border-2 border-slate-300 border-dashed rounded-lg cursor-pointer bg-slate-50 hover:bg-slate-100"><img id="screenshot-preview-2" class="hidden w-full h-full object-contain rounded-lg"><div id="screenshot-placeholder-2" class="text-center text-slate-500 p-4"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="mx-auto mb-2 text-slate-400"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>이미지 첨부</div></label><input type="file" accept="image/*" class="hidden" id="screenshot-input-2"></div>
+                    </div>
                 </div>
-            </div>
-            <h3 class="text-xl font-semibold mt-8">결과 해석</h3>
-            <div class="markdown-editor-container mt-4">
-                <textarea class="markdown-input editable-field" oninput="updatePreview(this)" id="evaluation-interpretation" placeholder="업로드한 학습 결과를 바탕으로 모델의 성능을 구체적인 수치와 함께 해석해주세요. 어떤 모델이 가장 우수한 성능을 보였으며, 그 이유는 무엇이라고 생각하는지 서술합니다."></textarea>
-                <div class="markdown-preview prose max-w-none"></div>
-            </div>
-        </section>
 
+                <h3 class="text-lg font-semibold mt-6 text-slate-700">⚙️ Orange3 워크플로우</h3>
+                <div class="mt-4 screenshot-wrapper">
+                    <label for="screenshot-input-3" class="flex flex-col items-center justify-center w-full min-h-48 border-2 border-slate-300 border-dashed rounded-lg cursor-pointer bg-slate-50 hover:bg-slate-100">
+                        <img id="screenshot-preview-3" class="hidden w-full h-full object-contain rounded-lg">
+                        <div id="screenshot-placeholder-3" class="text-center text-slate-500 p-4">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="mx-auto mb-2 text-slate-400"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                            워크플로우 스크린샷 첨부
+                        </div>
+                    </label>
+                    <input type="file" accept="image/*" class="hidden" id="screenshot-input-3">
+                </div>
+                <div class="editable-container mt-2">
+                    <textarea class="savable markdown-input w-full border-slate-300 rounded-md shadow-sm hidden" id="workflow-desc" placeholder="업로드한 워크플로우에 대해 간단히 설명해주세요. (데이터의 흐름, 사용된 주요 위젯의 역할 등)"></textarea>
+                    <div class="markdown-preview prose max-w-none"></div>
+                </div>
+            </section>
+            
+            <section class="report-section p-8 break-inside-avoid">
+                 <h2 class="text-2xl font-bold text-slate-800 border-b-2 border-orange-500 pb-3 mb-6">학습 결과 분석</h2>
+                 <h3 class="text-lg font-semibold mt-4 text-slate-700">📈 Test & Score / 혼동 행렬</h3>
+                 <div class="mt-4 screenshot-wrapper">
+                    <label for="screenshot-input-4" class="flex flex-col items-center justify-center w-full min-h-48 border-2 border-slate-300 border-dashed rounded-lg cursor-pointer bg-slate-50 hover:bg-slate-100">
+                        <img id="screenshot-preview-4" class="hidden w-full h-full object-contain rounded-lg">
+                        <div id="screenshot-placeholder-4" class="text-center text-slate-500 p-4">
+                           <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="mx-auto mb-2 text-slate-400"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                            학습 결과 스크린샷 첨부
+                        </div>
+                    </label>
+                    <input type="file" accept="image/*" class="hidden" id="screenshot-input-4">
+                </div>
+                 <h3 class="text-lg font-semibold mt-6 text-slate-700">결과 해석</h3>
+                 <div class="editable-container mt-2">
+                    <textarea class="savable markdown-input w-full border-slate-300 rounded-md shadow-sm hidden" id="evaluation-interpretation" placeholder="업로드한 학습 결과를 바탕으로 모델의 성능을 구체적인 수치와 함께 해석해주세요. 어떤 모델이 가장 우수한 성능을 보였으며, 그 이유는 무엇이라고 생각하는지 서술합니다."></textarea>
+                    <div class="markdown-preview prose max-w-none"></div>
+                </div>
+            </section>
+            
+            <section class="report-section p-8 break-inside-avoid">
+                <h2 class="text-2xl font-bold text-slate-800 border-b-2 border-orange-500 pb-3 mb-6">프로젝트 관련 교과 지식 탐구</h2>
+                <h3 class="text-lg font-semibold mt-4 text-slate-700">🔬 사용된 데이터 관련 개념</h3>
+                <div class="editable-container mt-2">
+                    <textarea class="savable markdown-input w-full border-slate-300 rounded-md shadow-sm hidden" id="knowledge-data" placeholder="데이터가 다루는 주제와 관련된 교과(수학, 과학, 사회 등) 지식을 심화 탐구하여 작성합니다. 예를 들어, '타이타닉 생존자 예측' 데이터라면 당시의 사회 계급 구조, 선박의 구조 등에 대해 탐구할 수 있습니다."></textarea>
+                    <div class="markdown-preview prose max-w-none"></div>
+                </div>
+                <h3 class="text-lg font-semibold mt-8 text-slate-700">⚙️ 사용된 모델 관련 개념</h3>
+                <div class="editable-container mt-2">
+                    <textarea class="savable markdown-input w-full border-slate-300 rounded-md shadow-sm hidden" id="knowledge-model" placeholder="사용한 머신러닝 모델(예: 로지스틱 회귀, SVM, 결정 트리)의 수학적, 통계적 원리를 탐구하여 작성합니다. 모델이 어떤 원리로 데이터를 학습하고 예측하는지 설명해주세요. 수식을 포함하여 설명하면 더욱 좋습니다. 예: $y = Wx + b$"></textarea>
+                    <div class="markdown-preview prose max-w-none"></div>
+                </div>
+            </section>
 
-        <section class="bg-white p-6 sm:p-8 rounded-xl shadow-lg mb-8 section-card">
-            <h2 class="text-3xl font-bold border-b-2 border-orange-500 pb-3 mb-6">프로젝트 관련 교과 지식 탐구</h2>
-            <h3 class="text-xl font-semibold mt-4">🔬 사용된 데이터 관련 개념</h3>
-            <div class="markdown-editor-container"><textarea class="markdown-input editable-field" oninput="updatePreview(this)" id="knowledge-data" placeholder="데이터가 다루는 주제와 관련된 교과(수학, 과학, 사회 등) 지식을 심화 탐구하여 작성합니다. 예를 들어, '타이타닉 생존자 예측' 데이터라면 당시의 사회 계급 구조, 선박의 구조 등에 대해 탐구할 수 있습니다."></textarea><div class="markdown-preview prose max-w-none"></div></div>
-            <h3 class="text-xl font-semibold mt-8">⚙️ 사용된 모델 관련 개념</h3>
-            <div class="markdown-editor-container"><textarea class="markdown-input editable-field" oninput="updatePreview(this)" id="knowledge-model" placeholder="사용한 머신러닝 모델(예: 로지스틱 회귀, SVM, 결정 트리)의 수학적, 통계적 원리를 탐구하여 작성합니다. 모델이 어떤 원리로 데이터를 학습하고 예측하는지 설명해주세요. 수식을 포함하여 설명하면 더욱 좋습니다. 예: $y = Wx + b$"></textarea><div class="markdown-preview prose max-w-none"></div></div>
-        </section>
+            <section class="report-section p-8 break-inside-avoid">
+                <h2 class="text-2xl font-bold text-slate-800 border-b-2 border-orange-500 pb-3 mb-6">느낀점</h2>
+                <div class="editable-container mt-2">
+                    <textarea class="savable markdown-input w-full border-slate-300 rounded-md shadow-sm hidden" id="reflection" placeholder="프로젝트 전반을 통해 새롭게 알게 된 점, 데이터 분석의 중요성, 진로에 대한 생각 변화 등 자신의 성장과 변화를 중심으로 자유롭게 작성하세요."></textarea>
+                    <div class="markdown-preview prose max-w-none"></div>
+                </div>
+            </section>
 
-        <section class="bg-white p-6 sm:p-8 rounded-xl shadow-lg mb-8 section-card">
-            <h2 class="text-3xl font-bold border-b-2 border-orange-500 pb-3 mb-6">느낀점</h2>
-            <div class="markdown-editor-container"><textarea class="markdown-input editable-field" oninput="updatePreview(this)" id="reflection" placeholder="프로젝트 전반을 통해 새롭게 알게 된 점, 데이터 분석의 중요성, 진로에 대한 생각 변화 등 자신의 성장과 변화를 중심으로 자유롭게 작성하세요."></textarea><div class="markdown-preview prose max-w-none"></div></div>
-        </section>
+            <section class="report-section p-8 break-inside-avoid">
+                <h2 class="text-2xl font-bold text-slate-800 border-b-2 border-orange-500 pb-3 mb-6">향후 계획</h2>
+                <div class="editable-container mt-2">
+                    <textarea class="savable markdown-input w-full border-slate-300 rounded-md shadow-sm hidden" id="future-plan" placeholder="이번 프로젝트를 통해 생긴 추가적인 질문이나, 앞으로 더 깊이 연구해보고 싶은 주제에 대해 간단히 작성해주세요. (예: 다른 변수를 추가하여 모델 성능 개선, 더 복잡한 모델 사용 등)"></textarea>
+                    <div class="markdown-preview prose max-w-none"></div>
+                </div>
+            </section>
 
-        <section class="bg-white p-6 sm:p-8 rounded-xl shadow-lg mb-8 section-card">
-            <h2 class="text-3xl font-bold border-b-2 border-orange-500 pb-3 mb-6">향후 계획</h2>
-            <div class="markdown-editor-container"><textarea class="markdown-input editable-field" oninput="updatePreview(this)" id="future-plan" placeholder="이번 프로젝트를 통해 생긴 추가적인 질문이나, 앞으로 더 깊이 연구해보고 싶은 주제에 대해 간단히 작성해주세요. (예: 다른 변수를 추가하여 모델 성능 개선, 더 복잡한 모델 사용 등)"></textarea><div class="markdown-preview prose max-w-none"></div></div>
-        </section>
-
-        <section class="bg-white p-6 sm:p-8 rounded-xl shadow-lg mb-8 section-card">
-            <h2 class="text-3xl font-bold border-b-2 border-orange-500 pb-3 mb-6">참고 문헌</h2>
-            <div class="markdown-editor-container"><textarea class="markdown-input editable-field" oninput="updatePreview(this)" id="references" placeholder="APA 스타일(7판)에 맞춰 참고한 모든 자료의 출처를 기입하세요.&#10;&#10;[인터넷 기사/웹페이지]&#10;한국데이터분석정보센터. (2023, 3월 5일). 데이터 분석 최신 동향. https://www.data-analysis.kr/latest-trends&#10;&#10;[국내 학술 논문]&#10;김영수. (2021). 빅데이터 분석 기법의 비교 연구. 정보과학논문, 29(2), 101–115. https://doi.org/10.1234/abcd.efgh.ij&#10;&#10;[국내 단행본]&#10;최성민. (2019). 데이터 분석 실전 가이드. 미래앤.&#10;&#10;[해외 학술 논문]&#10;Smith, J., & Johnson, R. (2020). A comparative study on data analysis techniques. Journal of Data Science, 15(4), 233–250. https://doi.org/10.1016/j.jds.2020.01.005&#10;&#10;[해외 단행본]&#10;Brown, L. M. (2018). Introduction to data analysis (2nd ed.). Springer."></textarea><div class="markdown-preview prose max-w-none"></div></div>
-        </section>
-
-        <footer class="text-center mt-12 print-hidden">
+            <section class="report-section p-8 break-inside-avoid">
+                <h2 class="text-2xl font-bold text-slate-800 border-b-2 border-orange-500 pb-3 mb-6">참고 문헌</h2>
+                <div class="editable-container mt-2">
+                    <textarea class="savable markdown-input w-full border-slate-300 rounded-md shadow-sm hidden" id="references" placeholder="APA 스타일(7판)에 맞춰 참고한 모든 자료의 출처를 기입하세요."></textarea>
+                    <div class="markdown-preview prose max-w-none"></div>
+                </div>
+            </section>
+        </div>
+        
+        <footer class="text-center mt-8 py-6 no-print">
             <div id="validation-message" class="text-red-600 font-semibold mb-4 h-6"></div>
-            <button onclick="saveAsPdf()" class="bg-orange-600 text-white font-bold py-3 px-8 rounded-lg text-lg hover:bg-orange-700 transition-colors shadow-lg">보고서 PDF로 저장</button>
+            <button id="export-pdf" class="bg-orange-600 hover:bg-orange-700 text-white font-bold py-3 px-6 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg flex items-center gap-2 mx-auto">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                보고서 PDF로 저장
+            </button>
         </footer>
     </main>
 
-    <!-- Autosave Status Indicator -->
-    <div id="autosave-status" class="print-hidden fixed bottom-6 right-6 flex items-center bg-slate-800 text-white py-2 px-4 rounded-lg shadow-lg opacity-0 transition-opacity duration-500 z-50">
-        <svg id="autosave-icon-saving" class="animate-spin h-5 w-5 mr-3 hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-        </svg>
-        <svg id="autosave-icon-saved" class="h-5 w-5 mr-3 hidden" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-        </svg>
+    <div id="autosave-status" class="no-print fixed bottom-6 right-6 flex items-center bg-slate-800 text-white py-2 px-4 rounded-lg shadow-lg opacity-0 transition-opacity duration-500 z-50">
+        <svg id="autosave-icon-saving" class="animate-spin h-5 w-5 mr-3 hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+        <svg id="autosave-icon-saved" class="h-5 w-5 mr-3 hidden text-green-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>
         <span id="autosave-text"></span>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/showdown/2.1.0/showdown.min.js"></script>
+    <div id="loader-overlay" class="fixed inset-0 bg-black bg-opacity-60 flex-col items-center justify-center hidden z-50">
+        <div class="bg-white p-8 rounded-lg shadow-xl text-center">
+            <svg class="animate-spin h-10 w-10 theme-orange mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <p class="text-lg font-semibold text-slate-700">PDF 생성 중...</p>
+            <p class="text-sm text-slate-500 mt-1">보고서 내용을 변환하고 있습니다. 잠시만 기다려주세요.</p>
+        </div>
+    </div>
+    
     <script>
-        // --- GLOBAL VARS ---
-        const converter = new showdown.Converter({ simpleLineBreaks: true, tables: true, strikethrough: true });
-        let saveTimer = null;
-        let statusTimer = null;
-
-        // --- AUTOSAVE STATUS UI ---
-        function showSaveStatus(state) {
-            const statusEl = document.getElementById('autosave-status');
-            if (!statusEl) return;
-            const textEl = document.getElementById('autosave-text');
-            const iconSaving = document.getElementById('autosave-icon-saving');
-            const iconSaved = document.getElementById('autosave-icon-saved');
-
-            clearTimeout(statusTimer);
-            statusEl.classList.remove('opacity-0');
-
-            if (state === 'saving') {
-                textEl.textContent = '저장 중...';
-                iconSaving.classList.remove('hidden');
-                iconSaved.classList.add('hidden');
-            } else if (state === 'saved') {
-                textEl.textContent = '모든 변경사항이 저장되었습니다.';
-                iconSaving.classList.add('hidden');
-                iconSaved.classList.remove('hidden');
-                statusTimer = setTimeout(() => {
-                    statusEl.classList.add('opacity-0');
-                }, 2000); // Hide after 2 seconds
-            }
-        }
-
-        // --- CORE FUNCTIONS ---
-        function updatePreview(textareaElement) {
-            // The saveContent function is now called by the input event listener directly.
-            const container = textareaElement.parentElement;
-            const preview = container.querySelector('.markdown-preview');
-            const markdownText = textareaElement.value;
-            const html = converter.makeHtml(markdownText);
-            preview.innerHTML = html;
-            if (window.renderMathInElement) {
-                renderMathInElement(preview, { delimiters: [ {left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false} ] });
-            }
-        }
-
-        function previewImage(event, id) {
-            const preview = document.getElementById(`screenshot-preview-${id}`);
-            const placeholder = document.getElementById(`screenshot-placeholder-${id}`);
-            const file = event.target.files[0];
-            if (file) {
-                showSaveStatus('saving');
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const base64Image = e.target.result;
-                    preview.src = base64Image;
-                    preview.classList.remove('hidden');
-                    placeholder.classList.add('hidden');
-                    localStorage.setItem(`screenshot-preview-${id}`, base64Image);
-                    showSaveStatus('saved');
-                }
-                reader.readAsDataURL(file);
-            }
-        }
-        
-        // --- LOCAL STORAGE (AUTOSAVE) ---
-        function saveContent(element) {
-            clearTimeout(saveTimer);
-            showSaveStatus('saving');
+        // Self-contained script for this specific report to ensure stability.
+        document.addEventListener('DOMContentLoaded', () => {
             
-            saveTimer = setTimeout(() => {
-                if(element.id) {
-                    localStorage.setItem(element.id, element.value);
-                }
-                showSaveStatus('saved');
-            }, 1000); // Debounce time
-        }
+            const config = {
+                storageKey: 'orangeProjectData',
+                savableSelector: '.savable',
+                screenshotCount: 4,
+                hasCodeBlock: false
+            };
+            
+            const { storageKey, savableSelector, screenshotCount, hasCodeBlock } = config;
+            const converter = new showdown.Converter({ simpleLineBreaks: true, tables: true, strikethrough: true, ghCompatibleHeaderId: true, emoji: true });
+            const exportBtn = document.getElementById('export-pdf');
+            const autosaveStatusEl = document.getElementById('autosave-status');
+            let saveTimer, statusTimer;
 
-        function loadContent() {
-            document.querySelectorAll('.editable-field').forEach(field => {
-                const savedValue = localStorage.getItem(field.id);
-                if (savedValue) {
-                    field.value = savedValue;
-                }
-            });
-            for (let i = 1; i <= 4; i++) {
-                const savedImage = localStorage.getItem(`screenshot-preview-${i}`);
-                if (savedImage) {
-                    const preview = document.getElementById(`screenshot-preview-${i}`);
-                    const placeholder = document.getElementById(`screenshot-placeholder-${i}`);
-                    preview.src = savedImage;
-                    preview.classList.remove('hidden');
-                    placeholder.classList.add('hidden');
+            function showSaveStatus(state) {
+                if (!autosaveStatusEl) return;
+                const textEl = autosaveStatusEl.querySelector('#autosave-text');
+                const iconSaving = autosaveStatusEl.querySelector('#autosave-icon-saving');
+                const iconSaved = autosaveStatusEl.querySelector('#autosave-icon-saved');
+                
+                clearTimeout(statusTimer);
+                autosaveStatusEl.classList.remove('opacity-0');
+
+                if (state === 'saving') {
+                    if(textEl) textEl.textContent = '저장 중...';
+                    if(iconSaving) iconSaving.classList.remove('hidden');
+                    if(iconSaved) iconSaved.classList.add('hidden');
+                } else if (state === 'saved') {
+                    if(textEl) textEl.textContent = '모든 변경사항이 저장되었습니다.';
+                    if(iconSaving) iconSaving.classList.add('hidden');
+                    if(iconSaved) iconSaved.classList.remove('hidden');
+                    statusTimer = setTimeout(() => autosaveStatusEl.classList.add('opacity-0'), 2000);
                 }
             }
-        }
 
-        // --- VALIDATION & SAVE ---
-        function validateForm() {
-            let isValid = true;
-            const validationMessage = document.getElementById('validation-message');
-            
-            document.querySelectorAll('.editable-field').forEach(field => {
-                field.classList.remove('is-invalid');
-                if (field.value.trim() === '') {
-                    if (field.id.startsWith('category') && field.id.endsWith('-name')) {
-                        const imgId = field.id.split('-')[1];
-                        const imgPreview = document.getElementById(`screenshot-preview-${imgId}`);
-                        if (imgPreview && !imgPreview.classList.contains('hidden')) {
-                             field.classList.add('is-invalid');
-                             isValid = false;
-                        }
-                    } else {
-                        field.classList.add('is-invalid');
-                        isValid = false;
+            function updateMarkdownPreview(textareaElement) {
+                if (!textareaElement) return;
+                const container = textareaElement.closest('.editable-container');
+                if (!container) return;
+                const preview = container.querySelector('.markdown-preview');
+                if (preview) {
+                    const placeholder = `<p class="text-slate-400">${textareaElement.placeholder.split('\n')[0]}...</p>`;
+                    const html = textareaElement.value ? converter.makeHtml(textareaElement.value) : placeholder;
+                    preview.innerHTML = html;
+                    if(window.renderMathInElement) {
+                        renderMathInElement(preview, { delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}] });
                     }
                 }
-            });
-
-            for (let i = 3; i <= 4; i++) {
-                const imgPreview = document.getElementById(`screenshot-preview-${i}`);
-                const container = imgPreview.parentElement;
-                container.classList.remove('is-invalid');
-
-                if (imgPreview.classList.contains('hidden')) {
-                    container.classList.add('is-invalid');
-                    isValid = false;
-                }
             }
             
-            validationMessage.textContent = isValid ? '' : '모든 필수 항목을 작성하고 스크린샷을 첨부해주세요.';
-            if (!isValid) {
-                 window.scrollTo({ top: 0, behavior: 'smooth' });
+            function autoResizeTextarea(textarea) {
+                textarea.style.height = 'auto';
+                textarea.style.height = (textarea.scrollHeight) + 'px';
             }
-            return isValid;
-        }
-        
-        function updatePrintableInputs() {
-             document.querySelectorAll('.text-input.editable-field').forEach(input => {
-                input.setAttribute('data-value', input.value);
-            });
-        }
 
-        function saveAsPdf() {
-            updatePrintableInputs();
-            if (validateForm()) {
-                const studentId = document.getElementById('student-id').value.trim() || '학번';
-                const studentName = document.getElementById('student-name').value.trim() || '이름';
-                const originalTitle = document.title;
-                document.title = `Orange3_${studentId}_${studentName}`;
-                window.print();
-                document.title = originalTitle;
+            function saveContent() {
+                clearTimeout(saveTimer);
+                showSaveStatus('saving');
+                saveTimer = setTimeout(() => {
+                    const data = {};
+                    document.querySelectorAll(savableSelector).forEach(el => {
+                        data[el.id] = el.value;
+                    });
+                    for (let i = 1; i <= screenshotCount; i++) {
+                        const img = document.getElementById(`screenshot-preview-${i}`);
+                        if (img && img.src && !img.src.includes('placeholder')) {
+                            data[`screenshot-preview-${i}`] = img.src;
+                        }
+                    }
+                    localStorage.setItem(storageKey, JSON.stringify(data));
+                    showSaveStatus('saved');
+                }, 1000);
             }
-        }
 
-        // --- INITIALIZATION ---
-        document.addEventListener('DOMContentLoaded', () => {
-            loadContent();
+            function loadContent() {
+                const data = JSON.parse(localStorage.getItem(storageKey));
+                const textareas = document.querySelectorAll('.markdown-input');
 
-            document.querySelectorAll('.markdown-input').forEach(textarea => {
-                function autoResize() {
-                    textarea.style.height = 'auto';
-                    textarea.style.height = (textarea.scrollHeight) + 'px';
+                if (!data) {
+                    textareas.forEach(el => {
+                        el.value = '';
+                        updateMarkdownPreview(el);
+                    });
+                    return;
                 }
-                textarea.addEventListener('input', autoResize);
-                autoResize();
-                textarea.addEventListener('input', (e) => {
-                    updatePreview(e.target);
-                    saveContent(e.target);
+
+                document.querySelectorAll(savableSelector).forEach(field => {
+                    if (data.hasOwnProperty(field.id)) {
+                        field.value = data[field.id];
+                    }
                 });
-            });
-            
-            document.querySelectorAll('.text-input.editable-field').forEach(input => {
-                input.addEventListener('input', (e) => saveContent(e.target));
-            });
-
-            document.querySelectorAll('.markdown-input.editable-field').forEach(ta => {
-                if(ta.value) {
-                    updatePreview(ta);
+                
+                for (let i = 1; i <= screenshotCount; i++) {
+                    if (data[`screenshot-preview-${i}`]) {
+                        const preview = document.getElementById(`screenshot-preview-${i}`);
+                        const placeholder = document.getElementById(`screenshot-placeholder-${i}`);
+                        preview.src = data[`screenshot-preview-${i}`];
+                        preview.classList.remove('hidden');
+                        if (placeholder) placeholder.classList.add('hidden');
+                    }
                 }
-            });
+
+                textareas.forEach(updateMarkdownPreview);
+            }
+
+            async function exportToPdf() {
+                const loader = document.getElementById('loader-overlay');
+                const reportContent = document.getElementById('report-content');
+                const validationMessage = document.getElementById('validation-message');
+                let allFilled = true;
+
+                if(validationMessage) validationMessage.textContent = '';
+                document.querySelectorAll(savableSelector).forEach(el => {
+                    el.classList.remove('border-red-400');
+                    if (!el.value.trim()) {
+                        el.classList.add('border-red-400');
+                        allFilled = false;
+                    }
+                });
+                for (let i = 1; i <= screenshotCount; i++) {
+                    const img = document.getElementById(`screenshot-preview-${i}`);
+                    if (!img) continue;
+                    const wrapper = img.closest('.screenshot-wrapper');
+                    if (wrapper) {
+                         wrapper.classList.remove('border-red-400', 'border-2');
+                        if (!img.src || img.src.includes('placeholder')) {
+                            const categoryNameInput = document.getElementById(`category${i}-name`);
+                            if (!categoryNameInput || (categoryNameInput && categoryNameInput.value.trim() !== '')) {
+                                wrapper.classList.add('border-red-400', 'border-2', 'rounded-lg');
+                                allFilled = false;
+                            }
+                        }
+                    }
+                }
+
+                if (!allFilled) {
+                    if(validationMessage) validationMessage.textContent = '모든 필수 항목을 작성하고 스크린샷을 첨부해주세요.';
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                    return;
+                }
+                
+                if(loader) loader.style.display = 'flex';
+
+                try {
+                    const { jsPDF } = window.jspdf;
+                    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+                    const pdfWidth = pdf.internal.pageSize.getWidth();
+                    const margin = 15;
+                    const contentWidth = pdfWidth - (margin * 2);
+                    let yPosition = margin;
+
+                    const sections = Array.from(reportContent.querySelectorAll('.report-section'));
+
+                    for (const section of sections) {
+                        const canvas = await html2canvas(section, {
+                            scale: 2,
+                            useCORS: true,
+                            logging: false,
+                            onclone: (doc) => {
+                                const clonedSection = doc.body.children[0];
+                                if (!clonedSection) return;
+                                clonedSection.querySelectorAll('.editable-container').forEach(container => {
+                                    const editor = container.querySelector('textarea');
+                                    const preview = container.querySelector('.markdown-preview');
+                                    if(editor) editor.style.display = 'none';
+                                    if(preview) preview.style.display = 'block';
+                                });
+                                if(window.renderMathInElement) {
+                                    renderMathInElement(clonedSection, { delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}] });
+                                }
+                            }
+                        });
+                        
+                        const imgHeight = (canvas.height * contentWidth) / canvas.width;
+
+                        if (yPosition + imgHeight > pdf.internal.pageSize.getHeight() - margin) {
+                            pdf.addPage();
+                            yPosition = margin;
+                        }
+
+                        pdf.addImage(canvas.toDataURL('image/png'), 'PNG', margin, yPosition, contentWidth, imgHeight);
+                        yPosition += imgHeight + 5;
+                    }
+
+                    const studentId = document.getElementById('student-id').value.trim() || '학번';
+                    const studentName = document.getElementById('student-name').value.trim() || '이름';
+                    const docTitle = document.title.split(' ')[0] || '보고서';
+                    const filename = `${docTitle}_${studentId}_${studentName}.pdf`;
+                    pdf.save(filename);
+
+                } catch(error) {
+                    console.error("PDF generation error:", error);
+                    alert("PDF를 생성하는 데 실패했습니다. 콘솔을 확인해주세요.");
+                } finally {
+                    if(loader) loader.style.display = 'none';
+                }
+            }
+
+            function initialize() {
+                document.querySelectorAll('.editable-container').forEach(container => {
+                    const preview = container.querySelector('.markdown-preview');
+                    const editor = container.querySelector('textarea');
+
+                    if (preview && editor) {
+                        preview.addEventListener('click', () => {
+                            preview.classList.add('hidden');
+                            editor.classList.remove('hidden');
+                            editor.focus();
+                            autoResizeTextarea(editor);
+                        });
+
+                        editor.addEventListener('blur', () => {
+                            editor.classList.add('hidden');
+                            preview.classList.remove('hidden');
+                            updateMarkdownPreview(editor);
+                        });
+                    }
+                });
+
+                document.querySelectorAll(savableSelector).forEach(el => {
+                    el.addEventListener('input', () => {
+                        saveContent();
+                        if (el.tagName === 'TEXTAREA') autoResizeTextarea(el);
+                    });
+                });
+
+                for (let i = 1; i <= screenshotCount; i++) {
+                    const input = document.getElementById(`screenshot-input-${i}`);
+                    if (input) {
+                        input.addEventListener('change', (event) => {
+                            const preview = document.getElementById(`screenshot-preview-${i}`);
+                            const placeholder = document.getElementById(`screenshot-placeholder-${i}`);
+                            const file = event.target.files[0];
+                            if (file) {
+                                const reader = new FileReader();
+                                reader.onload = (e) => {
+                                    preview.src = e.target.result;
+                                    preview.classList.remove('hidden');
+                                    if (placeholder) placeholder.classList.add('hidden');
+                                    saveContent();
+                                }
+                                reader.readAsDataURL(file);
+                            }
+                        });
+                    }
+                }
+                
+                if (exportBtn) exportBtn.addEventListener('click', exportToPdf);
+
+                loadContent();
+            }
+
+            initialize();
         });
     </script>
-    <footer class="text-center py-8 print-hidden">
-        <p class="text-sm text-slate-500">
-            © 2025 Cherub8128. All rights reserved. 무단 복제 및 배포를 금지합니다.
-        </p>
-    </footer>
 </body>
 </html>
+
