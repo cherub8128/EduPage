@@ -796,6 +796,59 @@ document.addEventListener('DOMContentLoaded', () => {
           '모의 과세특: 라이브러리를 능숙하게 활용하여 문제 상황을 모델링하고 시각적으로 표현하는 역량이 돋보임.',
       };
     }
+
+    if (provider === 'openrouter') {
+        if (!apiKey) throw new Error('OpenRouter API 키가 필요합니다.');
+        const url = 'https://openrouter.ai/api/v1/chat/completions';
+        const res = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${apiKey}`,
+                'Content-Type': 'application/json',
+                'HTTP-Referer': location.origin, // Recommended practice
+                'X-Title': 'Rubric Grader App' // Recommended practice
+            },
+            body: JSON.stringify({
+                model,
+                messages: [
+                    { role: 'system', content: 'You are a strict rubric grader. Output JSON only.' },
+                    { role: 'user', content: fullPrompt }
+                ],
+                temperature: 0.2,
+                response_format: { type: 'json_object' }
+            })
+        });
+        if (!res.ok) throw new Error(`OpenRouter API 오류: ${await res.text()}`);
+        const data = await res.json();
+        return sanitizeJSON(data.choices?.[0]?.message?.content ?? "{}");
+    }
+
+    // --- 추가된 Ollama 로직 ---
+    if (provider === 'ollama') {
+        const url = 'http://localhost:11434/api/generate'; // 기본 Ollama 주소
+        try {
+            const res = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    model,
+                    prompt: fullPrompt,
+                    format: 'json', // 요청 형식 지정
+                    stream: false, // 응답을 스트리밍하지 않음
+                    options: { temperature: 0.2 }
+                })
+            });
+            if (!res.ok) throw new Error(`Ollama API 오류: ${res.statusText}. Ollama 서버 실행 및 CORS 설정을 확인하세요.`);
+            const data = await res.json();
+            // Ollama는 'response' 필드에 JSON 문자열을 반환
+            return sanitizeJSON(data.response ?? "{}");
+        } catch (error) {
+             // 네트워크 오류 등 fetch 자체 실패 처리
+             throw new Error(`Ollama 호출 실패: ${error.message}. Ollama 서버가 실행 중인지, 네트워크 연결 및 CORS 설정을 확인하세요.`);
+        }
+    }
+
+
     const apiEndpoints = {
       google: `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
       openai: 'https://api.openai.com/v1/chat/completions',
@@ -836,19 +889,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function sanitizeJSON(text) {
     let cleanText = text.trim();
-    const jsonMatch = cleanText.match(```json)?\s*([\s\S]*?)\s*```);
+    const jsonMatch = cleanText.match(new RegExp("```(?:json)?\\s*([\\s\\S]*?)\\s*```"));
     if (jsonMatch) cleanText = jsonMatch[1];
-    const start = cleanText.indexOf('{');
-    const end = cleanText.lastIndexOf('}');
+    const start = cleanText.indexOf("{");
+    const end = cleanText.lastIndexOf("}");
     if (start >= 0 && end > start) {
-      try {
-        return JSON.parse(cleanText.slice(start, end + 1));
-      } catch (e) {
-        throw new Error('LLM이 올바른 JSON을 반환하지 않았습니다.');
-      }
+        try { return JSON.parse(cleanText.slice(start, end + 1)); } catch (e) { throw new Error("LLM이 올바른 JSON을 반환하지 않았습니다."); }
     }
-    throw new Error('응답에서 유효한 JSON 객체를 찾을 수 없습니다.');
-  }
+    throw new Error("응답에서 유효한 JSON 객체를 찾을 수 없습니다.");
+}
 
   // --- 결과 렌더링 ---
   function renderSummary() {
