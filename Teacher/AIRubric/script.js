@@ -47,6 +47,10 @@ document.addEventListener('DOMContentLoaded', () => {
     },
   };
 
+  const externalPresets = [
+    { name: 'AI 모델 탐사 보고서', path: 'data/ai_model_report.json' },
+  ];
+
   // --- 상태 관리 ---
   const state = {
     running: false,
@@ -303,14 +307,66 @@ document.addEventListener('DOMContentLoaded', () => {
   function setupPresets() {
     const presetSelect = byId('preset-select');
     presetSelect.innerHTML = '<option value="">프리셋 선택...</option>';
-    Object.entries(presets).forEach(([key, { name }]) => presetSelect.add(new Option(name, key)));
-    presetSelect.addEventListener('change', (e) => {
-      const key = e.target.value;
-      if (key && presets[key]) {
-        state.rubric = JSON.parse(JSON.stringify(presets[key].rubric));
-        state.overview = JSON.parse(JSON.stringify(presets[key].overview));
+
+    // 1. 기존 inline 프리셋 (default) 추가
+    Object.entries(presets).forEach(([key, { name }]) => {
+      const option = document.createElement('option');
+      option.value = key; // 값으로 'default' 같은 키를 사용
+      option.textContent = name;
+      option.dataset.type = 'inline'; // 타입을 'inline'으로 지정
+      presetSelect.add(option);
+    });
+
+    // 2. data/ 폴더의 external 프리셋 추가
+    externalPresets.forEach(preset => {
+      const option = document.createElement('option');
+      option.value = preset.path; // 값으로 파일 경로를 사용
+      option.textContent = preset.name;
+      option.dataset.type = 'external'; // 타입을 'external'로 지정
+      presetSelect.add(option);
+    });
+
+    // 3. change 이벤트 리스너 수정 (async 추가)
+    presetSelect.addEventListener('change', async (e) => {
+      const selectedOption = e.target.options[e.target.selectedIndex];
+      const value = selectedOption.value;
+      const type = selectedOption.dataset.type;
+
+      if (!value) return; // "프리셋 선택..." 무시
+
+      try {
+        let data;
+        let dataName = selectedOption.text;
+
+        if (type === 'inline') {
+          // 기존 inline 방식
+          if (!presets[value]) throw new Error('잘못된 inline 프리셋 키입니다.');
+          data = presets[value];
+          logln('INFO', `"${data.name}" (inline) 프리셋을 불러왔습니다.`);
+        } else {
+          // 새로운 external (fetch) 방식
+          logln('INFO', `"${dataName}" 프리셋을 불러오는 중... (${value})`);
+          const response = await fetch(value);
+          if (!response.ok) {
+            throw new Error(`파일을 불러올 수 없습니다. (HTTP ${response.status})`);
+          }
+          data = await response.json(); // JSON으로 파싱
+          logln('SUCCESS', `"${dataName}" 프리셋을 성공적으로 불러왔습니다.`);
+        }
+
+        // 공통 상태 업데이트 로직
+        // JSON.parse(JSON.stringify(...))를 사용하여 깊은 복사를 수행
+        state.rubric = JSON.parse(JSON.stringify(data.rubric || []));
+        state.overview = JSON.parse(JSON.stringify(data.overview || {
+          task: '', standards: '', ideas: '',
+          criteria: { type: '5-point', levels: {} }
+        }));
         updateAllUI();
-        logln('INFO', `"${presets[key].name}" 프리셋을 불러왔습니다.`);
+
+      } catch (error) {
+        logln('ERROR', `프리셋 처리 중 오류: ${error.message}`);
+        alert(`프리셋을 불러오는 중 오류가 발생했습니다: ${error.message}`);
+        e.target.value = ''; // 오류 발생 시 선택 초기화
       }
     });
   }
