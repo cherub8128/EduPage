@@ -28,9 +28,11 @@
         .editable-container .prose:hover, .editable-container pre:hover { background-color: #f8fafc; border-color: #e2e8f0;}
         #code-input { font-family: 'D2Coding', monospace; font-size: 0.9rem; line-height: 1.6; }
         .code-preview { font-family: 'D2Coding', monospace; font-size: 0.9rem; line-height: 1.6; padding: 1rem; border-radius: 0.5rem; }
+        .report-section h2,
         .report-section h3, 
         .report-section .editable-container, 
-        .report-section .screenshot-wrapper {
+        .report-section .screenshot-wrapper,
+        .report-section table {
             break-inside: avoid; /* 페이지 나눔 방지 */
         }
     </style>
@@ -328,8 +330,13 @@
                 const validationMessage = document.getElementById('validation-message');
                 let allFilled = true;
 
-                // --- 1. 유효성 검사 (기존과 동일) ---
+                // --- 1. 유효성 검사 (pyproject.html의 변수명 기준) ---
                 if(validationMessage) validationMessage.textContent = '';
+                
+                // .savable 요소 검사
+                const savableSelector = '.savable';
+                const screenshotCount = 2; // pyproject.html의 스크린샷 개수
+                
                 document.querySelectorAll(savableSelector).forEach(el => {
                     el.classList.remove('border-red-400');
                     if (!el.value.trim()) {
@@ -337,13 +344,15 @@
                         allFilled = false;
                     }
                 });
+                
+                // 스크린샷 검사
                 for (let i = 1; i <= screenshotCount; i++) {
                     const img = document.getElementById(`screenshot-preview-${i}`);
                     if (!img) continue;
                     const wrapper = img.closest('.screenshot-wrapper');
                     if (wrapper) {
                          wrapper.classList.remove('border-red-400', 'border-2');
-                        if (!img.src || img.src.includes('placeholder')) {
+                        if (!img.src || img.src.includes('placeholder') || img.classList.contains('hidden')) {
                             wrapper.classList.add('border-red-400', 'border-2', 'rounded-lg');
                             allFilled = false;
                         }
@@ -391,7 +400,6 @@
                     });
                     
                     // --- 4. pdf.html() 실행 ---
-                    // 이 함수는 DOM을 분석하여 텍스트는 텍스트로, 이미지는 이미지로 변환합니다.
                     await pdf.html(reportContent, {
                         callback: function (doc) {
                             // --- 5. PDF 저장 ---
@@ -402,7 +410,6 @@
                             doc.save(filename);
 
                             // --- 6. 페이지 원상 복구 ---
-                            // 렌더링을 위해 추가했던 임시 스타일을 제거하여 원래 상태로 되돌립니다.
                             editors.forEach(el => el.style.display = '');
                             previews.forEach(el => el.style.display = '');
                         },
@@ -411,7 +418,7 @@
                         autoPaging: 'text', 
                         width: pdf.internal.pageSize.getWidth() - 30, 
                         windowWidth: reportContent.scrollWidth, 
-                        html2canvas: {
+                        html2canvas: { // 스크린샷 이미지를 위한 옵션
                             scale: 2, 
                             useCORS: true,
                             logging: false
@@ -430,7 +437,7 @@
                     if(loader) loader.style.display = 'none';
                 }
             }
-
+            
             function initialize() {
                 document.querySelectorAll('.editable-container').forEach(container => {
                     const preview = container.querySelector('.markdown-preview, pre');
