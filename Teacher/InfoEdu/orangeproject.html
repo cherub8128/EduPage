@@ -31,6 +31,11 @@
         .focus\:ring-orange-200:focus { --tw-ring-color: #fed7aa; }
         .ring-orange-500 { --tw-ring-color: #f97316; }
         .border-orange-500 { border-color: #f97316; }
+        .report-section h3, 
+        .report-section .editable-container, 
+        .report-section .screenshot-wrapper {
+            break-inside: avoid; /* 페이지 나눔 방지 */
+        }
     </style>
 </head>
 <body class="p-4 sm:p-8">
@@ -330,6 +335,7 @@
                 const validationMessage = document.getElementById('validation-message');
                 let allFilled = true;
 
+                // --- 1. 유효성 검사 (기존과 동일) ---
                 if(validationMessage) validationMessage.textContent = '';
                 document.querySelectorAll(savableSelector).forEach(el => {
                     el.classList.remove('border-red-400');
@@ -359,76 +365,74 @@
                 
                 if(loader) loader.style.display = 'flex';
 
+                // --- 2. pdf.html()을 사용한 PDF 생성 로직 ---
                 try {
                     const { jsPDF } = window.jspdf;
-                    
-                    // --- 수정된 부분 시작 ---
-
-                    const margin = 15;
-                    // 표준 A4 너비를 가져오기 위해 임시 PDF 생성
-                    const tempPdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-                    const pdfWidth = tempPdf.internal.pageSize.getWidth();
-                    const contentWidth = pdfWidth - (margin * 2);
-
-                    const sections = Array.from(reportContent.querySelectorAll('.report-section'));
-                    const capturedCanvases = [];
-                    let totalHeight = margin; // 상단 여백으로 시작
-
-                    // 1. 모든 섹션을 캔버스로 변환하고 총 높이 계산
-                    for (const section of sections) {
-                        const canvas = await html2canvas(section, {
-                            scale: 2,
-                            useCORS: true,
-                            logging: false,
-                            onclone: (doc) => {
-                                const clonedSection = doc.body.children[0];
-                                if (!clonedSection) return;
-                                clonedSection.querySelectorAll('.editable-container').forEach(container => {
-                                    const editor = container.querySelector('textarea');
-                                    const preview = container.querySelector('.markdown-preview, pre');
-                                    if(editor) editor.style.display = 'none';
-                                    if(preview) preview.style.display = 'block';
-                                });
-                                if(window.renderMathInElement) {
-                                    renderMathInElement(clonedSection, { delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}] });
-                                }
-                            }
-                        });
-                        
-                        const imgHeight = (canvas.height * contentWidth) / canvas.width;
-                        capturedCanvases.push({ canvas, imgHeight });
-                        totalHeight += imgHeight + 5; // 캔버스 높이 + 섹션 간 5mm 여백
-                    }
-
-                    // 마지막 여백(5)을 빼고 하단 여백(15)을 더함
-                    totalHeight = totalHeight - 5 + margin;
-
-                    // 2. 계산된 총 높이로 커스텀 PDF 생성
                     const pdf = new jsPDF({
                         orientation: 'portrait',
                         unit: 'mm',
-                        format: [pdfWidth, totalHeight] // [너비, 높이]로 커스텀 사이즈 지정
+                        format: 'a4'
                     });
 
-                    let yPosition = margin;
-
-                    // 3. 캡처된 캔버스를 PDF에 순서대로 추가 (페이지 나눔 없음)
-                    for (const item of capturedCanvases) {
-                        pdf.addImage(item.canvas.toDataURL('image/png'), 'PNG', margin, yPosition, contentWidth, item.imgHeight);
-                        yPosition += item.imgHeight + 5; // 다음 이미지 위치로 이동
-                    }
+                    // --- 3. 렌더링을 위해 DOM 준비 ---
+                    // 편집창(textarea)을 숨기고 미리보기(preview)를 강제로 표시
+                    const editors = reportContent.querySelectorAll('.editable-container textarea');
+                    const previews = reportContent.querySelectorAll('.editable-container .markdown-preview, .editable-container pre');
                     
-                    // --- 수정된 부분 끝 ---
+                    editors.forEach(el => el.style.display = 'none');
+                    previews.forEach(el => el.style.display = 'block');
 
-                    const studentId = document.getElementById('student-id').value.trim() || '학번';
-                    const studentName = document.getElementById('student-name').value.trim() || '이름';
-                    const docTitle = document.title.split(' ')[0] || '보고서';
-                    const filename = `${docTitle}_${studentId}_${studentName}.pdf`;
-                    pdf.save(filename);
+                    // KaTeX 수학 공식 다시 렌더링
+                    if (window.renderMathInElement) {
+                        renderMathInElement(reportContent, {
+                            delimiters: [
+                                { left: '$$', right: '$$', display: true },
+                                { left: '$', right: '$', display: false }
+                            ]
+                        });
+                    }
+                    // highlight.js 코드 하이라이팅 다시 적용
+                    reportContent.querySelectorAll('pre code').forEach(el => {
+                        delete el.dataset.highlighted; // 하이라이트 강제 초기화
+                        if(typeof hljs !== 'undefined') hljs.highlightElement(el);
+                    });
+                    
+                    // --- 4. pdf.html() 실행 ---
+                    // 이 함수는 DOM을 분석하여 텍스트는 텍스트로, 이미지는 이미지로 변환합니다.
+                    await pdf.html(reportContent, {
+                        callback: function (doc) {
+                            // --- 5. PDF 저장 ---
+                            const studentId = document.getElementById('student-id').value.trim() || '학번';
+                            const studentName = document.getElementById('student-name').value.trim() || '이름';
+                            const docTitle = document.title.split(' ')[0] || '보고서';
+                            const filename = `${docTitle}_${studentId}_${studentName}.pdf`;
+                            doc.save(filename);
+
+                            // --- 6. 페이지 원상 복구 ---
+                            // 렌더링을 위해 추가했던 임시 스타일을 제거하여 원래 상태로 되돌립니다.
+                            editors.forEach(el => el.style.display = '');
+                            previews.forEach(el => el.style.display = '');
+                        },
+                        margin: [15, 15, 15, 15], // [top, right, bottom, left]
+                        // 'text' 옵션은 CSS의 'break-inside: avoid' 규칙을 존중합니다.
+                        autoPaging: 'text', 
+                        width: pdf.internal.pageSize.getWidth() - 30, 
+                        windowWidth: reportContent.scrollWidth, 
+                        html2canvas: {
+                            scale: 2, 
+                            useCORS: true,
+                            logging: false
+                        }
+                    });
 
                 } catch(error) {
                     console.error("PDF generation error:", error);
                     alert("PDF를 생성하는 데 실패했습니다. 콘솔을 확인해주세요.");
+                    
+                    // --- 7. 에러 발생 시에도 페이지 원상 복구 ---
+                    reportContent.querySelectorAll('.editable-container textarea').forEach(el => el.style.display = '');
+                    reportContent.querySelectorAll('.editable-container .markdown-preview, .editable-container pre').forEach(el => el.style.display = '');
+                    
                 } finally {
                     if(loader) loader.style.display = 'none';
                 }
