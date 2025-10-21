@@ -8,10 +8,6 @@
     <!-- Tailwind CSS CDN 다시 사용 -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- 고급 PDF 내보내기를 위한 라이브러리 추가 -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    
     <!-- Markdown 변환기 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/showdown/2.1.0/showdown.min.js" defer></script>
     
@@ -46,6 +42,11 @@
         .report-section > div {
             break-inside: avoid;
             page-break-inside: avoid;
+        }
+
+        .printable-content,
+        .markdown-preview {
+            display: none;
         }
 
         @media print {
@@ -464,13 +465,13 @@
                 // 편집 UI 복구
                 reportContent.querySelectorAll('.savable, #add-parameter-btn, .remove-parameter-btn, #parameters-container')
                 .forEach(el => el.style.display = '');
-                // 출력 UI 원복
+                
+                // 출력 UI 원복 (CSS에서 숨겼던 상태로 되돌림)
                 reportContent.querySelectorAll('.printable-content, .markdown-preview')
-                .forEach(el => el.style.display = '');
+                .forEach(el => el.style.display = 'none'); // <-- ✨ 이렇게 수정하세요
+
                 const paramsPrintable = document.getElementById('parameters-printable');
                 if (paramsPrintable) paramsPrintable.innerHTML = '';
-                const printableScreenshotContainer = document.getElementById('printable-screenshot-container');
-                if (printableScreenshotContainer) printableScreenshotContainer.innerHTML = '';
             };
 
             try {
