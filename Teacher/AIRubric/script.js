@@ -697,24 +697,26 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       logln('INFO', `[${i + 1}/${files.length}] "${f.name}" 처리 중...`);
       try {
-        const text = await extractPdfText(f, opts.maxChars);
-        logln('INFO', 'AI 모델을 호출합니다...');
-        const out = await callAI({ ...opts, input: text });
-        const meta = parseMetaFromFilename(f.name);
-        state.results.push({
-          fileName: f.name,
-          studentId: meta.studentId,
-          studentName: meta.studentName,
-          ...out,
-        });
-        saveResults();
-        renderSummary();
-        logln('SUCCESS', `"${f.name}" 평가 완료!`);
-        await sleep(350);
-      } catch (err) {
-        logln('ERROR', `"${f.name}" 처리 중 오류 발생: ${err.message}`);
-        console.error(err);
-      }
+        logln("INFO", "PDF를 이미지로 변환 중...");
+        const imageB64s = await processPdfToImages(f); // 함수 호출 변경
+        if (!imageB64s || imageB64s.length === 0) {
+            logln("WARN", `"${f.name}"에서 이미지를 추출할 수 없습니다.`);
+            continue;
+            }
+            logln("SUCCESS", `${imageB64s.length}개 페이지 이미지 변환 완료.`);
+
+            logln("INFO", "AI 모델을 호출합니다...");
+            const out = await callAI({ ...opts, images: imageB64s }); // 'images' 파라미터로 전달
+            const meta = parseMetaFromFilename(f.name);
+            state.results.push({ fileName: f.name, studentId: meta.studentId, studentName: meta.studentName, ...out });
+            saveResults();
+            renderSummary();
+            logln("SUCCESS", `"${f.name}" 평가 완료!`);
+            await sleep(500); // Rate limit
+        } catch (err) {
+            logln("ERROR", `"${f.name}" 처리 중 오류 발생: ${err.message}`);
+            console.error(err);
+        }
     }
     setRunningState(false);
     logln('INFO', '모든 작업이 종료되었습니다.');
@@ -726,18 +728,30 @@ document.addEventListener('DOMContentLoaded', () => {
     byId('spinner').classList.toggle('hidden', !running);
   }
 
-  async function extractPdfText(file, maxChars) {
+  async function processPdfToImages(file) {
     const arrayBuffer = await file.arrayBuffer();
     const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-    let fullText = '';
+    const imageB64s = [];
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('2d');
+
     for (let p = 1; p <= pdf.numPages; p++) {
-      const page = await pdf.getPage(p);
-      const content = await page.getTextContent();
-      fullText += content.items.map((i) => i.str).join(' ');
-      if (fullText.length >= maxChars) break;
+        if (abort) break;
+        logln('INFO', `${p}/${pdf.numPages} 페이지 렌더링...`);
+        const page = await pdf.getPage(p);
+        const viewport = page.getViewport({ scale: 1.5 });
+        canvas.height = viewport.height;
+        canvas.width = viewport.width;
+
+        await page.render({ canvasContext: context, viewport: viewport }).promise;
+        
+        // Get Base64 string and remove data URL prefix
+        const base64 = canvas.toDataURL('image/jpeg').split(',')[1];
+        imageB64s.push(base64);
     }
-    return fullText.slice(0, maxChars);
-  }
+    canvas.remove();
+    return imageB64s;
+}
 
   function buildPrompt(input) {
     const criteriaText = Object.entries(state.overview.criteria.levels)
@@ -767,7 +781,7 @@ document.addEventListener('DOMContentLoaded', () => {
       })
       .join(',\n    ');
 
-    return `다음 보고서를 읽고, 아래의 평가 개요와 상세한 루브릭 기준에 따라 각 항목을 평가하세요.\n\n${overviewText}\n\n[상세 채점 루브릭]\n${rubricText}\n\n[출력 형식]\n반드시 아래 형식의 JSON만 출력하며, 다른 설명은 절대 포함하지 마세요.\n'scores' 객체에는 각 항목에 대해 가장 적합하다고 판단되는 등급(문자열) 또는 점수(숫자)를 할당하세요.\n- 단계별 항목 (3/5단계): 해당하는 등급(예: "A", "B")을 문자열로 부여하세요.\n- 단일 기준 항목: 만점을 기준으로 점수를 숫자로 직접 부여하세요.\n\n{\n  "scores": {\n    ${scoreKeys}\n  },\n  "strengths": "보고서의 가장 큰 강점 1~2가지를 명료하게 서술합니다.",\n  "improvements": "개선이 필요한 부분 1~2가지를 구체적인 방법과 함께 제안합니다.",\n  "final_comment": "위의 평가 내용을 종합하여, 학생의 역량이 잘 드러나도록 과목별 세부능력 및 특기사항 예시를 학생의 성장과 역량이 드러나도록 객관적 사실을 기반으로 개조식 문체로 서술합니다."\n}\n\n[보고서 원문]\n${input}`;
+    return `첨부된 문서 이미지를 분석하고, 아래의 평가 개요와 상세 루릭 기준에 따라 각 항목을 평가하세요.\n\n${overviewText}\n\n[상세 채점 루브릭]\n${rubricText}\n\n[출력 형식]\n반드시 아래 형식의 JSON만 출력하며, 다른 설명은 절대 포함하지 마세요.\n'scores' 객체에는 각 항목에 대해 가장 적합하다고 판단되는 등급(문자열) 또는 점수(숫자)를 할당하세요.\n- 단계별 항목 (3/5단계): 해당하는 등급(예: "A", "B")을 문자열로 부여하세요.\n- 단일 기준 항목: 만점을 기준으로 점수를 숫자로 직접 부여하세요.\n\n{\n  "scores": {\n    ${scoreKeys}\n  },\n  "strengths": "문서의 가장 큰 강점 1~2가지를 명료하게 서술합니다.",\n  "improvements": "개선이 필요한 부분 1~2가지를 구체적인 방법과 함께 제안합니다.",\n  "final_comment": "위의 평가 내용을 종합하여, 학생의 역량이 잘 드러나도록 과목별 세부능력 및 특기사항 예시를 학생의 성장과 역량이 드러나도록 객관적 사실을 기반으로 개조식 문체로 서술합니다."\n}`;
   }
 
   async function callAI({ provider, apiKey, model, input }) {
