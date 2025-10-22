@@ -678,7 +678,6 @@ document.addEventListener('DOMContentLoaded', () => {
       provider: byId('provider').value,
       apiKey: byId('apiKey').value.trim(),
       model: byId('model').value.trim(),
-      maxChars: Number(byId('maxChars').value || 8000),
     };
     logln('INFO', `평가를 시작합니다. (Provider: ${opts.provider}, Model: ${opts.model})`);
 
