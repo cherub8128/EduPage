@@ -192,8 +192,8 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
         // 필수 라이브러리가 로드되었는지 확인
-        if (typeof showdown === 'undefined' || typeof html2canvas === 'undefined' || typeof jspdf === 'undefined' || typeof renderMathInElement === 'undefined') {
-            console.error("One or more required libraries (Showdown, html2canvas, jsPDF, KaTeX) are not loaded.");
+        if (typeof showdown === 'undefined' || typeof renderMathInElement === 'undefined') {
+            console.error("One or more required libraries (Showdown, html2canvas, KaTeX) are not loaded.");
             alert("페이지에 필요한 라이브러리를 로드하지 못했습니다. 인터넷 연결을 확인 후 새로고침 해주세요.");
             return;
         }
