@@ -696,18 +696,19 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       logln("INFO", `[${i + 1}/${files.length}] "${f.name}" 처리 중...`);
       try {
-          logln("INFO", "PDF를 텍스트와 이미지로 변환 중...");
-          // 수정된 부분: 텍스트와 이미지를 함께 추출
-          const { text, images } = await extractTextAndImagesFromPdf(f);
-          if (images.length === 0) {
-              logln("WARN", `"${f.name}"에서 이미지를 추출할 수 없습니다.`);
+          logln("INFO", "PDF에서 텍스트 추출 및 이미지 페이지 선별 중...");
+          // 수정된 부분: 이미지 페이지 번호도 받음
+          const { text, images, imagePageNumbers } = await extractTextAndImagesFromPdf(f);
+          if (!text && images.length === 0) {
+              logln("WARN", `"${f.name}"에서 내용(텍스트 또는 이미지)을 추출할 수 없습니다.`);
               continue;
           }
-          logln("SUCCESS", `텍스트(${text.length}자)와 이미지(${images.length}장) 변환 완료.`);
+          // 로그 메시지 개선
+          logln("SUCCESS", `텍스트(${text.length}자) 추출 완료. 이미지 페이지(${imagePageNumbers.length > 0 ? imagePageNumbers.join(', ') : '없음'}) 변환 완료.`);
 
           logln("INFO", "AI 모델을 호출합니다...");
-          // 수정된 부분: text와 images를 함께 전달
-          const out = await callAI({ ...opts, text, images });
+          // 수정된 부분: imagePageNumbers도 전달 (필요시 프롬프트에 활용 가능)
+          const out = await callAI({ ...opts, text, images, imagePageNumbers });
           const meta = parseMetaFromFilename(f.name);
           state.results.push({ fileName: f.name, studentId: meta.studentId, studentName: meta.studentName, ...out });
           saveResults();
@@ -729,11 +730,12 @@ document.addEventListener('DOMContentLoaded', () => {
     byId('spinner').classList.toggle('hidden', !running);
   }
 
-  async function extractTextAndImagesFromPdf(file) {
+  async function extractTextAndImagesFromPdf(file, textThreshold = 100) { // textThreshold 추가
     const arrayBuffer = await file.arrayBuffer();
     const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
     let fullText = "";
-    const imageB64s = [];
+    const imageB64s = []; // 이미지(Base64) 배열
+    const imagePageNumbers = []; // 이미지로 변환된 페이지 번호 배열
     const canvas = document.createElement('canvas');
     const context = canvas.getContext('2d');
 
@@ -742,23 +744,29 @@ document.addEventListener('DOMContentLoaded', () => {
         logln('INFO', `${p}/${pdf.numPages} 페이지 처리...`);
         const page = await pdf.getPage(p);
         
-        // 텍스트 추출
+        // 1. 텍스트 추출 시도
         const content = await page.getTextContent();
-        fullText += content.items.map((i) => i.str).join(" ");
+        const pageText = content.items.map((i) => i.str).join(" ");
+        fullText += pageText + "\n"; // 전체 텍스트는 항상 누적
 
-        // 이미지 렌더링
-        const viewport = page.getViewport({ scale: 1.5 });
-        canvas.height = viewport.height;
-        canvas.width = viewport.width;
-        await page.render({ canvasContext: context, viewport: viewport }).promise;
-        const base64 = canvas.toDataURL('image/jpeg').split(',')[1];
-        imageB64s.push(base64);
+        // 2. 텍스트가 임계값 미만이면 이미지로 렌더링
+        if (pageText.trim().length < textThreshold) {
+            logln('INFO', `페이지 ${p}: 텍스트 부족(${pageText.trim().length}자), 이미지로 변환합니다.`);
+            const viewport = page.getViewport({ scale: 1.5 });
+            canvas.height = viewport.height;
+            canvas.width = viewport.width;
+            await page.render({ canvasContext: context, viewport: viewport }).promise;
+            const base64 = canvas.toDataURL('image/jpeg').split(',')[1];
+            imageB64s.push(base64);
+            imagePageNumbers.push(p); // 페이지 번호 기록
+        }
     }
     canvas.remove();
-    return { text: fullText.trim(), images: imageB64s };
-  }
+    // 전체 텍스트와 함께, 이미지로 변환된 데이터 및 해당 페이지 번호 반환
+    return { text: fullText.trim(), images: imageB64s, imagePageNumbers: imagePageNumbers };
+}
 
-  function buildPrompt(extractedText) {
+  function buildPrompt(extractedText, imagePageNumbers) {
     const criteriaText = Object.entries(state.overview.criteria.levels)
       .map(([level, desc]) => `${level}: ${desc}`)
       .join('\n');
@@ -787,11 +795,12 @@ document.addEventListener('DOMContentLoaded', () => {
       .join(',\n    ');
 
     const textReference = extractedText ? `\n\n아래는 PDF에서 추출된 텍스트 원문입니다. 이미지의 글자가 명확하지 않을 경우, 이 텍스트를 참고하여 정확하게 평가하세요.\n[추출된 텍스트]\n${extractedText}` : '';
-    return `첨부된 문서 이미지를 시각적으로 분석하고, 아래의 평가 개요와 상세 루브릭 기준에 따라 각 항목을 평가하세요.${textReference}\n\n${overviewText}\n\n[상세 채점 루브릭]\n${rubricText}\n\n[출력 형식]\n반드시 아래 형식의 JSON만 출력하며, 다른 설명은 절대 포함하지 마세요.\n'scores' 객체에는 각 항목에 대해 가장 적합하다고 판단되는 등급(문자열) 또는 점수(숫자)를 할당하세요.\n- 단계별 항목 (3/5단계): 해당하는 등급(예: "A", "B")을 문자열로 부여하세요.\n- 단일 기준 항목: 만점을 기준으로 점수를 숫자로 직접 부여하세요.\n\n{\n  "scores": {\n    ${scoreKeys}\n  },\n  "strengths": "문서의 가장 큰 강점 1~2가지를 명료하게 서술합니다.",\n  "improvements": "개선이 필요한 부분 1~2가지를 구체적인 방법과 함께 제안합니다.",\n  "final_comment": "위의 평가 내용을 종합하여, 학생의 역량이 잘 드러나도록 과목별 세부능력 및 특기사항 예시를 학생의 성장과 역량이 드러나도록 객관적 사실을 기반으로 개조식 문체로 서술합니다."\n}`;
+    const imageReference = imagePageNumbers && imagePageNumbers.length > 0 ? `\n\n첨부된 이미지는 원본 문서의 ${imagePageNumbers.join(', ')} 페이지에 해당합니다. 텍스트와 이미지를 종합적으로 분석하여 평가하세요.` : '\n\n첨부된 이미지를 시각적으로 분석하고 텍스트를 참고하여 평가하세요.';
+    return `아래 평가 개요와 상세 루브릭 기준에 따라 첨부된 문서(텍스트 및 선별된 이미지 페이지)를 평가하세요.${imageReference}${textReference}\n\n${overviewText}\n\n[상세 채점 루브릭]\n${rubricText}\n\n[출력 형식]\n반드시 아래 형식의 JSON만 출력하며, 다른 설명은 절대 포함하지 마세요.\n'scores' 객체에는 각 항목에 대해 가장 적합하다고 판단되는 등급(문자열) 또는 점수(숫자)를 할당하세요.\n- 단계별 항목 (3/5단계): 해당하는 등급(예: "A", "B")을 문자열로 부여하세요.\n- 단일 기준 항목: 만점을 기준으로 점수를 숫자로 직접 부여하세요.\n\n{\n  "scores": {\n    ${scoreKeys}\n  },\n  "strengths": "문서의 가장 큰 강점 1~2가지를 명료하게 서술합니다.",\n  "improvements": "개선이 필요한 부분 1~2가지를 구체적인 방법과 함께 제안합니다.",\n  "final_comment": "위의 평가 내용을 종합하여, 학생의 역량이 잘 드러나도록 과목별 세부능력 및 특기사항 예시를 학생의 성장과 역량이 드러나도록 객관적 사실을 기반으로 개조식 문체로 서술합니다."\n}`;
   }
 
-  async function callAI({ provider, apiKey, model, text, images }) {
-    const fullPrompt = buildPrompt(text);
+  async function callAI({ provider, apiKey, model, text, images, imagePageNumbers }) {
+    const fullPrompt = buildPrompt(text, imagePageNumbers);
     
     if (provider === "mock") {
         await sleep(500);
@@ -811,40 +820,38 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let url, headers, body;
     headers = { 'Content-Type': 'application/json' };
+    // 이미지가 있을 경우에만 imageParts 생성
+    const imageParts = images && images.length > 0 ? images.map(imgB64 => ({ inlineData: { mimeType: 'image/jpeg', data: imgB64 } })) : [];
+    const hasImages = imageParts.length > 0;
 
     switch(provider) {
         case 'google':
-            if (!images || images.length === 0) throw new Error("Google API는 이미지 분석을 위해 PDF 파일이 필요합니다.");
+            // 이미지가 없으면 오류 대신 텍스트만 전송 (모델이 지원하는 경우)
             url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
-            const imageParts = images.map(imgB64 => ({ inlineData: { mimeType: 'image/jpeg', data: imgB64 } }));
-            body = { 
-                contents: [{ parts: [{ text: fullPrompt }, ...imageParts] }],
-                generationConfig: { response_mime_type: "application/json", temperature: 0.2 } 
+            body = {
+                contents: [{ parts: [{ text: fullPrompt }, ...(hasImages ? imageParts : [])] }], // 이미지가 있을 때만 추가
+                generationConfig: { response_mime_type: "application/json", temperature: 0.2 }
             };
             break;
         case 'openai':
-             if (!images || images.length === 0) throw new Error("OpenAI API는 이미지 분석을 위해 PDF 파일이 필요합니다.");
+             // 이미지가 없으면 오류 대신 텍스트만 전송 (모델이 지원하는 경우)
              url = 'https://api.openai.com/v1/chat/completions';
              headers['Authorization'] = `Bearer ${apiKey}`;
-             const content = [
-                 { type: "text", text: fullPrompt },
-                 ...images.map(imgB64 => ({ type: "image_url", image_url: { url: `data:image/jpeg;base64,${imgB64}` } }))
-             ];
+             const content = [{ type: "text", text: fullPrompt }];
+             if (hasImages) {
+                 content.push(...images.map(imgB64 => ({ type: "image_url", image_url: { url: `data:image/jpeg;base64,${imgB64}` } })));
+             }
              body = { model, messages: [{ role: 'user', content }], temperature: 0.2, response_format: { type: 'json_object' } };
              break;
         case 'openrouter':
         case 'ollama':
-             // Ollama와 OpenRouter는 현재 텍스트 전용으로 가정합니다.
-             // 만약 이들도 Vision을 지원한다면, google/openai와 유사한 구조를 추가해야 합니다.
-             logln('WARN', `${provider}는 현재 텍스트 기반 평가만 지원합니다. PDF의 텍스트 레이어만 사용됩니다.`);
-             url = provider === 'ollama' ? 'http://localhost:11434/api/generate' : 'https://openrouter.ai/api/v1/chat/completions';
-             
-             if (provider === 'openrouter') {
-                headers['Authorization'] = `Bearer ${apiKey}`;
+             // Ollama와 OpenRouter는 현재 텍스트 전용으로 가정
+             if (hasImages) {
+                 logln('WARN', `${provider}는 이미지 분석을 지원하지 않아 이미지를 제외하고 텍스트만 전송합니다.`);
              }
-             
-             const messages = [{ role: 'system', content: 'You are a strict rubric grader. Output JSON only.' }, { role: 'user', content: buildPrompt(text) }]; // 텍스트만 사용
-             
+             url = provider === 'ollama' ? 'http://localhost:11434/api/generate' : 'https://openrouter.ai/api/v1/chat/completions';
+             if (provider === 'openrouter') headers['Authorization'] = `Bearer ${apiKey}`;
+             const messages = [{ role: 'system', content: 'You are a strict rubric grader. Output JSON only.' }, { role: 'user', content: buildPrompt(text) }]; // 텍스트만 사용 (imagePageNumbers 없이 호출)
              if(provider === 'ollama') {
                 body = { model, prompt: buildPrompt(text), format: 'json', stream: false, options: { temperature: 0.2 } };
              } else {
@@ -854,9 +861,9 @@ document.addEventListener('DOMContentLoaded', () => {
         default:
             throw new Error(`${provider} 제공자는 현재 지원되지 않습니다.`);
     }
+    if (!res.ok) throw new Error(`${provider} API 오류: ${await res.text()}`);
 
     const res = await fetch(url, { method: 'POST', headers, body: JSON.stringify(body) });
-    if (!res.ok) throw new Error(`${provider} API 오류: ${await res.text()}`);
     
     const data = await res.json();
     let textToParse;
