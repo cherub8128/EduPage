@@ -695,28 +695,30 @@ document.addEventListener('DOMContentLoaded', () => {
         );
         continue;
       }
-      logln('INFO', `[${i + 1}/${files.length}] "${f.name}" 처리 중...`);
+      logln("INFO", `[${i + 1}/${files.length}] "${f.name}" 처리 중...`);
       try {
-        logln("INFO", "PDF를 이미지로 변환 중...");
-        const imageB64s = await processPdfToImages(f); // 함수 호출 변경
-        if (!imageB64s || imageB64s.length === 0) {
-            logln("WARN", `"${f.name}"에서 이미지를 추출할 수 없습니다.`);
-            continue;
-            }
-            logln("SUCCESS", `${imageB64s.length}개 페이지 이미지 변환 완료.`);
+          logln("INFO", "PDF를 텍스트와 이미지로 변환 중...");
+          // 수정된 부분: 텍스트와 이미지를 함께 추출
+          const { text, images } = await extractTextAndImagesFromPdf(f);
+          if (images.length === 0) {
+              logln("WARN", `"${f.name}"에서 이미지를 추출할 수 없습니다.`);
+              continue;
+          }
+          logln("SUCCESS", `텍스트(${text.length}자)와 이미지(${images.length}장) 변환 완료.`);
 
-            logln("INFO", "AI 모델을 호출합니다...");
-            const out = await callAI({ ...opts, images: imageB64s }); // 'images' 파라미터로 전달
-            const meta = parseMetaFromFilename(f.name);
-            state.results.push({ fileName: f.name, studentId: meta.studentId, studentName: meta.studentName, ...out });
-            saveResults();
-            renderSummary();
-            logln("SUCCESS", `"${f.name}" 평가 완료!`);
-            await sleep(500); // Rate limit
-        } catch (err) {
-            logln("ERROR", `"${f.name}" 처리 중 오류 발생: ${err.message}`);
-            console.error(err);
-        }
+          logln("INFO", "AI 모델을 호출합니다...");
+          // 수정된 부분: text와 images를 함께 전달
+          const out = await callAI({ ...opts, text, images });
+          const meta = parseMetaFromFilename(f.name);
+          state.results.push({ fileName: f.name, studentId: meta.studentId, studentName: meta.studentName, ...out });
+          saveResults();
+          renderSummary();
+          logln("SUCCESS", `"${f.name}" 평가 완료!`);
+          await sleep(500); // Rate limit
+      } catch (err) {
+          logln("ERROR", `"${f.name}" 처리 중 오류 발생: ${err.message}`);
+          console.error(err);
+      }
     }
     setRunningState(false);
     logln('INFO', '모든 작업이 종료되었습니다.');
@@ -728,32 +730,36 @@ document.addEventListener('DOMContentLoaded', () => {
     byId('spinner').classList.toggle('hidden', !running);
   }
 
-  async function processPdfToImages(file) {
+  async function extractTextAndImagesFromPdf(file) {
     const arrayBuffer = await file.arrayBuffer();
     const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    let fullText = "";
     const imageB64s = [];
     const canvas = document.createElement('canvas');
     const context = canvas.getContext('2d');
 
     for (let p = 1; p <= pdf.numPages; p++) {
         if (abort) break;
-        logln('INFO', `${p}/${pdf.numPages} 페이지 렌더링...`);
+        logln('INFO', `${p}/${pdf.numPages} 페이지 처리...`);
         const page = await pdf.getPage(p);
+        
+        // 텍스트 추출
+        const content = await page.getTextContent();
+        fullText += content.items.map((i) => i.str).join(" ");
+
+        // 이미지 렌더링
         const viewport = page.getViewport({ scale: 1.5 });
         canvas.height = viewport.height;
         canvas.width = viewport.width;
-
         await page.render({ canvasContext: context, viewport: viewport }).promise;
-        
-        // Get Base64 string and remove data URL prefix
         const base64 = canvas.toDataURL('image/jpeg').split(',')[1];
         imageB64s.push(base64);
     }
     canvas.remove();
-    return imageB64s;
-}
+    return { text: fullText.trim(), images: imageB64s };
+  }
 
-  function buildPrompt(input) {
+  function buildPrompt(extractedText) {
     const criteriaText = Object.entries(state.overview.criteria.levels)
       .map(([level, desc]) => `${level}: ${desc}`)
       .join('\n');
@@ -781,11 +787,13 @@ document.addEventListener('DOMContentLoaded', () => {
       })
       .join(',\n    ');
 
-    return `첨부된 문서 이미지를 분석하고, 아래의 평가 개요와 상세 루릭 기준에 따라 각 항목을 평가하세요.\n\n${overviewText}\n\n[상세 채점 루브릭]\n${rubricText}\n\n[출력 형식]\n반드시 아래 형식의 JSON만 출력하며, 다른 설명은 절대 포함하지 마세요.\n'scores' 객체에는 각 항목에 대해 가장 적합하다고 판단되는 등급(문자열) 또는 점수(숫자)를 할당하세요.\n- 단계별 항목 (3/5단계): 해당하는 등급(예: "A", "B")을 문자열로 부여하세요.\n- 단일 기준 항목: 만점을 기준으로 점수를 숫자로 직접 부여하세요.\n\n{\n  "scores": {\n    ${scoreKeys}\n  },\n  "strengths": "문서의 가장 큰 강점 1~2가지를 명료하게 서술합니다.",\n  "improvements": "개선이 필요한 부분 1~2가지를 구체적인 방법과 함께 제안합니다.",\n  "final_comment": "위의 평가 내용을 종합하여, 학생의 역량이 잘 드러나도록 과목별 세부능력 및 특기사항 예시를 학생의 성장과 역량이 드러나도록 객관적 사실을 기반으로 개조식 문체로 서술합니다."\n}`;
+    const textReference = extractedText ? `\n\n아래는 PDF에서 추출된 텍스트 원문입니다. 이미지의 글자가 명확하지 않을 경우, 이 텍스트를 참고하여 정확하게 평가하세요.\n[추출된 텍스트]\n${extractedText}` : '';
+    return `첨부된 문서 이미지를 시각적으로 분석하고, 아래의 평가 개요와 상세 루브릭 기준에 따라 각 항목을 평가하세요.${textReference}\n\n${overviewText}\n\n[상세 채점 루브릭]\n${rubricText}\n\n[출력 형식]\n반드시 아래 형식의 JSON만 출력하며, 다른 설명은 절대 포함하지 마세요.\n'scores' 객체에는 각 항목에 대해 가장 적합하다고 판단되는 등급(문자열) 또는 점수(숫자)를 할당하세요.\n- 단계별 항목 (3/5단계): 해당하는 등급(예: "A", "B")을 문자열로 부여하세요.\n- 단일 기준 항목: 만점을 기준으로 점수를 숫자로 직접 부여하세요.\n\n{\n  "scores": {\n    ${scoreKeys}\n  },\n  "strengths": "문서의 가장 큰 강점 1~2가지를 명료하게 서술합니다.",\n  "improvements": "개선이 필요한 부분 1~2가지를 구체적인 방법과 함께 제안합니다.",\n  "final_comment": "위의 평가 내용을 종합하여, 학생의 역량이 잘 드러나도록 과목별 세부능력 및 특기사항 예시를 학생의 성장과 역량이 드러나도록 객관적 사실을 기반으로 개조식 문체로 서술합니다."\n}`;
   }
 
   async function callAI({ provider, apiKey, model, input }) {
     const fullPrompt = buildPrompt(input);
+    
     if (provider === 'mock') {
       await sleep(500);
       const mockScores = {};
@@ -861,34 +869,37 @@ document.addEventListener('DOMContentLoaded', () => {
              throw new Error(`Ollama 호출 실패: ${error.message}. Ollama 서버가 실행 중인지, 네트워크 연결 및 CORS 설정을 확인하세요.`);
         }
     }
-
+    
 
     const apiEndpoints = {
       google: `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
       openai: 'https://api.openai.com/v1/chat/completions',
     };
-    const url = apiEndpoints[provider];
+
+    let url, headers, body;
+    headers = { 'Content-Type': 'application/json' };
+    const imageParts = images.map(imgB64 => ({ inlineData: { mimeType: 'image/jpeg', data: imgB64 } }));
     if (!url) throw new Error('선택된 API 제공자는 현재 지원되지 않습니다.');
 
-    const headers = { 'Content-Type': 'application/json' };
-    let body;
-    if (provider === 'openai') {
-      headers['Authorization'] = `Bearer ${apiKey}`;
-      body = {
-        model,
-        messages: [
-          { role: 'system', content: 'You are a strict rubric grader. Output JSON only.' },
-          { role: 'user', content: fullPrompt },
-        ],
-        temperature: 0.2,
-        response_format: { type: 'json_object' },
-      };
-    } else {
-      // google
-      body = {
-        contents: [{ parts: [{ text: fullPrompt }] }],
-        generationConfig: { response_mime_type: 'application/json', temperature: 0.2 },
-      };
+    switch(provider) {
+        case 'google':
+            url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+            body = { 
+                contents: [{ parts: [{ text: fullPrompt }, ...imageParts] }],
+                generationConfig: { response_mime_type: "application/json", temperature: 0.2 } 
+            };
+            break;
+        case 'openai':
+             url = 'https://api.openai.com/v1/chat/completions';
+             headers['Authorization'] = `Bearer ${apiKey}`;
+             const content = [
+                 { type: "text", text: fullPrompt },
+                 ...images.map(imgB64 => ({ type: "image_url", image_url: { url: `data:image/jpeg;base64,${imgB64}` } }))
+             ];
+             body = { model, messages: [{ role: 'user', content }], temperature: 0.2, response_format: { type: 'json_object' } };
+             break;
+        default:
+            throw new Error(`${provider} 제공자는 이미지 분석(Vision)을 지원하지 않습니다. Gemini 또는 OpenAI를 사용해주세요.`);
     }
 
     const res = await fetch(url, { method: 'POST', headers, body: JSON.stringify(body) });
