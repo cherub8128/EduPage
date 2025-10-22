@@ -1,4 +1,4 @@
-// htmlGenerator.js.js
+// htmlGenerator.js  — 인쇄(Paged Media) 기반 PDF + 불필요 라이브러리 제거 버전
 
 // app 객체를 인자로 받아 HTML 생성을 총괄합니다.
 export function generateHTML(app) {
@@ -68,9 +68,26 @@ export function generateHTML(app) {
           .map((c) => generateComponentHTML(c, true))
           .join("")}</div>`;
         break;
-      case "interactive":
-        content = `<div id="interactive-${component.id}">${component.html}</div>`;
-        break;
+      case "interactive": {
+        const htmlPart = component.html || "";
+        const jsPart   = component.js || component.scripts || "";
+        content = `
+        <section class="report-section mb-8 break-inside-avoid" data-interactive="${component.id}">
+          <div id="interactive-${component.id}" class="interactive-root">
+            ${htmlPart}
+          </div>
+          ${jsPart ? `<script>(function(){
+            try {
+              var root = document.getElementById('interactive-${component.id}');
+              if (!root) return;
+              ${jsPart}
+            } catch(e) {
+              console.error('Interactive ${component.id} init error:', e);
+            }
+          })();</script>` : ""}
+        </section>`;
+      }
+      break;
     }
     return isRecursive
       ? `<div class="report-section mb-8 break-inside-avoid">${content}</div>`
@@ -115,7 +132,54 @@ function generateStyleHTML(config) {
     config.fontFamily === "serif"
       ? "'Noto Serif KR', serif"
       : "'Noto Sans KR', sans-serif";
-  return `<style>${fontImport} body { font-family: ${fontFamily}; color: ${config.textColor}; } .editable-container .prose, .editable-container pre { cursor: text; transition: background-color 0.2s; } .editable-container .prose { min-height: 80px; padding: 0.75rem; border-radius: 0.375rem; border: 1px solid transparent; } .editable-container .prose:hover, .editable-container pre:hover { background-color: #f8fafc; border-color: #e2e8f0;} .code-preview, .code-input { font-family: 'D2Coding', monospace, 'Courier New'; font-size: 0.9rem; line-height: 1.6; } .code-preview { padding: 1rem; border-radius: 0.5rem; } .no-print { display: block; } @media print { .no-print { display: none; } #report-content { margin: 0; padding: 0; box-shadow: none; } }</style>`;
+
+  // 인쇄(Paged Media) 규칙 보강: 벡터 텍스트 유지 + 잘림 방지
+  const printCSS = `
+  @media print {
+    @page { size: A4; margin: 15mm; }
+    html, body { background: #fff !important; }
+    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .no-print { display: none !important; }
+    #report-content { margin: 0 !important; padding: 0 !important; box-shadow: none !important; }
+
+    .report-section { break-inside: auto !important; page-break-inside: auto !important; }
+    figure, table, .screenshot-wrapper { break-inside: avoid-page !important; page-break-inside: avoid !important; }
+
+    img {
+      max-width: 100% !important;
+      height: auto !important;
+      max-height: calc(297mm - 40mm) !important; /* A4높이-여백 */
+      object-fit: contain !important;
+      break-inside: avoid-page !important; page-break-inside: avoid !important;
+    }
+    pre, code {
+      white-space: pre-wrap !important;
+      word-break: break-word !important;
+      overflow-wrap: anywhere !important;
+    }
+    pre { break-inside: auto !important; page-break-inside: auto !important; }
+
+    table { table-layout: fixed; width: 100% !important; }
+    th, td { word-break: break-word; }
+
+    /* 인쇄 가독성 */
+    body { font-size: 11pt; line-height: 1.45; }
+    h1 { font-size: 20pt; }
+    h2 { font-size: 16pt; }
+    h3 { font-size: 13pt; }
+  }`;
+
+  return `<style>
+    ${fontImport}
+    body { font-family: ${fontFamily}; color: ${config.textColor}; }
+    .editable-container .prose, .editable-container pre { cursor: text; transition: background-color 0.2s; }
+    .editable-container .prose { min-height: 80px; padding: 0.75rem; border-radius: 0.375rem; border: 1px solid transparent; }
+    .editable-container .prose:hover, .editable-container pre:hover { background-color: #f8fafc; border-color: #e2e8f0;}
+    .code-preview, .code-input { font-family: 'D2Coding', monospace, 'Courier New'; font-size: 0.9rem; line-height: 1.6; }
+    .code-preview { padding: 1rem; border-radius: 0.5rem; }
+    .no-print { display: block; }
+    ${printCSS}
+  </style>`;
 }
 
 function generateScriptHTML(config) {
@@ -131,9 +195,7 @@ function generateScriptHTML(config) {
         const config = {
             storageKey: 'exportedReportData_' + window.location.pathname,
             savableSelector: '.savable',
-            screenshotCount: ${
-              config.components.filter((c) => c.type === "image-upload").length
-            },
+            screenshotCount: ${config.components.filter((c) => c.type === "image-upload").length},
             hasCodeBlock: ${config.components.some((c) => c.type === "code")},
             paperSize: '${config.paperSize}'
         };
@@ -226,60 +288,64 @@ function generateScriptHTML(config) {
             if (config.hasCodeBlock) updateCodePreview();
         }
         
+        // === 인쇄 기반 PDF: 텍스트/수식/코드 선택 가능 ===
         async function exportToPdf() {
             const loader = document.getElementById('loader-overlay');
             if(loader) loader.style.display = 'flex';
             const reportContent = document.getElementById('report-content');
-            try {
-                const { jsPDF } = window.jspdf;
-                let format = config.paperSize.startsWith('a') || config.paperSize.startsWith('b') ? config.paperSize : 'a4';
-                const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: format });
-                
-                // ❗ --- BUG FIX START ---
-                // 1. 캡처 직전에 모든 프리뷰를 강제로 다시 렌더링합니다.
-                // (localStorage에서 불러온 데이터가 프리뷰에 반영되도록 보장)
-                document.querySelectorAll('.markdown-input').forEach(updateMarkdownPreview);
-                if (config.hasCodeBlock) updateCodePreview();
 
-                // 2. PDF에 포함될 프리뷰 요소들을 화면에 표시합니다.
-                document.querySelectorAll('.editable-container textarea').forEach(el => el.style.display = 'none');
-                document.querySelectorAll('.editable-container .markdown-preview, .editable-container pre').forEach(el => el.style.display = 'block');
-                
-                // 3. 100ms 대기하여 브라우저가 DOM 변경(display) 및
-                //    KaTeX, Highlight.js 렌더링을 완료할 시간을 줍니다.
-                await new Promise(resolve => setTimeout(resolve, 100));
-                // ❗ --- BUG FIX END ---
-                
-                const canvas = await html2canvas(reportContent, {
-                     scale: 2,
-                     useCORS: true,
-                     windowWidth: reportContent.scrollWidth,
-                     windowHeight: reportContent.scrollHeight
-                });
-                
-                // 캡처 후, 원래 편집 상태로 되돌립니다.
-                document.querySelectorAll('.editable-container textarea').forEach(el => el.style.display = '');
-                document.querySelectorAll('.editable-container .markdown-preview, .editable-container pre').forEach(el => el.style.display = '');
+            // 1) 출력용 상태로 전환
+            document.querySelectorAll('.markdown-input').forEach(updateMarkdownPreview);
+            if (config.hasCodeBlock) updateCodePreview();
 
-                const imgData = canvas.toDataURL('image/png');
-                const pdfWidth = pdf.internal.pageSize.getWidth();
-                const pdfHeight = pdf.internal.pageSize.getHeight();
-                const imgHeight = (canvas.height * pdfWidth) / canvas.width;
-                let heightLeft = imgHeight;
-                let position = 0;
-                
-                pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, imgHeight);
-                heightLeft -= pdfHeight;
+            const editors  = reportContent.querySelectorAll('.editable-container textarea');
+            const previews = reportContent.querySelectorAll('.editable-container .markdown-preview, .editable-container pre');
 
-                while (heightLeft > 0) {
-                    position = -heightLeft;
-                    pdf.addPage();
-                    pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
-                    heightLeft -= pdfHeight;
-                }
-                pdf.save(document.title + '.pdf');
-            } catch(e) { console.error("PDF Export Error:", e); }
-            finally { if(loader) loader.style.display = 'none'; }
+            editors.forEach(el => el.classList.add('hidden'));
+            previews.forEach(el => el.classList.remove('hidden'));
+
+            // 2) 수식/코드 최신화
+            if (window.renderMathInElement) {
+              renderMathInElement(reportContent, {
+                delimiters: [
+                  {left:'$$', right:'$$', display:true},
+                  {left:'$',  right:'$',  display:false},
+                  {left:'\\\\(', right:'\\\\)', display:false},
+                  {left:'\\\\[', right:'\\\\]', display:true}
+                ],
+                throwOnError: false
+              });
+            }
+            if (typeof hljs !== 'undefined') {
+              reportContent.querySelectorAll('pre code').forEach(el => {
+                delete el.dataset.highlighted; hljs.highlightElement(el);
+              });
+            }
+
+            // 3) 폰트/이미지 로딩 대기
+            try { await document.fonts.ready; } catch(e) {}
+            await Promise.all(Array.from(reportContent.querySelectorAll('img')).map(img => {
+              if (img.complete) return;
+              return new Promise(res => { img.addEventListener('load', res, { once:true }); img.addEventListener('error', res, { once:true }); });
+            }));
+
+            // 4) 파일명 제안: 첫 번째 h1 기준
+            const h1 = document.querySelector('h1');
+            const suggested = (h1?.textContent || '문서').trim().replace(/\\s+/g,'_');
+            const prevTitle = document.title;
+            document.title = suggested;
+
+            const cleanup = () => {
+              editors.forEach(el => el.classList.remove('hidden'));
+              previews.forEach(el => el.classList.remove('hidden'));
+              document.title = prevTitle;
+              if(loader) loader.style.display = 'none';
+              window.removeEventListener('afterprint', cleanup);
+            };
+            window.addEventListener('afterprint', cleanup);
+
+            // 5) 인쇄 → 사용자가 "PDF로 저장" 선택
+            window.print();
         }
 
         function initialize() {
@@ -330,23 +396,21 @@ function generateScriptHTML(config) {
 }
 
 function buildFullHtml(config, bodyContent, styleContent, scriptContent) {
-  // ❗ [수정된 부분]
-  // 'const overlays' 선언이 'return' 문보다 *반드시* 먼저 와야 합니다.
   const overlays = `
     <div id="loader-overlay" class="fixed inset-0 bg-black bg-opacity-60 flex-col items-center justify-center hidden z-50">
         <div class="bg-white p-8 rounded-lg shadow-xl text-center">
             <svg class="animate-spin h-10 w-10" style="color: ${config.themeColor}" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"><\\/circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"><\\/path>
-            <\/svg>
-            <p class="text-lg font-semibold text-slate-700 mt-4">PDF 생성 중...<\/p>
-        <\/div>
-    <\/div>
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <p class="text-lg font-semibold text-slate-700 mt-4">인쇄용 PDF 준비 중...</p>
+        </div>
+    </div>
     <div id="autosave-status" class="no-print fixed bottom-6 right-6 flex items-center bg-slate-800 text-white py-2 px-4 rounded-lg shadow-lg opacity-0 transition-opacity duration-500 z-50">
-        <svg id="autosave-icon-saving" class="animate-spin h-5 w-5 mr-3 hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"><\\/circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"><\/path><\/svg>
-        <svg id="autosave-icon-saved" class="h-5 w-5 mr-3 hidden text-green-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /><\/svg>
-        <span id="autosave-text"><\/span>
-    <\/div>`;
+        <svg id="autosave-icon-saving" class="animate-spin h-5 w-5 mr-3 hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+        <svg id="autosave-icon-saved" class="h-5 w-5 mr-3 hidden text-green-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>
+        <span id="autosave-text"></span>
+    </div>`;
 
   return `
         <!DOCTYPE html>
@@ -355,32 +419,33 @@ function buildFullHtml(config, bodyContent, styleContent, scriptContent) {
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>${config.reportTitle}</title>
-            <script src="https://cdn.tailwindcss.com?plugins=typography"><\/script>
-            <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"><\/script>
-            <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"><\/script>
-            <script src="https://cdnjs.cloudflare.com/ajax/libs/showdown/2.1.0/showdown.min.js"><\/script>
+            <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/showdown/2.1.0/showdown.min.js"></script>
             <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
-            <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"><\/script>
-            <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"><\/script>
+            <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+            <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
             <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
-            <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"><\/script>
-            <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"><\/script>
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
             ${styleContent}
-        <\/head>
+        </head>
         <body class="p-4 sm:p-8 bg-slate-100">
             <main class="max-w-4xl mx-auto bg-white shadow-lg">
                 ${bodyContent}
             </main>
             <footer class="text-center mt-8 py-6 no-print">
+                <p class="text-sm text-slate-500 mb-2">
+                  인쇄 창이 뜨면 '대상' 또는 '프린터' 항목에서 <strong>'PDF로 저장'</strong>을 선택하세요.
+                </p>
                 <button id="export-pdf" class="text-white font-bold py-3 px-6 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg flex items-center gap-2 mx-auto" style="background-color: ${config.themeColor};">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"><\/path><polyline points="7 10 12 15 17 10"><\/polyline><line x1="12" y1="15" x2="12" y2="3"><\/line><\/svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
                     PDF로 저장
-                <\/button>
+                </button>
             </footer>
             ${overlays}
             ${scriptContent}
-        <\/body>
-        <\/html>`;
+        </body>
+        </html>`;
 }
 
 function downloadFile(content, fileName, contentType) {

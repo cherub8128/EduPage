@@ -51,6 +51,13 @@
 
         @media print {
         @page { size: A4; margin: 15mm; }
+        #loader-overlay,
+        #pdfModal, #pdf-modal, .pdf-modal,
+        .modal, [role="dialog"] {
+            display: none !important;
+            visibility: hidden !important;
+            opacity: 0 !important;
+        }
 
         /* 배경/그림자/패딩 정리 */
         html, body { background: #fff !important; }
