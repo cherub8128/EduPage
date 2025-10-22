@@ -897,7 +897,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const rubricHeaders = state.rubric
       .map((item) => `<th class="p-2 text-right">${item.name}</th>`)
       .join('');
-    header.innerHTML = `<tr><th class="p-2 text-left">파일명</th><th class="p-2 text-left">학번</th><th class="p-2 text-left">이름</th>${rubricHeaders}<th class="p-2 text-right font-semibold">합산점수</th></tr>`;
+    header.innerHTML = `<tr><th class="p-2 text-left">파일명</th><th class="p-2 text-left">학번</th><th class="p-2 text-left">이름</th>${rubricHeaders}<th class="p-2 text-right font-semibold">점수</th></tr>`;
 
     body.innerHTML = '';
     state.results.forEach((r) => {
@@ -955,7 +955,7 @@ document.addEventListener('DOMContentLoaded', () => {
       r.fileName
     }">${
       r.fileName
-    }</p></div><div class="text-right flex-shrink-0"><div class="text-xs text-slate-500">평균 점수</div><div class="text-2xl font-extrabold mono text-indigo-600">${totalScore.toFixed(
+    }</p></div><div class="text-right flex-shrink-0"><div class="text-xs text-slate-500">점수</div><div class="text-2xl font-extrabold mono text-indigo-600">${totalScore.toFixed(
       2
     )}</div></div></div><div style="height:320px"><canvas></canvas></div><div class="grid sm:grid-cols-2 gap-3 text-sm">${createFeedbackBox(
       '잘한 점',
