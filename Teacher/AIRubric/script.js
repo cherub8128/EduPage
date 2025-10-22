@@ -897,11 +897,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const rubricHeaders = state.rubric
       .map((item) => `<th class="p-2 text-right">${item.name}</th>`)
       .join('');
-    header.innerHTML = `<tr><th class="p-2 text-left">파일명</th><th class="p-2 text-left">학번</th><th class="p-2 text-left">이름</th>${rubricHeaders}<th class="p-2 text-right font-semibold">평균점수</th></tr>`;
+    header.innerHTML = `<tr><th class="p-2 text-left">파일명</th><th class="p-2 text-left">학번</th><th class="p-2 text-left">이름</th>${rubricHeaders}<th class="p-2 text-right font-semibold">합산점수</th></tr>`;
 
     body.innerHTML = '';
     state.results.forEach((r) => {
-      const { meanScore } = calculateScores(r.scores);
+      const { totalScore: totalScore } = calculateScores(r.scores);
       const tr = document.createElement('tr');
       tr.dataset.filename = r.fileName;
       const scoreCells = state.rubric
@@ -928,7 +928,7 @@ document.addEventListener('DOMContentLoaded', () => {
         r.fileName
       }</td><td class="p-2">${r.studentId || ''}</td><td class="p-2">${
         r.studentName || ''
-      }</td>${scoreCells}<td class="p-2 text-right font-semibold">${meanScore.toFixed(2)}</td>`;
+      }</td>${scoreCells}<td class="p-2 text-right font-semibold">${totalScore.toFixed(2)}</td>`;
       body.appendChild(tr);
     });
   }
@@ -943,7 +943,7 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    const { meanScore, scoreValues, labels } = calculateScores(r.scores);
+    const { totalScore: totalScore, scoreValues, labels } = calculateScores(r.scores);
     const maxPossibleScores = state.rubric.map((item) => Math.max(...Object.values(item.scores)));
     const maxPossibleScore = Math.max(...maxPossibleScores, 1);
 
@@ -955,7 +955,7 @@ document.addEventListener('DOMContentLoaded', () => {
       r.fileName
     }">${
       r.fileName
-    }</p></div><div class="text-right flex-shrink-0"><div class="text-xs text-slate-500">평균 점수</div><div class="text-2xl font-extrabold mono text-indigo-600">${meanScore.toFixed(
+    }</p></div><div class="text-right flex-shrink-0"><div class="text-xs text-slate-500">평균 점수</div><div class="text-2xl font-extrabold mono text-indigo-600">${totalScore.toFixed(
       2
     )}</div></div></div><div style="height:320px"><canvas></canvas></div><div class="grid sm:grid-cols-2 gap-3 text-sm">${createFeedbackBox(
       '잘한 점',
@@ -1013,7 +1013,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function calculateScores(scoresObj) {
-    if (!scoresObj) return { meanScore: 0, scoreValues: [], labels: [] };
+    if (!scoresObj) return { totalScore: 0, scoreValues: [], labels: [] };
     const scoreValues = [];
     const labels = [];
     state.rubric.forEach((item) => {
@@ -1031,8 +1031,8 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
     const sum = scoreValues.reduce((a, b) => a + b, 0);
-    const meanScore = scoreValues.length > 0 ? sum / scoreValues.length : 0;
-    return { meanScore, scoreValues, labels };
+    const totalScore = scoreValues.length > 0 ? sum : 0;
+    return { totalScore: totalScore, scoreValues, labels };
   }
 
   byId('summaryBody').addEventListener('click', (e) => {
@@ -1058,7 +1058,7 @@ document.addEventListener('DOMContentLoaded', () => {
       'final_comment',
     ];
     const rows = state.results.map((r) => {
-      const { meanScore } = calculateScores(r.scores);
+      const { totalScore: totalScore } = calculateScores(r.scores);
       const scoreValues = state.rubric.flatMap((item) => {
         const key = item.name
           .toLowerCase()
@@ -1081,7 +1081,7 @@ document.addEventListener('DOMContentLoaded', () => {
         r.studentId,
         sanitized(r.studentName),
         ...scoreValues,
-        meanScore.toFixed(2),
+        totalScore.toFixed(2),
         sanitized(r.final_comment),
       ].join(',');
     });
