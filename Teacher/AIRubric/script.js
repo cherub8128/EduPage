@@ -790,105 +790,40 @@ document.addEventListener('DOMContentLoaded', () => {
     return `첨부된 문서 이미지를 시각적으로 분석하고, 아래의 평가 개요와 상세 루브릭 기준에 따라 각 항목을 평가하세요.${textReference}\n\n${overviewText}\n\n[상세 채점 루브릭]\n${rubricText}\n\n[출력 형식]\n반드시 아래 형식의 JSON만 출력하며, 다른 설명은 절대 포함하지 마세요.\n'scores' 객체에는 각 항목에 대해 가장 적합하다고 판단되는 등급(문자열) 또는 점수(숫자)를 할당하세요.\n- 단계별 항목 (3/5단계): 해당하는 등급(예: "A", "B")을 문자열로 부여하세요.\n- 단일 기준 항목: 만점을 기준으로 점수를 숫자로 직접 부여하세요.\n\n{\n  "scores": {\n    ${scoreKeys}\n  },\n  "strengths": "문서의 가장 큰 강점 1~2가지를 명료하게 서술합니다.",\n  "improvements": "개선이 필요한 부분 1~2가지를 구체적인 방법과 함께 제안합니다.",\n  "final_comment": "위의 평가 내용을 종합하여, 학생의 역량이 잘 드러나도록 과목별 세부능력 및 특기사항 예시를 학생의 성장과 역량이 드러나도록 객관적 사실을 기반으로 개조식 문체로 서술합니다."\n}`;
   }
 
-  async function callAI({ provider, apiKey, model, input }) {
-    const fullPrompt = buildPrompt(input);
+  async function callAI({ provider, apiKey, model, text, images }) {
+    const fullPrompt = buildPrompt(text);
     
-    if (provider === 'mock') {
-      await sleep(500);
-      const mockScores = {};
-      state.rubric.forEach((item) => {
-        const key = item.name
-          .toLowerCase()
-          .replace(/[\s:·-]+/g, '_')
-          .slice(0, 30);
-        if (item.type === 'single') {
-          const maxScore = item.scores['득점'] || 5;
-          mockScores[key] = parseFloat((Math.random() * maxScore).toFixed(1));
-        } else {
-          const levels = scoreTypeConfig[item.type].levels;
-          mockScores[key] = levels[Math.floor(Math.random() * levels.length)];
-        }
-      });
-      return {
-        scores: mockScores,
-        strengths: '모의 강점: 구조가 명확하고 예시가 적절함.',
-        improvements: '모의 개선점: 이론적 배경 설명 보강 필요.',
-        final_comment:
-          '모의 과세특: 라이브러리를 능숙하게 활용하여 문제 상황을 모델링하고 시각적으로 표현하는 역량이 돋보임.',
-      };
-    }
-
-    if (provider === 'openrouter') {
-        if (!apiKey) throw new Error('OpenRouter API 키가 필요합니다.');
-        const url = 'https://openrouter.ai/api/v1/chat/completions';
-        const res = await fetch(url, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${apiKey}`,
-                'Content-Type': 'application/json',
-                'HTTP-Referer': location.origin, // Recommended practice
-                'X-Title': 'Rubric Grader App' // Recommended practice
-            },
-            body: JSON.stringify({
-                model,
-                messages: [
-                    { role: 'system', content: 'You are a strict rubric grader. Output JSON only.' },
-                    { role: 'user', content: fullPrompt }
-                ],
-                temperature: 0.2,
-                response_format: { type: 'json_object' }
-            })
+    if (provider === "mock") {
+        await sleep(500);
+        const mockScores = {};
+        state.rubric.forEach((item) => {
+            const key = item.name.toLowerCase().replace(/[\s:·-]+/g, "_").slice(0, 30);
+            if (item.type === 'single') {
+                const maxScore = item.scores['득점'] || 5;
+                mockScores[key] = parseFloat((Math.random() * maxScore).toFixed(1));
+            } else {
+                const levels = scoreTypeConfig[item.type].levels;
+                mockScores[key] = levels[Math.floor(Math.random() * levels.length)];
+            }
         });
-        if (!res.ok) throw new Error(`OpenRouter API 오류: ${await res.text()}`);
-        const data = await res.json();
-        return sanitizeJSON(data.choices?.[0]?.message?.content ?? "{}");
+        return { scores: mockScores, strengths: "모의 강점: 구조가 명확하고 예시가 적절함.", improvements: "모의 개선점: 이론적 배경 설명 보강 필요.", final_comment: "모의 과세특: 라이브러리를 능숙하게 활용하여 문제 상황을 모델링하고 시각적으로 표현하는 역량이 돋보임." };
     }
-
-    // --- 추가된 Ollama 로직 ---
-    if (provider === 'ollama') {
-        const url = 'http://localhost:11434/api/generate'; // 기본 Ollama 주소
-        try {
-            const res = await fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    model,
-                    prompt: fullPrompt,
-                    format: 'json', // 요청 형식 지정
-                    stream: false, // 응답을 스트리밍하지 않음
-                    options: { temperature: 0.2 }
-                })
-            });
-            if (!res.ok) throw new Error(`Ollama API 오류: ${res.statusText}. Ollama 서버 실행 및 CORS 설정을 확인하세요.`);
-            const data = await res.json();
-            // Ollama는 'response' 필드에 JSON 문자열을 반환
-            return sanitizeJSON(data.response ?? "{}");
-        } catch (error) {
-             // 네트워크 오류 등 fetch 자체 실패 처리
-             throw new Error(`Ollama 호출 실패: ${error.message}. Ollama 서버가 실행 중인지, 네트워크 연결 및 CORS 설정을 확인하세요.`);
-        }
-    }
-    
-
-    const apiEndpoints = {
-      google: `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
-      openai: 'https://api.openai.com/v1/chat/completions',
-    };
 
     let url, headers, body;
     headers = { 'Content-Type': 'application/json' };
-    const imageParts = images.map(imgB64 => ({ inlineData: { mimeType: 'image/jpeg', data: imgB64 } }));
-    if (!url) throw new Error('선택된 API 제공자는 현재 지원되지 않습니다.');
 
     switch(provider) {
         case 'google':
+            if (!images || images.length === 0) throw new Error("Google API는 이미지 분석을 위해 PDF 파일이 필요합니다.");
             url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+            const imageParts = images.map(imgB64 => ({ inlineData: { mimeType: 'image/jpeg', data: imgB64 } }));
             body = { 
                 contents: [{ parts: [{ text: fullPrompt }, ...imageParts] }],
                 generationConfig: { response_mime_type: "application/json", temperature: 0.2 } 
             };
             break;
         case 'openai':
+             if (!images || images.length === 0) throw new Error("OpenAI API는 이미지 분석을 위해 PDF 파일이 필요합니다.");
              url = 'https://api.openai.com/v1/chat/completions';
              headers['Authorization'] = `Bearer ${apiKey}`;
              const content = [
@@ -897,19 +832,44 @@ document.addEventListener('DOMContentLoaded', () => {
              ];
              body = { model, messages: [{ role: 'user', content }], temperature: 0.2, response_format: { type: 'json_object' } };
              break;
+        case 'openrouter':
+        case 'ollama':
+             // Ollama와 OpenRouter는 현재 텍스트 전용으로 가정합니다.
+             // 만약 이들도 Vision을 지원한다면, google/openai와 유사한 구조를 추가해야 합니다.
+             logln('WARN', `${provider}는 현재 텍스트 기반 평가만 지원합니다. PDF의 텍스트 레이어만 사용됩니다.`);
+             url = provider === 'ollama' ? 'http://localhost:11434/api/generate' : 'https://openrouter.ai/api/v1/chat/completions';
+             
+             if (provider === 'openrouter') {
+                headers['Authorization'] = `Bearer ${apiKey}`;
+             }
+             
+             const messages = [{ role: 'system', content: 'You are a strict rubric grader. Output JSON only.' }, { role: 'user', content: buildPrompt(text) }]; // 텍스트만 사용
+             
+             if(provider === 'ollama') {
+                body = { model, prompt: buildPrompt(text), format: 'json', stream: false, options: { temperature: 0.2 } };
+             } else {
+                body = { model, messages, temperature: 0.2, response_format: { type: 'json_object' } };
+             }
+             break;
         default:
-            throw new Error(`${provider} 제공자는 이미지 분석(Vision)을 지원하지 않습니다. Gemini 또는 OpenAI를 사용해주세요.`);
+            throw new Error(`${provider} 제공자는 현재 지원되지 않습니다.`);
     }
 
     const res = await fetch(url, { method: 'POST', headers, body: JSON.stringify(body) });
     if (!res.ok) throw new Error(`${provider} API 오류: ${await res.text()}`);
+    
     const data = await res.json();
-    const textToParse =
-      provider === 'openai'
-        ? data.choices?.[0]?.message?.content
-        : data.candidates?.[0]?.content?.parts?.[0]?.text;
-    return sanitizeJSON(textToParse ?? '{}');
-  }
+    let textToParse;
+    if (provider === 'openai' || provider === 'openrouter') {
+        textToParse = data.choices?.[0]?.message?.content;
+    } else if (provider === 'google') {
+        textToParse = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    } else if (provider === 'ollama') {
+        textToParse = data.response;
+    }
+    
+    return sanitizeJSON(textToParse ?? "{}");
+}
 
   function sanitizeJSON(text) {
     let cleanText = text.trim();
