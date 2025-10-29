@@ -30,11 +30,11 @@
         .interactive-canvas { border: 1px solid #e2e8f0; border-radius: 0.5rem; background-color: #f8fafc; }
         .tab-button.active { border-color: var(--accent-color); color: var(--accent-color); font-weight: 600; }
         .tab-content { display: none; } .tab-content.active { display: block; }
-        .editable-field, .markdown-input { 
-            width: 100%; 
-            border: 1px solid #cbd5e1; 
-            border-radius: 0.5rem; 
-            padding: 0.75rem 1rem; 
+        .editable-field, .markdown-input {
+            width: 100%;
+            border: 1px solid #cbd5e1;
+            border-radius: 0.5rem;
+            padding: 0.75rem 1rem;
             transition: border-color 0.2s, box-shadow 0.2s;
             font-family: var(--font-sans);
         }
@@ -44,17 +44,27 @@
         .is-invalid:focus { box-shadow: 0 0 0 2px color-mix(in srgb, var(--invalid-color) 25%, transparent) !important; }
         .file-upload-label { cursor: pointer; background-color: #f8fafc; color: #475569; padding: 0.5rem 1rem; border-radius: 0.375rem; border: 1px solid #cbd5e1; font-size: 0.875rem; font-weight: 500; transition: all 0.2s; }
         .file-upload-label:hover { background-color: #f1f5f9; border-color: var(--accent-color); }
-        .markdown-preview { margin-top: 1rem; padding: 1.25rem; background-color: #f8fafc; border-radius: 0.5rem; border: 1px solid #e2e8f0; min-height: 120px; }
+        .markdown-preview { cursor: text; padding: 1.25rem; background-color: #f8fafc; border-radius: 0.5rem; border: 1px solid transparent; min-height: 80px; transition: background-color 0.2s; }
+        .markdown-preview:hover { background-color: #f8fafc; border-color: #e2e8f0; }
+        .editable-container .markdown-input { display: none; }
+        .editable-container .markdown-preview { display: block; }
         .prose { --tw-prose-body: #374151; --tw-prose-headings: #111827; --tw-prose-links: var(--accent-color); --tw-prose-bold: #111827; --tw-prose-code: #be185d; --tw-prose-pre-bg: #f3f4f6; --tw-prose-pre-code: #111827; }
         .prose pre code, .prose code { font-family: var(--font-mono); }
-        
+
         @media print {
             body { background-color: #ffffff !important; }
             .print-hidden { display: none !important; }
             .step-card { page-break-inside: avoid; break-inside: avoid; box-shadow: none !important; border: 1px solid #e2e8f0; margin-bottom: 1.5rem; }
-            .editable-field, .markdown-input { display: none !important; }
-            .markdown-preview { display: block !important; border: none !important; padding: 0 !important; background-color: transparent !important; margin-top: 0 !important; }
+            .editable-container .markdown-input { display: none !important; }
+            .editable-container .markdown-preview { display: block !important; border: none !important; padding: 0 !important; background-color: transparent !important; margin-top: 0 !important; }
             .screenshot-container img { max-width: 100% !important; display: block !important; }
+            /* 학번, 이름 입력 필드를 출력 시 보이도록 */
+            #student-id, #student-name {
+                display: block !important;
+                border: none !important;
+                padding: 0.5rem !important;
+                background-color: transparent !important;
+            }
         }
     </style>
 </head>
@@ -99,8 +109,10 @@
                     </div>
                     <div>
                         <label for="observations" class="block text-lg font-semibold mb-2">📝 관찰 내용 및 질문</label>
-                        <textarea id="observations" rows="10" class="markdown-input editable-field" placeholder="예시)&#10;- 빛이 만드는 무늬는 하트 모양과 비슷하다.&#10;- 이 곡선의 뾰족한 부분은 왜 생길까?&#10;- 이 곡선을 수학식으로 표현할 수 있을까?"></textarea>
-                        <div class="markdown-preview prose max-w-none"></div>
+                        <div class="editable-container">
+                            <textarea id="observations" class="markdown-input editable-field" placeholder="예시)&#10;- 빛이 만드는 무늬는 하트 모양과 비슷하다.&#10;- 이 곡선의 뾰족한 부분은 왜 생길까?&#10;- 이 곡선을 수학식으로 표현할 수 있을까?"></textarea>
+                            <div class="markdown-preview prose max-w-none"></div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -120,8 +132,10 @@
                 <div class="mt-8 pt-8 border-t">
                     <label for="proof-writing" class="block text-lg font-semibold mb-2">🔍 증명 작성하기</label>
                     <p class="mb-4 text-gray-600">빛의 반사 법칙과 삼각함수를 이용하여 반사 광선의 방정식을 유도하는 과정을 서술해보세요.</p>
-                    <textarea id="proof-writing" rows="4" class="markdown-input editable-field" placeholder="반사점 $P(\cos\theta, \sin\theta)$ 에서의 법선 벡터는 $\vec{n}=(-\cos\theta, -\sin\theta)$ 이다.&#10;입사광선 $\vec{i}=(1,0)$ 에 대해 반사벡터 $\vec{r} = \vec{i} - 2(\vec{i} \cdot \vec{n})\vec{n}$ 을 계산하면..."></textarea>
-                    <div class="markdown-preview prose max-w-none"></div>
+                    <div class="editable-container">
+                        <textarea id="proof-writing" class="markdown-input editable-field" placeholder="반사점 $P(\cos\theta, \sin\theta)$ 에서의 법선 벡터는 $\vec{n}=(-\cos\theta, -\sin\theta)$ 이다.&#10;입사광선 $\vec{i}=(1,0)$ 에 대해 반사벡터 $\vec{r} = \vec{i} - 2(\vec{i} \cdot \vec{n})\vec{n}$ 을 계산하면..."></textarea>
+                        <div class="markdown-preview prose max-w-none"></div>
+                    </div>
                 </div>
             </div>
         </section>
@@ -193,8 +207,10 @@ xlim([-1.5, 1.5]); ylim([-1.5, 1.5]); hold off;</code></pre></div>
                 </div>
                 <div class="bg-teal-50 p-6 rounded-lg">
                     <label for="simulation-code" class="block text-lg font-semibold mb-2">⚙️ 내 시뮬레이션 제출</label>
-                    <textarea id="simulation-code" rows="12" class="markdown-input editable-field font-mono text-sm" placeholder="이곳에 Python 코드 전체를 붙여넣거나, 완성된 GeoGebra의 공유 링크를 입력하세요."></textarea>
-                    <div class="markdown-preview prose max-w-none"></div>
+                    <div class="editable-container">
+                        <textarea id="simulation-code" class="markdown-input editable-field font-mono text-sm" placeholder="이곳에 Python 코드 전체를 붙여넣거나, 완성된 GeoGebra의 공유 링크를 입력하세요."></textarea>
+                        <div class="markdown-preview prose max-w-none"></div>
+                    </div>
                 </div>
             </div>
         </section>
@@ -205,9 +221,9 @@ xlim([-1.5, 1.5]); ylim([-1.5, 1.5]); hold off;</code></pre></div>
                 <h2 class="text-3xl font-bold mb-4 border-b-2 border-yellow-200 pb-2">Step 5: 심화 탐구</h2>
                 <div class="space-y-8">
                     <div><label for="inquiry-title" class="block text-lg font-semibold mb-2">1. 탐구 주제</label><input type="text" id="inquiry-title" class="editable-field" placeholder="예시) 포물선 거울이 만드는 포락선 분석"></div>
-                    <div><label for="inquiry-question" class="block text-lg font-semibold mb-2">2. 탐구 질문</label><textarea id="inquiry-question" rows="3" class="markdown-input editable-field" placeholder="예시) 커피잔이 원이 아닌 포물선 모양이라면, 평행 광선이 반사될 때 생기는 포락선은 어떤 모양일까?"></textarea><div class="markdown-preview prose max-w-none"></div></div>
-                    <div><label for="inquiry-motivation" class="block text-lg font-semibold mb-2">3. 탐구 동기 및 목적</label><textarea id="inquiry-motivation" rows="5" class="markdown-input editable-field" placeholder="왜 이 주제를 더 깊이 탐구하고 싶은가요? 이 탐구를 통해 무엇을 알아내는 것이 목적인가요?"></textarea><div class="markdown-preview prose max-w-none"></div></div>
-                    <div><label for="inquiry-content" class="block text-lg font-semibold mb-2">4. 탐구 내용 및 과정</label><textarea id="inquiry-content" rows="10" class="markdown-input editable-field" placeholder="탐구 가설, 변인 설정, 수식 유도, 시뮬레이션 설계 등 구체적인 탐구 과정과 내용을 서술하세요."></textarea><div class="markdown-preview prose max-w-none"></div></div>
+                    <div><label for="inquiry-question" class="block text-lg font-semibold mb-2">2. 탐구 질문</label><div class="editable-container"><textarea id="inquiry-question" class="markdown-input editable-field" placeholder="예시) 커피잔이 원이 아닌 포물선 모양이라면, 평행 광선이 반사될 때 생기는 포락선은 어떤 모양일까?"></textarea><div class="markdown-preview prose max-w-none"></div></div></div>
+                    <div><label for="inquiry-motivation" class="block text-lg font-semibold mb-2">3. 탐구 동기 및 목적</label><div class="editable-container"><textarea id="inquiry-motivation" class="markdown-input editable-field" placeholder="왜 이 주제를 더 깊이 탐구하고 싶은가요? 이 탐구를 통해 무엇을 알아내는 것이 목적인가요?"></textarea><div class="markdown-preview prose max-w-none"></div></div></div>
+                    <div><label for="inquiry-content" class="block text-lg font-semibold mb-2">4. 탐구 내용 및 과정</label><div class="editable-container"><textarea id="inquiry-content" class="markdown-input editable-field" placeholder="탐구 가설, 변인 설정, 수식 유도, 시뮬레이션 설계 등 구체적인 탐구 과정과 내용을 서술하세요."></textarea><div class="markdown-preview prose max-w-none"></div></div></div>
                     <div>
                         <h3 class="block text-lg font-semibold mb-2">5. 탐구 결과물</h3>
                         <div class="grid md:grid-cols-2 gap-6 bg-gray-50 p-4 rounded-lg">
@@ -218,13 +234,15 @@ xlim([-1.5, 1.5]); ylim([-1.5, 1.5]); hold off;</code></pre></div>
                             </div>
                             <div>
                                 <h4 class="font-medium mb-2 text-center">코드 또는 GeoGebra 링크</h4>
-                                <textarea id="inquiry-code" rows="8" class="markdown-input editable-field font-mono text-sm" placeholder="결과물에 해당하는 코드나 링크를 입력하세요."></textarea>
-                                <div class="markdown-preview prose max-w-none"></div>
+                                <div class="editable-container">
+                                    <textarea id="inquiry-code" class="markdown-input editable-field font-mono text-sm" placeholder="결과물에 해당하는 코드나 링크를 입력하세요."></textarea>
+                                    <div class="markdown-preview prose max-w-none"></div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                    <div><label for="inquiry-conclusion" class="block text-lg font-semibold mb-2">6. 결론</label><textarea id="inquiry-conclusion" rows="5" class="markdown-input editable-field" placeholder="탐구 결과와 그로부터 얻은 결론을 작성하세요. 초기 가설과 비교하여 분석하고, 탐구의 의의와 한계점을 서술하세요."></textarea><div class="markdown-preview prose max-w-none"></div></div>
-                    <div><label for="inquiry-references" class="block text-lg font-semibold mb-2">7. 참고 문헌</label><textarea id="inquiry-references" rows="4" class="markdown-input editable-field" placeholder="탐구에 참고한 논문, 책, 웹사이트 등의 출처를 APA 양식에 맞게 기입하세요."></textarea><div class="markdown-preview prose max-w-none"></div></div>
+                    <div><label for="inquiry-conclusion" class="block text-lg font-semibold mb-2">6. 결론</label><div class="editable-container"><textarea id="inquiry-conclusion" class="markdown-input editable-field" placeholder="탐구 결과와 그로부터 얻은 결론을 작성하세요. 초기 가설과 비교하여 분석하고, 탐구의 의의와 한계점을 서술하세요."></textarea><div class="markdown-preview prose max-w-none"></div></div></div>
+                    <div><label for="inquiry-references" class="block text-lg font-semibold mb-2">7. 참고 문헌</label><div class="editable-container"><textarea id="inquiry-references" class="markdown-input editable-field" placeholder="탐구에 참고한 논문, 책, 웹사이트 등의 출처를 APA 양식에 맞게 기입하세요."></textarea><div class="markdown-preview prose max-w-none"></div></div></div>
                 </div>
             </div>
         </section>
@@ -291,14 +309,19 @@ xlim([-1.5, 1.5]); ylim([-1.5, 1.5]); hold off;</code></pre></div>
         });
 
         function updatePreview(element) {
-            const preview = element.nextElementSibling;
-            if (!preview || !preview.classList.contains('markdown-preview')) return;
+            const container = element.closest('.editable-container');
+            if (!container) return;
+            const preview = container.querySelector('.markdown-preview');
+            if (!preview) return;
+
             let markdownText = element.value;
             if (element.id === 'simulation-code' || element.id === 'inquiry-code') {
                 const lang = element.value.trim().startsWith('http') ? '' : 'python';
                 markdownText = "```" + lang + "\n" + element.value + "\n```";
             }
-            const html = converter.makeHtml(markdownText);
+
+            const placeholder = '<p class="text-slate-400">내용을 입력하세요...</p>';
+            const html = markdownText ? converter.makeHtml(markdownText) : placeholder;
             preview.innerHTML = html;
             renderAllMathInElement(preview);
             if (window.Prism) { Prism.highlightAllUnder(preview); }
@@ -346,13 +369,40 @@ xlim([-1.5, 1.5]); ylim([-1.5, 1.5]); hold off;</code></pre></div>
             }
         }
         
+        function autoResizeTextarea(textarea) {
+            textarea.style.height = 'auto';
+            textarea.style.height = (textarea.scrollHeight) + 'px';
+        }
+
         function setupEventListeners() {
+            // 클릭 시 편집 가능하도록 설정 (editable-container 방식)
+            document.querySelectorAll('.editable-container').forEach(container => {
+                const preview = container.querySelector('.markdown-preview');
+                const editor = container.querySelector('textarea');
+
+                if (preview && editor) {
+                    preview.addEventListener('click', () => {
+                        preview.style.display = 'none';
+                        editor.style.display = 'block';
+                        editor.focus();
+                        autoResizeTextarea(editor);
+                    });
+
+                    editor.addEventListener('blur', () => {
+                        editor.style.display = 'none';
+                        preview.style.display = 'block';
+                        updatePreview(editor);
+                    });
+
+                    editor.addEventListener('input', () => {
+                        autoResizeTextarea(editor);
+                    });
+                }
+            });
+
+            // 자동 저장 (기존 데이터 보존)
             document.querySelectorAll('.editable-field').forEach(field => {
                 field.addEventListener('input', () => {
-                    if (field.classList.contains('markdown-input')) {
-                        updatePreview(field);
-                    }
-                    
                     clearTimeout(saveTimer);
                     showSaveStatus('saving');
                     saveTimer = setTimeout(() => {
@@ -365,10 +415,10 @@ xlim([-1.5, 1.5]); ylim([-1.5, 1.5]); hold off;</code></pre></div>
             const mobileMenuButton = document.getElementById('mobile-menu-button'), mobileMenu = document.getElementById('mobile-menu');
             mobileMenuButton.addEventListener('click', () => mobileMenu.classList.toggle('hidden'));
             document.querySelectorAll('#mobile-menu a').forEach(link => link.addEventListener('click', () => mobileMenu.classList.add('hidden')));
-            
+
             document.getElementById('theta-slider').addEventListener('input', drawReflection);
             ['k-slider', 'size-slider', 'epicycloid-slider'].forEach(id => document.getElementById(id).addEventListener('input', drawEpicycloid));
-            
+
             document.querySelectorAll('.tab-button').forEach(tab => {
                 tab.addEventListener('click', () => {
                     document.querySelectorAll('.tab-button').forEach(t => t.classList.remove('active'));
@@ -403,7 +453,44 @@ xlim([-1.5, 1.5]); ylim([-1.5, 1.5]); hold off;</code></pre></div>
             return isValid;
         }
 
-        function saveAsPdf() { if (validateForm()) { window.print(); } }
+        function saveAsPdf() {
+            if (!validateForm()) return;
+
+            // PDF 저장 전 미리보기 렌더링 및 파일명 설정
+            const editors = document.querySelectorAll('.editable-container textarea');
+            const previews = document.querySelectorAll('.editable-container .markdown-preview');
+            editors.forEach(el => el.style.display = 'none');
+            previews.forEach(el => el.style.display = 'block');
+
+            // 수식/코드 재렌더링
+            if (window.renderMathInElement) {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        { left: '$$', right: '$$', display: true },
+                        { left: '$', right: '$', display: false },
+                        { left: '\\(', right: '\\)', display: false },
+                        { left: '\\[', right: '\\]', display: true }
+                    ]
+                });
+            }
+
+            // 파일명 설정 (학번_이름 포함)
+            const prevTitle = document.title;
+            const studentId = document.getElementById('student-id')?.value.trim() || '학번';
+            const studentName = document.getElementById('student-name')?.value.trim() || '이름';
+            const baseTitle = prevTitle.trim() || 'Caustic_Curve_탐구보고서';
+            document.title = `${baseTitle}_${studentId}_${studentName}`;
+
+            const cleanup = () => {
+                editors.forEach(el => el.style.display = '');
+                previews.forEach(el => el.style.display = '');
+                document.title = prevTitle;
+                window.removeEventListener('afterprint', cleanup);
+            };
+            window.addEventListener('afterprint', cleanup);
+
+            window.print();
+        }
 
         const canvas1 = document.getElementById('reflectionCanvas'), ctx1 = canvas1.getContext('2d'), slider1 = document.getElementById('theta-slider'), value1 = document.getElementById('theta-value');
         function drawReflection() {
