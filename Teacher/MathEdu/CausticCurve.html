@@ -48,8 +48,113 @@
         .markdown-preview:hover { background-color: #f8fafc; border-color: #e2e8f0; }
         .editable-container .markdown-input { display: none; }
         .editable-container .markdown-preview { display: block; }
-        .prose { --tw-prose-body: #374151; --tw-prose-headings: #111827; --tw-prose-links: var(--accent-color); --tw-prose-bold: #111827; --tw-prose-code: #be185d; --tw-prose-pre-bg: #f3f4f6; --tw-prose-pre-code: #111827; }
-        .prose pre code, .prose code { font-family: var(--font-mono); }
+
+        /* Prose/Markdown 스타일 */
+        .prose {
+            color: #374151;
+            max-width: 65ch;
+            font-size: 1rem;
+            line-height: 1.75;
+        }
+        .prose p { margin-top: 1.25em; margin-bottom: 1.25em; }
+        .prose h1, .prose h2, .prose h3, .prose h4, .prose h5, .prose h6 {
+            color: #111827;
+            font-weight: 600;
+            line-height: 1.25;
+            margin-top: 2em;
+            margin-bottom: 1em;
+        }
+        .prose h1 { font-size: 2.25em; }
+        .prose h2 { font-size: 1.5em; }
+        .prose h3 { font-size: 1.25em; }
+        .prose h4 { font-size: 1.125em; }
+        .prose a { color: var(--accent-color); text-decoration: underline; }
+        .prose a:hover { color: #2563eb; }
+        .prose strong, .prose b { color: #111827; font-weight: 600; }
+        .prose em, .prose i { font-style: italic; }
+        .prose code {
+            color: #be185d;
+            font-family: var(--font-mono);
+            font-size: 0.875em;
+            padding: 0.2em 0.4em;
+            background-color: #f3f4f6;
+            border-radius: 0.25rem;
+        }
+        .prose pre {
+            background-color: #f3f4f6;
+            color: #111827;
+            overflow-x: auto;
+            font-size: 0.875em;
+            line-height: 1.7142857;
+            margin-top: 1.7142857em;
+            margin-bottom: 1.7142857em;
+            border-radius: 0.375rem;
+            padding: 0.8571429em 1.1428571em;
+        }
+        .prose pre code {
+            background-color: transparent;
+            border-width: 0;
+            border-radius: 0;
+            padding: 0;
+            color: inherit;
+            font-size: inherit;
+            font-family: var(--font-mono);
+            line-height: inherit;
+        }
+        .prose ul, .prose ol {
+            margin-top: 1.25em;
+            margin-bottom: 1.25em;
+            padding-left: 1.625em;
+        }
+        .prose ul { list-style-type: disc; }
+        .prose ol { list-style-type: decimal; }
+        .prose li { margin-top: 0.5em; margin-bottom: 0.5em; }
+        .prose ul ul, .prose ul ol, .prose ol ul, .prose ol ol { margin-top: 0.75em; margin-bottom: 0.75em; }
+        .prose blockquote {
+            font-style: italic;
+            color: #111827;
+            border-left-width: 0.25rem;
+            border-left-color: #e5e7eb;
+            quotes: "\201C""\201D""\2018""\2019";
+            margin-top: 1.6em;
+            margin-bottom: 1.6em;
+            padding-left: 1em;
+        }
+        .prose hr {
+            border-color: #e5e7eb;
+            border-top-width: 1px;
+            margin-top: 3em;
+            margin-bottom: 3em;
+        }
+        .prose table {
+            width: 100%;
+            table-layout: auto;
+            text-align: left;
+            margin-top: 2em;
+            margin-bottom: 2em;
+            font-size: 0.875em;
+            line-height: 1.7142857;
+        }
+        .prose thead {
+            border-bottom-width: 1px;
+            border-bottom-color: #d1d5db;
+        }
+        .prose thead th {
+            color: #111827;
+            font-weight: 600;
+            vertical-align: bottom;
+            padding-right: 0.5714286em;
+            padding-bottom: 0.5714286em;
+            padding-left: 0.5714286em;
+        }
+        .prose tbody tr { border-bottom-width: 1px; border-bottom-color: #e5e7eb; }
+        .prose tbody td {
+            vertical-align: baseline;
+            padding: 0.5714286em;
+        }
+        .prose img { margin-top: 2em; margin-bottom: 2em; }
+        .prose figure { margin-top: 2em; margin-bottom: 2em; }
+        .prose figcaption { color: #6b7280; font-size: 0.875em; line-height: 1.4285714; margin-top: 0.8571429em; }
 
         @media print {
             @page {
@@ -350,7 +455,17 @@ xlim([-1.5, 1.5]); ylim([-1.5, 1.5]); hold off;</code></pre></div>
         <span id="autosave-text"></span>
     </div>
     <script>
-        const converter = new showdown.Converter({ ghCodeBlocks: true, simpleLineBreaks: true });
+        const converter = new showdown.Converter({
+            ghCodeBlocks: true,
+            simpleLineBreaks: true,
+            literalMidWordUnderscores: true,  // 단어 중간의 언더바를 문자 그대로 처리
+            disableForced4SpacesIndentedSublists: true,
+            excludeTrailingPunctuationFromURLs: true
+        });
+
+        // 별표(*)를 이탤릭으로 사용하지 않도록 설정
+        showdown.setOption('literalMidWordAsterisks', true);
+
         let saveTimer = null;
         let statusTimer = null;
 
@@ -409,8 +524,15 @@ xlim([-1.5, 1.5]); ylim([-1.5, 1.5]); hold off;</code></pre></div>
                 markdownText = "```" + lang + "\n" + element.value + "\n```";
             }
 
+            // 변환 전 전처리: * 하나를 임시로 보호
+            markdownText = markdownText.replace(/\*([^\*]+)\*/g, '⚡ASTERISK⚡$1⚡ASTERISK⚡');
+
             const placeholder = '<p class="text-slate-400">내용을 입력하세요...</p>';
-            const html = markdownText ? converter.makeHtml(markdownText) : placeholder;
+            let html = markdownText ? converter.makeHtml(markdownText) : placeholder;
+
+            // 변환 후 후처리: 임시 보호 기호를 다시 * 로 복원
+            html = html.replace(/⚡ASTERISK⚡/g, '*');
+
             preview.innerHTML = html;
             renderAllMathInElement(preview);
             if (window.Prism) { Prism.highlightAllUnder(preview); }
