@@ -678,7 +678,6 @@ document.addEventListener('DOMContentLoaded', () => {
       provider: byId('provider').value,
       apiKey: byId('apiKey').value.trim(),
       model: byId('model').value.trim(),
-      maxChars: Number(byId('maxChars').value || 8000),
     };
     logln('INFO', `평가를 시작합니다. (Provider: ${opts.provider}, Model: ${opts.model})`);
 
@@ -695,25 +694,30 @@ document.addEventListener('DOMContentLoaded', () => {
         );
         continue;
       }
-      logln('INFO', `[${i + 1}/${files.length}] "${f.name}" 처리 중...`);
+      logln("INFO", `[${i + 1}/${files.length}] "${f.name}" 처리 중...`);
       try {
-        const text = await extractPdfText(f, opts.maxChars);
-        logln('INFO', 'AI 모델을 호출합니다...');
-        const out = await callAI({ ...opts, input: text });
-        const meta = parseMetaFromFilename(f.name);
-        state.results.push({
-          fileName: f.name,
-          studentId: meta.studentId,
-          studentName: meta.studentName,
-          ...out,
-        });
-        saveResults();
-        renderSummary();
-        logln('SUCCESS', `"${f.name}" 평가 완료!`);
-        await sleep(350);
+          logln("INFO", "PDF에서 텍스트 추출 및 이미지 페이지 선별 중...");
+          // 수정된 부분: 이미지 페이지 번호도 받음
+          const { text, images, imagePageNumbers } = await extractTextAndImagesFromPdf(f);
+          if (!text && images.length === 0) {
+              logln("WARN", `"${f.name}"에서 내용(텍스트 또는 이미지)을 추출할 수 없습니다.`);
+              continue;
+          }
+          // 로그 메시지 개선
+          logln("SUCCESS", `텍스트(${text.length}자) 추출 완료. 이미지 페이지(${imagePageNumbers.length > 0 ? imagePageNumbers.join(', ') : '없음'}) 변환 완료.`);
+
+          logln("INFO", "AI 모델을 호출합니다...");
+          // 수정된 부분: imagePageNumbers도 전달 (필요시 프롬프트에 활용 가능)
+          const out = await callAI({ ...opts, text, images, imagePageNumbers });
+          const meta = parseMetaFromFilename(f.name);
+          state.results.push({ fileName: f.name, studentId: meta.studentId, studentName: meta.studentName, ...out });
+          saveResults();
+          renderSummary();
+          logln("SUCCESS", `"${f.name}" 평가 완료!`);
+          await sleep(500); // Rate limit
       } catch (err) {
-        logln('ERROR', `"${f.name}" 처리 중 오류 발생: ${err.message}`);
-        console.error(err);
+          logln("ERROR", `"${f.name}" 처리 중 오류 발생: ${err.message}`);
+          console.error(err);
       }
     }
     setRunningState(false);
@@ -726,20 +730,43 @@ document.addEventListener('DOMContentLoaded', () => {
     byId('spinner').classList.toggle('hidden', !running);
   }
 
-  async function extractPdfText(file, maxChars) {
+  async function extractTextAndImagesFromPdf(file, textThreshold = 100) { // textThreshold 추가
     const arrayBuffer = await file.arrayBuffer();
     const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-    let fullText = '';
-    for (let p = 1; p <= pdf.numPages; p++) {
-      const page = await pdf.getPage(p);
-      const content = await page.getTextContent();
-      fullText += content.items.map((i) => i.str).join(' ');
-      if (fullText.length >= maxChars) break;
-    }
-    return fullText.slice(0, maxChars);
-  }
+    let fullText = "";
+    const imageB64s = []; // 이미지(Base64) 배열
+    const imagePageNumbers = []; // 이미지로 변환된 페이지 번호 배열
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('2d');
 
-  function buildPrompt(input) {
+    for (let p = 1; p <= pdf.numPages; p++) {
+        if (abort) break;
+        logln('INFO', `${p}/${pdf.numPages} 페이지 처리...`);
+        const page = await pdf.getPage(p);
+        
+        // 1. 텍스트 추출 시도
+        const content = await page.getTextContent();
+        const pageText = content.items.map((i) => i.str).join(" ");
+        fullText += pageText + "\n"; // 전체 텍스트는 항상 누적
+
+        // 2. 텍스트가 임계값 미만이면 이미지로 렌더링
+        if (pageText.trim().length < textThreshold) {
+            logln('INFO', `페이지 ${p}: 텍스트 부족(${pageText.trim().length}자), 이미지로 변환합니다.`);
+            const viewport = page.getViewport({ scale: 1.5 });
+            canvas.height = viewport.height;
+            canvas.width = viewport.width;
+            await page.render({ canvasContext: context, viewport: viewport }).promise;
+            const base64 = canvas.toDataURL('image/jpeg').split(',')[1];
+            imageB64s.push(base64);
+            imagePageNumbers.push(p); // 페이지 번호 기록
+        }
+    }
+    canvas.remove();
+    // 전체 텍스트와 함께, 이미지로 변환된 데이터 및 해당 페이지 번호 반환
+    return { text: fullText.trim(), images: imageB64s, imagePageNumbers: imagePageNumbers };
+}
+
+  function buildPrompt(extractedText, imagePageNumbers) {
     const criteriaText = Object.entries(state.overview.criteria.levels)
       .map(([level, desc]) => `${level}: ${desc}`)
       .join('\n');
@@ -767,88 +794,101 @@ document.addEventListener('DOMContentLoaded', () => {
       })
       .join(',\n    ');
 
-    return `다음 보고서를 읽고, 아래의 평가 개요와 상세한 루브릭 기준에 따라 각 항목을 평가하세요.\n\n${overviewText}\n\n[상세 채점 루브릭]\n${rubricText}\n\n[출력 형식]\n반드시 아래 형식의 JSON만 출력하며, 다른 설명은 절대 포함하지 마세요.\n'scores' 객체에는 각 항목에 대해 가장 적합하다고 판단되는 등급(문자열) 또는 점수(숫자)를 할당하세요.\n- 단계별 항목 (3/5단계): 해당하는 등급(예: "A", "B")을 문자열로 부여하세요.\n- 단일 기준 항목: 만점을 기준으로 점수를 숫자로 직접 부여하세요.\n\n{\n  "scores": {\n    ${scoreKeys}\n  },\n  "strengths": "보고서의 가장 큰 강점 1~2가지를 명료하게 서술합니다.",\n  "improvements": "개선이 필요한 부분 1~2가지를 구체적인 방법과 함께 제안합니다.",\n  "final_comment": "위의 평가 내용을 종합하여, 학생의 역량이 잘 드러나도록 과목별 세부능력 및 특기사항 예시를 학생의 성장과 역량이 드러나도록 객관적 사실을 기반으로 개조식 문체로 서술합니다."\n}\n\n[보고서 원문]\n${input}`;
+    const textReference = extractedText ? `\n\n아래는 PDF에서 추출된 텍스트 원문입니다. 이미지의 글자가 명확하지 않을 경우, 이 텍스트를 참고하여 정확하게 평가하세요.\n[추출된 텍스트]\n${extractedText}` : '';
+    const imageReference = imagePageNumbers && imagePageNumbers.length > 0 ? `\n\n첨부된 이미지는 원본 문서의 ${imagePageNumbers.join(', ')} 페이지에 해당합니다. 텍스트와 이미지를 종합적으로 분석하여 평가하세요.` : '\n\n첨부된 이미지를 시각적으로 분석하고 텍스트를 참고하여 평가하세요.';
+    return `아래 평가 개요와 상세 루브릭 기준에 따라 첨부된 문서(텍스트 및 선별된 이미지 페이지)를 평가하세요.${imageReference}${textReference}\n\n${overviewText}\n\n[상세 채점 루브릭]\n${rubricText}\n\n[출력 형식]\n반드시 아래 형식의 JSON만 출력하며, 다른 설명은 절대 포함하지 마세요.\n'scores' 객체에는 각 항목에 대해 가장 적합하다고 판단되는 등급(문자열) 또는 점수(숫자)를 할당하세요.\n- 단계별 항목 (3/5단계): 해당하는 등급(예: "A", "B")을 문자열로 부여하세요.\n- 단일 기준 항목: 만점을 기준으로 점수를 숫자로 직접 부여하세요.\n\n{\n  "scores": {\n    ${scoreKeys}\n  },\n  "strengths": "문서의 가장 큰 강점 1~2가지를 명료하게 서술합니다.",\n  "improvements": "개선이 필요한 부분 1~2가지를 구체적인 방법과 함께 제안합니다.",\n  "final_comment": "위의 평가 내용을 종합하여, 학생의 역량이 잘 드러나도록 과목별 세부능력 및 특기사항 예시를 학생의 성장과 역량이 드러나도록 객관적 사실을 기반으로 개조식 문체로 서술합니다."\n}`;
   }
 
-  async function callAI({ provider, apiKey, model, input }) {
-    const fullPrompt = buildPrompt(input);
-    if (provider === 'mock') {
-      await sleep(500);
-      const mockScores = {};
-      state.rubric.forEach((item) => {
-        const key = item.name
-          .toLowerCase()
-          .replace(/[\s:·-]+/g, '_')
-          .slice(0, 30);
-        if (item.type === 'single') {
-          const maxScore = item.scores['득점'] || 5;
-          mockScores[key] = parseFloat((Math.random() * maxScore).toFixed(1));
-        } else {
-          const levels = scoreTypeConfig[item.type].levels;
-          mockScores[key] = levels[Math.floor(Math.random() * levels.length)];
-        }
-      });
-      return {
-        scores: mockScores,
-        strengths: '모의 강점: 구조가 명확하고 예시가 적절함.',
-        improvements: '모의 개선점: 이론적 배경 설명 보강 필요.',
-        final_comment:
-          '모의 과세특: 라이브러리를 능숙하게 활용하여 문제 상황을 모델링하고 시각적으로 표현하는 역량이 돋보임.',
-      };
+  async function callAI({ provider, apiKey, model, text, images, imagePageNumbers }) {
+    const fullPrompt = buildPrompt(text, imagePageNumbers);
+    
+    if (provider === "mock") {
+        await sleep(500);
+        const mockScores = {};
+        state.rubric.forEach((item) => {
+            const key = item.name.toLowerCase().replace(/[\s:·-]+/g, "_").slice(0, 30);
+            if (item.type === 'single') {
+                const maxScore = item.scores['득점'] || 5;
+                mockScores[key] = parseFloat((Math.random() * maxScore).toFixed(1));
+            } else {
+                const levels = scoreTypeConfig[item.type].levels;
+                mockScores[key] = levels[Math.floor(Math.random() * levels.length)];
+            }
+        });
+        return { scores: mockScores, strengths: "모의 강점: 구조가 명확하고 예시가 적절함.", improvements: "모의 개선점: 이론적 배경 설명 보강 필요.", final_comment: "모의 과세특: 라이브러리를 능숙하게 활용하여 문제 상황을 모델링하고 시각적으로 표현하는 역량이 돋보임." };
     }
-    const apiEndpoints = {
-      google: `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
-      openai: 'https://api.openai.com/v1/chat/completions',
-    };
-    const url = apiEndpoints[provider];
-    if (!url) throw new Error('선택된 API 제공자는 현재 지원되지 않습니다.');
 
-    const headers = { 'Content-Type': 'application/json' };
-    let body;
-    if (provider === 'openai') {
-      headers['Authorization'] = `Bearer ${apiKey}`;
-      body = {
-        model,
-        messages: [
-          { role: 'system', content: 'You are a strict rubric grader. Output JSON only.' },
-          { role: 'user', content: fullPrompt },
-        ],
-        temperature: 0.2,
-        response_format: { type: 'json_object' },
-      };
-    } else {
-      // google
-      body = {
-        contents: [{ parts: [{ text: fullPrompt }] }],
-        generationConfig: { response_mime_type: 'application/json', temperature: 0.2 },
-      };
+    let url, headers, body;
+    headers = { 'Content-Type': 'application/json' };
+    // 이미지가 있을 경우에만 imageParts 생성
+    const imageParts = images && images.length > 0 ? images.map(imgB64 => ({ inlineData: { mimeType: 'image/jpeg', data: imgB64 } })) : [];
+    const hasImages = imageParts.length > 0;
+
+    switch(provider) {
+        case 'google':
+            // 이미지가 없으면 오류 대신 텍스트만 전송 (모델이 지원하는 경우)
+            url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+            body = {
+                contents: [{ parts: [{ text: fullPrompt }, ...(hasImages ? imageParts : [])] }], // 이미지가 있을 때만 추가
+                generationConfig: { response_mime_type: "application/json", temperature: 0.2 }
+            };
+            break;
+        case 'openai':
+             // 이미지가 없으면 오류 대신 텍스트만 전송 (모델이 지원하는 경우)
+             url = 'https://api.openai.com/v1/chat/completions';
+             headers['Authorization'] = `Bearer ${apiKey}`;
+             const content = [{ type: "text", text: fullPrompt }];
+             if (hasImages) {
+                 content.push(...images.map(imgB64 => ({ type: "image_url", image_url: { url: `data:image/jpeg;base64,${imgB64}` } })));
+             }
+             body = { model, messages: [{ role: 'user', content }], temperature: 0.2, response_format: { type: 'json_object' } };
+             break;
+        case 'openrouter':
+        case 'ollama':
+             // Ollama와 OpenRouter는 현재 텍스트 전용으로 가정
+             if (hasImages) {
+                 logln('WARN', `${provider}는 이미지 분석을 지원하지 않아 이미지를 제외하고 텍스트만 전송합니다.`);
+             }
+             url = provider === 'ollama' ? 'http://localhost:11434/api/generate' : 'https://openrouter.ai/api/v1/chat/completions';
+             if (provider === 'openrouter') headers['Authorization'] = `Bearer ${apiKey}`;
+             const messages = [{ role: 'system', content: 'You are a strict rubric grader. Output JSON only.' }, { role: 'user', content: buildPrompt(text) }]; // 텍스트만 사용 (imagePageNumbers 없이 호출)
+             if(provider === 'ollama') {
+                body = { model, prompt: buildPrompt(text), format: 'json', stream: false, options: { temperature: 0.2 } };
+             } else {
+                body = { model, messages, temperature: 0.2, response_format: { type: 'json_object' } };
+             }
+             break;
+        default:
+            throw new Error(`${provider} 제공자는 현재 지원되지 않습니다.`);
     }
+    if (!res.ok) throw new Error(`${provider} API 오류: ${await res.text()}`);
 
     const res = await fetch(url, { method: 'POST', headers, body: JSON.stringify(body) });
-    if (!res.ok) throw new Error(`${provider} API 오류: ${await res.text()}`);
+    
     const data = await res.json();
-    const textToParse =
-      provider === 'openai'
-        ? data.choices?.[0]?.message?.content
-        : data.candidates?.[0]?.content?.parts?.[0]?.text;
-    return sanitizeJSON(textToParse ?? '{}');
-  }
+    let textToParse;
+    if (provider === 'openai' || provider === 'openrouter') {
+        textToParse = data.choices?.[0]?.message?.content;
+    } else if (provider === 'google') {
+        textToParse = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    } else if (provider === 'ollama') {
+        textToParse = data.response;
+    }
+    
+    return sanitizeJSON(textToParse ?? "{}");
+}
 
   function sanitizeJSON(text) {
     let cleanText = text.trim();
-    const jsonMatch = cleanText.match(```json)?\s*([\s\S]*?)\s*```);
+    const jsonMatch = cleanText.match(new RegExp("```(?:json)?\\s*([\\s\\S]*?)\\s*```"));
     if (jsonMatch) cleanText = jsonMatch[1];
-    const start = cleanText.indexOf('{');
-    const end = cleanText.lastIndexOf('}');
+    const start = cleanText.indexOf("{");
+    const end = cleanText.lastIndexOf("}");
     if (start >= 0 && end > start) {
-      try {
-        return JSON.parse(cleanText.slice(start, end + 1));
-      } catch (e) {
-        throw new Error('LLM이 올바른 JSON을 반환하지 않았습니다.');
-      }
+        try { return JSON.parse(cleanText.slice(start, end + 1)); } catch (e) { throw new Error("LLM이 올바른 JSON을 반환하지 않았습니다."); }
     }
-    throw new Error('응답에서 유효한 JSON 객체를 찾을 수 없습니다.');
-  }
+    throw new Error("응답에서 유효한 JSON 객체를 찾을 수 없습니다.");
+}
 
   // --- 결과 렌더링 ---
   function renderSummary() {
@@ -857,11 +897,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const rubricHeaders = state.rubric
       .map((item) => `<th class="p-2 text-right">${item.name}</th>`)
       .join('');
-    header.innerHTML = `<tr><th class="p-2 text-left">파일명</th><th class="p-2 text-left">학번</th><th class="p-2 text-left">이름</th>${rubricHeaders}<th class="p-2 text-right font-semibold">평균점수</th></tr>`;
+    header.innerHTML = `<tr><th class="p-2 text-left">파일명</th><th class="p-2 text-left">학번</th><th class="p-2 text-left">이름</th>${rubricHeaders}<th class="p-2 text-right font-semibold">점수</th></tr>`;
 
     body.innerHTML = '';
     state.results.forEach((r) => {
-      const { meanScore } = calculateScores(r.scores);
+      const { totalScore: totalScore } = calculateScores(r.scores);
       const tr = document.createElement('tr');
       tr.dataset.filename = r.fileName;
       const scoreCells = state.rubric
@@ -888,7 +928,7 @@ document.addEventListener('DOMContentLoaded', () => {
         r.fileName
       }</td><td class="p-2">${r.studentId || ''}</td><td class="p-2">${
         r.studentName || ''
-      }</td>${scoreCells}<td class="p-2 text-right font-semibold">${meanScore.toFixed(2)}</td>`;
+      }</td>${scoreCells}<td class="p-2 text-right font-semibold">${totalScore.toFixed(2)}</td>`;
       body.appendChild(tr);
     });
   }
@@ -903,7 +943,7 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    const { meanScore, scoreValues, labels } = calculateScores(r.scores);
+    const { totalScore: totalScore, scoreValues, labels } = calculateScores(r.scores);
     const maxPossibleScores = state.rubric.map((item) => Math.max(...Object.values(item.scores)));
     const maxPossibleScore = Math.max(...maxPossibleScores, 1);
 
@@ -915,7 +955,7 @@ document.addEventListener('DOMContentLoaded', () => {
       r.fileName
     }">${
       r.fileName
-    }</p></div><div class="text-right flex-shrink-0"><div class="text-xs text-slate-500">평균 점수</div><div class="text-2xl font-extrabold mono text-indigo-600">${meanScore.toFixed(
+    }</p></div><div class="text-right flex-shrink-0"><div class="text-xs text-slate-500">점수</div><div class="text-2xl font-extrabold mono text-indigo-600">${totalScore.toFixed(
       2
     )}</div></div></div><div style="height:320px"><canvas></canvas></div><div class="grid sm:grid-cols-2 gap-3 text-sm">${createFeedbackBox(
       '잘한 점',
@@ -973,7 +1013,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function calculateScores(scoresObj) {
-    if (!scoresObj) return { meanScore: 0, scoreValues: [], labels: [] };
+    if (!scoresObj) return { totalScore: 0, scoreValues: [], labels: [] };
     const scoreValues = [];
     const labels = [];
     state.rubric.forEach((item) => {
@@ -991,8 +1031,8 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
     const sum = scoreValues.reduce((a, b) => a + b, 0);
-    const meanScore = scoreValues.length > 0 ? sum / scoreValues.length : 0;
-    return { meanScore, scoreValues, labels };
+    const totalScore = scoreValues.length > 0 ? sum : 0;
+    return { totalScore: totalScore, scoreValues, labels };
   }
 
   byId('summaryBody').addEventListener('click', (e) => {
@@ -1018,7 +1058,7 @@ document.addEventListener('DOMContentLoaded', () => {
       'final_comment',
     ];
     const rows = state.results.map((r) => {
-      const { meanScore } = calculateScores(r.scores);
+      const { totalScore: totalScore } = calculateScores(r.scores);
       const scoreValues = state.rubric.flatMap((item) => {
         const key = item.name
           .toLowerCase()
@@ -1041,7 +1081,7 @@ document.addEventListener('DOMContentLoaded', () => {
         r.studentId,
         sanitized(r.studentName),
         ...scoreValues,
-        meanScore.toFixed(2),
+        totalScore.toFixed(2),
         sanitized(r.final_comment),
       ].join(',');
     });
