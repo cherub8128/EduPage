@@ -239,7 +239,7 @@
             <h1 class="slide-title">현상 관찰: 커피잔 속 빛의 무늬</h1>
             <div class="flex flex-col md:flex-row items-center justify-center gap-12 mt-12">
                 <div class="w-full md:w-1/2">
-                    <img src="https://placehold.co/600x450/ffffff/94a3b8?text=Coffee+Cup+Caustic" alt="커피잔 속 Caustic 현상" class="rounded-lg shadow-xl mx-auto max-w-md w-full border">
+                    <img src="images/cup1.jpg" alt="커피잔 속 Caustic 현상" class="rounded-lg shadow-xl mx-auto max-w-md w-full border">
                     <p class="text-lg text-gray-600 mt-4">스마트폰 플래시를 이용해 관찰해 보세요.</p>
                 </div>
                 <div class="w-full md:w-1/2 text-left">
@@ -259,7 +259,8 @@
         </div>
     </div>
 
-    <!-- 슬라이드 3: 1차시 - 현상 관찰 (AhaSlides) (복원됨) --><div id="slide-3" class="slide bg-gray-50 slide-fullscreen">
+    <!-- 슬라이드 3: 1차시 - 현상 관찰 (AhaSlides)-->
+    <div id="slide-3" class="slide bg-gray-50 slide-fullscreen">
         <!-- Loader --><div class="absolute top-0 left-0 w-full h-full z-10 bg-white flex justify-center items-center pointer-events-none opacity-100 transition-opacity duration-500" id="iframe-loader-3">
              <h2 class="slide-subtitle text-gray-600 animate-pulse">Word Cloud 불러오는 중...</h2>
         </div>
@@ -274,7 +275,8 @@
         </iframe>
     </div>
 
-    <!-- 슬라이드 4: 1차시 - 문제 단순화 (복원됨) --><div id="slide-4" class="slide bg-gray-50">
+    <!-- 슬라이드 4: 1차시 - 문제 단순화 -->
+    <div id="slide-4" class="slide bg-gray-50">
         <div class="slide-content text-center">
             <h1 class="slide-title">문제 단순화 (모델링)</h1>
             <p class="slide-body !text-3xl mt-12">복잡한 3차원 현상을 2차원 평면 문제로 단순화합니다.</p>
@@ -307,7 +309,7 @@
             <h1 class="slide-title !text-3xl !text-blue-700">GeoGebra로 재현한 빛의 반사</h1>
         </div>
         <!-- Iframe --><iframe 
-            src="https://www.geogebra.org/calculator/w9wem2p6?embed" 
+            src="https://www.geogebra.org/calculator/w9wem2p6" 
             width="100%" 
             height="100%" 
             allowfullscreen 
@@ -412,14 +414,90 @@
                  $$ x = \frac{\sin\phi \cos(2\theta) - \sin\theta \cos(2\phi)}{\sin(2\phi - 2\theta)} $$
             </div>
 
-            <p class="slide-body !text-2xl !mt-8">3. <button class="reveal-button !text-lg !py-2 !px-4" data-target="reveal-9-3">극한 \(\lim_{\phi \to \theta}\) 계산하기</button></p>
-            <div id="reveal-9-3" class="reveal-content text-xl bg-gray-50 p-6 rounded-md shadow-inner">
-                 (로피탈의 정리 등)
-                 $$ x(\theta) = \lim_{\phi \to \theta} \frac{\cos\phi \cos(2\theta) + 2\sin\theta \sin(2\phi)}{2\cos(2(\phi - \theta))} $$
-                 $$ = \frac{\cos\theta \cos(2\theta) + 2\sin\theta \sin(2\theta)}{2} $$
-            </div>
+            
+<p class="slide-body !text-2xl !mt-8">3. 극한 \(\lim_{\phi \to \theta}\) 계산하기 (단계별) </p>
 
-            <p class="slide-body !text-2xl !mt-8">4. <button class="reveal-button !bg-blue-700 hover:!bg-blue-800" data-target="reveal-9-4">최종 방정식 확인</button></p>
+<!-- 
+단계별 버튼들을 시각적으로 그룹화하고 정렬하기 위해
+pl-8 (왼쪽 패딩)과 space-y-6 (버튼 간 수직 간격)을 줍니다.
+-->
+<div class="pl-8 space-y-6">
+    
+    <!-- 1단계: 식 변형 및 분모 극한 -->
+    <div>
+        <button class="reveal-button !text-lg !py-2 !px-4" data-target="reveal-9-3a">
+            3-1. 식 변형 및 분모 극한
+        </button>
+        <div id="reveal-9-3a" class="reveal-content text-xl bg-gray-50 p-6 rounded-md shadow-inner">
+            <p>1. 교점 \(x\)의 식에서 분자와 분모를 \(\phi - \theta\)로 나눕니다.</p>
+            $$ x(\theta) = \lim_{\phi \to \theta} \frac{\sin\phi \cos(2\theta) - \sin\theta \cos(2\phi)}{\sin(2\phi - 2\theta)} $$
+            $$ = \lim_{\phi \to \theta} \frac{ \frac{\sin\phi \cos(2\theta) - \sin\theta \cos(2\phi)}{\phi - \theta} }{ \frac{\sin(2(\phi - \theta))}{\phi - \theta} } $$
+
+            <p class="mt-6">2. 분모의 극한을 먼저 계산합니다. (\(\lim_{u \to 0} \frac{\sin(au)}{u} = a\))</p>
+            $$ \lim_{\phi \to \theta} \frac{\sin(2(\phi - \theta))}{\phi - \theta} = 2 $$
+        </div>
+    </div>
+
+    <!-- 2단계: 분자 변형 -->
+    <div>
+        <button class="reveal-button !text-lg !py-2 !px-4" data-target="reveal-9-3b">
+            3-2. 분자 변형 (삼각함수 공식)
+        </button>
+        <div id="reveal-9-3b" class="reveal-content text-xl bg-gray-50 p-6 rounded-md shadow-inner">
+            <p>3. 분자의 극한을 계산합니다. 먼저 분자를 변형합니다.<br>
+            (\(\cos(2\alpha) = 1 - 2\sin^2(\alpha)\) 공식을 분자에 적용)</p>
+            $$ \text{분자} = \sin\phi (1 - 2\sin^2\theta) - \sin\theta (1 - 2\sin^2\phi) $$
+            $$ = \sin\phi - 2\sin\phi\sin^2\theta - \sin\theta + 2\sin\theta\sin^2\phi $$
+            $$ = (\sin\phi - \sin\theta) - 2(\sin\phi\sin^2\theta - \sin\theta\sin^2\phi) $$
+            $$ = (\sin\phi - \sin\theta) - 2\sin\phi\sin\theta(\sin\theta - \sin\phi) $$
+            $$ = (\sin\phi - \sin\theta) + 2\sin\phi\sin\theta(\sin\phi - \sin\theta) $$
+            $$ = (\sin\phi - \sin\theta)(1 + 2\sin\phi\sin\theta) $$
+        </div>
+    </div>
+
+    <!-- 3단계: 분자 극한 및 중간 정리 -->
+    <div>
+        <button class="reveal-button !text-lg !py-2 !px-4" data-target="reveal-9-3c">
+            3-3. 분자 극한 및 중간 정리
+        </button>
+        <div id="reveal-9-3c" class="reveal-content text-xl bg-gray-50 p-6 rounded-md shadow-inner">
+            <p class="mt-6">4. 변형된 분자에 극한을 적용합니다.<br>
+            (미분 계수의 정의: \(\lim_{\phi \to \theta} \frac{\sin\phi - \sin\theta}{\phi - \theta} = (\sin\theta)' = \cos\theta\))</p>
+            $$ \lim_{\phi \to \theta} \frac{(\sin\phi - \sin\theta)(1 + 2\sin\phi\sin\theta)}{\phi - \theta} $$
+            $$ = \left( \lim_{\phi \to \theta} \frac{\sin\phi - \sin\theta}{\phi - \theta} \right) \cdot \left( \lim_{\phi \to \theta} (1 + 2\sin\phi\sin\theta) \right) $$
+            $$ = (\cos\theta) \cdot (1 + 2\sin^2\theta) $$
+
+            <p class="mt-6">5. 분자와 분모의 극한 결과를 합칩니다.</p>
+            $$ x(\theta) = \frac{\cos\theta (1 + 2\sin^2\theta)}{2} = \frac{\cos\theta + 2\sin^2\theta\cos\theta}{2} $$
+
+            <p class="mt-6">6. 삼각함수 공식을 이용해 식을 정리합니다.<br>
+            (\(\sin^2\theta = 1 - \cos^2\theta\) 적용)</p>
+            $$ x(\theta) = \frac{\cos\theta + 2(1 - \cos^2\theta)\cos\theta}{2} $$
+            $$ = \frac{\cos\theta + 2\cos\theta - 2\cos^3\theta}{2} $$
+            $$ = \frac{3\cos\theta - 2\cos^3\theta}{2} $$
+        </div>
+    </div>
+
+    <!-- 4단계: 최종 정리 -->
+    <div>
+        <button class="reveal-button !text-lg !py-2 !px-4" data-target="reveal-9-3d">
+            3-4. 최종 정리 (3배각 공식)
+        </button>
+        <div id="reveal-9-3d" class="reveal-content text-xl bg-gray-50 p-6 rounded-md shadow-inner">
+            <p class="mt-6">7. 3배각 공식 (\(\cos(3\theta) = 4\cos^3\theta - 3\cos\theta\))을 이용하기 위해 식을 변형합니다.</p>
+            $$ x(\theta) = \frac{1}{4}(6\cos\theta - 4\cos^3\theta) $$
+            $$ = \frac{1}{4}(3\cos\theta + 3\cos\theta - 4\cos^3\theta) $$
+            $$ = \frac{1}{4}(3\cos\theta - (4\cos^3\theta - 3\cos\theta)) $$
+            
+            <p class="mt-6">8. 최종 결과를 얻습니다.</p>
+            $$ x(\theta) = \frac{1}{4}(3\cos\theta - \cos(3\theta)) $$
+            $$ = \frac{3}{4}\cos\theta - \frac{1}{4}\cos(3\theta) $$
+        </div>
+    </div>
+    
+</div>
+
+            <p class="slide-body !text-2xl !mt-8">4. 같은 방식으로 최종 방정식을 얻을 수 있습니다.<button class="reveal-button !bg-blue-700 hover:!bg-blue-800" data-target="reveal-9-4">최종 방정식 확인</button></p>
             <div id="reveal-9-4" class="reveal-content text-xl bg-blue-50 p-8 rounded-md shadow-lg text-center">
                 <span class="font-bold text-blue-700 text-3xl">$$ x(\theta) = \frac{3}{4}\cos\theta - \frac{1}{4}\cos(3\theta) $$</span>
                 <span class="font-bold text-blue-700 text-3xl mt-4 block">$$ y(\theta) = \frac{3}{4}\sin\theta - \frac{1}{4}\sin(3\theta) $$</span>
