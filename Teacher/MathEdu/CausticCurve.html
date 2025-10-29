@@ -407,18 +407,83 @@ xlim([-1.5, 1.5]); ylim([-1.5, 1.5]); hold off;</code></pre></div>
 
         const canvas1 = document.getElementById('reflectionCanvas'), ctx1 = canvas1.getContext('2d'), slider1 = document.getElementById('theta-slider'), value1 = document.getElementById('theta-value');
         function drawReflection() {
-            const sliderValue = parseFloat(slider1.value);
-            const angleDeg = sliderValue - 90, angleRad = angleDeg * Math.PI / 180;
-            const centerX = canvas1.width / 2, centerY = canvas1.height / 2, radius = 150;
-            ctx1.clearRect(0, 0, canvas1.width, canvas1.height);
-            ctx1.beginPath(); ctx1.arc(centerX, centerY, radius, 0, 2 * Math.PI); ctx1.strokeStyle = '#9ca3af'; ctx1.lineWidth = 2; ctx1.stroke();
-            ctx1.beginPath(); ctx1.moveTo(0, centerY); ctx1.lineTo(canvas1.width, centerY); ctx1.moveTo(centerX, 0); ctx1.lineTo(centerX, canvas1.height); ctx1.strokeStyle = '#d1d5db'; ctx1.stroke();
-            const px = centerX + radius * Math.cos(angleRad), py = centerY - radius * Math.sin(angleRad);
-            ctx1.beginPath(); ctx1.moveTo(0, py); ctx1.lineTo(px, py); ctx1.strokeStyle = '#f59e0b'; ctx1.lineWidth = 2; ctx1.stroke();
-            const reflectedAngle = 2 * angleRad, directionX = Math.cos(reflectedAngle), directionY = Math.sin(reflectedAngle);
-            ctx1.beginPath(); ctx1.moveTo(px, py); ctx1.lineTo(px + 400 * directionX, py + 400 * directionY); ctx1.strokeStyle = '#10b981'; ctx1.lineWidth = 2; ctx1.stroke();
-            ctx1.beginPath(); ctx1.arc(px, py, 5, 0, 2 * Math.PI); ctx1.fillStyle = '#ef4444'; ctx1.fill();
-            value1.textContent = `${angleDeg.toFixed(0)}°`;
+            const canvas = document.getElementById('reflectionCanvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const slider = document.getElementById('theta-slider');
+            const value = document.getElementById('theta-value');
+            
+            const sliderValue = parseFloat(slider.value);
+            // 각도 계산: Geogebra와 유사하게 0~180 (위쪽 반원)
+            // 90도(중앙) -> 0도, 180도(왼쪽) -> -90도, 0도(오른쪽) -> 90도
+            // PDF/CausticCurve.html 원본 기준: 0~180 -> -90~90
+            const angleDeg = sliderValue - 90;
+            const angleRad = angleDeg * Math.PI / 180;
+            
+            const w = canvas.width;
+            const h = canvas.height;
+            const centerX = w / 2;
+            const centerY = h / 2;
+            const radius = Math.min(w, h) * 0.4;
+
+            const px = centerX + radius * Math.cos(angleRad);
+            const py = centerY - radius * Math.sin(angleRad); // 캔버스 Y축은 반대
+
+            ctx.clearRect(0, 0, w, h);
+            
+            // 1. 원 (컵)
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+            ctx.strokeStyle = '#9ca3af'; // gray-400
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // 2. 축
+            ctx.beginPath();
+            ctx.moveTo(0, centerY); ctx.lineTo(w, centerY);
+            ctx.moveTo(centerX, 0); ctx.lineTo(centerX, h);
+            ctx.strokeStyle = '#d1d5db'; // gray-300
+            ctx.lineWidth = 1;
+            ctx.stroke();
+
+            // 3. 입사 광선 (Incident Ray)
+            ctx.beginPath();
+            ctx.moveTo(0, py); // 왼쪽 끝에서 점 P까지
+            ctx.lineTo(px, py);
+            ctx.strokeStyle = '#f59e0b'; // amber-500
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // 4. 반사 광선 (각도: 2*theta)
+            const reflectedAngle = 2 * angleRad; // 2*theta
+            let dirX = Math.cos(reflectedAngle);
+            let dirY = -Math.sin(reflectedAngle); // 캔버스 Y축은 반대
+
+            // --- 방향을 '원 내부'로 강제하는 로직 ---
+            const toCenterX = centerX - px;
+            const toCenterY = centerY - py;
+            // 내적이 음수면(=바깥을 향함) 방향을 뒤집기
+            if (dirX * toCenterX + dirY * toCenterY < 0) {
+            dirX = -dirX;
+            dirY = -dirY;
+            }
+
+            ctx.beginPath();
+            ctx.moveTo(px, py);
+            // 충분히 길게 그리되, 내부 방향으로만 뻗도록 (부호를 바꿨으니 +로 진행)
+            ctx.lineTo(px + w * dirX, py + h * dirY);
+            ctx.strokeStyle = '#10b981'; // green-500
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+
+            // 5. 점 P
+            ctx.beginPath();
+            ctx.arc(px, py, 6, 0, 2 * Math.PI);
+            ctx.fillStyle = '#ef4444'; // red-500
+            ctx.fill();
+            
+            if(value) value.textContent = `${angleDeg.toFixed(0)}°`;
         }
 
         const canvas2 = document.getElementById('epicycloidCanvas'), ctx2 = canvas2.getContext('2d'), kSlider = document.getElementById('k-slider'), kValue = document.getElementById('k-value'), sizeSlider = document.getElementById('size-slider'), sizeValue = document.getElementById('size-value'), epicycloidAngleSlider = document.getElementById('epicycloid-slider'), epicycloidAngleValue = document.getElementById('epicycloid-value');
