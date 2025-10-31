@@ -556,63 +556,106 @@ document.addEventListener('DOMContentLoaded', () => {
       '채점 요소': 'rubric',
     };
 
+    const stopKeywords = ['평가 방법', '채점 기준', '배점'];
+
     const lines = text.trim().split('\n');
     let currentSectionKey = null;
+    let criteriaBuffer = []; // 평가 기준 섹션의 텍스트를 임시 저장
 
     for (const line of lines) {
       const trimmedLine = line.trim();
+      if (!trimmedLine) continue; // 빈 줄 무시
+
       let matchedKeyword = false;
 
+      // 중단 키워드 체크 (평가 방법, 채점 기준 등)
+      if (stopKeywords.some(sk => trimmedLine.startsWith(sk))) {
+        currentSectionKey = 'rubric';
+        continue;
+      }
+
+      // 키워드 매칭
       for (const [keyword, key] of Object.entries(keywords)) {
-        if (trimmedLine.startsWith(keyword) && !trimmedLine.startsWith('평가 방법')) {
+        if (trimmedLine.startsWith(keyword)) {
           currentSectionKey = key;
           matchedKeyword = true;
+
           if (key === 'rubric') {
             break;
           }
-          overview[key] =
-            (overview[key] || '') + trimmedLine.substring(keyword.length).trim() + '\n';
+
+          if (key === 'criteria') {
+            criteriaBuffer = []; // 평가 기준 섹션 시작 시 버퍼 초기화
+          } else {
+            // 수행 과제, 성취기준, 핵심 아이디어는 키워드 뒤의 내용도 포함
+            const content = trimmedLine.substring(keyword.length).trim();
+            if (content) {
+              overview[key] = (overview[key] || '') + content + '\n';
+            }
+          }
           break;
         }
       }
-      if (matchedKeyword && currentSectionKey === 'rubric') continue;
-      if (matchedKeyword) continue;
 
-      if (currentSectionKey && overview[currentSectionKey] !== undefined) {
-        if (currentSectionKey === 'criteria') {
-          const match = trimmedLine.match(/^([A-E])\s+(.*)/);
-          if (match) {
-            overview.criteria.levels[match[1]] = match[2].trim();
-          }
-        } else {
-          overview[currentSectionKey] += trimmedLine + '\n';
+      if (matchedKeyword && currentSectionKey === 'rubric') continue;
+      if (matchedKeyword && currentSectionKey !== 'criteria') continue;
+
+      // 섹션별 내용 처리
+      if (currentSectionKey === 'criteria') {
+        // A, B, C, D, E로 시작하는 줄 매칭
+        const match = trimmedLine.match(/^([A-E])\s+(.*)/);
+        if (match) {
+          overview.criteria.levels[match[1]] = match[2].trim();
+        } else if (!matchedKeyword) {
+          criteriaBuffer.push(trimmedLine);
         }
-      } else {
+      } else if (currentSectionKey && overview[currentSectionKey] !== undefined) {
+        overview[currentSectionKey] += trimmedLine + '\n';
+      } else if (currentSectionKey === 'rubric') {
         rubricLines.push(line);
       }
     }
 
+    // 평가 기준 버퍼 처리: 연속된 텍스트를 등급별로 자동 할당
+    if (criteriaBuffer.length > 0 && Object.keys(overview.criteria.levels).length === 0) {
+      const levels = ['A', 'B', 'C', 'D', 'E'];
+      criteriaBuffer.forEach((text, idx) => {
+        if (idx < levels.length) {
+          overview.criteria.levels[levels[idx]] = text;
+        }
+      });
+    }
+
+    // 텍스트 정리
     Object.keys(overview).forEach((key) => {
       if (key !== 'criteria') overview[key] = overview[key].trim();
     });
 
+    // 타입 결정
     const foundLevels = Object.keys(overview.criteria.levels);
     if (foundLevels.length > 3) overview.criteria.type = '5-point';
     else if (foundLevels.length > 0) overview.criteria.type = '3-point';
 
+    // 채점 요소 파싱
     const rubricMap = new Map();
     let currentCriterion = '';
     rubricLines
       .filter((line) => line.trim())
       .forEach((line) => {
-        if (line.includes('채점 기준') && line.includes('배점')) return;
-        const parts = line.trim().split(/\s{2,}|	/);
+        const trimmed = line.trim();
+        if (trimmed.includes('채점 기준') && trimmed.includes('배점')) return;
+
+        // 탭 또는 여러 공백으로 구분된 데이터 파싱
+        const parts = trimmed.split(/\t|(?:\s{2,})/);
+
         if (parts.length >= 2 && !isNaN(parseFloat(parts[parts.length - 1]))) {
           const score = parseFloat(parts.pop());
           const criterionText = parts.length > 1 ? parts.shift().trim() : '';
-          currentCriterion = criterionText
-            ? criterionText.replace(/[·\s-]/g, '')
-            : currentCriterion;
+
+          if (criterionText) {
+            currentCriterion = criterionText.replace(/[·\s-]/g, '');
+          }
+
           const description = parts.join(' ').trim();
 
           if (currentCriterion && description) {
