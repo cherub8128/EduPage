@@ -118,11 +118,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // --- 루브릭 UI 및 로직 ---
   const rubricAccordion = byId('rubric-accordion');
-  const scoreTypeConfig = {
-    single: { label: '단일', levels: ['득점'] },
-    '3-point': { label: '3단계', levels: ['A', 'B', 'C'] },
-    '5-point': { label: '5단계', levels: ['A', 'B', 'C', 'D', 'E'] },
-  };
+
+  // 동적으로 scoreTypeConfig 생성하는 함수
+  function getScoreTypeConfig(type) {
+    if (type === 'single' || type === 0) {
+      return { label: '단일', levels: ['득점'], isNumeric: true };
+    }
+    const numSteps = parseInt(type);
+    if (!isNaN(numSteps) && numSteps > 0) {
+      const levels = Array.from({ length: numSteps }, (_, i) =>
+        String.fromCharCode(65 + i) // A, B, C, ...
+      );
+      return { label: `${numSteps}단계`, levels, isNumeric: false };
+    }
+    // 기본값 (호환성)
+    const scoreTypeConfig = {
+      single: { label: '단일', levels: ['득점'], isNumeric: true },
+      '3-point': { label: '3단계', levels: ['A', 'B', 'C'], isNumeric: false },
+      '5-point': { label: '5단계', levels: ['A', 'B', 'C', 'D', 'E'], isNumeric: false },
+    };
+    return scoreTypeConfig[type] || scoreTypeConfig['3-point'];
+  }
 
   function renderRubric() {
     rubricAccordion.innerHTML = '';
@@ -131,17 +147,18 @@ document.addEventListener('DOMContentLoaded', () => {
       details.className = 'bg-white border rounded-lg';
       details.dataset.index = index;
 
+      const typeConfig = getScoreTypeConfig(item.type);
       const summary = document.createElement('summary');
       summary.className = 'p-3 flex items-center justify-between font-semibold cursor-pointer';
       summary.innerHTML = `<span class="item-name">${
         item.name
       }</span><div class="flex items-center gap-2"><span class="text-sm font-normal bg-slate-100 px-2 py-1 rounded">${
-        scoreTypeConfig[item.type].label
+        typeConfig.label
       }</span><svg class="w-5 h-5 transition-transform transform details-arrow" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" /></svg></div>`;
 
       const content = document.createElement('div');
       content.className = 'p-4 border-t space-y-4';
-      const levels = scoreTypeConfig[item.type].levels;
+      const levels = typeConfig.levels;
       const descriptionInputs = levels
         .map(
           (level) =>
@@ -152,18 +169,14 @@ document.addEventListener('DOMContentLoaded', () => {
             }"></div></div>`
         )
         .join('');
+
+      const typeInputValue = item.type === 'single' ? 0 : (item.type === '3-point' ? 3 : (item.type === '5-point' ? 5 : item.type));
+
       content.innerHTML = `<div class="flex items-end gap-2"><div class="flex-1"><label class="text-sm font-medium">항목명</label><input type="text" class="w-full font-semibold rounded mt-1" value="${
         item.name
-      }" data-field="name"></div><div class="flex-1"><label class="text-sm font-medium">유형</label><select data-field="type" class="w-full rounded mt-1">${Object.entries(
-        scoreTypeConfig
-      )
-        .map(
-          ([k, v]) =>
-            `<option value="${k}" ${item.type === k ? 'selected' : ''}>${v.label}</option>`
-        )
-        .join(
-          ''
-        )}</select></div><button class="delete-rubric-item p-2 text-slate-400 hover:text-red-600" title="항목 삭제"><svg class="w-5 h-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd" /></svg></button></div><div><p class="text-sm font-medium mt-2">만족 기준 및 점수</p><div class="space-y-2 mt-1">${descriptionInputs}</div></div>`;
+      }" data-field="name"></div><div class="flex-1"><label class="text-sm font-medium">단계 수 (0=단일)</label><input type="number" min="0" max="26" data-field="type" class="w-full rounded mt-1" value="${
+        typeInputValue
+      }"></div>${typeConfig.isNumeric ? `<div class="flex-1"><label class="text-sm font-medium">최고점</label><input type="number" min="1" data-field="maxScore" class="w-full rounded mt-1" value="${item.scores['득점'] || 10}"></div>` : ''}<button class="delete-rubric-item p-2 text-slate-400 hover:text-red-600" title="항목 삭제"><svg class="w-5 h-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd" /></svg></button></div><div><p class="text-sm font-medium mt-2">만족 기준 및 점수</p><div class="space-y-2 mt-1">${descriptionInputs}</div></div>`;
 
       details.append(summary, content);
       rubricAccordion.append(details);
@@ -187,6 +200,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const { field, level, descLevel } = e.target.dataset;
     if (field === 'name')
       itemDiv.querySelector('.item-name').textContent = item.name = e.target.value;
+    if (field === 'maxScore') {
+      const newMax = parseInt(e.target.value) || 10;
+      item.scores['득점'] = newMax;
+    }
     if (level) item.scores[level] = parseFloat(e.target.value) || 0;
     if (descLevel) {
       item.descriptions[descLevel] = e.target.value;
@@ -198,14 +215,36 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e.target.dataset.field === 'type') {
       const itemDiv = e.target.closest('[data-index]');
       const item = state.rubric[itemDiv.dataset.index];
-      item.type = e.target.value;
-      const newLevels = scoreTypeConfig[item.type].levels;
+      const inputValue = parseInt(e.target.value) || 0;
+
+      // 타입 설정
+      if (inputValue === 0) {
+        item.type = 'single';
+      } else if (inputValue === 3) {
+        item.type = '3-point';
+      } else if (inputValue === 5) {
+        item.type = '5-point';
+      } else {
+        item.type = inputValue;
+      }
+
+      const typeConfig = getScoreTypeConfig(item.type);
+      const newLevels = typeConfig.levels;
       item.scores = {};
       item.descriptions = {};
-      newLevels.forEach((level, i) => {
-        item.scores[level] = newLevels.length - i;
-        item.descriptions[level] = '';
-      });
+
+      if (typeConfig.isNumeric) {
+        // 단일 기준: 최고점을 입력받거나 기본값 10
+        const maxScore = 10; // 기본 최고점
+        item.scores['득점'] = maxScore;
+        item.descriptions['득점'] = '';
+      } else {
+        // 다단계: 레벨별로 점수 할당
+        newLevels.forEach((level, i) => {
+          item.scores[level] = newLevels.length - i;
+          item.descriptions[level] = '';
+        });
+      }
       renderRubric();
     }
   });
@@ -692,7 +731,8 @@ document.addEventListener('DOMContentLoaded', () => {
           });
         });
       } else {
-        const typeLevels = scoreTypeConfig[type].levels;
+        const typeConfig = getScoreTypeConfig(type);
+        const typeLevels = typeConfig.levels;
         const scores = {};
         const descriptions = {};
         levelsData.forEach((levelData, i) => {
@@ -820,7 +860,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const overviewText = `[수행 과제]\n${state.overview.task}\n\n[성취기준]\n${state.overview.standards}\n\n[핵심 아이디어]\n${state.overview.ideas}\n\n[종합 평가 기준]\n${criteriaText}`;
     const rubricText = state.rubric
       .map((item) => {
-        const descriptions = scoreTypeConfig[item.type].levels
+        const typeConfig = getScoreTypeConfig(item.type);
+        const descriptions = typeConfig.levels
           .map((level) => `  - ${level} (${item.scores[level]}점): ${item.descriptions[level]}`)
           .join('\n');
         return `- ${item.name}:\n${descriptions}`;
@@ -832,9 +873,10 @@ document.addEventListener('DOMContentLoaded', () => {
           .toLowerCase()
           .replace(/[\s:·-]+/g, '_')
           .slice(0, 30);
-        if (item.type === 'single') {
-          const maxScore = item.scores['득점'] || 5;
-          return `"${key}": ${maxScore} (0에서 ${maxScore}점 사이의 점수)`;
+        const typeConfig = getScoreTypeConfig(item.type);
+        if (typeConfig.isNumeric) {
+          const maxScore = item.scores['득점'] || 10;
+          return `"${key}": ${maxScore} (0에서 ${maxScore}점 사이의 정수)`;
         } else {
           return `"${key}": "선택된 등급(예: A)"`;
         }
@@ -854,11 +896,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const mockScores = {};
         state.rubric.forEach((item) => {
             const key = item.name.toLowerCase().replace(/[\s:·-]+/g, "_").slice(0, 30);
-            if (item.type === 'single') {
-                const maxScore = item.scores['득점'] || 5;
-                mockScores[key] = parseFloat((Math.random() * maxScore).toFixed(1));
+            const typeConfig = getScoreTypeConfig(item.type);
+            if (typeConfig.isNumeric) {
+                const maxScore = item.scores['득점'] || 10;
+                mockScores[key] = Math.floor(Math.random() * (maxScore + 1));
             } else {
-                const levels = scoreTypeConfig[item.type].levels;
+                const levels = typeConfig.levels;
                 mockScores[key] = levels[Math.floor(Math.random() * levels.length)];
             }
         });
@@ -960,9 +1003,10 @@ document.addEventListener('DOMContentLoaded', () => {
           const value = r.scores?.[key];
           let displayText = '-';
 
-          if (item.type === 'single') {
+          const typeConfig = getScoreTypeConfig(item.type);
+          if (typeConfig.isNumeric) {
             const score = typeof value === 'number' ? value : 0;
-            displayText = score.toFixed(1);
+            displayText = score.toString();
           } else {
             const level = value ?? '-';
             const score = item.scores[level] ?? 0;
@@ -1071,7 +1115,8 @@ document.addEventListener('DOMContentLoaded', () => {
       const value = scoresObj[key];
       labels.push(item.name);
 
-      if (item.type === 'single') {
+      const typeConfig = getScoreTypeConfig(item.type);
+      if (typeConfig.isNumeric) {
         scoreValues.push(typeof value === 'number' ? value : 0);
       } else {
         scoreValues.push(item.scores[value] || 0);
@@ -1113,8 +1158,9 @@ document.addEventListener('DOMContentLoaded', () => {
           .slice(0, 30);
         const value = r.scores?.[key];
         let score, level;
-        if (item.type === 'single') {
-          score = (typeof value === 'number' ? value : 0).toFixed(1);
+        const typeConfig = getScoreTypeConfig(item.type);
+        if (typeConfig.isNumeric) {
+          score = (typeof value === 'number' ? value : 0).toString();
           level = value;
         } else {
           level = value ?? '-';
