@@ -140,12 +140,25 @@ document.addEventListener('DOMContentLoaded', () => {
     return scoreTypeConfig[type] || scoreTypeConfig['3-point'];
   }
 
-  function renderRubric() {
+  function renderRubric(openIndexes = null) {
+    // 현재 열린 항목들의 인덱스를 저장 (매개변수로 전달되지 않은 경우)
+    if (openIndexes === null) {
+      openIndexes = new Set();
+      rubricAccordion.querySelectorAll('details[open]').forEach(detail => {
+        openIndexes.add(parseInt(detail.dataset.index));
+      });
+    }
+
     rubricAccordion.innerHTML = '';
     state.rubric.forEach((item, index) => {
       const details = document.createElement('details');
       details.className = 'bg-white border rounded-lg';
       details.dataset.index = index;
+
+      // 이전에 열려있던 항목은 다시 열기
+      if (openIndexes.has(index)) {
+        details.open = true;
+      }
 
       const typeConfig = getScoreTypeConfig(item.type);
       const summary = document.createElement('summary');
@@ -214,7 +227,8 @@ document.addEventListener('DOMContentLoaded', () => {
   rubricAccordion.addEventListener('change', (e) => {
     if (e.target.dataset.field === 'type') {
       const itemDiv = e.target.closest('[data-index]');
-      const item = state.rubric[itemDiv.dataset.index];
+      const itemIndex = parseInt(itemDiv.dataset.index);
+      const item = state.rubric[itemIndex];
       const inputValue = parseInt(e.target.value) || 0;
 
       // 타입 설정
@@ -245,7 +259,10 @@ document.addEventListener('DOMContentLoaded', () => {
           item.descriptions[level] = '';
         });
       }
-      renderRubric();
+
+      // 현재 변경된 항목만 열린 상태로 유지
+      const openIndexes = new Set([itemIndex]);
+      renderRubric(openIndexes);
     }
   });
 
@@ -641,12 +658,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // 섹션별 내용 처리
       if (currentSectionKey === 'criteria') {
-        // A, B, C, D, E로 시작하는 줄 매칭
-        const match = trimmedLine.match(/^([A-E])\s+(.*)/);
+        // A, B, C, D, E로 시작하는 줄 매칭 (단, 단일 문자만 있는 경우는 평가 기준의 등급)
+        const match = trimmedLine.match(/^([A-E])(?:\s+(.+))?$/);
         if (match) {
-          overview.criteria.levels[match[1]] = match[2].trim();
+          const level = match[1];
+          const content = match[2] ? match[2].trim() : '';
+          if (content) {
+            // "A 매우 우수" 형태
+            overview.criteria.levels[level] = content;
+          } else {
+            // "A" 단독 - 다음 줄이 내용일 것으로 예상, 버퍼에 추가
+            criteriaBuffer.push({ level, awaitingContent: true });
+          }
         } else if (!matchedKeyword) {
-          criteriaBuffer.push(trimmedLine);
+          // 이전에 "A"만 있었으면 이 줄을 그 내용으로 사용
+          if (criteriaBuffer.length > 0 && criteriaBuffer[criteriaBuffer.length - 1].awaitingContent) {
+            const lastItem = criteriaBuffer.pop();
+            overview.criteria.levels[lastItem.level] = trimmedLine;
+          } else {
+            // 일반 텍스트는 순서대로 버퍼에 추가
+            criteriaBuffer.push(trimmedLine);
+          }
         }
       } else if (currentSectionKey && overview[currentSectionKey] !== undefined) {
         overview[currentSectionKey] += trimmedLine + '\n';
@@ -656,11 +688,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // 평가 기준 버퍼 처리: 연속된 텍스트를 등급별로 자동 할당
-    if (criteriaBuffer.length > 0 && Object.keys(overview.criteria.levels).length === 0) {
+    if (criteriaBuffer.length > 0) {
       const levels = ['A', 'B', 'C', 'D', 'E'];
-      criteriaBuffer.forEach((text, idx) => {
-        if (idx < levels.length) {
-          overview.criteria.levels[levels[idx]] = text;
+      const existingLevels = Object.keys(overview.criteria.levels);
+
+      // 이미 일부 등급이 있으면 나머지만 채움
+      const remainingLevels = levels.filter(l => !existingLevels.includes(l));
+
+      criteriaBuffer.forEach((item, idx) => {
+        // 객체가 아닌 일반 문자열만 처리
+        if (typeof item === 'string' && idx < remainingLevels.length) {
+          overview.criteria.levels[remainingLevels[idx]] = item;
         }
       });
     }
@@ -678,27 +716,40 @@ document.addEventListener('DOMContentLoaded', () => {
     // 채점 요소 파싱
     const rubricMap = new Map();
     let currentCriterion = '';
+
     rubricLines
       .filter((line) => line.trim())
       .forEach((line) => {
         const trimmed = line.trim();
-        if (trimmed.includes('채점 기준') && trimmed.includes('배점')) return;
+
+        // 헤더 행 감지 및 건너뛰기
+        if (trimmed.includes('채점 요소') || trimmed.includes('채점 기준') || trimmed.includes('배점')) {
+          return;
+        }
 
         // 탭 또는 여러 공백으로 구분된 데이터 파싱
-        const parts = trimmed.split(/\t|(?:\s{2,})/);
+        const parts = trimmed.split(/\t+|\s{2,}/);
 
+        // 마지막 요소가 숫자인 경우 (점수로 간주)
         if (parts.length >= 2 && !isNaN(parseFloat(parts[parts.length - 1]))) {
           const score = parseFloat(parts.pop());
-          const criterionText = parts.length > 1 ? parts.shift().trim() : '';
 
-          if (criterionText) {
-            currentCriterion = criterionText.replace(/[·\s-]/g, '');
+          // 첫 번째 요소가 비어있지 않으면 새로운 항목명
+          if (parts[0] && parts[0].trim()) {
+            const rawCriterion = parts.shift().trim();
+            // 항목명에서 특수문자 제거하여 정규화
+            currentCriterion = rawCriterion.replace(/[·\s-]/g, '');
+          } else if (parts.length > 0 && parts[0] === '') {
+            // 첫 번째가 빈 문자열이면 제거 (같은 항목의 다른 등급)
+            parts.shift();
           }
 
           const description = parts.join(' ').trim();
 
           if (currentCriterion && description) {
-            if (!rubricMap.has(currentCriterion)) rubricMap.set(currentCriterion, []);
+            if (!rubricMap.has(currentCriterion)) {
+              rubricMap.set(currentCriterion, []);
+            }
             rubricMap.get(currentCriterion).push({ description, score });
           }
         }
