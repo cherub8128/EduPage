@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>공학과 물리학을 읽는 수학: Caustic Curve</title>
+    
+    <!-- Tailwind CSS --><script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts: Noto Sans KR --><link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    
+    <!-- KaTeX for Math Rendering --><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" xintegrity="sha384-n8MVd4RsNIU07vaPkpxUalGOz4A6PCgbNEOFJMYGfCKijWLLbsc1nlCATRTeDD5b" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" xintegrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzUOEleOLALmuqehneUG+vnGctmImQXLwlu" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" xintegrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous"></script>
+
+    <style>
+        /* Noto Sans KR 폰트 적용 및 기본 스타일 */
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            overscroll-behavior: none;
+            overflow: hidden; /* 전체 스크롤 방지 */
+        }
+        
+        /* KaTeX 폰트 크기 조정 */
+        .katex {
+            font-size: 1.3em !important;
+        }
+
+        /* 슬라이드 기본 스타일 */
+        .slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh; /* Viewport Height */
+            padding: 4rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.6s ease-in-out, visibility 0.6s ease-in-out;
+            background-color: white;
+            overflow-y: auto; /* 슬라이드 내용이 길 경우 스크롤 */
+        }
+
+        /* 스크롤이 필요한 긴 슬라이드용 스타일 */
+        .slide-scrollable {
+            justify-content: flex-start;
+            padding-top: 6rem;
+            padding-bottom: 6rem;
+        }
+
+        /* 활성화된 슬라이드 */
+        .slide.active {
+            opacity: 1;
+            visibility: visible;
+            z-index: 10;
+        }
+
+        /* 슬라이드 내 컨텐츠 정렬 */
+        .slide-content {
+            width: 100%;
+            max-width: 1200px;
+            margin: auto;
+        }
+        
+        /* 제목 텍스트 */
+        .slide-title {
+            font-size: 3.5rem; /* 56px */
+            font-weight: 900;
+            line-height: 1.3;
+            color: #1e3a8a; /* tailwind-blue-800 */
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.05);
+        }
+        
+        /* 부제목 텍스트 */
+        .slide-subtitle {
+            font-size: 2.25rem; /* 36px */
+            font-weight: 500;
+            margin-top: 1rem;
+            color: #1e40af; /* tailwind-blue-700 */
+        }
+
+        /* 본문 텍스트 */
+        .slide-body {
+            font-size: 1.875rem; /* 30px */
+            font-weight: 400;
+            line-height: 1.8;
+            color: #1f2937; /* tailwind-gray-800 */
+            margin-top: 2rem;
+        }
+        
+        /* 강조 텍스트 (파란색) */
+        .text-highlight {
+            color: #2563eb; /* tailwind-blue-600 */
+            font-weight: 700;
+        }
+
+        /* 네비게이션 버튼 */
+        .nav-button {
+            position: fixed;
+            z-index: 20;
+            bottom: 2rem;
+            background-color: rgba(255, 255, 255, 0.9);
+            border: 2px solid #3b82f6; /* tailwind-blue-500 */
+            color: #3b82f6;
+            width: 4rem;
+            height: 4rem;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        .nav-button:hover {
+            background-color: #3b82f6;
+            color: white;
+            transform: scale(1.1);
+        }
+
+        #prev-btn {
+            right: 7rem;
+        }
+        #next-btn {
+            right: 2rem;
+        }
+
+        /* 슬라이드 번호 */
+        #slide-counter {
+            position: fixed;
+            z-index: 20;
+            bottom: 2.8rem;
+            left: 2rem;
+            font-size: 1.5rem;
+            font-weight: 500;
+            color: #6b7280; /* tailwind-gray-500 */
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 0.5rem 1rem;
+            border-radius: 99px;
+        }
+        
+        /* 전체 화면 Iframe 슬라이드 */
+        .slide-fullscreen {
+            padding: 0;
+            overflow: hidden;
+        }
+        .slide-fullscreen iframe {
+            width: 100%;
+            height: 100vh;
+            border: none;
+        }
+
+        /* 답변 확인 버튼 스타일 */
+        .reveal-button {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            background-color: #3b82f6; /* blue-500 */
+            color: white;
+            font-weight: 600;
+            font-size: 1.25rem; /* 20px */
+            border-radius: 99px;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            margin-top: 1rem;
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+        }
+        .reveal-button:hover {
+            background-color: #2563eb; /* blue-600 */
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+        }
+        .reveal-button.is-hidden {
+            display: none;
+        }
+
+        /* 학생 참여 링크 버튼 스타일 */
+        .link-button {
+            display: inline-block;
+            padding: 0.75rem 2rem;
+            background-color: #10b981; /* green-500 */
+            color: white;
+            font-weight: 600;
+            font-size: 1.25rem; /* 20px */
+            border-radius: 99px;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            margin-top: 1.5rem;
+            text-decoration: none;
+            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+        }
+        .link-button:hover {
+            background-color: #059669; /* green-600 */
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+        }
+
+        /* 숨겨진 답변 콘텐츠 스타일 */
+        .reveal-content {
+            opacity: 0;
+            height: 0;
+            overflow: hidden;
+            transition: all 0.5s ease-in-out;
+            transform: translateY(-10px);
+            will-change: opacity, height, transform;
+            /* KaTeX 렌더링 깨짐 방지를 위해 visibility 대신 사용 */
+        }
+        .reveal-content.revealed {
+            opacity: 1;
+            height: auto;
+            /* 정확한 높이 계산을 위해 max-height 대신 auto 사용 */
+            /* KaTeX가 렌더링될 시간을 주기 위해 auto로 설정 */
+            max-height: 1000px; /* fallback */
+            transform: translateY(0);
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+
+    <!-- 슬라이드 1: 제목 --><div id="slide-1" class="slide active bg-gradient-to-br from-blue-50 to-white">
+        <div class="slide-content text-center">
+            <div class="text-2xl font-medium text-blue-600 mb-4 tracking-widest">공학과 물리학을 읽는 수학</div>
+            <h1 class="slide-title !text-6xl">커피잔 속 빛의 무늬</h1>
+            <h2 class="slide-subtitle !text-5xl mt-8">Caustic Curve 탐구</h2>
+            <p class="slide-body !text-3xl mt-16 text-gray-700">일상의 현상에서 수학적 원리를 발견합니다.</p>
+        </div>
+    </div>
+
+    <!-- 슬라이드 2: 1차시 - 현상 관찰 (복원됨) --><div id="slide-2" class="slide bg-white">
+        <div class="slide-content text-center">
+            <h1 class="slide-title">현상 관찰: 커피잔 속 빛의 무늬</h1>
+            <div class="flex flex-col md:flex-row items-center justify-center gap-12 mt-12">
+                <div class="w-full md:w-1/2">
+                    <img src="images/cup1.jpg" alt="커피잔 속 Caustic 현상" class="rounded-lg shadow-xl mx-auto max-w-md w-full border">
+                    <p class="text-lg text-gray-600 mt-4">스마트폰 플래시를 이용해 관찰해 보세요.</p>
+                </div>
+                <div class="w-full md:w-1/2 text-left">
+                    <p class="slide-body !text-3xl !mt-0">
+                        관찰한 무늬의 특징은 무엇인가요?
+                    </p>
+                    <ul class="slide-body !text-2xl mt-6 list-disc list-inside space-y-2">
+                        <li>어떤 모양과 비슷한가요?</li>
+                        <li>왜 이런 모양이 생길까요?</li>
+                        <li>무늬의 뾰족한 부분은 왜 생길까요?</li>
+                    </ul>
+                    <a href="https://ahaslides.com/998QS" target="_blank" class="link-button">
+                        여기에 답변 입력하기
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 슬라이드 3: 1차시 - 현상 관찰 (AhaSlides)-->
+    <div id="slide-3" class="slide bg-gray-50 slide-fullscreen">
+        <!-- Loader --><div class="absolute top-0 left-0 w-full h-full z-10 bg-white flex justify-center items-center pointer-events-none opacity-100 transition-opacity duration-500" id="iframe-loader-3">
+             <h2 class="slide-subtitle text-gray-600 animate-pulse">Word Cloud 불러오는 중...</h2>
+        </div>
+        <!-- Iframe --><iframe 
+            src="https://presenter.ahaslides.com/share/my-word-cloud-1761705807640-g7parjktx3" 
+            width="100%" 
+            height="100%" 
+            allowfullscreen 
+            style="border: none;" 
+            frameborder="0"
+            onload="document.getElementById('iframe-loader-3').style.opacity = 0;">
+        </iframe>
+    </div>
+
+    <!-- 슬라이드 4: 1차시 - 문제 단순화 -->
+    <div id="slide-4" class="slide bg-gray-50">
+        <div class="slide-content text-center">
+            <h1 class="slide-title">문제 단순화 (모델링)</h1>
+            <p class="slide-body !text-3xl mt-12">복잡한 3차원 현상을 2차원 평면 문제로 단순화합니다.</p>
+            <div class="mt-16 space-y-10">
+                <div>
+                    <button class="reveal-button" data-target="reveal-4-1">가정 1</button>
+                    <div id="reveal-4-1" class="reveal-content">
+                        <p class="slide-body !text-4xl font-bold !text-blue-700 !mt-0">
+                            컵의 단면은 완벽한 <span class="text-highlight">원</span>이다.
+                        </p>
+                    </div>
+                </div>
+                <div>
+                    <button class="reveal-button" data-target="reveal-4-2">가정 2</button>
+                    <div id="reveal-4-2" class="reveal-content">
+                        <p class="slide-body !text-4xl font-bold !text-blue-700 !mt-0">
+                            모든 빛은 한쪽에서 <span class="text-highlight">평행하게</span> 들어온다.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 슬라이드 5: GeoGebra 모델링 (전체 화면) --><div id="slide-5" class="slide slide-fullscreen">
+        <!-- Loader --><div class="absolute top-0 left-0 w-full h-full z-10 bg-white flex justify-center items-center pointer-events-none opacity-100 transition-opacity duration-500" id="iframe-loader-5">
+             <h2 class="slide-subtitle text-gray-600 animate-pulse">GeoGebra 모델링 불러오는 중...</h2>
+        </div>
+        <!-- 오버레이 타이틀 --><div style="position: absolute; top: 2.5rem; left: 50%; transform: translateX(-50%); z-index: 30; background-color: rgba(255, 255, 255, 0.9); padding: 1rem 2.5rem; border-radius: 99px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+            <h1 class="slide-title !text-3xl !text-blue-700">GeoGebra로 재현한 빛의 반사</h1>
+        </div>
+        <!-- Iframe --><iframe 
+            src="https://www.geogebra.org/calculator/w9wem2p6" 
+            width="100%" 
+            height="100%" 
+            allowfullscreen 
+            style="border: none;" 
+            frameborder="0"
+            onload="document.getElementById('iframe-loader-5').style.opacity = 0;">
+        </iframe>
+    </div>
+
+    <!-- 슬라이드 6: GeoGebra 실습 (전체 화면) --><div id="slide-6" class="slide slide-fullscreen">
+        <!-- 사용자가 요청한 두 번째 GeoGebra 임베드 (풀사이즈) --><div class="absolute top-0 left-0 w-full h-full z-10 bg-white flex justify-center items-center pointer-events-none opacity-100 transition-opacity duration-500" id="iframe-loader-6">
+             <h2 class="slide-subtitle text-gray-600 animate-pulse">GeoGebra 실습 화면을 불러오는 중...</h2>
+        </div>
+        <!-- 오버레이 타이틀 --><div style="position: absolute; top: 2.5rem; left: 50%; transform: translateX(-50%); z-index: 30; background-color: rgba(255, 255, 255, 0.9); padding: 1rem 2.5rem; border-radius: 99px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+            <h1 class="slide-title !text-3xl !text-blue-700">GeoGebra 실습</h1>
+        </div>
+        <iframe 
+            src="https://www.geogebra.org/calculator/a3avgvpq?embed" 
+            allowfullscreen 
+            frameborder="0"
+            onload="document.getElementById('iframe-loader-6').style.opacity = 0;">
+        </iframe>
+    </div>
+
+    <!-- 슬라이드 7: 2차시 - 증명 전략 --><div id="slide-7" class="slide bg-gray-800">
+        <div class="slide-content text-center">
+            <h1 class="slide-title !text-5xl !text-white">우리의 증명 전략</h1>
+            <p class="slide-body !text-4xl mt-16 !text-blue-300">
+                "포락선 위의 한 점은,<br>
+                <span class="font-bold text-white underline decoration-blue-400 decoration-4">아주 가까운 두 반사 광선</span>의<br>
+                <span class="font-bold text-white underline decoration-blue-400 decoration-4">교점</span>이라고 생각할 수 있다."
+            </p>
+            <p class="slide-body !text-5xl !text-white mt-16">
+                👇
+            </p>
+            <button class="reveal-button !text-2xl !py-4 !px-8 !bg-yellow-400 hover:!bg-yellow-500 !text-yellow-900 !mt-8" data-target="reveal-7-strategy">Q. 사용할 핵심 개념은?</button>
+            <div id="reveal-7-strategy" class="reveal-content">
+                <p class="slide-body !text-5xl font-bold !text-yellow-300 !mt-0">
+                    극한 (Limit)
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 슬라이드 8: 3차시 - Step 1: 반사 광선 방정식 --><div id="slide-8" class="slide bg-gray-50 slide-scrollable">
+        <div class="slide-content">
+            <h1 class="slide-title">Step 1: 반사 광선 방정식 유도</h1>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-12 mt-12">
+                <div class="flex justify-center items-start pt-4">
+                    <!-- 인터랙티브 반사 캔버스 --><div class="w-full max-w-md h-auto bg-white rounded-lg border shadow-md p-4">
+                        <canvas id="reflectionCanvas" width="400" height="400" class="w-full h-auto rounded-lg bg-gray-50 border"></canvas>
+                        <div class="mt-4">
+                            <label for="theta-slider" class="font-medium text-lg text-gray-700">반사점 각도 (\(\theta\)):</label>
+                            <div class="flex items-center space-x-4">
+                                <input type="range" id="theta-slider" min="0" max="180" value="135" class="w-full h-2 bg-gray-200 rounded-lg cursor-pointer accent-blue-600">
+                                <span id="theta-value" class="font-semibold w-20 text-center text-xl text-blue-600">45°</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="text-left space-y-2">
+                    <p class="slide-body !text-2xl !mt-0">1. 컵의 단면 (반지름 1인 원) 위의 점 P:</p>
+                    <div class="pl-4">$$ P(\cos\theta, \sin\theta) $$</div>
+                    
+                    <p class="slide-body !text-2xl">2. 점 P에서의 법선은 원점을 향합니다.<br>   <button class="reveal-button !text-lg !py-2 !px-4" data-target="reveal-8-1">Q. 입사각은 얼마일까요?</button></p>
+                    <div id="reveal-8-1" class="reveal-content pl-4">
+                        <p class="slide-body !text-2xl !mt-0">평행 입사 광선(x축과 평행)의 입사각 = <span class="text-highlight">\( \theta \)</span></p>
+                    </div>
+
+                    <p class="slide-body !text-2xl">3. 반사 법칙: <span class="text-highlight">입사각 = 반사각 = \(\theta\)</span></p>
+                    
+                    <p class="slide-body !text-2xl">4. <button class="reveal-button !text-lg !py-2 !px-4" data-target="reveal-8-2">Q. 반사 광선이 x축과 이루는 각은?</button></p>
+                    <div id="reveal-8-2" class="reveal-content pl-4">
+                        <p class="slide-body !text-2xl !mt-0">반사 광선이 x축 양의 방향과 이루는 각 = <span class="text-highlight">\(2\theta\)</span> (엇각 \(\theta\) + 반사각 \(\theta\))</p>
+                    </div>
+
+                    <p class="slide-body !text-2xl">5. <button class="reveal-button !text-lg !py-2 !px-4" data-target="reveal-8-3">Q. 반사 광선의 기울기 \(m\)은?</button></p>
+                    <div id="reveal-8-3" class="reveal-content pl-4">$$ m = \tan(2\theta) $$</div>
+                    
+                    <p class="slide-body !text-2xl">6. <button class="reveal-button !text-lg !py-2 !px-4" data-target="reveal-8-4">Q. 최종 반사 광선 방정식 \(L(\theta)\)는?</button></p>
+                    <div id="reveal-8-4" class="reveal-content pl-4">
+                        <p class="slide-body !text-sm !mt-0">(점 \(P(\cos\theta, \sin\theta)\)를 지나고 기울기가 \(m\)인 직선)</p>
+                        $$ y - \sin\theta = \tan(2\theta)(x - \cos\theta) $$
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 슬라이드 9: 3차시 - Step 2: 포락선 증명 (수식) --><div id="slide-9" class="slide slide-scrollable">
+        <div class="slide-content !max-w-4xl text-left">
+            <h1 class="slide-title">Step 2: 포락선 방정식 증명</h1>
+            
+            <p class="slide-body !text-2xl !mt-8">1. <button class="reveal-button !text-lg !py-2 !px-4" data-target="reveal-9-1">두 반사 광선 정리하기</button></p>
+            <div id="reveal-9-1" class="reveal-content text-xl bg-gray-50 p-6 rounded-md shadow-inner">
+                $$ L(\theta) : x \sin(2\theta) - y \cos(2\theta) = \sin\theta $$
+                $$ L(\phi) : x \sin(2\phi) - y \cos(2\phi) = \sin\phi $$
+            </div>
+
+            <p class="slide-body !text-2xl !mt-8">2. <button class="reveal-button !text-lg !py-2 !px-4" data-target="reveal-9-2">연립방정식으로 교점 \(x\) 구하기</button></p>
+            <div id="reveal-9-2" class="reveal-content text-xl bg-gray-50 p-6 rounded-md shadow-inner">
+                 $$ x = \frac{\sin\phi \cos(2\theta) - \sin\theta \cos(2\phi)}{\sin(2\phi - 2\theta)} $$
+            </div>
+
+            
+<p class="slide-body !text-2xl !mt-8">3. 극한 \(\lim_{\phi \to \theta}\) 계산하기 (단계별) </p>
+
+<!-- 
+단계별 버튼들을 시각적으로 그룹화하고 정렬하기 위해
+pl-8 (왼쪽 패딩)과 space-y-6 (버튼 간 수직 간격)을 줍니다.
+-->
+<div class="pl-8 space-y-6">
+    
+    <!-- 1단계: 식 변형 및 분모 극한 -->
+    <div>
+        <button class="reveal-button !text-lg !py-2 !px-4" data-target="reveal-9-3a">
+            3-1. 식 변형 및 분모 극한
+        </button>
+        <div id="reveal-9-3a" class="reveal-content text-xl bg-gray-50 p-6 rounded-md shadow-inner">
+            <p>1. 교점 \(x\)의 식에서 분자와 분모를 \(\phi - \theta\)로 나눕니다.</p>
+            $$ x(\theta) = \lim_{\phi \to \theta} \frac{\sin\phi \cos(2\theta) - \sin\theta \cos(2\phi)}{\sin(2\phi - 2\theta)} $$
+            $$ = \lim_{\phi \to \theta} \frac{ \frac{\sin\phi \cos(2\theta) - \sin\theta \cos(2\phi)}{\phi - \theta} }{ \frac{\sin(2(\phi - \theta))}{\phi - \theta} } $$
+
+            <p class="mt-6">2. 분모의 극한을 먼저 계산합니다. (\(\lim_{u \to 0} \frac{\sin(au)}{u} = a\))</p>
+            $$ \lim_{\phi \to \theta} \frac{\sin(2(\phi - \theta))}{\phi - \theta} = 2 $$
+        </div>
+    </div>
+
+    <!-- 2단계: 분자 변형 -->
+    <div>
+        <button class="reveal-button !text-lg !py-2 !px-4" data-target="reveal-9-3b">
+            3-2. 분자 변형 (삼각함수 공식)
+        </button>
+        <div id="reveal-9-3b" class="reveal-content text-xl bg-gray-50 p-6 rounded-md shadow-inner">
+            <p>3. 분자의 극한을 계산합니다. 먼저 분자를 변형합니다.<br>
+            (\(\cos(2\alpha) = 1 - 2\sin^2(\alpha)\) 공식을 분자에 적용)</p>
+            $$ \text{분자} = \sin\phi (1 - 2\sin^2\theta) - \sin\theta (1 - 2\sin^2\phi) $$
+            $$ = \sin\phi - 2\sin\phi\sin^2\theta - \sin\theta + 2\sin\theta\sin^2\phi $$
+            $$ = (\sin\phi - \sin\theta) - 2(\sin\phi\sin^2\theta - \sin\theta\sin^2\phi) $$
+            $$ = (\sin\phi - \sin\theta) - 2\sin\phi\sin\theta(\sin\theta - \sin\phi) $$
+            $$ = (\sin\phi - \sin\theta) + 2\sin\phi\sin\theta(\sin\phi - \sin\theta) $$
+            $$ = (\sin\phi - \sin\theta)(1 + 2\sin\phi\sin\theta) $$
+        </div>
+    </div>
+
+    <!-- 3단계: 분자 극한 및 중간 정리 -->
+    <div>
+        <button class="reveal-button !text-lg !py-2 !px-4" data-target="reveal-9-3c">
+            3-3. 분자 극한 및 중간 정리
+        </button>
+        <div id="reveal-9-3c" class="reveal-content text-xl bg-gray-50 p-6 rounded-md shadow-inner">
+            <p class="mt-6">4. 변형된 분자에 극한을 적용합니다.<br>
+            (미분 계수의 정의: \(\lim_{\phi \to \theta} \frac{\sin\phi - \sin\theta}{\phi - \theta} = (\sin\theta)' = \cos\theta\))</p>
+            $$ \lim_{\phi \to \theta} \frac{(\sin\phi - \sin\theta)(1 + 2\sin\phi\sin\theta)}{\phi - \theta} $$
+            $$ = \left( \lim_{\phi \to \theta} \frac{\sin\phi - \sin\theta}{\phi - \theta} \right) \cdot \left( \lim_{\phi \to \theta} (1 + 2\sin\phi\sin\theta) \right) $$
+            $$ = (\cos\theta) \cdot (1 + 2\sin^2\theta) $$
+
+            <p class="mt-6">5. 분자와 분모의 극한 결과를 합칩니다.</p>
+            $$ x(\theta) = \frac{\cos\theta (1 + 2\sin^2\theta)}{2} = \frac{\cos\theta + 2\sin^2\theta\cos\theta}{2} $$
+
+            <p class="mt-6">6. 삼각함수 공식을 이용해 식을 정리합니다.<br>
+            (\(\sin^2\theta = 1 - \cos^2\theta\) 적용)</p>
+            $$ x(\theta) = \frac{\cos\theta + 2(1 - \cos^2\theta)\cos\theta}{2} $$
+            $$ = \frac{\cos\theta + 2\cos\theta - 2\cos^3\theta}{2} $$
+            $$ = \frac{3\cos\theta - 2\cos^3\theta}{2} $$
+        </div>
+    </div>
+
+    <!-- 4단계: 최종 정리 -->
+    <div>
+        <button class="reveal-button !text-lg !py-2 !px-4" data-target="reveal-9-3d">
+            3-4. 최종 정리 (3배각 공식)
+        </button>
+        <div id="reveal-9-3d" class="reveal-content text-xl bg-gray-50 p-6 rounded-md shadow-inner">
+            <p class="mt-6">7. 3배각 공식 (\(\cos(3\theta) = 4\cos^3\theta - 3\cos\theta\))을 이용하기 위해 식을 변형합니다.</p>
+            $$ x(\theta) = \frac{1}{4}(6\cos\theta - 4\cos^3\theta) $$
+            $$ = \frac{1}{4}(3\cos\theta + 3\cos\theta - 4\cos^3\theta) $$
+            $$ = \frac{1}{4}(3\cos\theta - (4\cos^3\theta - 3\cos\theta)) $$
+            
+            <p class="mt-6">8. 최종 결과를 얻습니다.</p>
+            $$ x(\theta) = \frac{1}{4}(3\cos\theta - \cos(3\theta)) $$
+            $$ = \frac{3}{4}\cos\theta - \frac{1}{4}\cos(3\theta) $$
+        </div>
+    </div>
+    
+</div>
+
+            <p class="slide-body !text-2xl !mt-8">4. 같은 방식으로 최종 방정식을 얻을 수 있습니다.<button class="reveal-button !bg-blue-700 hover:!bg-blue-800" data-target="reveal-9-4">최종 방정식 확인</button></p>
+            <div id="reveal-9-4" class="reveal-content text-xl bg-blue-50 p-8 rounded-md shadow-lg text-center">
+                <span class="font-bold text-blue-700 text-3xl">$$ x(\theta) = \frac{3}{4}\cos\theta - \frac{1}{4}\cos(3\theta) $$</span>
+                <span class="font-bold text-blue-700 text-3xl mt-4 block">$$ y(\theta) = \frac{3}{4}\sin\theta - \frac{1}{4}\sin(3\theta) $$</span>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- 슬라이드 10: 3차시 - 결론: 에피사이클로이드 --><div id="slide-10" class="slide bg-gray-50">
+        <div class="slide-content text-center">
+            <h1 class="slide-title">결론: 무늬의 정체</h1>
+            <button class="reveal-button" data-target="reveal-10-1">그래서 정체는?</button>
+            <div id="reveal-10-1" class="reveal-content">
+                <h2 class="slide-subtitle mt-4">"에피사이클로이드 (Epicycloid)"</h2>
+                <p class="slide-body !text-2xl mt-8">
+                    우리가 유도한 매개변수 방정식은<br>
+                    <span class="text-highlight">큰 원(반지름 1/2)</span>의 바깥을 <span class="text-highlight">작은 원(반지름 1/4)</span>이 구를 때<br>
+                    작은 원 위의 한 점이 그리는 자취와 정확히 일치합니다.
+                </p>
+                <div class="mt-8 text-3xl font-medium bg-blue-50 p-8 rounded-lg shadow-lg border border-blue-100">
+                    $$ x(t) = \frac{3}{4}\cos(t) - \frac{1}{4}\cos(3t) $$
+                    $$ y(t) = \frac{3}{4}\sin(t) - \frac{1}{4}\sin(3t) $$
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 슬라이드 11: 4차시 - 심화 탐구 --><div id="slide-11" class="slide">
+        <div class="slide-content text-center">
+            <h1 class="slide-title">심화 탐구</h1>
+            <h2 class="slide-subtitle mt-12">여러분만의 새로운 질문에 도전해 보세요.</h2>
+            <div class="text-left slide-body !text-2xl mt-12 space-y-6 max-w-4xl mx-auto">
+                <p class="p-6 bg-white rounded-lg shadow-lg border border-gray-100 hover:shadow-xl transition-shadow">
+                    <span class="font-bold text-blue-700">[질문 예시 1]</span> 컵의 모양이 <span class="text-highlight">포물선</span>이라면? (위성 안테나)
+                </p>
+                <p class="p-6 bg-white rounded-lg shadow-lg border border-gray-100 hover:shadow-xl transition-shadow">
+                    <span class="font-bold text-blue-700">[질문 예시 2]</span> 빛이 평행하지 않고 <span class="text-highlight">한 점에서</span> 나온다면? (전구)
+                </p>
+                <p class="p-6 bg-white rounded-lg shadow-lg border border-gray-100 hover:shadow-xl transition-shadow">
+                    <span class="font-bold text-blue-700">[질문 예시 3]</span> 컵 안에 <span class="text-highlight">물이 차 있다면</span>? (빛의 굴절)
+                </p>
+                <p class="p-6 bg-white rounded-lg shadow-lg border border-gray-100 hover:shadow-xl transition-shadow">
+                    <span class="font-bold text-blue-700">[질문 예시 4]</span> 2차원이 아닌 <span class="text-highlight">3차원</span> 공간이라면?
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 슬라이드 12: 정리 --><div id="slide-12" class="slide bg-gradient-to-br from-blue-800 to-blue-900 text-white">
+        <div class="slide-content text-center">
+            <h1 class="slide-title !text-white !text-6xl" style="text-shadow: 0 2px 4px rgba(0,0,0,0.2);">오늘의 여정</h1>
+            <p class="slide-body !text-3xl !text-blue-100 mt-16 leading-relaxed">
+                <span class="text-4xl font-bold text-white">관찰</span> (호기심)
+                <span class="text-5xl mx-4 opacity-70">→</span>
+                <span class="text-4xl font-bold text-white">단순화</span> (가정)
+                <span class="text-5xl mx-4 opacity-70">→</span>
+                <span class="text-4xl font-bold text-white">모델링</span> (GeoGebra)
+                <br>
+                <span class="text-5xl mt-12 inline-block opacity-70">↓</span>
+                <br>
+                <span class="text-4xl font-bold text-white">증명</span> (미적분)
+                <span class="text-5xl mx-4 opacity-70">→</span>
+                <span class="text-4xl font-bold text-white">결론</span> (Epicycloid)
+                <span class="text-5xl mx-4 opacity-70">→</span>
+                <span class="text-4xl font-bold text-yellow-300">심화 탐구</span>
+            </p>
+            <h2 class="slide-subtitle !text-5xl !text-white mt-24" style="text-shadow: 0 2px 4px rgba(0,0,0,0.2);">수고하셨습니다!</h2>
+        </div>
+    </div>
+
+
+    <!-- 네비게이션 --><div id="slide-counter">1 / 12</div>
+    <button id="prev-btn" class="nav-button" aria-label="이전 슬라이드">
+        &lt;
+    </button>
+    <button id="next-btn" class="nav-button" aria-label="다음 슬라이드">
+        &gt;
+    </button>
+
+    <script>
+        let currentSlide = 0;
+        let slides = [];
+        let totalSlides = 0;
+        
+        // --- KaTeX 렌더링 ---
+        function renderAllMath() {
+            if (window.renderMathInElement) {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$', right: '$', display: false},
+                        {left: '\\[', right: '\\]', display: true},
+                        {left: '\\(', right: '\\)', display: false}
+                    ],
+                    throwOnError: false
+                });
+            }
+        }
+    
+        // --- 슬라이드 네비게이션 ---
+        function showSlide(index) {
+            // 인덱스 범위 확인
+            if (index < 0) {
+                index = 0;
+            } else if (index >= totalSlides) {
+                index = totalSlides - 1;
+            }
+            
+            // 현재 슬라이드 숨기기
+            if (slides[currentSlide]) {
+                slides[currentSlide].classList.remove('active');
+            }
+            
+            // 새 슬라이드 보이기
+            currentSlide = index;
+            if (slides[currentSlide]) {
+                slides[currentSlide].classList.add('active');
+            }
+            
+            // 카운터 업데이트
+            const counter = document.getElementById('slide-counter');
+            if (counter) {
+                counter.textContent = `${currentSlide + 1} / ${totalSlides}`;
+            }
+            
+            // 버튼 활성/비활성
+            const prevBtn = document.getElementById('prev-btn');
+            const nextBtn = document.getElementById('next-btn');
+            if (prevBtn) prevBtn.style.display = (currentSlide === 0) ? 'none' : 'flex';
+            if (nextBtn) nextBtn.style.display = (currentSlide === totalSlides - 1) ? 'none' : 'flex';
+        }
+
+        // --- 답변 확인 버튼 로직 ---
+        function setupRevealButtons() {
+            const buttons = document.querySelectorAll('.reveal-button');
+            buttons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const targetId = button.getAttribute('data-target');
+                    const targetContent = document.getElementById(targetId);
+                    
+                    if (targetContent) {
+                        // KaTeX가 다시 렌더링될 수 있도록 클래스 토글 후 잠시 기다림
+                        targetContent.classList.toggle('revealed');
+                        
+                        // 높이를 auto로 설정하기 위해 max-height를 사용
+                        if (targetContent.classList.contains('revealed')) {
+                            targetContent.style.height = 'auto';
+                            const height = targetContent.scrollHeight + 'px';
+                            targetContent.style.height = '0px';
+                            setTimeout(() => {
+                                targetContent.style.height = height;
+                                // 렌더링 후 max-height로 변경
+                                setTimeout(() => {
+                                    targetContent.style.maxHeight = '1000px';
+                                }, 500); // transition 시간
+                            }, 10);
+                        } else {
+                            targetContent.style.height = targetContent.scrollHeight + 'px';
+                            setTimeout(() => {
+                                targetContent.style.height = '0px';
+                            }, 10);
+                        }
+                        
+                        // 버튼 숨기기
+                        button.classList.add('is-hidden');
+                        
+                        // KaTeX가 동적으로 로드된 콘텐츠에 대해 다시 실행
+                        if (window.renderMathInElement) {
+                             renderMathInElement(targetContent, {
+                                delimiters: [
+                                    {left: '$$', right: '$$', display: true},
+                                    {left: '$', right: '$', display: false},
+                                    {left: '\\[', right: '\\]', display: true},
+                                    {left: '\\(', right: '\\)', display: false}
+                                ],
+                                throwOnError: false
+                            });
+                        }
+                    }
+                });
+            });
+        }
+
+        // --- 빛 반사 캔버스 (Step 1) ---
+        function drawReflection() {
+            const canvas = document.getElementById('reflectionCanvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const slider = document.getElementById('theta-slider');
+            const value = document.getElementById('theta-value');
+            
+            const sliderValue = parseFloat(slider.value);
+            // 각도 계산: Geogebra와 유사하게 0~180 (위쪽 반원)
+            // 90도(중앙) -> 0도, 180도(왼쪽) -> -90도, 0도(오른쪽) -> 90도
+            // PDF/CausticCurve.html 원본 기준: 0~180 -> -90~90
+            const angleDeg = sliderValue - 90;
+            const angleRad = angleDeg * Math.PI / 180;
+            
+            const w = canvas.width;
+            const h = canvas.height;
+            const centerX = w / 2;
+            const centerY = h / 2;
+            const radius = Math.min(w, h) * 0.4;
+
+            const px = centerX + radius * Math.cos(angleRad);
+            const py = centerY - radius * Math.sin(angleRad); // 캔버스 Y축은 반대
+
+            ctx.clearRect(0, 0, w, h);
+            
+            // 1. 원 (컵)
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+            ctx.strokeStyle = '#9ca3af'; // gray-400
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // 2. 축
+            ctx.beginPath();
+            ctx.moveTo(0, centerY); ctx.lineTo(w, centerY);
+            ctx.moveTo(centerX, 0); ctx.lineTo(centerX, h);
+            ctx.strokeStyle = '#d1d5db'; // gray-300
+            ctx.lineWidth = 1;
+            ctx.stroke();
+
+            // 3. 입사 광선 (Incident Ray)
+            ctx.beginPath();
+            ctx.moveTo(0, py); // 왼쪽 끝에서 점 P까지
+            ctx.lineTo(px, py);
+            ctx.strokeStyle = '#f59e0b'; // amber-500
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // 4. 반사 광선 (각도: 2*theta)
+            const reflectedAngle = 2 * angleRad; // 2*theta
+            let dirX = Math.cos(reflectedAngle);
+            let dirY = -Math.sin(reflectedAngle); // 캔버스 Y축은 반대
+
+            // --- 방향을 '원 내부'로 강제하는 로직 ---
+            const toCenterX = centerX - px;
+            const toCenterY = centerY - py;
+            // 내적이 음수면(=바깥을 향함) 방향을 뒤집기
+            if (dirX * toCenterX + dirY * toCenterY < 0) {
+            dirX = -dirX;
+            dirY = -dirY;
+            }
+
+            ctx.beginPath();
+            ctx.moveTo(px, py);
+            // 충분히 길게 그리되, 내부 방향으로만 뻗도록 (부호를 바꿨으니 +로 진행)
+            ctx.lineTo(px + w * dirX, py + h * dirY);
+            ctx.strokeStyle = '#10b981'; // green-500
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+
+            // 5. 점 P
+            ctx.beginPath();
+            ctx.arc(px, py, 6, 0, 2 * Math.PI);
+            ctx.fillStyle = '#ef4444'; // red-500
+            ctx.fill();
+            
+            if(value) value.textContent = `${angleDeg.toFixed(0)}°`;
+        }
+
+
+        // --- 초기화 ---
+        document.addEventListener('DOMContentLoaded', () => {
+            slides = document.querySelectorAll('.slide');
+            totalSlides = slides.length;
+            
+            // KaTeX 렌더링
+            if (window.renderMathInElement) {
+                renderAllMath();
+            } else {
+                const autoRenderScript = document.querySelector('script[src*="auto-render.min.js"]');
+                if (autoRenderScript) {
+                    autoRenderScript.onload = renderAllMath;
+                } else {
+                    console.error('KaTeX auto-render script not found.');
+                }
+            }
+
+            // 슬라이드 초기화
+            showSlide(0);
+
+            // 캔버스 초기화
+            drawReflection(); 
+            
+            // 인터랙티브 버튼 초기화
+            setupRevealButtons();
+            
+            // 이벤트 리스너
+            document.getElementById('next-btn').addEventListener('click', () => {
+                showSlide(currentSlide + 1);
+            });
+            
+            document.getElementById('prev-btn').addEventListener('click', () => {
+                showSlide(currentSlide - 1);
+            });
+
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'ArrowRight' || e.key === ' ') {
+                    showSlide(currentSlide + 1);
+                } else if (e.key === 'ArrowLeft') {
+                    showSlide(currentSlide - 1);
+                }
+            });
+            
+            const thetaSlider = document.getElementById('theta-slider');
+            if(thetaSlider) {
+                thetaSlider.addEventListener('input', drawReflection);
+            }
+            
+            // 창 크기 변경 시 캔버스 다시 그리기
+            window.addEventListener('resize', () => {
+                drawReflection();
+            });
+        });
+    </script>
+</body>
+</html>
+

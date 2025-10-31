@@ -30,11 +30,11 @@
         .interactive-canvas { border: 1px solid #e2e8f0; border-radius: 0.5rem; background-color: #f8fafc; }
         .tab-button.active { border-color: var(--accent-color); color: var(--accent-color); font-weight: 600; }
         .tab-content { display: none; } .tab-content.active { display: block; }
-        .editable-field, .markdown-input { 
-            width: 100%; 
-            border: 1px solid #cbd5e1; 
-            border-radius: 0.5rem; 
-            padding: 0.75rem 1rem; 
+        .editable-field, .markdown-input {
+            width: 100%;
+            border: 1px solid #cbd5e1;
+            border-radius: 0.5rem;
+            padding: 0.75rem 1rem;
             transition: border-color 0.2s, box-shadow 0.2s;
             font-family: var(--font-sans);
         }
@@ -44,17 +44,221 @@
         .is-invalid:focus { box-shadow: 0 0 0 2px color-mix(in srgb, var(--invalid-color) 25%, transparent) !important; }
         .file-upload-label { cursor: pointer; background-color: #f8fafc; color: #475569; padding: 0.5rem 1rem; border-radius: 0.375rem; border: 1px solid #cbd5e1; font-size: 0.875rem; font-weight: 500; transition: all 0.2s; }
         .file-upload-label:hover { background-color: #f1f5f9; border-color: var(--accent-color); }
-        .markdown-preview { margin-top: 1rem; padding: 1.25rem; background-color: #f8fafc; border-radius: 0.5rem; border: 1px solid #e2e8f0; min-height: 120px; }
-        .prose { --tw-prose-body: #374151; --tw-prose-headings: #111827; --tw-prose-links: var(--accent-color); --tw-prose-bold: #111827; --tw-prose-code: #be185d; --tw-prose-pre-bg: #f3f4f6; --tw-prose-pre-code: #111827; }
-        .prose pre code, .prose code { font-family: var(--font-mono); }
-        
+        .markdown-preview { cursor: text; padding: 1.25rem; background-color: #f8fafc; border-radius: 0.5rem; border: 1px solid transparent; min-height: 80px; transition: background-color 0.2s; }
+        .markdown-preview:hover { background-color: #f8fafc; border-color: #e2e8f0; }
+        .editable-container .markdown-input { display: none; }
+        .editable-container .markdown-preview { display: block; }
+
+        /* Prose/Markdown 스타일 */
+        .prose {
+            color: #374151;
+            max-width: 65ch;
+            font-size: 1rem;
+            line-height: 1.75;
+        }
+        .prose p { margin-top: 1.25em; margin-bottom: 1.25em; }
+        .prose h1, .prose h2, .prose h3, .prose h4, .prose h5, .prose h6 {
+            color: #111827;
+            font-weight: 600;
+            line-height: 1.25;
+            margin-top: 2em;
+            margin-bottom: 1em;
+        }
+        .prose h1 { font-size: 2.25em; }
+        .prose h2 { font-size: 1.5em; }
+        .prose h3 { font-size: 1.25em; }
+        .prose h4 { font-size: 1.125em; }
+        .prose a { color: var(--accent-color); text-decoration: underline; }
+        .prose a:hover { color: #2563eb; }
+        .prose strong, .prose b { color: #111827; font-weight: 600; }
+        .prose em, .prose i { font-style: italic; }
+        .prose code {
+            color: #be185d;
+            font-family: var(--font-mono);
+            font-size: 0.875em;
+            padding: 0.2em 0.4em;
+            background-color: #f3f4f6;
+            border-radius: 0.25rem;
+        }
+        .prose pre {
+            background-color: #f3f4f6;
+            color: #111827;
+            overflow-x: auto;
+            font-size: 0.875em;
+            line-height: 1.7142857;
+            margin-top: 1.7142857em;
+            margin-bottom: 1.7142857em;
+            border-radius: 0.375rem;
+            padding: 0.8571429em 1.1428571em;
+        }
+        .prose pre code {
+            background-color: transparent;
+            border-width: 0;
+            border-radius: 0;
+            padding: 0;
+            color: inherit;
+            font-size: inherit;
+            font-family: var(--font-mono);
+            line-height: inherit;
+        }
+        .prose ul, .prose ol {
+            margin-top: 1.25em;
+            margin-bottom: 1.25em;
+            padding-left: 1.625em;
+        }
+        .prose ul { list-style-type: disc; }
+        .prose ol { list-style-type: decimal; }
+        .prose li { margin-top: 0.5em; margin-bottom: 0.5em; }
+        .prose ul ul, .prose ul ol, .prose ol ul, .prose ol ol { margin-top: 0.75em; margin-bottom: 0.75em; }
+        .prose blockquote {
+            font-style: italic;
+            color: #111827;
+            border-left-width: 0.25rem;
+            border-left-color: #e5e7eb;
+            quotes: "\201C""\201D""\2018""\2019";
+            margin-top: 1.6em;
+            margin-bottom: 1.6em;
+            padding-left: 1em;
+        }
+        .prose hr {
+            border-color: #e5e7eb;
+            border-top-width: 1px;
+            margin-top: 3em;
+            margin-bottom: 3em;
+        }
+        .prose table {
+            width: 100%;
+            table-layout: auto;
+            text-align: left;
+            margin-top: 2em;
+            margin-bottom: 2em;
+            font-size: 0.875em;
+            line-height: 1.7142857;
+        }
+        .prose thead {
+            border-bottom-width: 1px;
+            border-bottom-color: #d1d5db;
+        }
+        .prose thead th {
+            color: #111827;
+            font-weight: 600;
+            vertical-align: bottom;
+            padding-right: 0.5714286em;
+            padding-bottom: 0.5714286em;
+            padding-left: 0.5714286em;
+        }
+        .prose tbody tr { border-bottom-width: 1px; border-bottom-color: #e5e7eb; }
+        .prose tbody td {
+            vertical-align: baseline;
+            padding: 0.5714286em;
+        }
+        .prose img { margin-top: 2em; margin-bottom: 2em; }
+        .prose figure { margin-top: 2em; margin-bottom: 2em; }
+        .prose figcaption { color: #6b7280; font-size: 0.875em; line-height: 1.4285714; margin-top: 0.8571429em; }
+
         @media print {
-            body { background-color: #ffffff !important; }
+            @page {
+                size: A4;
+                margin: 10mm 8mm 10mm 8mm; /* 상하 10mm, 좌우 8mm로 최소화 */
+            }
+
+            body {
+                background-color: #ffffff !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+
+            .container {
+                max-width: 100% !important;
+                padding-left: 0 !important;
+                padding-right: 0 !important;
+                margin: 0 !important;
+            }
+
+            main.container {
+                padding: 0 !important;
+            }
+
             .print-hidden { display: none !important; }
-            .step-card { page-break-inside: avoid; break-inside: avoid; box-shadow: none !important; border: 1px solid #e2e8f0; margin-bottom: 1.5rem; }
-            .editable-field, .markdown-input { display: none !important; }
-            .markdown-preview { display: block !important; border: none !important; padding: 0 !important; background-color: transparent !important; margin-top: 0 !important; }
+
+            .step-card {
+                page-break-inside: avoid;
+                break-inside: avoid;
+                box-shadow: none !important;
+                border: 1px solid #e2e8f0;
+                margin-bottom: 1.5rem;
+                padding: 1rem !important; /* 패딩 줄임 */
+            }
+
+            .editable-container .markdown-input { display: none !important; }
+            .editable-container .markdown-preview {
+                display: block !important;
+                border: none !important;
+                padding: 0 !important;
+                background-color: transparent !important;
+                margin-top: 0 !important;
+            }
+
             .screenshot-container img { max-width: 100% !important; display: block !important; }
+
+            /* 학번, 이름 입력 필드를 출력 시 보이도록 */
+            #student-id, #student-name {
+                display: block !important;
+                border: none !important;
+                padding: 0.5rem !important;
+                background-color: transparent !important;
+            }
+
+            /* 코드 블록 최적화 */
+            pre {
+                white-space: pre-wrap !important;
+                word-wrap: break-word !important;
+                overflow-wrap: break-word !important;
+                max-width: 100% !important;
+                overflow: visible !important;
+                page-break-inside: avoid;
+                font-size: 9pt !important; /* 코드 글자 크기 줄임 */
+                line-height: 1.3 !important;
+                padding: 0.5rem !important;
+                margin: 0.5rem 0 !important;
+            }
+
+            pre code {
+                white-space: pre-wrap !important;
+                word-wrap: break-word !important;
+                overflow-wrap: break-word !important;
+                font-size: 9pt !important;
+            }
+
+            code {
+                word-break: break-word !important;
+                overflow-wrap: break-word !important;
+            }
+
+            .prose {
+                max-width: 100% !important;
+            }
+
+            .prose pre {
+                background-color: #f5f5f5 !important;
+                border: 1px solid #ddd !important;
+            }
+
+            /* 탭 콘텐츠 영역 최적화 */
+            .tab-content {
+                padding: 0 !important;
+            }
+
+            /* 그리드 레이아웃 최적화 */
+            .grid {
+                gap: 0.5rem !important;
+            }
+
+            /* 캔버스 크기 조정 */
+            canvas {
+                max-width: 100% !important;
+                height: auto !important;
+            }
         }
     </style>
 </head>
@@ -99,8 +303,10 @@
                     </div>
                     <div>
                         <label for="observations" class="block text-lg font-semibold mb-2">📝 관찰 내용 및 질문</label>
-                        <textarea id="observations" rows="10" class="markdown-input editable-field" placeholder="예시)&#10;- 빛이 만드는 무늬는 하트 모양과 비슷하다.&#10;- 이 곡선의 뾰족한 부분은 왜 생길까?&#10;- 이 곡선을 수학식으로 표현할 수 있을까?"></textarea>
-                        <div class="markdown-preview prose max-w-none"></div>
+                        <div class="editable-container">
+                            <textarea id="observations" class="markdown-input editable-field" placeholder="예시)&#10;- 빛이 만드는 무늬는 하트 모양과 비슷하다.&#10;- 이 곡선의 뾰족한 부분은 왜 생길까?&#10;- 이 곡선을 수학식으로 표현할 수 있을까?"></textarea>
+                            <div class="markdown-preview prose max-w-none"></div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -120,8 +326,10 @@
                 <div class="mt-8 pt-8 border-t">
                     <label for="proof-writing" class="block text-lg font-semibold mb-2">🔍 증명 작성하기</label>
                     <p class="mb-4 text-gray-600">빛의 반사 법칙과 삼각함수를 이용하여 반사 광선의 방정식을 유도하는 과정을 서술해보세요.</p>
-                    <textarea id="proof-writing" rows="4" class="markdown-input editable-field" placeholder="반사점 $P(\cos\theta, \sin\theta)$ 에서의 법선 벡터는 $\vec{n}=(-\cos\theta, -\sin\theta)$ 이다.&#10;입사광선 $\vec{i}=(1,0)$ 에 대해 반사벡터 $\vec{r} = \vec{i} - 2(\vec{i} \cdot \vec{n})\vec{n}$ 을 계산하면..."></textarea>
-                    <div class="markdown-preview prose max-w-none"></div>
+                    <div class="editable-container">
+                        <textarea id="proof-writing" class="markdown-input editable-field" placeholder="반사점 $P(\cos\theta, \sin\theta)$ 에서의 법선 벡터는 $\vec{n}=(-\cos\theta, -\sin\theta)$ 이다.&#10;입사광선 $\vec{i}=(1,0)$ 에 대해 반사벡터 $\vec{r} = \vec{i} - 2(\vec{i} \cdot \vec{n})\vec{n}$ 을 계산하면..."></textarea>
+                        <div class="markdown-preview prose max-w-none"></div>
+                    </div>
                 </div>
             </div>
         </section>
@@ -193,8 +401,10 @@ xlim([-1.5, 1.5]); ylim([-1.5, 1.5]); hold off;</code></pre></div>
                 </div>
                 <div class="bg-teal-50 p-6 rounded-lg">
                     <label for="simulation-code" class="block text-lg font-semibold mb-2">⚙️ 내 시뮬레이션 제출</label>
-                    <textarea id="simulation-code" rows="12" class="markdown-input editable-field font-mono text-sm" placeholder="이곳에 Python 코드 전체를 붙여넣거나, 완성된 GeoGebra의 공유 링크를 입력하세요."></textarea>
-                    <div class="markdown-preview prose max-w-none"></div>
+                    <div class="editable-container">
+                        <textarea id="simulation-code" class="markdown-input editable-field font-mono text-sm" placeholder="이곳에 Python 코드 전체를 붙여넣거나, 완성된 GeoGebra의 공유 링크를 입력하세요."></textarea>
+                        <div class="markdown-preview prose max-w-none"></div>
+                    </div>
                 </div>
             </div>
         </section>
@@ -205,9 +415,9 @@ xlim([-1.5, 1.5]); ylim([-1.5, 1.5]); hold off;</code></pre></div>
                 <h2 class="text-3xl font-bold mb-4 border-b-2 border-yellow-200 pb-2">Step 5: 심화 탐구</h2>
                 <div class="space-y-8">
                     <div><label for="inquiry-title" class="block text-lg font-semibold mb-2">1. 탐구 주제</label><input type="text" id="inquiry-title" class="editable-field" placeholder="예시) 포물선 거울이 만드는 포락선 분석"></div>
-                    <div><label for="inquiry-question" class="block text-lg font-semibold mb-2">2. 탐구 질문</label><textarea id="inquiry-question" rows="3" class="markdown-input editable-field" placeholder="예시) 커피잔이 원이 아닌 포물선 모양이라면, 평행 광선이 반사될 때 생기는 포락선은 어떤 모양일까?"></textarea><div class="markdown-preview prose max-w-none"></div></div>
-                    <div><label for="inquiry-motivation" class="block text-lg font-semibold mb-2">3. 탐구 동기 및 목적</label><textarea id="inquiry-motivation" rows="5" class="markdown-input editable-field" placeholder="왜 이 주제를 더 깊이 탐구하고 싶은가요? 이 탐구를 통해 무엇을 알아내는 것이 목적인가요?"></textarea><div class="markdown-preview prose max-w-none"></div></div>
-                    <div><label for="inquiry-content" class="block text-lg font-semibold mb-2">4. 탐구 내용 및 과정</label><textarea id="inquiry-content" rows="10" class="markdown-input editable-field" placeholder="탐구 가설, 변인 설정, 수식 유도, 시뮬레이션 설계 등 구체적인 탐구 과정과 내용을 서술하세요."></textarea><div class="markdown-preview prose max-w-none"></div></div>
+                    <div><label for="inquiry-question" class="block text-lg font-semibold mb-2">2. 탐구 질문</label><div class="editable-container"><textarea id="inquiry-question" class="markdown-input editable-field" placeholder="예시) 커피잔이 원이 아닌 포물선 모양이라면, 평행 광선이 반사될 때 생기는 포락선은 어떤 모양일까?"></textarea><div class="markdown-preview prose max-w-none"></div></div></div>
+                    <div><label for="inquiry-motivation" class="block text-lg font-semibold mb-2">3. 탐구 동기 및 목적</label><div class="editable-container"><textarea id="inquiry-motivation" class="markdown-input editable-field" placeholder="왜 이 주제를 더 깊이 탐구하고 싶은가요? 이 탐구를 통해 무엇을 알아내는 것이 목적인가요?"></textarea><div class="markdown-preview prose max-w-none"></div></div></div>
+                    <div><label for="inquiry-content" class="block text-lg font-semibold mb-2">4. 탐구 내용 및 과정</label><div class="editable-container"><textarea id="inquiry-content" class="markdown-input editable-field" placeholder="탐구 가설, 변인 설정, 수식 유도, 시뮬레이션 설계 등 구체적인 탐구 과정과 내용을 서술하세요."></textarea><div class="markdown-preview prose max-w-none"></div></div></div>
                     <div>
                         <h3 class="block text-lg font-semibold mb-2">5. 탐구 결과물</h3>
                         <div class="grid md:grid-cols-2 gap-6 bg-gray-50 p-4 rounded-lg">
@@ -218,13 +428,15 @@ xlim([-1.5, 1.5]); ylim([-1.5, 1.5]); hold off;</code></pre></div>
                             </div>
                             <div>
                                 <h4 class="font-medium mb-2 text-center">코드 또는 GeoGebra 링크</h4>
-                                <textarea id="inquiry-code" rows="8" class="markdown-input editable-field font-mono text-sm" placeholder="결과물에 해당하는 코드나 링크를 입력하세요."></textarea>
-                                <div class="markdown-preview prose max-w-none"></div>
+                                <div class="editable-container">
+                                    <textarea id="inquiry-code" class="markdown-input editable-field font-mono text-sm" placeholder="결과물에 해당하는 코드나 링크를 입력하세요."></textarea>
+                                    <div class="markdown-preview prose max-w-none"></div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                    <div><label for="inquiry-conclusion" class="block text-lg font-semibold mb-2">6. 결론</label><textarea id="inquiry-conclusion" rows="5" class="markdown-input editable-field" placeholder="탐구 결과와 그로부터 얻은 결론을 작성하세요. 초기 가설과 비교하여 분석하고, 탐구의 의의와 한계점을 서술하세요."></textarea><div class="markdown-preview prose max-w-none"></div></div>
-                    <div><label for="inquiry-references" class="block text-lg font-semibold mb-2">7. 참고 문헌</label><textarea id="inquiry-references" rows="4" class="markdown-input editable-field" placeholder="탐구에 참고한 논문, 책, 웹사이트 등의 출처를 APA 양식에 맞게 기입하세요."></textarea><div class="markdown-preview prose max-w-none"></div></div>
+                    <div><label for="inquiry-conclusion" class="block text-lg font-semibold mb-2">6. 결론</label><div class="editable-container"><textarea id="inquiry-conclusion" class="markdown-input editable-field" placeholder="탐구 결과와 그로부터 얻은 결론을 작성하세요. 초기 가설과 비교하여 분석하고, 탐구의 의의와 한계점을 서술하세요."></textarea><div class="markdown-preview prose max-w-none"></div></div></div>
+                    <div><label for="inquiry-references" class="block text-lg font-semibold mb-2">7. 참고 문헌</label><div class="editable-container"><textarea id="inquiry-references" class="markdown-input editable-field" placeholder="탐구에 참고한 논문, 책, 웹사이트 등의 출처를 APA 양식에 맞게 기입하세요."></textarea><div class="markdown-preview prose max-w-none"></div></div></div>
                 </div>
             </div>
         </section>
@@ -243,7 +455,17 @@ xlim([-1.5, 1.5]); ylim([-1.5, 1.5]); hold off;</code></pre></div>
         <span id="autosave-text"></span>
     </div>
     <script>
-        const converter = new showdown.Converter({ ghCodeBlocks: true, simpleLineBreaks: true });
+        const converter = new showdown.Converter({
+            ghCodeBlocks: true,
+            simpleLineBreaks: true,
+            literalMidWordUnderscores: true,  // 단어 중간의 언더바를 문자 그대로 처리
+            disableForced4SpacesIndentedSublists: true,
+            excludeTrailingPunctuationFromURLs: true
+        });
+
+        // 별표(*)를 이탤릭으로 사용하지 않도록 설정
+        showdown.setOption('literalMidWordAsterisks', true);
+
         let saveTimer = null;
         let statusTimer = null;
 
@@ -291,14 +513,26 @@ xlim([-1.5, 1.5]); ylim([-1.5, 1.5]); hold off;</code></pre></div>
         });
 
         function updatePreview(element) {
-            const preview = element.nextElementSibling;
-            if (!preview || !preview.classList.contains('markdown-preview')) return;
+            const container = element.closest('.editable-container');
+            if (!container) return;
+            const preview = container.querySelector('.markdown-preview');
+            if (!preview) return;
+
             let markdownText = element.value;
             if (element.id === 'simulation-code' || element.id === 'inquiry-code') {
                 const lang = element.value.trim().startsWith('http') ? '' : 'python';
                 markdownText = "```" + lang + "\n" + element.value + "\n```";
             }
-            const html = converter.makeHtml(markdownText);
+
+            // 변환 전 전처리: * 하나를 임시로 보호
+            markdownText = markdownText.replace(/\*([^\*]+)\*/g, '⚡ASTERISK⚡$1⚡ASTERISK⚡');
+
+            const placeholder = '<p class="text-slate-400">내용을 입력하세요...</p>';
+            let html = markdownText ? converter.makeHtml(markdownText) : placeholder;
+
+            // 변환 후 후처리: 임시 보호 기호를 다시 * 로 복원
+            html = html.replace(/⚡ASTERISK⚡/g, '*');
+
             preview.innerHTML = html;
             renderAllMathInElement(preview);
             if (window.Prism) { Prism.highlightAllUnder(preview); }
@@ -346,13 +580,40 @@ xlim([-1.5, 1.5]); ylim([-1.5, 1.5]); hold off;</code></pre></div>
             }
         }
         
+        function autoResizeTextarea(textarea) {
+            textarea.style.height = 'auto';
+            textarea.style.height = (textarea.scrollHeight) + 'px';
+        }
+
         function setupEventListeners() {
+            // 클릭 시 편집 가능하도록 설정 (editable-container 방식)
+            document.querySelectorAll('.editable-container').forEach(container => {
+                const preview = container.querySelector('.markdown-preview');
+                const editor = container.querySelector('textarea');
+
+                if (preview && editor) {
+                    preview.addEventListener('click', () => {
+                        preview.style.display = 'none';
+                        editor.style.display = 'block';
+                        editor.focus();
+                        autoResizeTextarea(editor);
+                    });
+
+                    editor.addEventListener('blur', () => {
+                        editor.style.display = 'none';
+                        preview.style.display = 'block';
+                        updatePreview(editor);
+                    });
+
+                    editor.addEventListener('input', () => {
+                        autoResizeTextarea(editor);
+                    });
+                }
+            });
+
+            // 자동 저장 (기존 데이터 보존)
             document.querySelectorAll('.editable-field').forEach(field => {
                 field.addEventListener('input', () => {
-                    if (field.classList.contains('markdown-input')) {
-                        updatePreview(field);
-                    }
-                    
                     clearTimeout(saveTimer);
                     showSaveStatus('saving');
                     saveTimer = setTimeout(() => {
@@ -365,10 +626,10 @@ xlim([-1.5, 1.5]); ylim([-1.5, 1.5]); hold off;</code></pre></div>
             const mobileMenuButton = document.getElementById('mobile-menu-button'), mobileMenu = document.getElementById('mobile-menu');
             mobileMenuButton.addEventListener('click', () => mobileMenu.classList.toggle('hidden'));
             document.querySelectorAll('#mobile-menu a').forEach(link => link.addEventListener('click', () => mobileMenu.classList.add('hidden')));
-            
+
             document.getElementById('theta-slider').addEventListener('input', drawReflection);
             ['k-slider', 'size-slider', 'epicycloid-slider'].forEach(id => document.getElementById(id).addEventListener('input', drawEpicycloid));
-            
+
             document.querySelectorAll('.tab-button').forEach(tab => {
                 tab.addEventListener('click', () => {
                     document.querySelectorAll('.tab-button').forEach(t => t.classList.remove('active'));
@@ -403,22 +664,124 @@ xlim([-1.5, 1.5]); ylim([-1.5, 1.5]); hold off;</code></pre></div>
             return isValid;
         }
 
-        function saveAsPdf() { if (validateForm()) { window.print(); } }
+        function saveAsPdf() {
+            if (!validateForm()) return;
+
+            // PDF 저장 전 미리보기 렌더링 및 파일명 설정
+            const editors = document.querySelectorAll('.editable-container textarea');
+            const previews = document.querySelectorAll('.editable-container .markdown-preview');
+            editors.forEach(el => el.style.display = 'none');
+            previews.forEach(el => el.style.display = 'block');
+
+            // 수식/코드 재렌더링
+            if (window.renderMathInElement) {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        { left: '$$', right: '$$', display: true },
+                        { left: '$', right: '$', display: false },
+                        { left: '\\(', right: '\\)', display: false },
+                        { left: '\\[', right: '\\]', display: true }
+                    ]
+                });
+            }
+
+            // 파일명 설정 (학번_이름 포함)
+            const prevTitle = document.title;
+            const studentId = document.getElementById('student-id')?.value.trim() || '학번';
+            const studentName = document.getElementById('student-name')?.value.trim() || '이름';
+            const baseTitle = prevTitle.trim() || 'Caustic_Curve_탐구보고서';
+            document.title = `${baseTitle}_${studentId}_${studentName}`;
+
+            const cleanup = () => {
+                editors.forEach(el => el.style.display = '');
+                previews.forEach(el => el.style.display = '');
+                document.title = prevTitle;
+                window.removeEventListener('afterprint', cleanup);
+            };
+            window.addEventListener('afterprint', cleanup);
+
+            window.print();
+        }
 
         const canvas1 = document.getElementById('reflectionCanvas'), ctx1 = canvas1.getContext('2d'), slider1 = document.getElementById('theta-slider'), value1 = document.getElementById('theta-value');
         function drawReflection() {
-            const sliderValue = parseFloat(slider1.value);
-            const angleDeg = sliderValue - 90, angleRad = angleDeg * Math.PI / 180;
-            const centerX = canvas1.width / 2, centerY = canvas1.height / 2, radius = 150;
-            ctx1.clearRect(0, 0, canvas1.width, canvas1.height);
-            ctx1.beginPath(); ctx1.arc(centerX, centerY, radius, 0, 2 * Math.PI); ctx1.strokeStyle = '#9ca3af'; ctx1.lineWidth = 2; ctx1.stroke();
-            ctx1.beginPath(); ctx1.moveTo(0, centerY); ctx1.lineTo(canvas1.width, centerY); ctx1.moveTo(centerX, 0); ctx1.lineTo(centerX, canvas1.height); ctx1.strokeStyle = '#d1d5db'; ctx1.stroke();
-            const px = centerX + radius * Math.cos(angleRad), py = centerY - radius * Math.sin(angleRad);
-            ctx1.beginPath(); ctx1.moveTo(0, py); ctx1.lineTo(px, py); ctx1.strokeStyle = '#f59e0b'; ctx1.lineWidth = 2; ctx1.stroke();
-            const reflectedAngle = 2 * angleRad, directionX = Math.cos(reflectedAngle), directionY = Math.sin(reflectedAngle);
-            ctx1.beginPath(); ctx1.moveTo(px, py); ctx1.lineTo(px + 400 * directionX, py + 400 * directionY); ctx1.strokeStyle = '#10b981'; ctx1.lineWidth = 2; ctx1.stroke();
-            ctx1.beginPath(); ctx1.arc(px, py, 5, 0, 2 * Math.PI); ctx1.fillStyle = '#ef4444'; ctx1.fill();
-            value1.textContent = `${angleDeg.toFixed(0)}°`;
+            const canvas = document.getElementById('reflectionCanvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const slider = document.getElementById('theta-slider');
+            const value = document.getElementById('theta-value');
+            
+            const sliderValue = parseFloat(slider.value);
+            // 각도 계산: Geogebra와 유사하게 0~180 (위쪽 반원)
+            // 90도(중앙) -> 0도, 180도(왼쪽) -> -90도, 0도(오른쪽) -> 90도
+            // PDF/CausticCurve.html 원본 기준: 0~180 -> -90~90
+            const angleDeg = sliderValue - 90;
+            const angleRad = angleDeg * Math.PI / 180;
+            
+            const w = canvas.width;
+            const h = canvas.height;
+            const centerX = w / 2;
+            const centerY = h / 2;
+            const radius = Math.min(w, h) * 0.4;
+
+            const px = centerX + radius * Math.cos(angleRad);
+            const py = centerY - radius * Math.sin(angleRad); // 캔버스 Y축은 반대
+
+            ctx.clearRect(0, 0, w, h);
+            
+            // 1. 원 (컵)
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+            ctx.strokeStyle = '#9ca3af'; // gray-400
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // 2. 축
+            ctx.beginPath();
+            ctx.moveTo(0, centerY); ctx.lineTo(w, centerY);
+            ctx.moveTo(centerX, 0); ctx.lineTo(centerX, h);
+            ctx.strokeStyle = '#d1d5db'; // gray-300
+            ctx.lineWidth = 1;
+            ctx.stroke();
+
+            // 3. 입사 광선 (Incident Ray)
+            ctx.beginPath();
+            ctx.moveTo(0, py); // 왼쪽 끝에서 점 P까지
+            ctx.lineTo(px, py);
+            ctx.strokeStyle = '#f59e0b'; // amber-500
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // 4. 반사 광선 (각도: 2*theta)
+            const reflectedAngle = 2 * angleRad; // 2*theta
+            let dirX = Math.cos(reflectedAngle);
+            let dirY = -Math.sin(reflectedAngle); // 캔버스 Y축은 반대
+
+            // --- 방향을 '원 내부'로 강제하는 로직 ---
+            const toCenterX = centerX - px;
+            const toCenterY = centerY - py;
+            // 내적이 음수면(=바깥을 향함) 방향을 뒤집기
+            if (dirX * toCenterX + dirY * toCenterY < 0) {
+            dirX = -dirX;
+            dirY = -dirY;
+            }
+
+            ctx.beginPath();
+            ctx.moveTo(px, py);
+            // 충분히 길게 그리되, 내부 방향으로만 뻗도록 (부호를 바꿨으니 +로 진행)
+            ctx.lineTo(px + w * dirX, py + h * dirY);
+            ctx.strokeStyle = '#10b981'; // green-500
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+
+            // 5. 점 P
+            ctx.beginPath();
+            ctx.arc(px, py, 6, 0, 2 * Math.PI);
+            ctx.fillStyle = '#ef4444'; // red-500
+            ctx.fill();
+            
+            if(value) value.textContent = `${angleDeg.toFixed(0)}°`;
         }
 
         const canvas2 = document.getElementById('epicycloidCanvas'), ctx2 = canvas2.getContext('2d'), kSlider = document.getElementById('k-slider'), kValue = document.getElementById('k-value'), sizeSlider = document.getElementById('size-slider'), sizeValue = document.getElementById('size-value'), epicycloidAngleSlider = document.getElementById('epicycloid-slider'), epicycloidAngleValue = document.getElementById('epicycloid-value');
