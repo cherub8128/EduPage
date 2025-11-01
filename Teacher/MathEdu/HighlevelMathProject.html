@@ -115,7 +115,7 @@
   // ----- Load topics from JSON ----------------------------------------------------------
   async function loadTopics() {
     try {
-      const response = await fetch('himath1_topics.json');
+      const response = await fetch('hlmath1_topics.json');
       TOPICS = await response.json();
       return true;
     } catch (error) {
