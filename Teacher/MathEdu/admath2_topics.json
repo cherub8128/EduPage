@@ -1,0 +1,1394 @@
+[
+  {
+    "cat": "conic",
+    "title": "위성 안테나 포물면 반사",
+    "desc": "평행 전파/빛이 초점으로 모이는 이유를 확인합니다.",
+    "tools": [
+      "GeoGebra",
+      "HTML/JS"
+    ],
+    "doi": "10.1088/0031-9120/40/1/006",
+    "ref": "https://scholar.google.com/scholar?q=parabolic+reflector+education",
+    "flow": {
+      "observation": "사진·영상으로 포물면 안테나의 모양과 신호 집속을 봅니다.",
+      "simplification": "공기저항·마찰은 빼고 포물선 표준형으로 봅니다.",
+      "visualization": "GeoGebra, HTML/JS",
+      "formulation": "$y^2=4px$, 초점거리 $p$와 집속 관계.",
+      "advanced": "파라미터 변화에 따른 집속 효율 차이를 분석합니다."
+    }
+  },
+  {
+    "cat": "conic",
+    "title": "헤드라이트 포물선 반사경",
+    "desc": "전구가 초점에 있을 때 빛이 평행해지는 모습을 설명합니다.",
+    "tools": [
+      "HTML/JS",
+      "Python"
+    ],
+    "doi": "",
+    "ref": "https://scholar.google.com/scholar?q=parabolic+headlight+reflector+optics+DOI",
+    "flow": {
+      "observation": "자동차 헤드라이트 반사경의 포물선 단면을 관찰합니다.",
+      "simplification": "전구를 점광원으로, 반사경을 이상적 포물면으로 가정합니다.",
+      "visualization": "HTML/JS, Python",
+      "formulation": "포물선 반사 법칙과 평행광 생성 원리.",
+      "advanced": "초점 위치 오차가 평행도에 미치는 영향을 분석합니다."
+    }
+  },
+  {
+    "cat": "conic",
+    "title": "투사체 포물선 궤적",
+    "desc": "중력만 작용할 때 물체가 그리는 포물선을 관찰합니다.",
+    "tools": [
+      "Python",
+      "GeoGebra"
+    ],
+    "doi": "10.1119/1.4877260",
+    "ref": "https://scholar.google.com/scholar?q=projectile+parabola+education+DOI",
+    "flow": {
+      "observation": "공을 던지거나 분수 물줄기의 궤적을 촬영합니다.",
+      "simplification": "공기저항 무시, 중력만 작용하는 자유낙하 가정.",
+      "visualization": "Python, GeoGebra",
+      "formulation": "$y = x\\tan\\theta - \\frac{gx^2}{2v_0^2\\cos^2\\theta}$",
+      "advanced": "공기저항을 포함한 실제 궤적과의 차이를 비교합니다."
+    }
+  },
+  {
+    "cat": "conic",
+    "title": "분수 물줄기 포물선",
+    "desc": "분수대 물줄기 사진을 찍어 포물선 모델과 비교합니다.",
+    "tools": [
+      "GeoGebra",
+      "Python"
+    ],
+    "doi": "10.1119/1.2340538",
+    "ref": "https://doi.org/10.1119/1.2340538",
+    "flow": {
+      "observation": "분수대 물줄기를 촬영하여 궤적 모양을 관찰합니다.",
+      "simplification": "공기저항 무시, 포물선 모델로 단순화합니다.",
+      "visualization": "GeoGebra, Python",
+      "formulation": "포물선 모델 $y=ax^2+bx+c$로 맞추고, 초기속도·각과의 관계를 역추정합니다.",
+      "advanced": "초기 속도와 각도에 따른 궤적 변화를 분석합니다."
+    }
+  },
+  {
+    "cat": "conic",
+    "title": "현수교 케이블과 포물선",
+    "desc": "균일 하중 가정에서 케이블 모양이 어떻게 보이는지 봅니다.",
+    "tools": [
+      "GeoGebra"
+    ],
+    "doi": "10.1080/00207390601129212",
+    "ref": "https://scholar.google.com/scholar?q=catenary+vs+parabola+bridge+education+DOI",
+    "flow": {
+      "observation": "현수교 케이블의 모양을 사진으로 관찰합니다.",
+      "simplification": "균일한 수평 하중으로 가정하여 포물선 모델을 적용합니다.",
+      "visualization": "GeoGebra",
+      "formulation": "포물선과 현수선의 차이를 수식으로 비교합니다.",
+      "advanced": "하중 분포가 달라질 때 모양 변화를 탐구합니다."
+    }
+  },
+  {
+    "cat": "conic",
+    "title": "행성의 타원 궤도",
+    "desc": "케플러 제1법칙을 타원 방정식으로 확인합니다.",
+    "tools": [
+      "Python",
+      "HTML/JS"
+    ],
+    "doi": "10.1119/1.16136",
+    "ref": "https://scholar.google.com/scholar?q=elliptical+orbit+education+DOI",
+    "flow": {
+      "observation": "행성 운동 데이터와 타원 궤도를 관찰합니다.",
+      "simplification": "이체 문제로 단순화하고 섭동을 무시합니다.",
+      "visualization": "Python, HTML/JS",
+      "formulation": "$\\frac{x^2}{a^2}+\\frac{y^2}{b^2}=1$, 케플러 법칙.",
+      "advanced": "이심률 변화에 따른 궤도 특성을 분석합니다."
+    }
+  },
+  {
+    "cat": "conic",
+    "title": "혜성의 포물선·쌍곡선 궤도",
+    "desc": "이심률이 1 이상일 때 궤도를 시뮬레이션합니다.",
+    "tools": [
+      "Python"
+    ],
+    "doi": "10.1119/1.18884",
+    "ref": "https://scholar.google.com/scholar?q=hyperbolic+comet+orbit+DOI",
+    "flow": {
+      "observation": "혜성의 개방 궤도를 관측 데이터로 확인합니다.",
+      "simplification": "태양 중력만 고려하고 다른 행성 영향은 무시합니다.",
+      "visualization": "Python",
+      "formulation": "이심률 $e \\geq 1$인 원뿔곡선 궤도 방정식.",
+      "advanced": "탈출 속도와 이심률의 관계를 탐구합니다."
+    }
+  },
+  {
+    "cat": "conic",
+    "title": "속삭임 갤러리(타원 음향)",
+    "desc": "타원 반사 성질로 소리가 다른 초점으로 전달되는 이유를 설명합니다.",
+    "tools": [
+      "GeoGebra",
+      "HTML/JS"
+    ],
+    "doi": "10.1088/0031-9120/34/5/308",
+    "ref": "https://scholar.google.com/scholar?q=whispering+gallery+ellipse+acoustics+DOI",
+    "flow": {
+      "observation": "타원형 공간에서 음향 전달 현상을 체험합니다.",
+      "simplification": "음파를 광선으로 단순화하고 반사 법칙을 적용합니다.",
+      "visualization": "GeoGebra, HTML/JS",
+      "formulation": "타원의 반사 성질: 한 초점에서 나온 빛은 다른 초점으로 모입니다.",
+      "advanced": "타원의 이심률에 따른 초점 효과를 분석합니다."
+    }
+  },
+  {
+    "cat": "conic",
+    "title": "타원 당구대 반사 법칙",
+    "desc": "한 초점에서 쏘면 다른 초점으로 가는 경로를 확인합니다.",
+    "tools": [
+      "Python",
+      "HTML/JS"
+    ],
+    "doi": "10.1119/1.1475328",
+    "ref": "https://scholar.google.com/scholar?q=elliptical+billiards+education+DOI",
+    "flow": {
+      "observation": "타원 당구대에서 공의 반사 경로를 관찰합니다.",
+      "simplification": "완전 탄성 충돌로 가정하고 마찰을 무시합니다.",
+      "visualization": "Python, HTML/JS",
+      "formulation": "타원 반사 법칙과 초점 성질.",
+      "advanced": "다양한 시작 위치에서의 경로를 시뮬레이션합니다."
+    }
+  },
+  {
+    "cat": "conic",
+    "title": "하이퍼볼릭 항법(LORAN)",
+    "desc": "시간차→거리차로 쌍곡선 위치결정을 이해합니다.",
+    "tools": [
+      "HTML/JS",
+      "Python"
+    ],
+    "doi": "10.1109/PROC.1957.4662182",
+    "ref": "https://scholar.google.com/scholar?q=hyperbolic+navigation+LORAN+DOI",
+    "flow": {
+      "observation": "LORAN 시스템의 신호 도달 시간차를 확인합니다.",
+      "simplification": "지구를 평면으로 가정하고 신호 속도는 일정하다고 봅니다.",
+      "visualization": "HTML/JS, Python",
+      "formulation": "시간차에서 거리차를 구하고 쌍곡선 방정식으로 위치를 결정합니다.",
+      "advanced": "오차 분석과 다중 기지국 삼변측량을 탐구합니다."
+    }
+  },
+  {
+    "cat": "conic",
+    "title": "냉각탑의 쌍곡면 쉘",
+    "desc": "쌍곡면 구조가 왜 효율적인지 기하로 살핍니다.",
+    "tools": [
+      "GeoGebra",
+      "Python"
+    ],
+    "doi": "10.1680/ijostructs.2008.1.4.267",
+    "ref": "https://scholar.google.com/scholar?q=hyperbolic+cooling+tower+shell+DOI",
+    "flow": {
+      "observation": "냉각탑의 쌍곡면 모양을 관찰합니다.",
+      "simplification": "구조를 회전 쌍곡면으로 모델링합니다.",
+      "visualization": "GeoGebra, Python",
+      "formulation": "쌍곡면 방정식과 구조적 안정성.",
+      "advanced": "곡면의 강성과 재료 효율성을 분석합니다."
+    }
+  },
+  {
+    "cat": "conic",
+    "title": "카세그레인 망원경 광학",
+    "desc": "포물경+쌍곡경 조합의 초점 이동을 모델링합니다.",
+    "tools": [
+      "HTML/JS",
+      "Python"
+    ],
+    "doi": "10.1119/1.2344412",
+    "ref": "https://scholar.google.com/scholar?q=cassegrain+telescope+education+DOI",
+    "flow": {
+      "observation": "카세그레인 망원경의 광학 설계를 관찰합니다.",
+      "simplification": "포물면과 쌍곡면 반사경의 조합으로 단순화합니다.",
+      "visualization": "HTML/JS, Python",
+      "formulation": "두 반사경의 초점 관계와 광선 경로.",
+      "advanced": "수차 보정과 배율 관계를 분석합니다."
+    }
+  },
+  {
+    "cat": "conic",
+    "title": "태양열 포물면 집열기",
+    "desc": "평행광 집속과 초점 설계를 단순 모델로 다룹니다.",
+    "tools": [
+      "HTML/JS",
+      "GeoGebra"
+    ],
+    "doi": "10.1119/1.3319648",
+    "ref": "https://scholar.google.com/scholar?q=parabolic+solar+cooker+education+DOI",
+    "flow": {
+      "observation": "태양열 집열기의 포물면 구조를 관찰합니다.",
+      "simplification": "태양광을 평행광으로 가정하고 이상적 반사를 적용합니다.",
+      "visualization": "HTML/JS, GeoGebra",
+      "formulation": "포물면의 초점 집속 원리.",
+      "advanced": "초점 위치와 집열 효율의 관계를 탐구합니다."
+    }
+  },
+  {
+    "cat": "conic",
+    "title": "탈출속도와 개방 궤도",
+    "desc": "에너지와 이심률의 관계를 계산합니다.",
+    "tools": [
+      "Python"
+    ],
+    "doi": "10.1119/1.1463731",
+    "ref": "https://scholar.google.com/scholar?q=escape+velocity+parabolic+orbit+DOI",
+    "flow": {
+      "observation": "우주선의 탈출 속도와 궤도 형태를 관찰합니다.",
+      "simplification": "중심력 문제로 단순화하고 대기 저항을 무시합니다.",
+      "visualization": "Python",
+      "formulation": "에너지와 이심률: $E<0$ 타원, $E=0$ 포물선, $E>0$ 쌍곡선.",
+      "advanced": "다양한 초기 조건에서의 궤도 변화를 시뮬레이션합니다."
+    }
+  },
+  {
+    "cat": "conic",
+    "title": "포물선 아치교 설계",
+    "desc": "분포하중일 때 아치 모양을 최적화해 봅니다.",
+    "tools": [
+      "GeoGebra"
+    ],
+    "doi": "10.1080/0020739X.2011.582184",
+    "ref": "https://scholar.google.com/scholar?q=parabolic+arch+bridge+education+DOI",
+    "flow": {
+      "observation": "포물선 아치교의 구조를 관찰합니다.",
+      "simplification": "균일 분포 하중으로 가정하여 포물선 형태를 도출합니다.",
+      "visualization": "GeoGebra",
+      "formulation": "포물선 아치의 역학적 균형 방정식.",
+      "advanced": "하중 분포 변화에 따른 최적 형상을 탐구합니다."
+    }
+  },
+  {
+    "cat": "conic",
+    "title": "현수선 vs 포물선(가우디)",
+    "desc": "실험 사진과 수식을 비교합니다.",
+    "tools": [
+      "GeoGebra",
+      "Python"
+    ],
+    "doi": "10.1088/0031-9120/45/6/010",
+    "ref": "https://scholar.google.com/scholar?q=catenary+versus+parabola+education+DOI",
+    "flow": {
+      "observation": "현수선과 포물선 모양을 실제 구조물에서 비교합니다.",
+      "simplification": "자중만 작용하는 경우(현수선)와 균일 하중(포물선)을 구분합니다.",
+      "visualization": "GeoGebra, Python",
+      "formulation": "현수선 $y=a\\cosh(x/a)$와 포물선 $y=ax^2$의 차이.",
+      "advanced": "두 곡선의 근사 조건과 오차를 분석합니다."
+    }
+  },
+  {
+    "cat": "conic",
+    "title": "회전수조의 포물면 수면",
+    "desc": "원심력과 중력의 평형으로 생기는 포물면을 측정합니다.",
+    "tools": [
+      "Python",
+      "MATLAB"
+    ],
+    "doi": "10.1119/1.5126820",
+    "ref": "https://scholar.google.com/scholar?q=rotating+bucket+parabolic+surface+DOI",
+    "flow": {
+      "observation": "회전하는 수조의 수면 형태를 관찰합니다.",
+      "simplification": "정상 상태의 회전으로 가정하고 점성을 무시합니다.",
+      "visualization": "Python, MATLAB",
+      "formulation": "원심력과 중력의 평형: $z = \\frac{\\omega^2 r^2}{2g}$ (포물면).",
+      "advanced": "회전 속도 변화에 따른 수면 곡률을 측정합니다."
+    }
+  },
+  {
+    "cat": "conic",
+    "title": "오리가미 포물선",
+    "desc": "접기 규칙으로 초점–준선 정의를 체험합니다.",
+    "tools": [
+      "GeoGebra",
+      "HTML/JS"
+    ],
+    "doi": "10.1088/0031-9120/35/1/304",
+    "ref": "https://scholar.google.com/scholar?q=origami+parabola+focus+directrix+DOI",
+    "flow": {
+      "observation": "종이접기로 포물선을 만드는 과정을 관찰합니다.",
+      "simplification": "접기 선을 기하학적 궤적으로 해석합니다.",
+      "visualization": "GeoGebra, HTML/JS",
+      "formulation": "초점과 준선으로부터 등거리에 있는 점들의 집합.",
+      "advanced": "다른 이차곡선도 접기로 구성할 수 있는지 탐구합니다."
+    }
+  },
+  {
+    "cat": "conic",
+    "title": "Molniya 고타원 궤도",
+    "desc": "체공시간이 긴 통신 궤도를 수치로 분석합니다.",
+    "tools": [
+      "Python"
+    ],
+    "doi": "10.1109/TAES.1966.4501403",
+    "ref": "https://scholar.google.com/scholar?q=Molniya+orbit+DOI",
+    "flow": {
+      "observation": "Molniya 궤도의 특징과 체공시간을 관찰합니다.",
+      "simplification": "고타원 궤도를 케플러 방정식으로 모델링합니다.",
+      "visualization": "Python",
+      "formulation": "높은 이심률 타원 궤도와 각속도 변화.",
+      "advanced": "근지점과 원지점에서의 속도 차이를 계산합니다."
+    }
+  },
+  {
+    "cat": "conic",
+    "title": "카메라 광학과 이차곡면",
+    "desc": "렌즈의 수차를 단순 모델로 살핍니다.",
+    "tools": [
+      "Python",
+      "HTML/JS"
+    ],
+    "doi": "10.1002/opph.201800033",
+    "ref": "https://doi.org/10.1002/opph.201800033",
+    "flow": {
+      "observation": "렌즈의 구면 수차 현상을 관찰합니다.",
+      "simplification": "렌즈를 이차곡면으로 모델링하고 광선 추적을 단순화합니다.",
+      "visualization": "Python, HTML/JS",
+      "formulation": "구면·비구면(이차곡면 근사) 렌즈에서 광선 추적을 단순화하여 구면수차 차이를 비교합니다.",
+      "advanced": "수차 보정을 위한 렌즈 형상 최적화를 탐구합니다."
+    }
+  },
+  {
+    "cat": "integral",
+    "title": "속도–시간 적분으로 거리",
+    "desc": "그래프 아래 면적이 이동거리임을 확인합니다.",
+    "tools": [
+      "Python",
+      "GeoGebra"
+    ],
+    "doi": "10.1080/0020739021000018320",
+    "ref": "https://scholar.google.com/scholar?q=distance+under+velocity+time+graph+education+DOI",
+    "flow": {
+      "observation": "속도–시간 그래프를 실제 운동 데이터로 관찰합니다.",
+      "simplification": "직선 운동으로 단순화하고 속도를 연속 함수로 가정합니다.",
+      "visualization": "Python, GeoGebra",
+      "formulation": "$s = \\int v(t)\\,dt$, 그래프 아래 면적 = 이동거리.",
+      "advanced": "수치 적분 방법으로 실제 데이터를 분석합니다."
+    }
+  },
+  {
+    "cat": "integral",
+    "title": "제동 거리와 v^2 법칙",
+    "desc": "정적분으로 제동 거리와 초기 속도의 관계를 봅니다.",
+    "tools": [
+      "GeoGebra"
+    ],
+    "doi": "10.1119/1.16686",
+    "ref": "https://scholar.google.com/scholar?q=braking+distance+proportional+to+v%5E2+DOI",
+    "flow": {
+      "observation": "자동차 제동 거리 데이터를 수집합니다.",
+      "simplification": "마찰력이 일정하다고 가정합니다.",
+      "visualization": "GeoGebra",
+      "formulation": "일-에너지 정리: $d = \\frac{v^2}{2\\mu g}$.",
+      "advanced": "마찰 계수 변화에 따른 제동 거리를 분석합니다."
+    }
+  },
+  {
+    "cat": "integral",
+    "title": "연료 소비율 적분",
+    "desc": "유량 함수를 적분해 총 소비량을 구합니다.",
+    "tools": [
+      "Python"
+    ],
+    "doi": "",
+    "ref": "https://scholar.google.com/scholar?q=fuel+consumption+rate+integral+education+DOI",
+    "flow": {
+      "observation": "차량의 순간 연료 소비율 데이터를 수집합니다.",
+      "simplification": "소비율을 시간의 함수로 모델링합니다.",
+      "visualization": "Python",
+      "formulation": "총 소비량 = $\\int_0^T r(t)\\,dt$.",
+      "advanced": "주행 조건에 따른 소비 패턴을 분석합니다."
+    }
+  },
+  {
+    "cat": "integral",
+    "title": "인구 증가 누적",
+    "desc": "성장률을 적분해 누적 변화를 계산합니다.",
+    "tools": [
+      "Python"
+    ],
+    "doi": "",
+    "ref": "https://scholar.google.com/scholar?q=integral+population+growth+rate+education+DOI",
+    "flow": {
+      "observation": "인구 증가율 데이터를 시계열로 관찰합니다.",
+      "simplification": "증가율을 연속 함수로 가정합니다.",
+      "visualization": "Python",
+      "formulation": "$P(t) = P_0 + \\int_0^t r(\\tau)\\,d\\tau$.",
+      "advanced": "로지스틱 모델과 비교합니다."
+    }
+  },
+  {
+    "cat": "integral",
+    "title": "곡선 사이 면적",
+    "desc": "두 함수 차를 적분해 면적을 구합니다.",
+    "tools": [
+      "GeoGebra",
+      "Python"
+    ],
+    "doi": "10.1080/0020739X.2013.770086",
+    "ref": "https://scholar.google.com/scholar?q=area+between+curves+education+DOI",
+    "flow": {
+      "observation": "두 함수 그래프 사이 영역을 시각화합니다.",
+      "simplification": "교점을 찾고 구간을 나눕니다.",
+      "visualization": "GeoGebra, Python",
+      "formulation": "$A = \\int_a^b [f(x)-g(x)]\\,dx$.",
+      "advanced": "매개변수 곡선으로 확장합니다."
+    }
+  },
+  {
+    "cat": "integral",
+    "title": "Pick 정리와 적분",
+    "desc": "격자 다각형 면적과 신발끈 공식 비교.",
+    "tools": [
+      "Python"
+    ],
+    "doi": "10.1080/0020739960260108",
+    "ref": "https://scholar.google.com/scholar?q=Pick%27s+theorem+education+DOI",
+    "flow": {
+      "observation": "격자점 위의 다각형을 그립니다.",
+      "simplification": "경계와 내부 격자점만 세어 면적을 구합니다.",
+      "visualization": "Python",
+      "formulation": "Pick 정리: $A=I+\\frac{B}{2}-1$, 신발끈 공식과 비교.",
+      "advanced": "일반 다각형으로 확장합니다."
+    }
+  },
+  {
+    "cat": "integral",
+    "title": "아크 길이",
+    "desc": "곡선의 길이를 적분으로 계산합니다.",
+    "tools": [
+      "GeoGebra",
+      "Python"
+    ],
+    "doi": "10.1088/1361-6552/ab3b73",
+    "ref": "https://scholar.google.com/scholar?q=arc+length+education+DOI",
+    "flow": {
+      "observation": "곡선을 작은 선분으로 근사하여 길이를 측정합니다.",
+      "simplification": "곡선을 매끄러운 함수로 가정합니다.",
+      "visualization": "GeoGebra, Python",
+      "formulation": "$L = \\int_a^b \\sqrt{1+(f'(x))^2}\\,dx$.",
+      "advanced": "매개변수 곡선과 극좌표로 확장합니다."
+    }
+  },
+  {
+    "cat": "integral",
+    "title": "질량중심 적분",
+    "desc": "밀도 함수를 적분해 중심을 구합니다.",
+    "tools": [
+      "Python",
+      "MATLAB"
+    ],
+    "doi": "10.1080/0020739X.2014.884649",
+    "ref": "https://scholar.google.com/scholar?q=center+of+mass+integral+education+DOI",
+    "flow": {
+      "observation": "불균일한 밀도를 가진 물체의 중심을 실험으로 확인합니다.",
+      "simplification": "밀도를 연속 함수로 모델링합니다.",
+      "visualization": "Python, MATLAB",
+      "formulation": "$\\bar{x} = \\frac{\\int x\\rho(x)\\,dx}{\\int \\rho(x)\\,dx}$.",
+      "advanced": "2D, 3D로 확장하여 무게 중심을 계산합니다."
+    }
+  },
+  {
+    "cat": "integral",
+    "title": "회전체 부피",
+    "desc": "원판법/껍질법으로 부피를 구합니다.",
+    "tools": [
+      "GeoGebra",
+      "Python"
+    ],
+    "doi": "10.1119/1.5093290",
+    "ref": "https://scholar.google.com/scholar?q=volume+of+revolution+education+DOI",
+    "flow": {
+      "observation": "회전 대칭 물체의 부피를 관찰합니다.",
+      "simplification": "곡선을 축 주위로 회전시킨 회전체로 모델링합니다.",
+      "visualization": "GeoGebra, Python",
+      "formulation": "원판법: $V=\\pi\\int [f(x)]^2\\,dx$, 껍질법: $V=2\\pi\\int xf(x)\\,dx$.",
+      "advanced": "다양한 회전축과 복잡한 곡선으로 확장합니다."
+    }
+  },
+  {
+    "cat": "integral",
+    "title": "로렌츠 곡선·지니계수",
+    "desc": "면적 적분으로 불평등을 수치화합니다.",
+    "tools": [
+      "Python"
+    ],
+    "doi": "10.1080/0020739X.2011.582177",
+    "ref": "https://scholar.google.com/scholar?q=Gini+coefficient+integral+education+DOI",
+    "flow": {
+      "observation": "소득 분포 데이터로 로렌츠 곡선을 그립니다.",
+      "simplification": "누적 비율로 곡선을 단순화합니다.",
+      "visualization": "Python",
+      "formulation": "지니계수 $G = 1 - 2\\int_0^1 L(p)\\,dp$.",
+      "advanced": "다양한 국가의 불평등을 비교합니다."
+    }
+  },
+  {
+    "cat": "integral",
+    "title": "혈중농도 AUC",
+    "desc": "약동학에서 곡선 아래 면적을 계산합니다.",
+    "tools": [
+      "Python"
+    ],
+    "doi": "10.1111/j.1365-2125.1975.tb00216.x",
+    "ref": "https://scholar.google.com/scholar?q=area+under+the+curve+pharmacokinetics+DOI",
+    "flow": {
+      "observation": "약물 투여 후 혈중 농도 변화를 측정합니다.",
+      "simplification": "농도를 시간의 연속 함수로 모델링합니다.",
+      "visualization": "Python",
+      "formulation": "$\\text{AUC} = \\int_0^\\infty C(t)\\,dt$, 생체이용률 평가.",
+      "advanced": "다회 투여와 정상 상태 분석으로 확장합니다."
+    }
+  },
+  {
+    "cat": "integral",
+    "title": "몬테카를로 적분",
+    "desc": "난수로 적분을 근사합니다.",
+    "tools": [
+      "Python",
+      "HTML/JS"
+    ],
+    "doi": "10.1080/0020739X.2016.1181803",
+    "ref": "https://scholar.google.com/scholar?q=Monte+Carlo+integration+education+DOI",
+    "flow": {
+      "observation": "복잡한 영역의 면적을 난수로 추정하는 방법을 관찰합니다.",
+      "simplification": "균등 분포 난수를 가정합니다.",
+      "visualization": "Python, HTML/JS",
+      "formulation": "$I \\approx \\frac{V}{N}\\sum f(x_i)$, $N$개 난수로 근사.",
+      "advanced": "고차원 적분과 수렴 속도를 분석합니다."
+    }
+  },
+  {
+    "cat": "integral",
+    "title": "일(Work)의 적분",
+    "desc": "힘–변위 그래프 아래 면적을 해석합니다.",
+    "tools": [
+      "Python"
+    ],
+    "doi": "10.1119/1.16955",
+    "ref": "https://scholar.google.com/scholar?q=work+as+integral+force+distance+education+DOI",
+    "flow": {
+      "observation": "스프링이나 변하는 힘의 일을 측정합니다.",
+      "simplification": "힘을 위치의 함수로 모델링합니다.",
+      "visualization": "Python",
+      "formulation": "$W = \\int F(x)\\,dx$, 그래프 아래 면적.",
+      "advanced": "보존력과 비보존력의 일을 비교합니다."
+    }
+  },
+  {
+    "cat": "integral",
+    "title": "RMS/평균값",
+    "desc": "신호 에너지를 적분으로 계산합니다.",
+    "tools": [
+      "Python",
+      "MATLAB"
+    ],
+    "doi": "10.1088/0031-9120/48/1/90",
+    "ref": "https://scholar.google.com/scholar?q=RMS+integral+signal+education+DOI",
+    "flow": {
+      "observation": "주기 신호의 실효값을 측정합니다.",
+      "simplification": "신호를 연속 함수로 가정합니다.",
+      "visualization": "Python, MATLAB",
+      "formulation": "$V_{\\text{RMS}} = \\sqrt{\\frac{1}{T}\\int_0^T v^2(t)\\,dt}$.",
+      "advanced": "다양한 파형(정현파, 구형파 등)의 RMS를 비교합니다."
+    }
+  },
+  {
+    "cat": "integral",
+    "title": "수치적분 오차",
+    "desc": "사다리꼴 vs 심프슨 규칙을 비교합니다.",
+    "tools": [
+      "Python"
+    ],
+    "doi": "10.1080/0020739X.2018.1490917",
+    "ref": "https://scholar.google.com/scholar?q=trapezoidal+Simpson+rule+education+DOI",
+    "flow": {
+      "observation": "여러 수치 적분 방법의 결과를 비교합니다.",
+      "simplification": "매끄러운 함수를 가정하고 구간을 균등 분할합니다.",
+      "visualization": "Python",
+      "formulation": "사다리꼴: $O(h^2)$, 심프슨: $O(h^4)$ 오차.",
+      "advanced": "적응적 방법과 가우스 구적법으로 확장합니다."
+    }
+  },
+  {
+    "cat": "integral",
+    "title": "전력 사용량 적분",
+    "desc": "스마트미터 데이터를 적분해 에너지를 구합니다.",
+    "tools": [
+      "Python"
+    ],
+    "doi": "",
+    "ref": "https://scholar.google.com/scholar?q=integral+energy+consumption+smart+meter+DOI",
+    "flow": {
+      "observation": "시간별 전력 사용량 데이터를 수집합니다.",
+      "simplification": "전력을 시간의 연속 함수로 모델링합니다.",
+      "visualization": "Python",
+      "formulation": "$E = \\int P(t)\\,dt$, 에너지 = 전력의 적분.",
+      "advanced": "피크 시간대 분석과 요금 최적화를 탐구합니다."
+    }
+  },
+  {
+    "cat": "integral",
+    "title": "교통량–시간 적분",
+    "desc": "누적 교통량과 혼잡을 분석합니다.",
+    "tools": [
+      "Python"
+    ],
+    "doi": "",
+    "ref": "https://scholar.google.com/scholar?q=traffic+flow+integral+area+under+curve+DOI",
+    "flow": {
+      "observation": "교통량 센서 데이터를 시계열로 수집합니다.",
+      "simplification": "흐름을 연속 함수로 가정합니다.",
+      "visualization": "Python",
+      "formulation": "누적 차량 수 = $\\int q(t)\\,dt$.",
+      "advanced": "혼잡도와 흐름 밀도의 관계를 분석합니다."
+    }
+  },
+  {
+    "cat": "integral",
+    "title": "기하확률과 적분",
+    "desc": "Buffon 바늘로 π를 추정합니다.",
+    "tools": [
+      "Python",
+      "HTML/JS"
+    ],
+    "doi": "10.1080/0020739X.2012.746483",
+    "ref": "https://scholar.google.com/scholar?q=Buffon+needle+education+DOI",
+    "flow": {
+      "observation": "바늘을 반복 투하하여 선과 교차하는 비율을 관찰합니다.",
+      "simplification": "바늘의 중심과 각도를 균등 분포로 가정합니다.",
+      "visualization": "Python, HTML/JS",
+      "formulation": "교차 확률 $P = \\frac{2l}{\\pi d}$, 적분으로 유도.",
+      "advanced": "시뮬레이션 횟수와 추정 정확도의 관계를 분석합니다."
+    }
+  },
+  {
+    "cat": "integral",
+    "title": "정수압 힘 적분",
+    "desc": "댐 벽에 작용하는 힘을 적분으로 구합니다.",
+    "tools": [
+      "MATLAB",
+      "Python"
+    ],
+    "doi": "10.1119/1.4772632",
+    "ref": "https://scholar.google.com/scholar?q=hydrostatic+force+dam+integral+DOI",
+    "flow": {
+      "observation": "수심에 따른 압력 변화를 관찰합니다.",
+      "simplification": "유체를 정지 상태로 가정하고 밀도를 일정하게 봅니다.",
+      "visualization": "MATLAB, Python",
+      "formulation": "$F = \\int \\rho g h(y) w(y)\\,dy$, 수압의 적분.",
+      "advanced": "다양한 댐 형상에 대한 힘을 계산합니다."
+    }
+  },
+  {
+    "cat": "integral",
+    "title": "생물 성장곡선 적분",
+    "desc": "시그모이드 모델의 누적량을 구합니다.",
+    "tools": [
+      "Python"
+    ],
+    "doi": "",
+    "ref": "https://scholar.google.com/scholar?q=logistic+growth+integral+education+DOI",
+    "flow": {
+      "observation": "박테리아나 세포 개체 수 증가를 관찰합니다.",
+      "simplification": "로지스틱 성장 모델을 적용합니다.",
+      "visualization": "Python",
+      "formulation": "$N(t) = \\frac{K}{1+Ae^{-rt}}$, 적분으로 총량 계산.",
+      "advanced": "환경 수용력 변화에 따른 성장 패턴을 분석합니다."
+    }
+  },
+  {
+    "cat": "space",
+    "title": "삼각 트러스와 강체성",
+    "desc": "삼각형의 강체성(합동·닮음)으로 구조 안정성을 설명합니다.",
+    "tools": [
+      "GeoGebra",
+      "HTML/JS"
+    ],
+    "doi": null,
+    "ref": "https://scholar.google.com/scholar?q=triangle+truss+rigidity+education+geometry",
+    "flow": {
+      "observation": "교량이나 건물의 삼각 트러스 구조를 관찰합니다.",
+      "simplification": "각 부재를 강체로, 연결을 힌지로 가정합니다.",
+      "visualization": "GeoGebra, HTML/JS",
+      "formulation": "삼각형의 세 변이 결정되면 형태가 고유하게 정해짐(강체성).",
+      "advanced": "하중 분포와 부재력 계산을 탐구합니다."
+    }
+  },
+  {
+    "cat": "space",
+    "title": "지오데식 돔 삼각망",
+    "desc": "정삼각 격자로 돔을 근사하여 강성·하중 분산을 해석합니다.",
+    "tools": [
+      "GeoGebra",
+      "Python"
+    ],
+    "doi": null,
+    "ref": "https://scholar.google.com/scholar?q=geodesic+dome+education+triangle+mesh+geometry",
+    "flow": {
+      "observation": "지오데식 돔의 삼각형 패턴을 관찰합니다.",
+      "simplification": "정이십면체를 세분하여 구 표면을 근사합니다.",
+      "visualization": "GeoGebra, Python",
+      "formulation": "정이십면체를 삼각분할하여 구면을 근사하고, 삼각형 패널의 강체성·오일러 공식(V−E+F=2)로 안정성을 설명합니다.",
+      "advanced": "세분 횟수에 따른 구 근사 정확도를 분석합니다."
+    }
+  },
+  {
+    "cat": "space",
+    "title": "에라토스테네스의 지구 둘레",
+    "desc": "평행광과 내각 동치로 그림자 각=중심각을 이용해 둘레를 산출합니다.",
+    "tools": [
+      "GeoGebra",
+      "HTML/JS"
+    ],
+    "doi": null,
+    "ref": "https://scholar.google.com/scholar?q=Eratosthenes+measurement+shadow+education+geometry",
+    "flow": {
+      "observation": "두 지점의 동시 그림자 각을 측정합니다.",
+      "simplification": "태양광을 평행선으로, 지구를 완전한 구로 가정합니다.",
+      "visualization": "GeoGebra, HTML/JS",
+      "formulation": "동위각 관계로 $\\theta/360° = d/C$, 둘레 $C$를 계산.",
+      "advanced": "측정 오차가 둘레 추정에 미치는 영향을 분석합니다."
+    }
+  },
+  {
+    "cat": "space",
+    "title": "시차로 행성 거리",
+    "desc": "두 관측점–대상으로 이루는 닮음 삼각형으로 거리를 추정합니다.",
+    "tools": [
+      "GeoGebra",
+      "Python"
+    ],
+    "doi": null,
+    "ref": "https://scholar.google.com/scholar?q=astronomy+parallax+classroom+geometry",
+    "flow": {
+      "observation": "서로 다른 위치에서 천체의 방향 차이를 측정합니다.",
+      "simplification": "관측점 간 거리를 알고 천체는 충분히 멉니다.",
+      "visualization": "GeoGebra, Python",
+      "formulation": "시차각 $p$로 거리 $d = \\frac{b}{\\tan p} \\approx \\frac{b}{p}$ (작은 각).",
+      "advanced": "연주 시차로 항성 거리를 구하는 방법을 탐구합니다."
+    }
+  },
+  {
+    "cat": "space",
+    "title": "해시계와 위도",
+    "desc": "지구 자전축과 평행한 지노몬 기하로 시간 눈금을 설계합니다.",
+    "tools": [
+      "GeoGebra",
+      "HTML/JS"
+    ],
+    "doi": null,
+    "ref": "https://scholar.google.com/scholar?q=sundial+gnomon+geometry+latitude+education",
+    "flow": {
+      "observation": "해시계의 그림자 움직임을 관찰합니다.",
+      "simplification": "지노몬을 자전축과 평행하게 배치합니다.",
+      "visualization": "GeoGebra, HTML/JS",
+      "formulation": "시각당 15° 회전, 위도에 따른 지노몬 각도 조정.",
+      "advanced": "계절에 따른 그림자 변화를 분석합니다."
+    }
+  },
+  {
+    "cat": "space",
+    "title": "코너 리플렉터(반사귀환)",
+    "desc": "서로 수직인 세 거울의 연속 반사로 언제나 입사 방향과 정반대 방향으로 되돌립니다.",
+    "tools": [
+      "HTML/JS",
+      "GeoGebra"
+    ],
+    "doi": "10.1119/1.234329",
+    "ref": "https://doi.org/10.1119/1.234329",
+    "flow": {
+      "observation": "코너 리플렉터에 입사한 빛이 반대 방향으로 되돌아오는 것을 관찰합니다.",
+      "simplification": "세 개의 수직 거울로 이상화합니다.",
+      "visualization": "HTML/JS, GeoGebra",
+      "formulation": "반사 법칙(입사각=반사각)을 세 평면에 연속 적용하면 입사광의 진행 방향이 정확히 반전됨을 삼각함수로 증명합니다.",
+      "advanced": "자전거 반사판, 달 레이저 측정 등의 응용을 탐구합니다."
+    }
+  },
+  {
+    "cat": "space",
+    "title": "만화경과 두 직선 반사",
+    "desc": "교차하는 두 반사=회전(2θ)으로 n-겹 대칭 무늬를 만듭니다.",
+    "tools": [
+      "HTML/JS",
+      "GeoGebra"
+    ],
+    "doi": null,
+    "ref": "https://scholar.google.com/scholar?q=kaleidoscope+mirror+angle+geometry+education",
+    "flow": {
+      "observation": "만화경의 대칭 무늬를 관찰합니다.",
+      "simplification": "두 거울을 각 θ로 배치하고 연속 반사를 추적합니다.",
+      "visualization": "HTML/JS, GeoGebra",
+      "formulation": "두 반사의 합성 = 2θ 회전, $n=\\frac{360°}{2\\theta}$겹 대칭.",
+      "advanced": "다양한 각도와 무늬 조합을 탐구합니다."
+    }
+  },
+  {
+    "cat": "space",
+    "title": "구쌓기와 밀도",
+    "desc": "육각형 층 적층과 공극 분석으로 효율적 쌓기를 탐구합니다.",
+    "tools": [
+      "Python",
+      "GeoGebra"
+    ],
+    "doi": null,
+    "ref": "https://scholar.google.com/scholar?q=sphere+packing+education+geometry+FCC",
+    "flow": {
+      "observation": "구를 쌓았을 때 공간 활용도를 측정합니다.",
+      "simplification": "동일한 크기의 구를 규칙적으로 배열합니다.",
+      "visualization": "Python, GeoGebra",
+      "formulation": "면심입방(FCC) 배열의 충진율 $\\frac{\\pi}{3\\sqrt{2}} \\approx 74\\%$.",
+      "advanced": "무작위 쌓기와 결정 구조를 비교합니다."
+    }
+  },
+  {
+    "cat": "space",
+    "title": "포장 설계: 전개도",
+    "desc": "입체를 절개·평탄화하여 전개도를 만들고 접기로 복원합니다.",
+    "tools": [
+      "HTML/JS",
+      "GeoGebra"
+    ],
+    "doi": null,
+    "ref": "https://scholar.google.com/scholar?q=cube+nets+11+education+geometry",
+    "flow": {
+      "observation": "상자를 펼쳐 전개도를 그립니다.",
+      "simplification": "접히는 모서리와 절단 모서리를 구분합니다.",
+      "visualization": "HTML/JS, GeoGebra",
+      "formulation": "정육면체는 11가지 전개도가 가능함을 확인.",
+      "advanced": "다른 다면체의 전개도를 탐구합니다."
+    }
+  },
+  {
+    "cat": "space",
+    "title": "미우라 접기와 1자유도",
+    "desc": "평행사변형 격자의 동시 개폐 기하를 분석합니다.",
+    "tools": [
+      "HTML/JS",
+      "GeoGebra"
+    ],
+    "doi": null,
+    "ref": "https://scholar.google.com/scholar?q=Miura-ori+education+geometry",
+    "flow": {
+      "observation": "미우라 접기 패턴으로 종이를 한 번에 펼치고 접는 것을 체험합니다.",
+      "simplification": "평행사변형 격자로 패턴을 모델링합니다.",
+      "visualization": "HTML/JS, GeoGebra",
+      "formulation": "모든 꼭짓점의 각이 연동되어 1자유도 운동.",
+      "advanced": "우주 태양 전지판 등 응용 사례를 탐구합니다."
+    }
+  },
+  {
+    "cat": "space",
+    "title": "시저 리프트 기하",
+    "desc": "평행사변형 링크의 높이–각 관계를 순수 기하로 유도합니다.",
+    "tools": [
+      "GeoGebra",
+      "Python"
+    ],
+    "doi": null,
+    "ref": "https://scholar.google.com/scholar?q=scissor+lift+geometry+education",
+    "flow": {
+      "observation": "시저 리프트의 작동을 관찰합니다.",
+      "simplification": "각 링크를 강체 막대로, 연결을 힌지로 가정합니다.",
+      "visualization": "GeoGebra, Python",
+      "formulation": "높이 $h = L\\sin\\theta$, 평행사변형 기하.",
+      "advanced": "다단 리프트와 안정성을 분석합니다."
+    }
+  },
+  {
+    "cat": "space",
+    "title": "단면: 기하학적 절단",
+    "desc": "평면과 입체의 교선으로 단면 다각형(예: 큐브→육각형)을 해석합니다.",
+    "tools": [
+      "GeoGebra",
+      "HTML/JS"
+    ],
+    "doi": null,
+    "ref": "https://scholar.google.com/scholar?q=cross-section+cube+hexagon+geometry+education",
+    "flow": {
+      "observation": "입체를 평면으로 자른 단면의 모양을 관찰합니다.",
+      "simplification": "절단 평면의 방향과 위치를 매개변수화합니다.",
+      "visualization": "GeoGebra, HTML/JS",
+      "formulation": "정육면체를 적절히 자르면 정육각형 단면을 얻을 수 있음.",
+      "advanced": "다양한 다면체의 최대 단면을 탐구합니다."
+    }
+  },
+  {
+    "cat": "space",
+    "title": "하이퍼볼로이드 냉각탑",
+    "desc": "직선 생성선이 만드는 가줄선 곡면의 구조적 장점을 탐구합니다.",
+    "tools": [
+      "GeoGebra",
+      "Python"
+    ],
+    "doi": null,
+    "ref": "https://scholar.google.com/scholar?q=hyperboloid+ruled+surface+education+geometry",
+    "flow": {
+      "observation": "냉각탑의 쌍곡면 형태를 관찰합니다.",
+      "simplification": "쌍곡면을 직선들의 집합(가줄선 곡면)으로 모델링합니다.",
+      "visualization": "GeoGebra, Python",
+      "formulation": "직선 부재로 곡면을 구성하여 강성을 확보.",
+      "advanced": "다른 가줄선 곡면(원환면 등)을 비교합니다."
+    }
+  },
+  {
+    "cat": "space",
+    "title": "피라미드 비율과 각",
+    "desc": "사면 기울기와 황금비 근사를 기하적으로 점검합니다.",
+    "tools": [
+      "GeoGebra",
+      "Python"
+    ],
+    "doi": null,
+    "ref": "https://scholar.google.com/scholar?q=Great+Pyramid+golden+ratio+geometry+education",
+    "flow": {
+      "observation": "피라미드의 높이와 밑변 비율을 측정합니다.",
+      "simplification": "정사각뿔로 모델링하고 비율을 계산합니다.",
+      "visualization": "GeoGebra, Python",
+      "formulation": "기울기 각과 높이/밑변 비의 관계, 황금비 근사 검증.",
+      "advanced": "다른 피라미드들과 비교하여 설계 원리를 탐구합니다."
+    }
+  },
+  {
+    "cat": "space",
+    "title": "벌집 육각형 최적화",
+    "desc": "면적-둘레 효율과 바닥 이면각(≈109.5°, 120°)의 기하를 다룹니다.",
+    "tools": [
+      "GeoGebra",
+      "Python"
+    ],
+    "doi": null,
+    "ref": "https://scholar.google.com/scholar?q=honeycomb+theorem+geometry+education",
+    "flow": {
+      "observation": "벌집의 육각형 구조를 관찰합니다.",
+      "simplification": "정육각형 테셀레이션으로 모델링합니다.",
+      "visualization": "GeoGebra, Python",
+      "formulation": "동일 면적 대비 둘레가 최소인 타일 = 정육각형.",
+      "advanced": "3D 벌집 바닥의 능형 각도 최적화를 분석합니다."
+    }
+  },
+  {
+    "cat": "space",
+    "title": "이십면체 바이러스 대칭",
+    "desc": "5·3·2회전 대칭을 갖는 껍질의 안정 배열을 탐구합니다.",
+    "tools": [
+      "GeoGebra",
+      "HTML/JS"
+    ],
+    "doi": null,
+    "ref": "https://scholar.google.com/scholar?q=icosahedral+virus+geometry+education",
+    "flow": {
+      "observation": "바이러스 껍질의 이십면체 구조를 이미지로 관찰합니다.",
+      "simplification": "정이십면체의 대칭성으로 단순화합니다.",
+      "visualization": "GeoGebra, HTML/JS",
+      "formulation": "5, 3, 2회 회전축이 공존하는 정이십면체 대칭군.",
+      "advanced": "Caspar-Klug 이론과 T-number를 탐구합니다."
+    }
+  },
+  {
+    "cat": "space",
+    "title": "결정면 이면각(스테노의 법칙)",
+    "desc": "교선 수직선의 각 측정으로 광물 결정의 일관 각을 확인합니다.",
+    "tools": [
+      "GeoGebra",
+      "HTML/JS"
+    ],
+    "doi": null,
+    "ref": "https://scholar.google.com/scholar?q=Steno%27s+law+interfacial+angles+education",
+    "flow": {
+      "observation": "광물 결정의 면 사이 각을 측정합니다.",
+      "simplification": "결정을 이상적 다면체로 모델링합니다.",
+      "visualization": "GeoGebra, HTML/JS",
+      "formulation": "같은 종의 결정은 면 사이 각이 일정함(스테노의 법칙).",
+      "advanced": "다양한 결정계의 대칭성을 비교합니다."
+    }
+  },
+  {
+    "cat": "space",
+    "title": "북극성과 위도",
+    "desc": "평행선과 접선의 내각 등치로 고도=위도를 증명합니다.",
+    "tools": [
+      "GeoGebra",
+      "HTML/JS"
+    ],
+    "doi": null,
+    "ref": "https://scholar.google.com/scholar?q=Polaris+altitude+equals+latitude+geometry+education",
+    "flow": {
+      "observation": "북극성의 고도를 측정하고 관측 지점의 위도와 비교합니다.",
+      "simplification": "지구를 완전한 구로, 북극성을 무한 원점으로 가정합니다.",
+      "visualization": "GeoGebra, HTML/JS",
+      "formulation": "지평선 접선과 자전축이 이루는 동위각 = 위도.",
+      "advanced": "세차 운동에 따른 북극성 변화를 탐구합니다."
+    }
+  },
+  {
+    "cat": "space",
+    "title": "포물면 반사와 초점",
+    "desc": "접선 이등분 성질로 평행광→초점 반사 성질을 증명합니다.",
+    "tools": [
+      "GeoGebra",
+      "HTML/JS"
+    ],
+    "doi": null,
+    "ref": "https://scholar.google.com/scholar?q=parabola+reflective+property+geometric+proof+education",
+    "flow": {
+      "observation": "포물 반사경에서 평행광이 초점에 모이는 것을 관찰합니다.",
+      "simplification": "포물선을 표준형으로 표현하고 반사 법칙을 적용합니다.",
+      "visualization": "GeoGebra, HTML/JS",
+      "formulation": "접선이 입사광과 초점 방향의 이등분선임을 기하로 증명.",
+      "advanced": "타원과 쌍곡선의 반사 성질과 비교합니다."
+    }
+  },
+  {
+    "cat": "space",
+    "title": "표면 최단경로(거미와 파리)",
+    "desc": "전개도에서의 직선이 접힌 표면의 지오데식이 됩니다.",
+    "tools": [
+      "GeoGebra",
+      "HTML/JS"
+    ],
+    "doi": null,
+    "ref": "https://scholar.google.com/scholar?q=spider+and+fly+unfolding+shortest+path+education",
+    "flow": {
+      "observation": "직육면체 표면에서 두 점 사이 최단 경로를 찾습니다.",
+      "simplification": "전개도로 펼쳐서 직선 거리를 계산합니다.",
+      "visualization": "GeoGebra, HTML/JS",
+      "formulation": "전개도에서 유클리드 직선 = 원래 표면의 지오데식.",
+      "advanced": "다양한 다면체에서 최단 경로를 탐구합니다."
+    }
+  },
+  {
+    "cat": "stat",
+    "title": "동전 공정성 검정",
+    "desc": "이항분포와 정규근사로 Z-검정을 해봅니다.",
+    "tools": [
+      "Python",
+      "HTML/JS"
+    ],
+    "doi": "10.1119/1.5028254",
+    "ref": "https://scholar.google.com/scholar?q=coin+fairness+test+education+DOI",
+    "flow": {
+      "observation": "동전을 여러 번 던져 앞면 횟수를 기록합니다.",
+      "simplification": "독립 시행과 고정된 확률을 가정합니다.",
+      "visualization": "Python, HTML/JS",
+      "formulation": "$z = \\frac{\\hat{p}-0.5}{\\sqrt{0.5(1-0.5)/n}}$, p-값 계산.",
+      "advanced": "표본 크기와 검정력의 관계를 탐구합니다."
+    }
+  },
+  {
+    "cat": "stat",
+    "title": "주사위 균등성 검정",
+    "desc": "카이제곱 적합도로 판단합니다.",
+    "tools": [
+      "Python"
+    ],
+    "doi": "10.1080/00031305.1972.10478906",
+    "ref": "https://scholar.google.com/scholar?q=chi-square+goodness+of+fit+education+DOI",
+    "flow": {
+      "observation": "주사위를 반복 던져 각 눈의 출현 횟수를 기록합니다.",
+      "simplification": "각 눈의 기댓값이 $n/6$으로 동일하다고 가정합니다.",
+      "visualization": "Python",
+      "formulation": "$\\chi^2 = \\sum \\frac{(O_i-E_i)^2}{E_i}$, 자유도 5.",
+      "advanced": "편향된 주사위를 만들어 검정 민감도를 분석합니다."
+    }
+  },
+  {
+    "cat": "stat",
+    "title": "평균 신뢰구간",
+    "desc": "z/t 구간을 실제 데이터로 만듭니다.",
+    "tools": [
+      "Python"
+    ],
+    "doi": "10.1080/0020739X.2010.501080",
+    "ref": "https://scholar.google.com/scholar?q=confidence+interval+education+DOI",
+    "flow": {
+      "observation": "표본에서 평균과 표준편차를 계산합니다.",
+      "simplification": "모집단이 정규분포이거나 표본이 충분히 크다고 가정합니다.",
+      "visualization": "Python",
+      "formulation": "$\\bar{x} \\pm t_{\\alpha/2} \\frac{s}{\\sqrt{n}}$.",
+      "advanced": "반복 표본으로 신뢰구간의 포함률을 확인합니다."
+    }
+  },
+  {
+    "cat": "stat",
+    "title": "두 집단 평균 검정",
+    "desc": "독립표본 t-검정을 연습합니다.",
+    "tools": [
+      "Python"
+    ],
+    "doi": "10.1080/10691898.2010.11889497",
+    "ref": "https://scholar.google.com/scholar?q=two+sample+t+test+education+DOI",
+    "flow": {
+      "observation": "두 집단에서 독립적으로 표본을 수집합니다.",
+      "simplification": "각 집단이 정규분포이고 분산이 동일하다고 가정합니다.",
+      "visualization": "Python",
+      "formulation": "$t = \\frac{\\bar{x}_1-\\bar{x}_2}{s_p\\sqrt{1/n_1+1/n_2}}$.",
+      "advanced": "등분산 가정을 검토하고 Welch 검정과 비교합니다."
+    }
+  },
+  {
+    "cat": "stat",
+    "title": "포아송 희귀사건",
+    "desc": "λ가 평균=분산인 자료를 다룹니다.",
+    "tools": [
+      "Python"
+    ],
+    "doi": "10.1080/0020739X.2015.1102977",
+    "ref": "https://scholar.google.com/scholar?q=Poisson+rare+events+education+DOI",
+    "flow": {
+      "observation": "단위 시간당 희귀 사건(예: 콜센터 전화) 횟수를 기록합니다.",
+      "simplification": "사건이 독립적이고 발생률이 일정하다고 가정합니다.",
+      "visualization": "Python",
+      "formulation": "$P(X=k) = \\frac{\\lambda^k e^{-\\lambda}}{k!}$.",
+      "advanced": "이항분포와의 극한 관계를 확인합니다."
+    }
+  },
+  {
+    "cat": "stat",
+    "title": "오차 전파",
+    "desc": "분산의 가산성을 실험으로 확인합니다.",
+    "tools": [
+      "Python"
+    ],
+    "doi": "10.1088/0031-9120/42/5/009",
+    "ref": "https://scholar.google.com/scholar?q=error+propagation+education+DOI",
+    "flow": {
+      "observation": "측정값의 불확도를 기록하고 합성 측정을 수행합니다.",
+      "simplification": "독립적인 오차를 가정하고 1차 근사를 사용합니다.",
+      "visualization": "Python",
+      "formulation": "$\\sigma_f^2 \\approx \\sum (\\frac{\\partial f}{\\partial x_i})^2 \\sigma_{x_i}^2$.",
+      "advanced": "비선형 함수에서 고차 항의 영향을 탐구합니다."
+    }
+  },
+  {
+    "cat": "stat",
+    "title": "시뮬레이티드 어닐링",
+    "desc": "확률적 최적화를 체험합니다.",
+    "tools": [
+      "Python"
+    ],
+    "doi": "10.1126/science.220.4598.671",
+    "ref": "https://doi.org/10.1126/science.220.4598.671",
+    "flow": {
+      "observation": "복잡한 목적 함수의 전역 최솟값을 찾는 과정을 관찰합니다.",
+      "simplification": "온도 매개변수로 확률적 수용을 조절합니다.",
+      "visualization": "Python",
+      "formulation": "볼츠만 확률 $P = e^{-\\Delta E/T}$로 나쁜 해도 일시 수용.",
+      "advanced": "냉각 일정과 수렴 속도의 관계를 분석합니다."
+    }
+  },
+  {
+    "cat": "stat",
+    "title": "로지스틱 회귀",
+    "desc": "이진 반응을 확률로 예측합니다.",
+    "tools": [
+      "Python"
+    ],
+    "doi": "10.2307/2344614",
+    "ref": "https://scholar.google.com/scholar?q=logistic+regression+education+DOI",
+    "flow": {
+      "observation": "이진 결과(합격/불합격 등)와 설명 변수를 수집합니다.",
+      "simplification": "로짓 링크 함수를 사용하여 선형 모델을 적용합니다.",
+      "visualization": "Python",
+      "formulation": "$\\ln\\frac{p}{1-p} = \\beta_0 + \\beta_1 x$.",
+      "advanced": "다중 변수와 상호작용 항으로 확장합니다."
+    }
+  },
+  {
+    "cat": "stat",
+    "title": "부트스트랩 CI",
+    "desc": "재표본으로 신뢰구간을 만듭니다.",
+    "tools": [
+      "Python"
+    ],
+    "doi": "10.1111/j.2517-6161.1979.tb01074.x",
+    "ref": "https://doi.org/10.1111/j.2517-6161.1979.tb01074.x",
+    "flow": {
+      "observation": "원 표본에서 반복 재추출하여 통계량 분포를 생성합니다.",
+      "simplification": "복원 추출로 원 표본을 모집단으로 가정합니다.",
+      "visualization": "Python",
+      "formulation": "백분위법으로 95% CI: [2.5%, 97.5%].",
+      "advanced": "BCa 보정과 모수적 방법을 비교합니다."
+    }
+  },
+  {
+    "cat": "stat",
+    "title": "순열검정",
+    "desc": "비모수 가설검정을 직접 구현합니다.",
+    "tools": [
+      "Python"
+    ],
+    "doi": "10.1214/aoms/1177731050",
+    "ref": "https://doi.org/10.1214/aoms/1177731050",
+    "flow": {
+      "observation": "두 집단의 차이를 검정할 때 분포 가정 없이 진행합니다.",
+      "simplification": "귀무가설 하에서 모든 라벨 순열이 동등하다고 가정합니다.",
+      "visualization": "Python",
+      "formulation": "관측 통계량보다 극단적인 순열의 비율 = p-값.",
+      "advanced": "표본 크기가 클 때 몬테카를로 근사를 사용합니다."
+    }
+  },
+  {
+    "cat": "stat",
+    "title": "카이제곱 독립성",
+    "desc": "교차표로 독립 여부를 봅니다.",
+    "tools": [
+      "Python"
+    ],
+    "doi": "10.1080/00031305.1972.10478906",
+    "ref": "https://scholar.google.com/scholar?q=chi-square+test+of+independence+education+DOI",
+    "flow": {
+      "observation": "두 범주형 변수의 교차표를 작성합니다.",
+      "simplification": "기댓값이 모든 셀에서 5 이상이라고 가정합니다.",
+      "visualization": "Python",
+      "formulation": "$\\chi^2 = \\sum \\frac{(O-E)^2}{E}$, 자유도 $(r-1)(c-1)$.",
+      "advanced": "Fisher 정확검정과 비교합니다."
+    }
+  },
+  {
+    "cat": "stat",
+    "title": "정규성 진단(Q–Q, Shapiro–Wilk)",
+    "desc": "정규 가정을 확인합니다.",
+    "tools": [
+      "Python"
+    ],
+    "doi": "10.1093/biomet/52.3-4.591",
+    "ref": "https://doi.org/10.1093/biomet/52.3-4.591",
+    "flow": {
+      "observation": "데이터의 분포를 Q-Q 플롯과 검정 통계량으로 확인합니다.",
+      "simplification": "표본이 정규분포에서 나왔다고 가정합니다.",
+      "visualization": "Python",
+      "formulation": "Shapiro-Wilk $W$, Q-Q 플롯의 직선성.",
+      "advanced": "왜도·첨도와 변환 방법을 탐구합니다."
+    }
+  },
+  {
+    "cat": "stat",
+    "title": "A/B 테스트 설계",
+    "desc": "단·양측 검정과 효과크기를 연결합니다.",
+    "tools": [
+      "Python",
+      "HTML/JS"
+    ],
+    "doi": "10.1145/3292500.3330675",
+    "ref": "https://scholar.google.com/scholar?q=A%2FB+testing+statistical+test+DOI",
+    "flow": {
+      "observation": "두 버전의 클릭률이나 전환율을 비교합니다.",
+      "simplification": "독립 표본과 고정된 표본 크기를 가정합니다.",
+      "visualization": "Python, HTML/JS",
+      "formulation": "비율 검정: $z = \\frac{\\hat{p}_A-\\hat{p}_B}{\\sqrt{\\hat{p}(1-\\hat{p})(1/n_A+1/n_B)}}$.",
+      "advanced": "순차 검정과 다중 비교 보정을 탐구합니다."
+    }
+  },
+  {
+    "cat": "stat",
+    "title": "표본수와 신뢰구간 폭",
+    "desc": "목표 정밀도에 맞는 n을 고릅니다.",
+    "tools": [
+      "Python"
+    ],
+    "doi": "10.1080/00031305.1969.10499008",
+    "ref": "https://scholar.google.com/scholar?q=sample+size+confidence+interval+DOI",
+    "flow": {
+      "observation": "원하는 신뢰구간 폭을 정하고 필요 표본 크기를 역산합니다.",
+      "simplification": "모집단 분산을 사전 추정값으로 가정합니다.",
+      "visualization": "Python",
+      "formulation": "$n = (\\frac{z_{\\alpha/2}\\sigma}{E})^2$, $E$는 오차 한계.",
+      "advanced": "실제 실험에서 적응적 표본 추가를 시뮬레이션합니다."
+    }
+  },
+  {
+    "cat": "stat",
+    "title": "중앙극한정리 체험",
+    "desc": "표본평균 분포가 정규로 가는 모습을 봅니다.",
+    "tools": [
+      "Python"
+    ],
+    "doi": "10.1080/0020739X.2015.1029063",
+    "ref": "https://scholar.google.com/scholar?q=central+limit+theorem+education+DOI",
+    "flow": {
+      "observation": "임의의 분포에서 표본을 반복 추출하여 평균을 계산합니다.",
+      "simplification": "독립적이고 동일한 분포를 가정합니다.",
+      "visualization": "Python",
+      "formulation": "$\\bar{X} \\sim N(\\mu, \\sigma^2/n)$ as $n \\to \\infty$.",
+      "advanced": "다양한 원분포(균등, 지수 등)로 수렴 속도를 비교합니다."
+    }
+  },
+  {
+    "cat": "stat",
+    "title": "신호 스펙트럼과 통계",
+    "desc": "푸리에 변환과 분산을 연결합니다.",
+    "tools": [
+      "Python",
+      "MATLAB"
+    ],
+    "doi": "10.1119/1.5126821",
+    "ref": "https://scholar.google.com/scholar?q=Fourier+statistics+education+DOI",
+    "flow": {
+      "observation": "신호의 주파수 스펙트럼과 시간 영역 통계를 계산합니다.",
+      "simplification": "정상 신호로 가정하고 이산 푸리에 변환을 사용합니다.",
+      "visualization": "Python, MATLAB",
+      "formulation": "Parseval 정리: $\\sum |x(t)|^2 = \\sum |X(f)|^2$.",
+      "advanced": "윈도잉과 스펙트럼 추정 방법을 비교합니다."
+    }
+  },
+  {
+    "cat": "stat",
+    "title": "중력파 5σ 유의성(LIGO)",
+    "desc": "PRL 2016의 α 기준과 p-값을 재계산해 봅니다.",
+    "tools": [
+      "Python",
+      "HTML/JS"
+    ],
+    "doi": "10.1103/PhysRevLett.116.061102",
+    "ref": "https://doi.org/10.1103/PhysRevLett.116.061102",
+    "flow": {
+      "observation": "LIGO 논문의 신호 대 잡음비와 p-값을 확인합니다.",
+      "simplification": "가우스 잡음 가정 하에서 5σ 기준을 적용합니다.",
+      "visualization": "Python, HTML/JS",
+      "formulation": "$p < 3 \\times 10^{-7}$ (5σ에 해당).",
+      "advanced": "Look-elsewhere effect와 다중 검정 보정을 탐구합니다."
+    }
+  },
+  {
+    "cat": "stat",
+    "title": "지중해식 식단 RCT(PREDIMED)",
+    "desc": "NEJM 2013의 HR·CI에서 p-값을 확인합니다.",
+    "tools": [
+      "Python"
+    ],
+    "doi": "10.1056/NEJMoa1200303",
+    "ref": "https://doi.org/10.1056/NEJMoa1200303",
+    "flow": {
+      "observation": "PREDIMED 논문의 위험비와 신뢰구간을 추출합니다.",
+      "simplification": "Cox 비례위험 모델을 가정합니다.",
+      "visualization": "Python",
+      "formulation": "HR와 95% CI로부터 $z = \\frac{\\ln(\\text{HR})}{\\text{SE}}$, p-값 계산.",
+      "advanced": "생존 분석과 Kaplan-Meier 곡선을 탐구합니다."
+    }
+  },
+  {
+    "cat": "stat",
+    "title": "조건부 확률로서의 확률(레니)",
+    "desc": "조건부 확률을 기본으로 하는 공리계를 살핍니다.",
+    "tools": [
+      "HTML/JS",
+      "Python"
+    ],
+    "doi": "10.1137/1101005",
+    "ref": "https://doi.org/10.1137/1101005",
+    "flow": {
+      "observation": "조건부 확률의 정의와 베이즈 정리를 확인합니다.",
+      "simplification": "조건화된 확률 공간을 기본 공리로 삼습니다.",
+      "visualization": "HTML/JS, Python",
+      "formulation": "$P(A|B) = \\frac{P(A \\cap B)}{P(B)}$, 레니 공리계.",
+      "advanced": "베이즈 추론과 주관 확률론으로 확장합니다."
+    }
+  }
+]

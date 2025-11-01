@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>수학 탐구 보고서 작성 양식</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- KaTeX -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+
+  <!-- Showdown for Markdown -->
+  <script src="https://cdn.jsdelivr.net/npm/showdown@2.1.0/dist/showdown.min.js"></script>
+
+  <style>
+    :root {
+      --bg: #f7fafc;
+      --card: #ffffff;
+      --ink: #0f172a;
+      --muted: #475569;
+      --accent: #1d4ed8;
+      --pill: #eef2ff;
+    }
+
+    body {
+      font-family: 'Pretendard', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      margin: 0;
+      padding: 0;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+
+    .header {
+      background: white;
+      border-radius: 1rem;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .two-column {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+    }
+
+    .editor-panel {
+      background: white;
+      border-radius: 1rem;
+      padding: 1.5rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .preview-panel {
+      background: white;
+      border-radius: 1rem;
+      padding: 2rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      max-height: 85vh;
+      overflow-y: auto;
+    }
+
+    .section-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--ink);
+      margin-bottom: 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 2px solid var(--accent);
+    }
+
+    .input-group {
+      margin-bottom: 1.5rem;
+    }
+
+    .input-label {
+      display: block;
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--muted);
+      margin-bottom: 0.5rem;
+    }
+
+    .text-input {
+      width: 100%;
+      padding: 0.75rem;
+      border: 1px solid #e2e8f0;
+      border-radius: 0.5rem;
+      font-size: 1rem;
+      font-family: inherit;
+    }
+
+    .text-input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.1);
+    }
+
+    textarea.text-input {
+      resize: vertical;
+      min-height: 100px;
+      font-family: inherit;
+    }
+
+    .block-item {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 0.5rem;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      position: relative;
+    }
+
+    .block-type-badge {
+      display: inline-block;
+      padding: 0.25rem 0.5rem;
+      border-radius: 0.25rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+
+    .badge-text { background: #dbeafe; color: #1e40af; }
+    .badge-image { background: #d1fae5; color: #065f46; }
+    .badge-code { background: #fce7f3; color: #9f1239; }
+
+    .block-controls {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+    }
+
+    .btn {
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 0.5rem;
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: #1e40af;
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background: #64748b;
+      color: white;
+    }
+
+    .btn-secondary:hover {
+      background: #475569;
+    }
+
+    .btn-danger {
+      background: #dc2626;
+      color: white;
+    }
+
+    .btn-success {
+      background: #10b981;
+      color: white;
+    }
+
+    .btn-small {
+      padding: 0.25rem 0.5rem;
+      font-size: 0.75rem;
+    }
+
+    .add-block-buttons {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 2px dashed #e2e8f0;
+    }
+
+    .prose {
+      line-height: 1.7;
+    }
+
+    .prose h1 { font-size: 2rem; font-weight: 700; margin: 1.5rem 0 1rem; }
+    .prose h2 { font-size: 1.5rem; font-weight: 700; margin: 1.25rem 0 0.75rem; color: var(--accent); }
+    .prose h3 { font-size: 1.25rem; font-weight: 600; margin: 1rem 0 0.5rem; }
+    .prose p { margin: 0.75rem 0; }
+    .prose ul, .prose ol { padding-left: 2rem; margin: 0.75rem 0; }
+    .prose li { margin: 0.5rem 0; }
+    .prose code { background: #f1f5f9; padding: 0.2rem 0.4rem; border-radius: 0.25rem; font-family: monospace; }
+    .prose pre { background: #1e293b; color: #e2e8f0; padding: 1rem; border-radius: 0.5rem; overflow-x: auto; }
+    .prose pre code { background: transparent; padding: 0; }
+    .prose img { max-width: 100%; height: auto; border-radius: 0.5rem; margin: 1rem 0; }
+
+    .save-status {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.875rem;
+      color: var(--muted);
+    }
+
+    .spinner {
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    .guide-box {
+      background: #d1fae5;
+      border: 1px solid #10b981;
+      border-radius: 0.5rem;
+      padding: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .guide-box strong {
+      color: #065f46;
+    }
+
+    @media print {
+      .editor-panel, .header .btn, .guide-box { display: none !important; }
+      .two-column { display: block; }
+      .preview-panel { box-shadow: none; max-height: none; }
+      body { background: white; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <div>
+          <h1 style="margin: 0; font-size: 1.75rem;">수학 탐구 보고서 작성 양식</h1>
+          <p style="margin: 0.5rem 0 0; color: var(--muted);">마크다운, KaTeX 수식, 코드 블록을 지원합니다.</p>
+        </div>
+        <div style="display: flex; gap: 1rem; align-items: center;">
+          <div class="save-status">
+            <svg id="save-icon-saving" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="spinner" style="display: none;">
+              <path d="M21 12a9 9 0 1 1-6.219-8.56"></path>
+            </svg>
+            <svg id="save-icon-saved" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: none; color: #10b981;">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            <span id="save-text"></span>
+          </div>
+          <button id="export-pdf" class="btn btn-primary">PDF로 저장</button>
+        </div>
+      </div>
+
+      <div class="guide-box">
+        <strong>PDF 저장 가이드:</strong>
+        인쇄 대화상자에서 <strong>"PDF로 저장"</strong>을 선택하고, <strong>머리글과 바닥글 옵션을 해제</strong>한 후 저장하세요.
+      </div>
+    </div>
+
+    <div class="two-column">
+      <!-- Editor Panel -->
+      <div class="editor-panel">
+        <div class="section-title">보고서 작성</div>
+
+        <div class="input-group">
+          <label class="input-label">보고서 제목</label>
+          <input type="text" id="report-title" class="text-input" placeholder="예: 벡터의 내적을 활용한 코사인 법칙 증명">
+        </div>
+
+        <div class="input-group">
+          <label class="input-label">작성자</label>
+          <input type="text" id="report-author" class="text-input" placeholder="이름 / 학번">
+        </div>
+
+        <div class="input-group">
+          <label class="input-label">작성일</label>
+          <input type="date" id="report-date" class="text-input">
+        </div>
+
+        <div class="input-group">
+          <label class="input-label">탐구 주제 (선택한 주제 번호나 이름)</label>
+          <input type="text" id="topic-reference" class="text-input" placeholder="예: 고급수학Ⅰ - 벡터 주제 3">
+        </div>
+
+        <div style="margin-top: 2rem;">
+          <div class="section-title">보고서 내용</div>
+          <div id="blocks-container"></div>
+
+          <div class="add-block-buttons">
+            <button class="btn btn-success btn-small" onclick="app.addBlock('text')">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: inline; vertical-align: middle;">
+                <path d="M4 7V4h16v3M9 20h6M12 4v16"/>
+              </svg>
+              텍스트 추가
+            </button>
+            <button class="btn btn-success btn-small" onclick="app.addBlock('image')">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: inline; vertical-align: middle;">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                <circle cx="8.5" cy="8.5" r="1.5"/>
+                <polyline points="21 15 16 10 5 21"/>
+              </svg>
+              이미지 추가
+            </button>
+            <button class="btn btn-success btn-small" onclick="app.addBlock('code')">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: inline; vertical-align: middle;">
+                <polyline points="16 18 22 12 16 6"/>
+                <polyline points="8 6 2 12 8 18"/>
+              </svg>
+              코드 블록 추가
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Preview Panel -->
+      <div class="preview-panel" id="preview-content">
+        <div style="text-align: center; color: var(--muted); padding: 2rem;">
+          제목과 내용을 입력하면 미리보기가 표시됩니다.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const app = {
+      blocks: [],
+      saveTimeout: null,
+      storageKey: 'mathReportTemplate',
+
+      init() {
+        this.loadData();
+        this.renderBlocks();
+        this.renderPreview();
+        this.attachEventListeners();
+
+        // Set today's date as default
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('report-date').value = today;
+      },
+
+      loadData() {
+        const saved = localStorage.getItem(this.storageKey);
+        if (saved) {
+          const data = JSON.parse(saved);
+          document.getElementById('report-title').value = data.title || '';
+          document.getElementById('report-author').value = data.author || '';
+          document.getElementById('report-date').value = data.date || '';
+          document.getElementById('topic-reference').value = data.topicRef || '';
+          this.blocks = data.blocks || [];
+        }
+      },
+
+      saveData() {
+        clearTimeout(this.saveTimeout);
+        this.updateSaveStatus('saving');
+
+        this.saveTimeout = setTimeout(() => {
+          const data = {
+            title: document.getElementById('report-title').value,
+            author: document.getElementById('report-author').value,
+            date: document.getElementById('report-date').value,
+            topicRef: document.getElementById('topic-reference').value,
+            blocks: this.blocks
+          };
+          localStorage.setItem(this.storageKey, JSON.stringify(data));
+          this.updateSaveStatus('saved');
+        }, 800);
+      },
+
+      updateSaveStatus(status) {
+        const savingIcon = document.getElementById('save-icon-saving');
+        const savedIcon = document.getElementById('save-icon-saved');
+        const text = document.getElementById('save-text');
+
+        if (status === 'saving') {
+          savingIcon.style.display = 'block';
+          savedIcon.style.display = 'none';
+          text.textContent = '저장 중...';
+        } else {
+          savingIcon.style.display = 'none';
+          savedIcon.style.display = 'block';
+          text.textContent = '저장 완료';
+          setTimeout(() => {
+            savedIcon.style.display = 'none';
+            text.textContent = '';
+          }, 2000);
+        }
+      },
+
+      addBlock(type) {
+        const block = {
+          id: Date.now(),
+          type: type,
+          content: type === 'code' ? '' : (type === 'image' ? '' : '새로운 내용을 입력하세요.'),
+          caption: type === 'image' ? '이미지 설명' : '',
+          language: type === 'code' ? 'python' : ''
+        };
+        this.blocks.push(block);
+        this.renderBlocks();
+        this.renderPreview();
+        this.saveData();
+      },
+
+      deleteBlock(id) {
+        if (confirm('이 블록을 삭제하시겠습니까?')) {
+          this.blocks = this.blocks.filter(b => b.id !== id);
+          this.renderBlocks();
+          this.renderPreview();
+          this.saveData();
+        }
+      },
+
+      moveBlock(id, direction) {
+        const index = this.blocks.findIndex(b => b.id === id);
+        if (index === -1) return;
+
+        const newIndex = direction === 'up' ? index - 1 : index + 1;
+        if (newIndex < 0 || newIndex >= this.blocks.length) return;
+
+        [this.blocks[index], this.blocks[newIndex]] = [this.blocks[newIndex], this.blocks[index]];
+        this.renderBlocks();
+        this.renderPreview();
+        this.saveData();
+      },
+
+      updateBlock(id, field, value) {
+        const block = this.blocks.find(b => b.id === id);
+        if (block) {
+          block[field] = value;
+          this.renderPreview();
+          this.saveData();
+        }
+      },
+
+      handleImageUpload(id, file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          this.updateBlock(id, 'content', e.target.result);
+        };
+        reader.readAsDataURL(file);
+      },
+
+      renderBlocks() {
+        const container = document.getElementById('blocks-container');
+        container.innerHTML = '';
+
+        this.blocks.forEach((block, index) => {
+          const blockDiv = document.createElement('div');
+          blockDiv.className = 'block-item';
+
+          let badgeClass = 'badge-text';
+          let badgeText = '텍스트';
+          if (block.type === 'image') {
+            badgeClass = 'badge-image';
+            badgeText = '이미지';
+          } else if (block.type === 'code') {
+            badgeClass = 'badge-code';
+            badgeText = '코드';
+          }
+
+          let contentHtml = '';
+          if (block.type === 'text') {
+            contentHtml = `<textarea class="text-input" style="min-height: 150px;" oninput="app.updateBlock(${block.id}, 'content', this.value)">${block.content || ''}</textarea>`;
+          } else if (block.type === 'image') {
+            const imgSrc = block.content || 'https://placehold.co/400x200/e2e8f0/94a3b8?text=No+Image';
+            contentHtml = `
+              <div style="margin-bottom: 0.5rem;">
+                <img src="${imgSrc}" style="max-width: 100%; height: auto; border-radius: 0.5rem; border: 1px solid #e2e8f0;" />
+              </div>
+              <input type="file" accept="image/*" onchange="app.handleImageUpload(${block.id}, this.files[0])" style="margin-bottom: 0.5rem; font-size: 0.875rem;" />
+              <input type="text" class="text-input" placeholder="이미지 설명" value="${block.caption || ''}" oninput="app.updateBlock(${block.id}, 'caption', this.value)" />
+            `;
+          } else if (block.type === 'code') {
+            contentHtml = `
+              <div style="margin-bottom: 0.5rem;">
+                <label class="input-label">프로그래밍 언어</label>
+                <select class="text-input" onchange="app.updateBlock(${block.id}, 'language', this.value)" style="width: auto; display: inline-block; padding: 0.5rem;">
+                  <option value="python" ${block.language === 'python' ? 'selected' : ''}>Python</option>
+                  <option value="javascript" ${block.language === 'javascript' ? 'selected' : ''}>JavaScript</option>
+                  <option value="matlab" ${block.language === 'matlab' ? 'selected' : ''}>MATLAB</option>
+                  <option value="r" ${block.language === 'r' ? 'selected' : ''}>R</option>
+                  <option value="cpp" ${block.language === 'cpp' ? 'selected' : ''}>C++</option>
+                </select>
+              </div>
+              <textarea class="text-input" style="min-height: 200px; font-family: monospace;" placeholder="코드를 입력하세요..." oninput="app.updateBlock(${block.id}, 'content', this.value)">${block.content || ''}</textarea>
+            `;
+          }
+
+          blockDiv.innerHTML = `
+            <div class="block-type-badge ${badgeClass}">${badgeText}</div>
+            ${contentHtml}
+            <div class="block-controls">
+              <button class="btn btn-secondary btn-small" onclick="app.moveBlock(${block.id}, 'up')" ${index === 0 ? 'disabled' : ''}>↑</button>
+              <button class="btn btn-secondary btn-small" onclick="app.moveBlock(${block.id}, 'down')" ${index === this.blocks.length - 1 ? 'disabled' : ''}>↓</button>
+              <button class="btn btn-danger btn-small" onclick="app.deleteBlock(${block.id})">삭제</button>
+            </div>
+          `;
+
+          container.appendChild(blockDiv);
+        });
+      },
+
+      renderPreview() {
+        const title = document.getElementById('report-title').value;
+        const author = document.getElementById('report-author').value;
+        const date = document.getElementById('report-date').value;
+        const topicRef = document.getElementById('topic-reference').value;
+
+        let html = '';
+
+        if (title || author || date || topicRef) {
+          html += `<div style="margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 2px solid var(--accent);">`;
+          if (title) html += `<h1 style="margin: 0; font-size: 2rem; font-weight: 700;">${title}</h1>`;
+          if (author || date) {
+            html += `<div style="margin-top: 1rem; color: var(--muted); font-size: 0.875rem;">`;
+            if (author) html += `<span>작성자: ${author}</span>`;
+            if (author && date) html += ` | `;
+            if (date) html += `<span>작성일: ${date}</span>`;
+            html += `</div>`;
+          }
+          if (topicRef) html += `<div style="margin-top: 0.5rem; color: var(--muted); font-size: 0.875rem;">참고 주제: ${topicRef}</div>`;
+          html += `</div>`;
+        }
+
+        html += '<div class="prose">';
+        this.blocks.forEach(block => {
+          if (block.type === 'text') {
+            const converter = new showdown.Converter({ tables: true, ghCodeBlocks: true });
+            html += converter.makeHtml(block.content || '');
+          } else if (block.type === 'image' && block.content) {
+            html += `
+              <div style="margin: 1.5rem 0; text-align: center;">
+                <img src="${block.content}" alt="${block.caption || ''}" style="max-width: 100%; border-radius: 0.5rem; box-shadow: 0 2px 8px rgba(0,0,0,0.1);" />
+                ${block.caption ? `<p style="margin-top: 0.5rem; font-size: 0.875rem; color: var(--muted);">${block.caption}</p>` : ''}
+              </div>
+            `;
+          } else if (block.type === 'code') {
+            html += `
+              <div style="margin: 1.5rem 0;">
+                <div style="background: #1e293b; color: #94a3b8; padding: 0.5rem 1rem; border-radius: 0.5rem 0.5rem 0 0; font-size: 0.75rem; font-weight: 600;">
+                  ${block.language.toUpperCase()}
+                </div>
+                <pre style="margin: 0; border-radius: 0 0 0.5rem 0.5rem;"><code>${this.escapeHtml(block.content || '')}</code></pre>
+              </div>
+            `;
+          }
+        });
+        html += '</div>';
+
+        document.getElementById('preview-content').innerHTML = html;
+
+        // Render KaTeX
+        if (window.renderMathInElement) {
+          renderMathInElement(document.getElementById('preview-content'), {
+            delimiters: [
+              {left: '$$', right: '$$', display: true},
+              {left: '$', right: '$', display: false},
+              {left: '\\(', right: '\\)', display: false},
+              {left: '\\[', right: '\\]', display: true}
+            ],
+            throwOnError: false
+          });
+        }
+      },
+
+      escapeHtml(text) {
+        const map = {
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          '"': '&quot;',
+          "'": '&#039;'
+        };
+        return text.replace(/[&<>"']/g, m => map[m]);
+      },
+
+      attachEventListeners() {
+        document.getElementById('report-title').addEventListener('input', () => {
+          this.renderPreview();
+          this.saveData();
+        });
+        document.getElementById('report-author').addEventListener('input', () => {
+          this.renderPreview();
+          this.saveData();
+        });
+        document.getElementById('report-date').addEventListener('input', () => {
+          this.renderPreview();
+          this.saveData();
+        });
+        document.getElementById('topic-reference').addEventListener('input', () => {
+          this.renderPreview();
+          this.saveData();
+        });
+
+        document.getElementById('export-pdf').addEventListener('click', () => {
+          // Check integrity
+          const requiredFields = [
+            {id: 'report-title', label: '보고서 제목'},
+            {id: 'report-author', label: '작성자'}
+          ];
+
+          const missing = [];
+          requiredFields.forEach(field => {
+            const el = document.getElementById(field.id);
+            if (!el.value || el.value.trim() === '') {
+              missing.push(field.label);
+            }
+          });
+
+          if (this.blocks.length === 0) {
+            missing.push('보고서 내용');
+          }
+
+          if (missing.length > 0) {
+            const msg = `다음 항목이 작성되지 않았습니다:\n\n${missing.join('\n')}\n\n그래도 PDF로 저장하시겠습니까?`;
+            if (!confirm(msg)) return;
+          }
+
+          window.print();
+        });
+      }
+    };
+
+    // Initialize when DOM is ready
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => app.init());
+    } else {
+      app.init();
+    }
+  </script>
+</body>
+</html>

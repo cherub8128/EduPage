@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>2D에서의 크로스곱 대안(^{⊥}·, perp·dot) — 상세 학습 자료</title>
+
+  <!-- TailwindCSS -->
+  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+
+  <!-- Fonts -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/naen-nae/d2coding/d2coding-subset.css">
+
+  <!-- KaTeX -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+
+  <!-- Highlight.js -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/matlab.min.js"></script>
+
+  <style>
+    :root{ --ink:#0f172a; --muted:#475569; --accent:#0ea5e9; --bg:#f8fafc; --card:#ffffff; }
+    html,body{background:var(--bg); color:var(--ink); font-family:'Pretendard',system-ui,-apple-system,Segoe UI,Roboto,'Noto Sans KR',sans-serif;}
+    .container-2col{display:grid; grid-template-columns: 300px 1fr; gap:1.25rem;}
+    @media (max-width: 1024px){ .container-2col{grid-template-columns:1fr;} }
+    .card{background:var(--card); border:1px solid #e2e8f0; border-radius:1rem; box-shadow:0 6px 20px rgba(15,23,42,.06);}
+    .pill{display:inline-flex; gap:.5rem; align-items:center; padding:.35rem .6rem; border-radius:999px; font-size:.75rem; background:#e0f2fe; color:#0369a1; font-weight:700;}
+    .badge{font-size:.72rem; padding:.2rem .5rem; border:1px solid #cbd5e1; border-radius:.4rem; background:#f1f5f9; color:#334155;}
+    .toc a{display:block; padding:.5rem .75rem; border-radius:.5rem; color:var(--muted); font-weight:700;}
+    .toc a:hover{background:#e2e8f0; color:#0f172a;}
+    .katex-display{margin:.5rem 0 .7rem 0;}
+    .quote{border-left:3px solid var(--accent); padding-left:.75rem; color:#0f172a; background:linear-gradient(90deg, rgba(2,132,199,.06), transparent); border-radius:.25rem;}
+    .grid-2{display:grid; grid-template-columns:1fr 1fr; gap:1rem;}
+    @media (max-width: 768px){ .grid-2{grid-template-columns:1fr;} }
+    details summary{cursor:pointer; list-style:none;}
+    details[open] summary .twist{transform:rotate(90deg);} .twist{transition:transform .15s ease; display:inline-block;}
+
+    header.topbar{position:sticky; top:0; z-index:40; backdrop-filter:blur(6px); background:rgba(255,255,255,.9); border-bottom:1px solid #e5e7eb; width:100%;}
+    header.topbar .inner{width:100%; padding-left:1rem; padding-right:1rem; display:flex; align-items:center; justify-content:space-between;}
+    @media (min-width: 640px){ header.topbar .inner{padding-left:1.5rem; padding-right:1.5rem;} }
+    @media (min-width: 1024px){ header.topbar .inner{padding-left:2rem; padding-right:2rem;} }
+
+    .section-inner{max-width:80ch; margin:0 auto;} .section-wide .section-inner{max-width:90ch;}
+
+    /* 코드 블록 줄바꿈 */
+    pre code{white-space:pre-wrap !important; word-break:break-word !important; overflow-wrap:anywhere !important;}
+
+    @media print{ .print-hidden{display:none !important;} .card{box-shadow:none; border-color:#e5e7eb;} .toc{display:none;} .container-2col{display:block;} .section-inner{max-width:none;} }
+  </style>
+</head>
+<body>
+  <header class="topbar print-hidden">
+    <div class="inner h-14">
+      <div class="flex items-center gap-2">
+        <span class="pill">상세 학습</span>
+        <h1 class="text-base sm:text-lg lg:text-xl font-extrabold">2D에서의 크로스곱 대안(^{⊥}·, perp·dot) — 최종본</h1>
+      </div>
+      <button id="printBtn" class="px-3 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-700 text-white text-sm font-semibold">PDF로 저장</button>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-4 py-6">
+    <div class="container-2col">
+      <aside class="toc card p-4 h-max print-hidden">
+        <div class="text-sm font-bold text-slate-700 mb-2">빠른 이동</div>
+        <nav class="space-y-1">
+          <a href="#sec1">1. 문제 설정</a>
+          <a href="#sec2">2. 핵심 개념 해설</a>
+          <a href="#sec3">3. 주요 정리·동치</a>
+          <a href="#sec4">4. 오해/실수</a>
+          <a href="#sec5">5. 예제·패턴·체크</a>
+          <a href="#sec6">6. 증명 스케치</a>
+          <a href="#sec7">7. 구현 가이드 (Python/MATLAB)</a>
+          <a href="#sec8">8. 연습문제</a>
+          <a href="#sec9">9. FAQ</a>
+          <a href="#sec10">10. 용어·요약</a>
+          <a href="#sec11">11. 참고문헌</a>
+        </nav>
+      </aside>
+
+      <section class="space-y-6">
+
+        <!-- 1 -->
+        <section id="sec1" class="card p-6"><div class="section-inner">
+          <div class="flex items-center gap-3 mb-2">
+            <div class="badge">문제</div>
+            <h2 class="text-xl sm:text-2xl font-extrabold">1) 왜 \( {}^{\perp}\!\cdot \) (perp·dot)인가?</h2>
+          </div>
+          <ul class="list-disc pl-5 leading-relaxed text-[0.98rem]">
+            <li>2D 문제에서 3D 외적을 도입하면 \(k\)축과 오른손규칙 해석이 개입한다.</li>
+            <li>90° 회전 연산자 \(E\)와 \( {}^{\perp}\!\cdot \) 연산으로 2D 내부에서 면적·토크·회전을 일관되게 표현할 수 있다.</li>
+            <li>정의: \( \mathbf a\,{}^{\perp}\!\cdot\,\mathbf b := a_x b_y - a_y b_x \).</li>
+          </ul>
+        </div></section>
+
+        <!-- 2 -->
+        <section id="sec2" class="card p-6"><div class="section-inner">
+          <div class="flex items-center gap-3 mb-2">
+            <div class="badge">개념</div>
+            <h2 class="text-xl sm:text-2xl font-extrabold">2) 핵심 개념 — 이해 가이드</h2>
+          </div>
+
+          <div class="grid-2">
+            <div class="p-4 rounded-lg bg-slate-50">
+              <div class="text-sm font-semibold text-slate-700 mb-1">2D 직교 연산자 (perp)</div>
+              <div class="quote text-sm">
+                \( E=\begin{pmatrix}0&-1\\[2pt]1&0\end{pmatrix}, \quad \tilde{\mathbf a}=E\mathbf a=(-a_y,a_x) \)
+              </div>
+              <ul class="list-disc pl-5 text-sm text-slate-700">
+                <li>\(E^T=-E,\; E^2=-I\), \(\tilde{\tilde{\mathbf a}}=-\mathbf a\).</li>
+                <li>복소수 \(i\)와 대응(90° 회전).</li>
+              </ul>
+            </div>
+
+            <div class="p-4 rounded-lg bg-slate-50">
+              <div class="text-sm font-semibold text-slate-700 mb-1">\( {}^{\perp}\!\cdot \) (부호가 있는 면적)</div>
+              <div class="quote text-sm">
+                \( \mathbf a\,{}^{\perp}\!\cdot\,\mathbf b = a_x b_y - a_y b_x = \det\!\begin{pmatrix}a_x&a_y\\b_x&b_y\end{pmatrix} \)
+              </div>
+              <ul class="list-disc pl-5 text-sm text-slate-700">
+                <li>평행사변형의 부호가 있는 면적(반시계 +, 시계 −).</li>
+                <li>3D 외적의 \(k\)-성분과 동일.</li>
+              </ul>
+            </div>
+
+            <div class="p-4 rounded-lg bg-slate-50">
+              <div class="text-sm font-semibold text-slate-700 mb-1">회전 분해</div>
+              <div class="quote text-sm">
+                \( \mathbf b=\cos\varphi\,\mathbf a+\sin\varphi\,\tilde{\mathbf a} \)
+              </div>
+              <ul class="list-disc pl-5 text-sm text-slate-700">
+                <li>\( \cos\varphi=\dfrac{\mathbf a\cdot\mathbf b}{\|\mathbf a\|\,\|\mathbf b\|} \)</li>
+                <li>\( \sin\varphi=\dfrac{\mathbf a\,{}^{\perp}\!\cdot\,\mathbf b}{\|\mathbf a\|\,\|\mathbf b\|} \)</li>
+                <li>행렬 \(R_\varphi\), 복소수 \(e^{i\varphi}\)와 동치.</li>
+              </ul>
+            </div>
+
+            <div class="p-4 rounded-lg bg-slate-50">
+              <div class="text-sm font-semibold text-slate-700 mb-1">2D 토크(모멘트)</div>
+              <div class="quote text-sm">
+                \( \tau=\mathbf r\,{}^{\perp}\!\cdot\,\mathbf F \)
+              </div>
+              <ul class="list-disc pl-5 text-sm text-slate-700">
+                <li>스칼라 결과(부호로 방향 표현).</li>
+                <li>레버암 × 힘.</li>
+              </ul>
+            </div>
+          </div>
+        </div></section>
+
+        <!-- 3 -->
+        <section id="sec3" class="card p-6 section-wide"><div class="section-inner">
+          <div class="flex items-center gap-3 mb-2">
+            <div class="badge">정리</div>
+            <h2 class="text-xl sm:text-2xl font-extrabold">3) 주요 정리 · 동치</h2>
+          </div>
+          <div class="grid-2">
+            <div class="p-4 rounded-lg bg-white border">
+              <div class="text-sm font-semibold text-slate-700">R(φ)와 perp 분해</div>
+              <div class="quote text-sm">
+                \( R_\varphi=\cos\varphi\,I+\sin\varphi\,E \), \quad \( \mathbf b=R_\varphi\mathbf a \)
+              </div>
+              <ul class="list-disc pl-5 text-sm">
+                <li>\(e^{\varphi E}=\cos\varphi\,I+\sin\varphi\,E\), \(E^2=-I\).</li>
+              </ul>
+            </div>
+            <div class="p-4 rounded-lg bg-white border">
+              <div class="text-sm font-semibold text-slate-700">슈레이스(다각형 면적)</div>
+              <div class="quote text-sm">
+                \( A=\frac{1}{2}\sum_{i=1}^n \mathbf v_i\,{}^{\perp}\!\cdot\,\mathbf v_{i+1} \)
+              </div>
+              <ul class="list-disc pl-5 text-sm">
+                <li>정점 반시계면 \(A>0\).</li>
+              </ul>
+            </div>
+            <div class="p-4 rounded-lg bg-white border">
+              <div class="text-sm font-semibold text-slate-700">so(2), 복소수 대응</div>
+              <ul class="list-disc pl-5 text-sm">
+                <li>\(\mathfrak{so}(2)=\text{span}\{E\}\), \([E,E]=0\).</li>
+                <li>\(E \leftrightarrow i\), \( \mathbf a\,{}^{\perp}\!\cdot\,\mathbf b \leftrightarrow \Im(\overline{z_a} z_b)\).</li>
+              </ul>
+            </div>
+          </div>
+        </div></section>
+
+        <!-- 4 -->
+        <section id="sec4" class="card p-6"><div class="section-inner">
+          <div class="flex items-center gap-3 mb-2">
+            <div class="badge">주의</div>
+            <h2 class="text-xl sm:text-2xl font-extrabold">4) 오해/실수</h2>
+          </div>
+          <ul class="list-disc pl-5 leading-relaxed text-[0.98rem]">
+            <li>2D에서 3D 벡터 토크 사용(방향을 \(k\)축으로 고정).</li>
+            <li>면적을 항상 양수로 처리해 방향(부호) 정보 소실.</li>
+            <li>좌표계 변경 시 부호 뒤섞임.</li>
+          </ul>
+        </div></section>
+
+        <!-- 5 -->
+        <section id="sec5" class="card p-6"><div class="section-inner">
+          <div class="flex items-center gap-3 mb-2">
+            <div class="badge">예제</div>
+            <h2 class="text-xl sm:text-2xl font-extrabold">5) 예제 · 패턴 · 체크</h2>
+          </div>
+          <div class="grid-2">
+            <div class="p-4 rounded-lg bg-slate-50">
+              <div class="text-sm font-semibold text-slate-700">E1. 토크 계산</div>
+              <ul class="list-disc pl-5 text-sm">
+                <li>\(\mathbf r=(3,1),\ \mathbf F=(2,4)\)</li>
+                <li>\(\tau=\mathbf r\,{}^{\perp}\!\cdot\,\mathbf F=(-1,3)\cdot(2,4)=10>0\) (반시계)</li>
+              </ul>
+            </div>
+            <div class="p-4 rounded-lg bg-slate-50">
+              <div class="text-sm font-semibold text-slate-700">E2. 회전식</div>
+              <ul class="list-disc pl-5 text-sm">
+                <li>\(\mathbf a=(2,0),\ \varphi=30^\circ\Rightarrow \mathbf b=(\sqrt{3},1)\).</li>
+              </ul>
+            </div>
+          </div>
+          <div class="mt-3 grid-2">
+            <div class="p-4 rounded-lg bg-white border">
+              <div class="text-sm font-semibold text-slate-700">체크리스트</div>
+              <ul class="list-disc pl-5 text-sm">
+                <li>\(\mathbf a\,{}^{\perp}\!\cdot\,\mathbf b\) 부호와 실제 회전 방향의 일치.</li>
+                <li>정점 순서(시계/반시계)와 면적 부호의 일관성.</li>
+                <li>좌표 변환 후 결과 불변성.</li>
+              </ul>
+            </div>
+          </div>
+        </div></section>
+
+        <!-- 6 -->
+        <section id="sec6" class="card p-6"><div class="section-inner">
+          <div class="flex items-center gap-3 mb-2">
+            <div class="badge">증명</div>
+            <h2 class="text-xl sm:text-2xl font-extrabold">6) 증명 스케치</h2>
+          </div>
+          <details>
+            <summary class="font-semibold text-slate-700"><span class="twist">▶</span> (A) \(e^{\varphi E}=\cos\varphi\,I+\sin\varphi\,E\)</summary>
+            <ul class="list-disc pl-6 mt-2 text-sm">
+              <li>\(E^{2k}=(-1)^k I,\ E^{2k+1}=(-1)^k E\) → 테일러 전개로 귀결.</li>
+            </ul>
+          </details>
+          <details class="mt-2">
+            <summary class="font-semibold text-slate-700"><span class="twist">▶</span> (B) \(\det(\mathbf a,\mathbf b)=\mathbf a\,{}^{\perp}\!\cdot\,\mathbf b\)</summary>
+            <ul class="list-disc pl-6 mt-2 text-sm">
+              <li>선형·교대성·기저 일치.</li>
+            </ul>
+          </details>
+          <details class="mt-2">
+            <summary class="font-semibold text-slate-700"><span class="twist">▶</span> (C) 토크의 스칼라 표현</summary>
+            <ul class="list-disc pl-6 mt-2 text-sm">
+              <li>\(\tau=\|\mathbf r\|\|\mathbf F\|\sin\theta = \mathbf r\,{}^{\perp}\!\cdot\,\mathbf F\).</li>
+            </ul>
+          </details>
+        </div></section>
+
+        <!-- 7 -->
+        <section id="sec7" class="card p-6 section-wide"><div class="section-inner">
+          <div class="flex items-center gap-3 mb-2">
+            <div class="badge">구현</div>
+            <h2 class="text-xl sm:text-2xl font-extrabold">7) 구현 가이드 — Python / MATLAB</h2>
+          </div>
+
+          <div class="space-y-4">
+            <div class="p-4 rounded-lg bg-white border">
+              <div class="text-sm font-semibold text-slate-700 mb-2">Python</div>
+<pre><code class="language-python">import math, matplotlib.pyplot as plt
+def perp(a): x,y=a; return (-y, x)
+def dot(a,b): return a[0]*b[0]+a[1]*b[1]
+def pdot(a,b): return a[0]*b[1]-a[1]*b[0]
+a=(2,0); b=(1,3)
+print("a·b =", dot(a,b))
+print("^{⊥}· =", pdot(a,b))
+
+# mini-plot
+A=[0,a[0]]; Ay=[0,a[1]]
+B=[0,b[0]]; By=[0,b[1]]
+plt.figure(); plt.axhline(0,color='k',linewidth=.5); plt.axvline(0,color='k',linewidth=.5)
+plt.plot(A,Ay, label='a'); plt.plot(B,By, label='b')
+plt.axis('equal'); plt.legend(); plt.show()</code></pre>
+            </div>
+            <div class="p-4 rounded-lg bg-white border">
+              <div class="text-sm font-semibold text-slate-700 mb-2">MATLAB / Octave</div>
+<pre><code class="language-matlab">perp = @(a) [-a(2), a(1)];
+dot2 = @(a,b) a(1)*b(1) + a(2)*b(2);
+pdot = @(a,b) a(1)*b(2) - a(2)*b(1);
+a=[2,0]; b=[1,3];
+disp(['a·b = ' num2str(dot2(a,b))])
+disp(['^{⊥}· = ' num2str(pdot(a,b))])
+
+plot([0 a(1)], [0 a(2)], 'LineWidth',2); hold on;
+plot([0 b(1)], [0 b(2)], 'LineWidth',2);
+plot(xlim, [0 0], 'k-'); plot([0 0], ylim, 'k-');
+axis equal; legend('a','b'); hold off;</code></pre>
+            </div>
+          </div>
+        </div></section>
+
+        <!-- 8 -->
+        <section id="sec8" class="card p-6"><div class="section-inner">
+          <div class="flex items-center gap-3 mb-2">
+            <div class="badge">연습</div>
+            <h2 class="text-xl sm:text-2xl font-extrabold">8) 연습 문제</h2>
+          </div>
+          <ol class="list-decimal pl-5 space-y-2 text-[0.98rem]">
+            <li>\(\mathbf a=(1,2), \mathbf b=(3,1)\): \(\mathbf a\cdot\mathbf b\), \(\mathbf a\,{}^{\perp}\!\cdot\,\mathbf b\) 계산, \(\varphi\) 추정.</li>
+            <li>정점 \( (0,0)\to(3,0)\to(3,2)\to(0,2) \) 직사각형의 부호가 있는 면적을 \( \sum \mathbf v_i\,{}^{\perp}\!\cdot\,\mathbf v_{i+1} \)로 구하라.</li>
+            <li>\(\mathbf r=(2,1), \mathbf F=(-1,4)\): \(\tau=\mathbf r\,{}^{\perp}\!\cdot\,\mathbf F\)의 부호 해석.</li>
+            <li>\(\mathbf a\)를 45° 회전한 \(\mathbf b\): \(\sin\varphi\)를 \( \dfrac{\mathbf a\,{}^{\perp}\!\cdot\,\mathbf b}{\|\mathbf a\|\,\|\mathbf b\|} \)로 확인.</li>
+          </ol>
+        </div></section>
+
+        <!-- 9 -->
+        <section id="sec9" class="card p-6"><div class="section-inner">
+          <div class="flex items-center gap-3 mb-2">
+            <div class="badge">FAQ</div>
+            <h2 class="text-xl sm:text-2xl font-extrabold">9) 자주 묻는 질문</h2>
+          </div>
+          <details>
+            <summary class="font-semibold text-slate-700"><span class="twist">▶</span> 2D에서도 외적 벡터가 꼭 필요하지 않나요?</summary>
+            <p class="mt-2 text-sm text-slate-700">필요하지 않다. 방향은 부호로, 크기는 면적/토크 크기로 충분하다.</p>
+          </details>
+          <details class="mt-1">
+            <summary class="font-semibold text-slate-700"><span class="twist">▶</span> 3D 문제로 확장하면?</summary>
+            <p class="mt-2 text-sm text-slate-700">3D에선 외적을 사용한다. 2D에 국한된 상황에서만 \( {}^{\perp}\!\cdot \) 접근이 단순하고 안전하다.</p>
+          </details>
+        </div></section>
+
+        <!-- 10 -->
+        <section id="sec10" class="card p-6"><div class="section-inner">
+          <div class="flex items-center gap-3 mb-2">
+            <div class="badge">요약</div>
+            <h2 class="text-xl sm:text-2xl font-extrabold">10) 용어 & 핵심 요약</h2>
+          </div>
+          <div class="grid-2">
+            <div class="p-4 rounded-lg bg-slate-50">
+              <ul class="list-disc pl-5 text-sm">
+                <li>\(\tilde{\mathbf a}=(-a_y,a_x)\) (90° 회전)</li>
+                <li>\(\mathbf a\,{}^{\perp}\!\cdot\,\mathbf b=a_x b_y - a_y b_x\)</li>
+                <li>\(\mathbf b=\cos\varphi\,\mathbf a+\sin\varphi\,\tilde{\mathbf a}\)</li>
+                <li>\(\tau=\mathbf r\,{}^{\perp}\!\cdot\,\mathbf F\)</li>
+              </ul>
+            </div>
+            <div class="p-4 rounded-lg bg-slate-50">
+              <ul class="list-disc pl-5 text-sm">
+                <li>2D에서 방향은 부호로 충분</li>
+                <li>면적·토크의 일관된 스칼라화</li>
+                <li>복소수/행렬 회전과 동치</li>
+              </ul>
+            </div>
+          </div>
+        </div></section>
+
+        <!-- 11 -->
+        <section id="sec11" class="card p-6"><div class="section-inner">
+          <div class="flex items-center gap-3 mb-2">
+            <div class="badge">참고</div>
+            <h2 class="text-xl sm:text-2xl font-extrabold">11) 참고문헌</h2>
+          </div>
+          <ul class="list-disc pl-5 text-sm leading-relaxed text-slate-700">
+            <li>Gössner, S. (2017). <em>Cross Product Considered Harmful (in ℝ²)</em>. University of Applied Sciences Dortmund.</li>
+            <li>Hill, F. S. Jr. (1994). “The Pleasures of Perp Dot Products.” in <em>Graphics Gems IV</em>. Academic Press.</li>
+            <li>Perp Dot Product, Wolfram MathWorld.</li>
+          </ul>
+        </div></section>
+
+      </section>
+    </div>
+  </main>
+
+  <script>
+    document.getElementById('printBtn').addEventListener('click', async () => {
+      await document.fonts?.ready?.catch(()=>{});
+      window.print();
+    });
+
+    function initKaTeX() {
+      if(typeof renderMathInElement !== 'undefined') {
+        renderMathInElement(document.body, {
+          delimiters: [
+            {left:'$$', right:'$$', display:true},
+            {left:'\\(', right:'\\)', display:false},
+            {left:'\\[', right:'\\]', display:true},
+            {left:'$',  right:'$',  display:false}
+          ],
+          throwOnError: false
+        });
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // KaTeX auto-render가 로드될 때까지 기다림
+      if(typeof renderMathInElement !== 'undefined') {
+        initKaTeX();
+      } else {
+        // auto-render 스크립트가 아직 로드되지 않은 경우 약간의 지연 후 재시도
+        setTimeout(initKaTeX, 100);
+      }
+
+      // Syntax highlighting
+      if(window.hljs){
+        document.querySelectorAll('pre code').forEach(el => hljs.highlightElement(el));
+      }
+    });
+  </script>
+</body>
+</html>

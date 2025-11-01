@@ -14,7 +14,6 @@
             --bg-secondary: #ffffff;
             --text-primary: #1e293b;
             --text-secondary: #475569;
-            --accent-color: #ef4444; /* Red for Math */
         }
         body {
             font-family: 'Inter', 'Noto Sans KR', sans-serif;
@@ -24,12 +23,25 @@
             color: var(--text-secondary);
         }
         .card-button {
-            background-color: var(--accent-color);
-            transition: background-color 0.3s ease;
+            transition: all 0.3s ease;
         }
-        .card-button:hover {
-            background-color: #dc2626; /* Darker red */
-        }
+        .btn-purple { background-color: #8b5cf6; }
+        .btn-purple:hover { background-color: #7c3aed; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3); }
+
+        .btn-amber { background-color: #f59e0b; }
+        .btn-amber:hover { background-color: #d97706; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3); }
+
+        .btn-emerald { background-color: #10b981; }
+        .btn-emerald:hover { background-color: #059669; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); }
+
+        .btn-blue { background-color: #3b82f6; }
+        .btn-blue:hover { background-color: #2563eb; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); }
+
+        .btn-rose { background-color: #f43f5e; }
+        .btn-rose:hover { background-color: #e11d48; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(244, 63, 94, 0.3); }
+
+        .btn-cyan { background-color: #06b6d4; }
+        .btn-cyan:hover { background-color: #0891b2; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(6, 182, 212, 0.3); }
     </style>
 </head>
 <body>
@@ -50,7 +62,7 @@
                 <div class="p-8">
                     <h2 class="text-2xl font-bold text-slate-900 mb-3">✨커피잔이 그리는 빛 무늬</h2>
                     <p class="text-slate-600 mb-6">컵 속의 빛이 만들어내는 아름다운 곡선, 빛반사 곡선(Caustic)을 탐구하는 프로젝트입니다.</p>
-                    <a href="CausticCurveP.html" class="card-button text-white font-semibold py-2 px-5 rounded-lg inline-block">살펴보기</a>
+                    <a href="CausticCurveP.html" class="card-button btn-purple text-white font-semibold py-2 px-5 rounded-lg inline-block">살펴보기</a>
                 </div>
             </div>
 
@@ -58,7 +70,39 @@
                 <div class="p-8">
                     <h2 class="text-2xl font-bold text-slate-900 mb-3">✨커피잔이 그리는 빛 무늬 보고서</h2>
                     <p class="text-slate-600 mb-6">컵 속의 빛이 만들어내는 아름다운 곡선, 빛반사 곡선(Caustic)의 탐구 보고서</p>
-                    <a href="CausticCurve.html" class="card-button text-white font-semibold py-2 px-5 rounded-lg inline-block">살펴보기</a>
+                    <a href="CausticCurve.html" class="card-button btn-amber text-white font-semibold py-2 px-5 rounded-lg inline-block">살펴보기</a>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden transform hover:-translate-y-1 transition-transform duration-300">
+                <div class="p-8">
+                    <h2 class="text-2xl font-bold text-slate-900 mb-3">📐 2D 외적(perp·dot) 탐구</h2>
+                    <p class="text-slate-600 mb-6">2차원 평면에서 외적 개념을 탐구하고 토크, 면적, 회전 방향을 분석하는 인터랙티브 프로젝트입니다.</p>
+                    <a href="CrossProduct2D.html" class="card-button btn-emerald text-white font-semibold py-2 px-5 rounded-lg inline-block">살펴보기</a>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden transform hover:-translate-y-1 transition-transform duration-300">
+                <div class="p-8">
+                    <h2 class="text-2xl font-bold text-slate-900 mb-3">📚 심화수학Ⅱ 주제 추천</h2>
+                    <p class="text-slate-600 mb-6">이차곡선, 적분, 공간좌표, 확률·통계 영역의 실생활 연계 탐구 주제 80개를 제공합니다.</p>
+                    <a href="AdvancedMathProject.html" class="card-button btn-blue text-white font-semibold py-2 px-5 rounded-lg inline-block">주제 탐색</a>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden transform hover:-translate-y-1 transition-transform duration-300">
+                <div class="p-8">
+                    <h2 class="text-2xl font-bold text-slate-900 mb-3">🎯 고급 수학Ⅰ 주제 추천</h2>
+                    <p class="text-slate-600 mb-6">벡터, 행렬, 복소수와 극형식, 그래프 이론 영역의 실생활 연계 탐구 주제 100개를 제공합니다.</p>
+                    <a href="HighlevelMathProject.html" class="card-button btn-rose text-white font-semibold py-2 px-5 rounded-lg inline-block">주제 탐색</a>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden transform hover:-translate-y-1 transition-transform duration-300">
+                <div class="p-8">
+                    <h2 class="text-2xl font-bold text-slate-900 mb-3">📝 수학 탐구 보고서 양식</h2>
+                    <p class="text-slate-600 mb-6">고급수학·심화수학 주제로 보고서를 작성할 수 있는 표준 웹 양식입니다. 마크다운, KaTeX, 코드 블록 지원.</p>
+                    <a href="MathReportTemplate.html" class="card-button btn-amber text-white font-semibold py-2 px-5 rounded-lg inline-block">작성하기</a>
                 </div>
             </div>
 
@@ -66,10 +110,10 @@
                 <div class="p-8">
                     <h2 class="text-2xl font-bold text-slate-900 mb-3">∑ KaTeX Cheatsheet</h2>
                     <p class="text-slate-600 mb-6">웹 페이지에 수식을 깔끔하게 렌더링하는 KaTeX 라이브러리 사용법 안내입니다.</p>
-                    <a href="../../LaTeX/katex_usage.html" class="card-button text-white font-semibold py-2 px-5 rounded-lg inline-block">사용법 보기</a>
+                    <a href="../../LaTeX/katex_usage.html" class="card-button btn-cyan text-white font-semibold py-2 px-5 rounded-lg inline-block">사용법 보기</a>
                 </div>
             </div>
-            <!-- Add new math projects here -->
+
 
 
         </main>
