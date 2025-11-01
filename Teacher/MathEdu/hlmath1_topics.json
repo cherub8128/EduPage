@@ -10,7 +10,7 @@
       "observation": "대류 실험/데이터에서 나비형 궤도가 관찰됩니다.",
       "simplification": "로렌츠 3식으로 유체 방정식을 축약합니다.",
       "visualization": "Python",
-      "formulation": "\\dot x=\\sigma(y-x),\\;\\dot y=x(\\rho-z)-y,\\;\\dot z=xy-\\beta z",
+      "formulation": "$\\dot x=\\sigma(y-x),\\;\\dot y=x(\\rho-z)-y,\\;\\dot z=xy-\\beta z$",
       "advanced": "파라미터 변화에 따른 분기·프랙탈 차원 분석"
     }
   },
@@ -25,7 +25,7 @@
       "observation": "새 떼·물고기 떼의 집단 패턴을 관찰합니다.",
       "simplification": "개체를 질점, 국소 이웃만 고려합니다.",
       "visualization": "HTML/JS",
-      "formulation": "v_{new}=v+c_1\\,\\text{align}+c_2\\,\\text{cohere}+c_3\\,\\text{separate}",
+      "formulation": "$v_{new}=v+c_1\\,\\text{align}+c_2\\,\\text{cohere}+c_3\\,\\text{separate}$",
       "advanced": "시야각, 밀도, 장애물 포함 군집 패턴 비교"
     }
   },
@@ -40,7 +40,7 @@
       "observation": "커브볼/프리킥 궤도가 휘어지는 현상을 봅니다.",
       "simplification": "이상 유체·상수 계수 저항 가정.",
       "visualization": "Python",
-      "formulation": "m\\ddot{r}=m\\mathbf g+k\\,\\boldsymbol\\omega\\times\\mathbf v",
+      "formulation": "$m\\ddot{r}=m\\mathbf g+k\\,\\boldsymbol\\omega\\times\\mathbf v$",
       "advanced": "레이놀즈 수에 따른 역마그누스 전이 분석"
     }
   },
@@ -55,7 +55,7 @@
       "observation": "돌아가는 팽이 축이 천천히 도는 현상을 관찰합니다.",
       "simplification": "대칭 강체·마찰 무시 모델.",
       "visualization": "MATLAB",
-      "formulation": "\\dot{\\mathbf L}=\\boldsymbol\\tau,\\;\\Omega\\approx\\dfrac{mgr}{L}",
+      "formulation": "$\\dot{\\mathbf L}=\\boldsymbol\\tau,\\;\\Omega\\approx\\dfrac{mgr}{L}$",
       "advanced": "마찰 포함 감쇠 세차·너테이션 수치해석"
     }
   },
@@ -70,7 +70,7 @@
       "observation": "타원 궤도의 방향성이 일정함을 관찰합니다.",
       "simplification": "점질량 2체·섭동 무시.",
       "visualization": "Python",
-      "formulation": "\\mathbf A=\\mathbf v\\times\\mathbf H-\\mu\\,\\dfrac{\\mathbf r}{r}",
+      "formulation": "$\\mathbf A=\\mathbf v\\times\\mathbf H-\\mu\\,\\dfrac{\\mathbf r}{r}$",
       "advanced": "GR 섭동 시 perihelion 이동·LRL 변화 탐구"
     }
   },
@@ -85,7 +85,7 @@
       "observation": "항공기가 고위도로 우회하는 경로를 봅니다.",
       "simplification": "지구를 완전한 구로 이상화.",
       "visualization": "GeoGebra",
-      "formulation": "\\mathbf r(t)=\\frac{\\sin((1-t)\\theta)}{\\sin\\theta}\\mathbf A+\\frac{\\sin(t\\theta)}{\\sin\\theta}\\mathbf B",
+      "formulation": "$\\mathbf r(t)=\\frac{\\sin((1-t)\\theta)}{\\sin\\theta}\\mathbf A+\\frac{\\sin(t\\theta)}{\\sin\\theta}\\mathbf B$",
       "advanced": "WGS84 타원체 보정·륌브선 비교"
     }
   },
@@ -100,7 +100,7 @@
       "observation": "진자 진동면이 하루에 걸쳐 회전함을 봅니다.",
       "simplification": "소진폭, 회전구 무시, 코리올리만 고려.",
       "visualization": "MATLAB",
-      "formulation": "\\mathbf a_c=2\\,\\boldsymbol\\Omega\\times\\mathbf v,\\;\\Omega_{plane}=2\\Omega\\sin\\lambda",
+      "formulation": "$\\mathbf a_c=2\\,\\boldsymbol\\Omega\\times\\mathbf v,\\;\\Omega_{plane}=2\\Omega\\sin\\lambda$",
       "advanced": "위도별 회전속도 비교·유체 소용돌이 연결"
     }
   },
@@ -115,7 +115,7 @@
       "observation": "위상차가 있는 전압/전류를 비교합니다.",
       "simplification": "단일 주파수 정현파 가정.",
       "visualization": "GeoGebra",
-      "formulation": "V(t)=\\Re\\{V_0 e^{j(\\omega t+\\phi)}\\},\\;S=VI^*",
+      "formulation": "$V(t)=\\Re\\{V_0 e^{j(\\omega t+\\phi)}\\},\\;S=VI^*$",
       "advanced": "역률 보정·병렬/직렬 공진 해석"
     }
   },
@@ -130,7 +130,7 @@
       "observation": "4D 큐브의 3D 그림자를 관찰합니다.",
       "simplification": "정점 (±1,±1,±1,±1) 단위 테서랙트.",
       "visualization": "HTML/JS",
-      "formulation": "\\mathbf x' = P\\,R(\\alpha,\\beta,\\gamma,\\delta)\\,\\mathbf x",
+      "formulation": "$\\mathbf x' = P\\,R(\\alpha,\\beta,\\gamma,\\delta)\\,\\mathbf x$",
       "advanced": "4D 회전군 성질·정다면체 확장 탐구"
     }
   },
@@ -145,7 +145,7 @@
       "observation": "AC 모터가 정밀 제어되는 현상을 봅니다.",
       "simplification": "3상 정현파·선형 등가 모델.",
       "visualization": "MATLAB",
-      "formulation": "[i_d\\;i_q]^T=T(\\theta)[i_a\\;i_b\\;i_c]^T",
+      "formulation": "$[i_d\\;i_q]^T=T(\\theta)[i_a\\;i_b\\;i_c]^T$",
       "advanced": "파라미터 불확실성·SVPWM·관측기 설계"
     }
   },
@@ -160,7 +160,7 @@
       "observation": "자력계·태양센서로 자세를 구합니다.",
       "simplification": "노이즈 무시·두 비공선 벡터 가정.",
       "visualization": "Python",
-      "formulation": "R=[s_1\\;s_2\\;s_3][t_1\\;t_2\\;t_3]^T",
+      "formulation": "$R=[s_1\\;s_2\\;s_3][t_1\\;t_2\\;t_3]^T$",
       "advanced": "QUEST·EKF 융합·잡음 민감도 분석"
     }
   },
@@ -175,7 +175,7 @@
       "observation": "세 천체가 8자 궤도를 추는 현상을 봅니다.",
       "simplification": "동질량·뉴턴 중력·섭동 무시.",
       "visualization": "Python",
-      "formulation": "m\\ddot{\\mathbf r}*i=\\sum*{j\\neq i}Gm^2\\dfrac{\\mathbf r_j-\\mathbf r_i}{\\|\\mathbf r_j-\\mathbf r_i\\|^3}",
+      "formulation": "$m\\ddot{\\mathbf r}*i=\\sum*{j\\neq i}Gm^2\\dfrac{\\mathbf r_j-\\mathbf r_i}{\\|\\mathbf r_j-\\mathbf r_i\\|^3}$",
       "advanced": "안정성·다른 대칭 주기해 탐색"
     }
   },
@@ -190,7 +190,7 @@
       "observation": "시간 지연·길이 수축 사례를 관찰합니다.",
       "simplification": "등속 관성계·중력 무시.",
       "visualization": "HTML/JS",
-      "formulation": "X'=\\Lambda X,\\;ds^2=-(cdt)^2+dx^2+dy^2+dz^2",
+      "formulation": "$X'=\\Lambda X,\\;ds^2=-(cdt)^2+dx^2+dy^2+dz^2$",
       "advanced": "세계선·속도합성·Minkowski 도표 확장"
     }
   },
@@ -205,7 +205,7 @@
       "observation": "선·원·타원 편광을 관찰합니다.",
       "simplification": "단일파·완전 편광 가정.",
       "visualization": "Python",
-      "formulation": "E=\\begin{pmatrix}E_x\\\\E_y\\end{pmatrix},\\;I\\propto EE^*",
+      "formulation": "$E=\\begin{pmatrix}E_x\\\\E_y\\end{pmatrix},\\;I\\propto EE^*$",
       "advanced": "연속 소자·Mueller 형식 비교"
     }
   },
@@ -220,7 +220,7 @@
       "observation": "토끼–스라소니 주기 데이터를 관찰합니다.",
       "simplification": "2종 상호작용·환경 일정.",
       "visualization": "Python",
-      "formulation": "\\dot N=aN-bNP,\\;\\dot P=-cP+dNP",
+      "formulation": "$\\dot N=aN-bNP,\\;\\dot P=-cP+dNP$",
       "advanced": "수확·환경 수용력 포함 확장"
     }
   },
@@ -235,7 +235,7 @@
       "observation": "지그재그 후 직선 귀소를 관찰합니다.",
       "simplification": "거리·방향 추정 오차 무시.",
       "visualization": "Python",
-      "formulation": "\\mathbf R=\\sum_{k=1}^n\\mathbf d_k",
+      "formulation": "$\\mathbf R=\\sum_{k=1}^n\\mathbf d_k$",
       "advanced": "오차 누적·보정 전략(태양 나침반) 실험"
     }
   },
@@ -250,7 +250,7 @@
       "observation": "인기 페이지가 상위에 오는 현상을 봅니다.",
       "simplification": "랜덤 서퍼·감쇠인자 도입.",
       "visualization": "Python",
-      "formulation": "p=dL^Tp+(1-d)u",
+      "formulation": "$p=dL^Tp+(1-d)u$",
       "advanced": "감쇠율 변화·스팸 링크 영향 분석"
     }
   },
@@ -265,7 +265,7 @@
       "observation": "다중 위성으로 위치가 정해짐을 관찰합니다.",
       "simplification": "지연·굴절 무시·4미지수 가정.",
       "visualization": "GeoGebra",
-      "formulation": "||\\mathbf x-\\mathbf s_i||^2=c^2(t_i-\\tau)^2",
+      "formulation": "$\\|\\mathbf x-\\mathbf s_i\\|^2=c^2(t_i-\\tau)^2$",
       "advanced": "GDOP·칼만 필터 보정 탐구"
     }
   },
@@ -280,7 +280,7 @@
       "observation": "무인 자전거가 똑바로 달리는 현상.",
       "simplification": "소각도 선형·자이로/트레일 제거 모델.",
       "visualization": "Python",
-      "formulation": "M\\ddot x+C\\dot x+Kx=0",
+      "formulation": "$M\\ddot x+C\\dot x+Kx=0$",
       "advanced": "속도-안정 영역·특이치 분석"
     }
   },
@@ -295,7 +295,7 @@
       "observation": "윤곽선이 강한 변화 위치임을 관찰.",
       "simplification": "그레이스케일·가우시안 블러 전처리.",
       "visualization": "Python",
-      "formulation": "\\nabla I=(I_x,I_y),\\;\\|\\nabla I\\|>T",
+      "formulation": "$\\nabla I=(I_x,I_y),\\;\\|\\nabla I\\|>T$",
       "advanced": "비최대 억제·히스테리시스 임계값 실험"
     }
   },
@@ -310,7 +310,7 @@
       "observation": "확률적 상태 전이가 수렴함을 관찰.",
       "simplification": "유한 상태·정규성·불가약성 가정.",
       "visualization": "Python",
-      "formulation": "\\pi^T=\\pi^T P,\\;\\sum \\pi_i=1",
+      "formulation": "$\\pi^T=\\pi^T P,\\;\\sum \\pi_i=1$",
       "advanced": "혼합속도·스펙트럴 갭 분석"
     }
   },
@@ -325,7 +325,7 @@
       "observation": "복잡 회로의 전류 분포를 측정합니다.",
       "simplification": "선형 저항망·정상상태 가정.",
       "visualization": "Python",
-      "formulation": "A\\mathbf i=\\mathbf b,\\;\\mathbf i=A^{-1}\\mathbf b",
+      "formulation": "$A\\mathbf i=\\mathbf b,\\;\\mathbf i=A^{-1}\\mathbf b$",
       "advanced": "희소 행렬·LU 분해 효율 비교"
     }
   },
@@ -340,7 +340,7 @@
       "observation": "도형이 선형변환으로 왜곡되는 모습.",
       "simplification": "선형(원점 고정) 변환만 고려.",
       "visualization": "GeoGebra",
-      "formulation": "\\mathbf x' = A\\mathbf x",
+      "formulation": "$\\mathbf x' = A\\mathbf x$",
       "advanced": "고유분해로 주축·스케일 해석"
     }
   },
@@ -355,7 +355,7 @@
       "observation": "관절 회전에 따른 말단 위치 변화를 관찰.",
       "simplification": "강체 링크·조인트 이상화.",
       "visualization": "Python",
-      "formulation": "T=\\prod_i T_i(\\theta_i,d_i,a_i,\\alpha_i)",
+      "formulation": "$T=\\prod_i T_i(\\theta_i,d_i,a_i,\\alpha_i)$",
       "advanced": "자코비안·특이점 회피 경로계획"
     }
   },
@@ -370,7 +370,7 @@
       "observation": "연결된 질량이 특정 모양으로 진동.",
       "simplification": "작은 진폭·선형 탄성 가정.",
       "visualization": "MATLAB",
-      "formulation": "M\\ddot x+C\\dot x+Kx=0,\\;K\\phi=\\omega^2 M\\phi",
+      "formulation": "$M\\ddot x+C\\dot x+Kx=0,\\;K\\phi=\\omega^2 M\\phi$",
       "advanced": "모드 중첩·감쇠 포함 응답"
     }
   },
@@ -385,7 +385,7 @@
       "observation": "평형 주변에서 수렴/발산 거동 관찰.",
       "simplification": "테일러 1차 근사.",
       "visualization": "Python",
-      "formulation": "\\dot x=f(x),\\;\\dot \\xi=J\\xi,\\;J=\\partial f/\\partial x",
+      "formulation": "$\\dot x=f(x),\\;\\dot \\xi=J\\xi,\\;J=\\partial f/\\partial x$",
       "advanced": "Hopf 분기·비선형 효과 비교"
     }
   },
@@ -400,7 +400,7 @@
       "observation": "고차원 데이터의 주축 방향을 관찰.",
       "simplification": "평균 제거·선형성 가정.",
       "visualization": "Python",
-      "formulation": "\\Sigma=\\frac{1}{n}X^TX=Q\\Lambda Q^T",
+      "formulation": "$\\Sigma=\\frac{1}{n}X^TX=Q\\Lambda Q^T$",
       "advanced": "SVD 연결·차원 축소 성능 비교"
     }
   },
@@ -415,7 +415,7 @@
       "observation": "낮은 랭크로도 형태가 유지됨을 관찰.",
       "simplification": "회색조·노이즈 무시.",
       "visualization": "Python",
-      "formulation": "A\\approx U_k\\Sigma_k V_k^T",
+      "formulation": "$A\\approx U_k\\Sigma_k V_k^T$",
       "advanced": "압축률·PSNR 곡선·컬러 확장"
     }
   },
@@ -430,7 +430,7 @@
       "observation": "행렬 키로 텍스트가 뒤섞임을 관찰.",
       "simplification": "mod 26 선형 변환 가정.",
       "visualization": "Python",
-      "formulation": "C=K\\,P\\;(\\bmod\\;26),\\;P=K^{-1}C",
+      "formulation": "$C=K\\,P\\;(\\bmod\\;26),\\;P=K^{-1}C$",
       "advanced": "키 보안성·선형 대수 취약점 토론"
     }
   },
@@ -445,7 +445,7 @@
       "observation": "연속 변환 합성이 하나의 행렬이 됨.",
       "simplification": "원근효과 무시(아핀만).",
       "visualization": "HTML/JS",
-      "formulation": "x' = Hx,\\;H=\\begin{pmatrix}A&t\\\\0&1\\end{pmatrix}",
+      "formulation": "$x' = Hx,\\;H=\\begin{pmatrix}A&t\\\\0&1\\end{pmatrix}$",
       "advanced": "원근투영 추가·역변환 안정성"
     }
   },
@@ -460,7 +460,7 @@
       "observation": "카메라 이동/회전에 따른 장면 변화.",
       "simplification": "핀홀 카메라·왜곡 무시.",
       "visualization": "HTML/JS",
-      "formulation": "x_{clip}=P\\,V\\,M\\,x_{model}",
+      "formulation": "$x_{clip}=P\\,V\\,M\\,x_{model}$",
       "advanced": "왜곡 모델·역투영(PnP) 연결"
     }
   },
@@ -475,7 +475,7 @@
       "observation": "기저 변환이 넓이/부피를 스케일.",
       "simplification": "선형 변환만 고려.",
       "visualization": "GeoGebra",
-      "formulation": "|\\det A|=\\text{면적/부피 배율}",
+      "formulation": "$|\\det A|=\\text{면적/부피 배율}$",
       "advanced": "오리엔테이션·외적 연결"
     }
   },
@@ -490,7 +490,7 @@
       "observation": "보/판 구조의 모드 형태 관찰.",
       "simplification": "선형 탄성·작은 변형.",
       "visualization": "MATLAB",
-      "formulation": "K\\phi=\\omega^2M\\phi",
+      "formulation": "$K\\phi=\\omega^2M\\phi$",
       "advanced": "경계조건·감쇠 모델 비교"
     }
   },
@@ -505,7 +505,7 @@
       "observation": "투영 데이터로 원영상을 복원.",
       "simplification": "잡음·산란 무시한 선형 모델.",
       "visualization": "Python",
-      "formulation": "\\min_x\\|Ax-b\\|*2^2",
+      "formulation": "$\\min_x\\|Ax-b\\|*2^2$",
       "advanced": "정규화(Tikhonov)·SIRT 비교"
     }
   },
@@ -520,7 +520,7 @@
       "observation": "한 산업 수요가 전반 생산에 파급.",
       "simplification": "고정 투입계수·선형 가정.",
       "visualization": "Python",
-      "formulation": "x=(I-A)^{-1}y",
+      "formulation": "$x=(I-A)^{-1}y$",
       "advanced": "민감도·부문별 승수 분석"
     }
   },
@@ -535,7 +535,7 @@
       "observation": "관절 미소변화가 말단 위치/자세 변화.",
       "simplification": "강체·비마찰 조인트.",
       "visualization": "MATLAB",
-      "formulation": "\\dot x=J(\\theta)\\,\\dot\\theta",
+      "formulation": "$\\dot x=J(\\theta)\\,\\dot\\theta$",
       "advanced": "역자코비안·특이점 회피"
     }
   },
@@ -550,7 +550,7 @@
       "observation": "복소 곱이 방향·크기를 바꿈.",
       "simplification": "평면 등각 변환 관점.",
       "visualization": "GeoGebra",
-      "formulation": "re^{i\\theta}\\cdot se^{i\\phi}=rs e^{i(\\theta+\\phi)}",
+      "formulation": "$re^{i\\theta}\\cdot se^{i\\phi}=rs e^{i(\\theta+\\phi)}$",
       "advanced": "모비우스 변환 소개"
     }
   },
@@ -565,7 +565,7 @@
       "observation": "단위원 위 점들이 정n각형을 이룸.",
       "simplification": "단위원·등간격 위상.",
       "visualization": "GeoGebra",
-      "formulation": "z_k=e^{2\\pi i k/n}",
+      "formulation": "$z_k=e^{2\\pi i k/n}$",
       "advanced": "대칭군·FFT 연결"
     }
   },
@@ -580,7 +580,7 @@
       "observation": "(cos+isin)^n 전개가 규칙을 만듦.",
       "simplification": "오일러 공식 사용.",
       "visualization": "Python",
-      "formulation": "(\\cos\\theta+i\\sin\\theta)^n=\\cos n\\theta+i\\sin n\\theta",
+      "formulation": "$(\\cos\\theta+i\\sin\\theta)^n=\\cos n\\theta+i\\sin n\\theta$",
       "advanced": "체비셰프 다항식과 연결"
     }
   },
@@ -595,7 +595,7 @@
       "observation": "꽃잎 개수 규칙 확인.",
       "simplification": "정수 n, a>0 가정.",
       "visualization": "GeoGebra",
-      "formulation": "r=a\\sin(n\\theta),\\;r=a\\cos(n\\theta)",
+      "formulation": "$r=a\\sin(n\\theta),\\;r=a\\cos(n\\theta)$",
       "advanced": "곡률·호길이 계산"
     }
   },
@@ -610,7 +610,7 @@
       "observation": "선/원/타원 편광 실험 관찰.",
       "simplification": "완전 편광·단일파.",
       "visualization": "MATLAB",
-      "formulation": "E=[A_x e^{i\\delta_x},A_y e^{i\\delta_y}]^T",
+      "formulation": "$E=[A_x e^{i\\delta_x},A_y e^{i\\delta_y}]^T$",
       "advanced": "Mueller 행렬·편광 측정"
     }
   },
@@ -625,7 +625,7 @@
       "observation": "소리/파형이 주파수 성분의 합.",
       "simplification": "주기함수·정칙성 가정.",
       "visualization": "Python",
-      "formulation": "f(x)=\\sum c_n e^{inx},\\;c_n=\\frac{1}{2\\pi}\\int f e^{-inx}",
+      "formulation": "$f(x)=\\sum c_n e^{inx},\\;c_n=\\frac{1}{2\\pi}\\int f e^{-inx}$",
       "advanced": "깁스 현상·필터링"
     }
   },
@@ -640,7 +640,7 @@
       "observation": "RC/RL 위상지연 관측.",
       "simplification": "정현파 정상상태.",
       "visualization": "GeoGebra",
-      "formulation": "I=V/Z,\\;P=VI\\cos\\phi",
+      "formulation": "$I=V/Z,\\;P=VI\\cos\\phi$",
       "advanced": "공진 주파수 최적화"
     }
   },
@@ -655,7 +655,7 @@
       "observation": "프랙탈 경계의 자기유사성.",
       "simplification": "z*{n+1}=z_n^2+c 단순식.",
       "visualization": "Python",
-      "formulation": "c\\in \\mathbb C,\\;\\sup_n|z_n|<\\infty?",
+      "formulation": "$c\\in \\mathbb C,\\;\\sup_n|z_n|<\\infty?$",
       "advanced": "파라미터 공간 탐색"
     }
   },
@@ -670,7 +670,7 @@
       "observation": "진동 신호의 포락선·위상 관찰.",
       "simplification": "협대역 신호 가정.",
       "visualization": "MATLAB",
-      "formulation": "x_a=x+j\\,\\mathcal H\\{x\\}=A e^{j\\phi}",
+      "formulation": "$x_a=x+j\\,\\mathcal H\\{x\\}=A e^{j\\phi}$",
       "advanced": "EEG/ECG 신호분석 적용"
     }
   },
@@ -685,7 +685,7 @@
       "observation": "log z가 나선형 표면을 형성.",
       "simplification": "분지절단으로 단일값화.",
       "visualization": "Python",
-      "formulation": "\\log z=\\ln|z|+i\\arg z,\\;\\arg\\in(-\\pi,\\pi]",
+      "formulation": "$\\log z=\\ln|z|+i\\arg z,\\;\\arg\\in(-\\pi,\\pi]$",
       "advanced": "복소 거듭제곱·다가성 탐구"
     }
   },
@@ -700,7 +700,7 @@
       "observation": "극곡선의 접선 방향을 관찰.",
       "simplification": "r=r(\\theta) 미분 가능.",
       "visualization": "GeoGebra",
-      "formulation": "\\tan\\psi=\\frac{r}{dr/d\\theta}",
+      "formulation": "$\\tan\\psi=\\frac{r}{dr/d\\theta}$",
       "advanced": "두 극곡선 교각 계산"
     }
   },
@@ -715,7 +715,7 @@
       "observation": "거리·투영이 간단히 표현됨.",
       "simplification": "유클리드 평면 가정.",
       "visualization": "GeoGebra",
-      "formulation": "|z-a|=r,\\;\\Re\\{(z-a)\\overline{b}\\}=0",
+      "formulation": "$|z-a|=r,\\;\\Re\\{(z-a)\\overline{b}\\}=0$",
       "advanced": "모비우스 변환의 원-직선 보존"
     }
   },
@@ -730,7 +730,7 @@
       "observation": "감쇠/증폭 진동 파형 관찰.",
       "simplification": "상수계수·선형 ODE.",
       "visualization": "Python",
-      "formulation": "y''+ay'+by=0\\Rightarrow e^{rt}",
+      "formulation": "$y''+ay'+by=0\\Rightarrow e^{rt}$",
       "advanced": "실수해로의 변환·공진 해석"
     }
   },
@@ -745,7 +745,7 @@
       "observation": "실수해 외 복소해 다가 존재.",
       "simplification": "분지별 해 정의.",
       "visualization": "Python",
-      "formulation": "x=W(a)\\Rightarrow x e^x=a",
+      "formulation": "$x=W(a)\\Rightarrow x e^x=a$",
       "advanced": "복소분지 시각화·수렴성"
     }
   },
@@ -760,8 +760,8 @@
       "observation": "구멍 가장자리에 응력 집중.",
       "simplification": "평면응력·선형탄성.",
       "visualization": "MATLAB",
-      "formulation": "Airy 함수/복소 잠재함수 이용",
-      "advanced": "타공 형상별 K_t 비교"
+      "formulation": "$\\text{Airy 함수/복소 잠재함수 이용}$",
+      "advanced": "타공 형상별 $K_t$ 비교"
     }
   },
   {
@@ -772,10 +772,10 @@
     "doi": "",
     "ref": "[https://scholar.google.com/scholar?q=complex-valued+neural+networks+education](https://scholar.google.com/scholar?q=complex-valued+neural+networks+education)",
     "flow": {
-      "observation": "位상 정보가 특징 추출에 기여.",
+      "observation": "위상 정보가 특징 추출에 기여.",
       "simplification": "소형 데이터·단층 모델.",
       "visualization": "Python",
-      "formulation": "z'=\\phi(Wz+b)",
+      "formulation": "$z'=\\phi(Wz+b)$",
       "advanced": "안정성/적대적 강인성 비교"
     }
   },
@@ -790,7 +790,7 @@
       "observation": "톱니 모양 궤적을 관찰.",
       "simplification": "두 원의 순수 회전·굴림.",
       "visualization": "HTML/JS",
-      "formulation": "z(\\theta)=R e^{i\\theta}+r e^{i\\frac{R}{r}\\theta}",
+      "formulation": "$z(\\theta)=R e^{i\\theta}+r e^{i\\frac{R}{r}\\theta}$",
       "advanced": "카우스틱·포락선 연결"
     }
   },
@@ -805,7 +805,7 @@
       "observation": "모든 다리를 한 번씩 건널 수 있는가?",
       "simplification": "교차/다리는 간선, 지점은 정점.",
       "visualization": "HTML/JS",
-      "formulation": "모든 정점 차수 짝수\\Rightarrow 오일러 회로",
+      "formulation": "$\\text{모든 정점 차수 짝수} \\Rightarrow \\text{오일러 회로}$",
       "advanced": "유향/가중 그래프로 확장"
     }
   },
@@ -820,7 +820,7 @@
       "observation": "파티 악수 수와 사람별 악수 횟수.",
       "simplification": "단순 무방향 그래프.",
       "visualization": "GeoGebra",
-      "formulation": "\\sum \\deg(v)=2|E|",
+      "formulation": "$\\sum \\deg(v)=2|E|$",
       "advanced": "자기고리/다중간선 포함 토론"
     }
   },
@@ -835,7 +835,7 @@
       "observation": "제곱·세제곱과 경로 수 관계.",
       "simplification": "무방향/단순 그래프 가정.",
       "visualization": "Python",
-      "formulation": "(A^k)*{ij}=\\#\\text{walks of length }k",
+      "formulation": "$(A^k)*{ij}=\\#\\text{walks of length }k$",
       "advanced": "유향·가중 그래프 확장"
     }
   },
@@ -850,8 +850,8 @@
       "observation": "그림을 바꿔도 지표가 일정.",
       "simplification": "연결·평면 임베딩.",
       "visualization": "GeoGebra",
-      "formulation": "V-E+F=2",
-      "advanced": "비평면 그래프(K5,K3,3) 비교"
+      "formulation": "$V-E+F=2$",
+      "advanced": "비평면 그래프($K_5,K*{3,3}$) 비교"
     }
   },
   {
@@ -865,7 +865,7 @@
       "observation": "교차 제거 불가 사례 관찰.",
       "simplification": "최소 비평면 그래프 선정.",
       "visualization": "HTML/JS",
-      "formulation": "Kuratowski 소부그래프 존재",
+      "formulation": "$\\text{Kuratowski 소부그래프 존재}$",
       "advanced": "와그너 정리·도식성 토론"
     }
   },
@@ -880,7 +880,7 @@
       "observation": "한붓그리기와 여행자 문제 대비.",
       "simplification": "작은 예제 그래프 구성.",
       "visualization": "GeoGebra",
-      "formulation": "오일러: 차수 조건, 해밀턴: 충분조건(Dirac 등)",
+      "formulation": "$\\text{오일러: 차수 조건, 해밀턴: 충분조건(Dirac 등)}$",
       "advanced": "NP-완전성·휴리스틱 탐구"
     }
   },
@@ -895,7 +895,7 @@
       "observation": "최소 간선으로 연결 유지.",
       "simplification": "연결 그래프 가정.",
       "visualization": "Python",
-      "formulation": "트리는 |V|-1 간선",
+      "formulation": "$\\text{트리는 }|V|-1\\text{ 간선}$",
       "advanced": "MST로 비용 최소화"
     }
   },
@@ -910,7 +910,7 @@
       "observation": "환승 포함 최단 이동 경로 탐색.",
       "simplification": "가중치=시간/거리.",
       "visualization": "Python",
-      "formulation": "최단경로(Dijkstra)",
+      "formulation": "$\\text{최단경로(Dijkstra)}$",
       "advanced": "혼잡·환승 패널티 모델"
     }
   },
@@ -925,7 +925,7 @@
       "observation": "프런티어 확장 과정 관찰.",
       "simplification": "비음수 가중치 가정.",
       "visualization": "Python",
-      "formulation": "우선순위 큐 기반 반복",
+      "formulation": "$\\text{우선순위 큐 기반 반복}$",
       "advanced": "A* 휴리스틱 비교"
     }
   },
@@ -940,7 +940,7 @@
       "observation": "모든 칸 1회 방문 경로 실험.",
       "simplification": "정방 격자·이동 규칙.",
       "visualization": "HTML/JS",
-      "formulation": "백트래킹/Warnsdorff 규칙",
+      "formulation": "$\\text{백트래킹/Warnsdorff 규칙}$",
       "advanced": "보드 크기별 존재성 비교"
     }
   },
@@ -955,7 +955,7 @@
       "observation": "작은 세계 현상 관찰.",
       "simplification": "난수 그래프·스케일프리 모델.",
       "visualization": "Python",
-      "formulation": "지름, 평균 거리 계산",
+      "formulation": "$\\text{지름, 평균 거리 계산}$",
       "advanced": "클러스터링 계수 비교"
     }
   },
@@ -970,7 +970,7 @@
       "observation": "부모-자식 계층과 깊이 관찰.",
       "simplification": "사이클 없는 연결 그래프.",
       "visualization": "GeoGebra",
-      "formulation": "높이·깊이·서브트리",
+      "formulation": "$\\text{높이·깊이·서브트리}$",
       "advanced": "LCA·트리 동적 계획법 소개"
     }
   },
@@ -985,7 +985,7 @@
       "observation": "모든 정점 연결·총 비용 최소.",
       "simplification": "연결·양의 가중치.",
       "visualization": "Python",
-      "formulation": "Kruskal: 정렬+Union-Find",
+      "formulation": "$\\text{Kruskal: 정렬+Union-Find}$",
       "advanced": "실시간 네트워크 설계 응용"
     }
   },
@@ -1000,7 +1000,7 @@
       "observation": "인접 정점 서로 다른 색.",
       "simplification": "무향 단순 그래프.",
       "visualization": "Python",
-      "formulation": "사이클 길이 짝수↔이분성",
+      "formulation": "$\\text{사이클 길이 짝수} \\Leftrightarrow \\text{이분성}$",
       "advanced": "매칭·네트워크 플로우 연결"
     }
   },
@@ -1015,7 +1015,7 @@
       "observation": "인접 영역 다른 색으로 칠하기.",
       "simplification": "평면 그래프 가정.",
       "visualization": "HTML/JS",
-      "formulation": "크로마틱 수 \\chi(G)",
+      "formulation": "$\\chi(G)$",
       "advanced": "4색 정리 역사·컴퓨터 증명"
     }
   },
@@ -1030,7 +1030,7 @@
       "observation": "탐색 순서·경로 차이 체험.",
       "simplification": "격자 그래프 모델.",
       "visualization": "HTML/JS",
-      "formulation": "큐/스택 기반 탐색",
+      "formulation": "$\\text{큐/스택 기반 탐색}$",
       "advanced": "가중치 포함(0-1 BFS) 확장"
     }
   },
@@ -1045,7 +1045,7 @@
       "observation": "중심 노드가 네트워크를 지배.",
       "simplification": "정규화 필요시 정규화 라플라시안.",
       "visualization": "Python",
-      "formulation": "Ax=\\lambda x,\\;\\lambda*{max} 관련 중심성",
+      "formulation": "$Ax=\\lambda x,\\;\\lambda_{max} \\text{ 관련 중심성}$",
       "advanced": "PageRank·Katz 비교"
     }
   },
@@ -1060,7 +1060,7 @@
       "observation": "허브 제거 시 분리 가속.",
       "simplification": "무작위/스케일프리 모델.",
       "visualization": "Python",
-      "formulation": "연결성 확률·거대 성분 크기",
+      "formulation": "$\\text{연결성 확률·거대 성분 크기}$",
       "advanced": "퍼콜레이션 임계 분석"
     }
   },
@@ -1075,7 +1075,7 @@
       "observation": "비슷한 픽셀끼리 묶임.",
       "simplification": "유사도 가중치 정의.",
       "visualization": "Python",
-      "formulation": "Cut/Normalized Cut 최소화",
+      "formulation": "$\\text{Cut/Normalized Cut 최소화}$",
       "advanced": "스펙트럴 클러스터링 비교"
     }
   },
@@ -1090,7 +1090,7 @@
       "observation": "작은 그래프의 모든 트리 열거.",
       "simplification": "연결 그래프 가정.",
       "visualization": "Python",
-      "formulation": "\\tau(G)=\\det L_{ii}",
+      "formulation": "$\\tau(G)=\\det L_{ii}$",
       "advanced": "가중 그래프 확장"
     }
   }
