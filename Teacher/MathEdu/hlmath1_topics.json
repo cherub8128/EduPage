@@ -481,7 +481,7 @@
   },
   {
     "cat": "matrix",
-    "title": "구조물 모드해석(유한요소 맛보기)",
+    "title": "구조물 모드해석 유한요소 맛보기",
     "desc": "강성·질량 행렬로 고유진동수를 계산합니다.",
     "tools": ["MATLAB"],
     "doi": "",
@@ -760,13 +760,13 @@
       "observation": "구멍 가장자리에 응력 집중.",
       "simplification": "평면응력·선형탄성.",
       "visualization": "MATLAB",
-      "formulation": "$\\text{Airy 함수/복소 잠재함수 이용}$",
+      "formulation": "Airy 함수/복소 잠재함수 이용",
       "advanced": "타공 형상별 $K_t$ 비교"
     }
   },
   {
     "cat": "complex_polar",
-    "title": "복소 신경망(개념 체험)",
+    "title": "복소 신경망 개념 체험",
     "desc": "가중치·활성화에 복소수를 도입해 학습 실험.",
     "tools": ["Python"],
     "doi": "",
@@ -805,7 +805,7 @@
       "observation": "모든 다리를 한 번씩 건널 수 있는가?",
       "simplification": "교차/다리는 간선, 지점은 정점.",
       "visualization": "HTML/JS",
-      "formulation": "$\\text{모든 정점 차수 짝수} \\Rightarrow \\text{오일러 회로}$",
+      "formulation": "모든 정점 차수 짝수 $\\Rightarrow$ 오일러 회로",
       "advanced": "유향/가중 그래프로 확장"
     }
   },
@@ -865,7 +865,7 @@
       "observation": "교차 제거 불가 사례 관찰.",
       "simplification": "최소 비평면 그래프 선정.",
       "visualization": "HTML/JS",
-      "formulation": "$\\text{Kuratowski 소부그래프 존재}$",
+      "formulation": "Kuratowski 소부그래프 존재",
       "advanced": "와그너 정리·도식성 토론"
     }
   },
@@ -880,13 +880,13 @@
       "observation": "한붓그리기와 여행자 문제 대비.",
       "simplification": "작은 예제 그래프 구성.",
       "visualization": "GeoGebra",
-      "formulation": "$\\text{오일러: 차수 조건, 해밀턴: 충분조건(Dirac 등)}$",
+      "formulation": "오일러: 차수 조건, 해밀턴: 충분조건(Dirac 등)",
       "advanced": "NP-완전성·휴리스틱 탐구"
     }
   },
   {
     "cat": "graph",
-    "title": "생성수형도(스패닝 트리)",
+    "title": "생성수형도 스패닝 트리",
     "desc": "사이클을 제거해 모든 정점을 잇는 트리를 찾음.",
     "tools": ["Python", "GeoGebra"],
     "doi": "",
@@ -910,7 +910,7 @@
       "observation": "환승 포함 최단 이동 경로 탐색.",
       "simplification": "가중치=시간/거리.",
       "visualization": "Python",
-      "formulation": "$\\text{최단경로(Dijkstra)}$",
+      "formulation": "최단경로(Dijkstra)",
       "advanced": "혼잡·환승 패널티 모델"
     }
   },
@@ -925,7 +925,7 @@
       "observation": "프런티어 확장 과정 관찰.",
       "simplification": "비음수 가중치 가정.",
       "visualization": "Python",
-      "formulation": "$\\text{우선순위 큐 기반 반복}$",
+      "formulation": "우선순위 큐 기반 반복",
       "advanced": "A* 휴리스틱 비교"
     }
   },
@@ -940,7 +940,7 @@
       "observation": "모든 칸 1회 방문 경로 실험.",
       "simplification": "정방 격자·이동 규칙.",
       "visualization": "HTML/JS",
-      "formulation": "$\\text{백트래킹/Warnsdorff 규칙}$",
+      "formulation": "백트래킹/Warnsdorff 규칙",
       "advanced": "보드 크기별 존재성 비교"
     }
   },
@@ -955,7 +955,7 @@
       "observation": "작은 세계 현상 관찰.",
       "simplification": "난수 그래프·스케일프리 모델.",
       "visualization": "Python",
-      "formulation": "$\\text{지름, 평균 거리 계산}$",
+      "formulation": "지름, 평균 거리 계산",
       "advanced": "클러스터링 계수 비교"
     }
   },
@@ -970,13 +970,13 @@
       "observation": "부모-자식 계층과 깊이 관찰.",
       "simplification": "사이클 없는 연결 그래프.",
       "visualization": "GeoGebra",
-      "formulation": "$\\text{높이·깊이·서브트리}$",
+      "formulation": "높이·깊이·서브트리",
       "advanced": "LCA·트리 동적 계획법 소개"
     }
   },
   {
     "cat": "graph",
-    "title": "최소신장트리(MST)",
+    "title": "최소신장트리 MST",
     "desc": "크루스칼/프림으로 비용 최소 연결망 구성.",
     "tools": ["Python", "GeoGebra"],
     "doi": "",
@@ -985,7 +985,7 @@
       "observation": "모든 정점 연결·총 비용 최소.",
       "simplification": "연결·양의 가중치.",
       "visualization": "Python",
-      "formulation": "$\\text{Kruskal: 정렬+Union-Find}$",
+      "formulation": "Kruskal: 정렬+Union-Find",
       "advanced": "실시간 네트워크 설계 응용"
     }
   },
@@ -1000,7 +1000,7 @@
       "observation": "인접 정점 서로 다른 색.",
       "simplification": "무향 단순 그래프.",
       "visualization": "Python",
-      "formulation": "$\\text{사이클 길이 짝수} \\Leftrightarrow \\text{이분성}$",
+      "formulation": "사이클 길이 짝수 $\\Leftrightarrow$ 이분성",
       "advanced": "매칭·네트워크 플로우 연결"
     }
   },
@@ -1030,7 +1030,7 @@
       "observation": "탐색 순서·경로 차이 체험.",
       "simplification": "격자 그래프 모델.",
       "visualization": "HTML/JS",
-      "formulation": "$\\text{큐/스택 기반 탐색}$",
+      "formulation": "큐/스택 기반 탐색",
       "advanced": "가중치 포함(0-1 BFS) 확장"
     }
   },
@@ -1060,7 +1060,7 @@
       "observation": "허브 제거 시 분리 가속.",
       "simplification": "무작위/스케일프리 모델.",
       "visualization": "Python",
-      "formulation": "$\\text{연결성 확률·거대 성분 크기}$",
+      "formulation": "연결성 확률·거대 성분 크기",
       "advanced": "퍼콜레이션 임계 분석"
     }
   },
@@ -1075,7 +1075,7 @@
       "observation": "비슷한 픽셀끼리 묶임.",
       "simplification": "유사도 가중치 정의.",
       "visualization": "Python",
-      "formulation": "$\\text{Cut/Normalized Cut 최소화}$",
+      "formulation": "Cut/Normalized Cut 최소화",
       "advanced": "스펙트럴 클러스터링 비교"
     }
   },
