@@ -842,7 +842,7 @@
   {
     "cat": "graph",
     "title": "평면그래프와 오일러 지표",
-    "desc": "V−E+F=2를 다양한 평면그래프로 검증.",
+    "desc": "$V-E+F=2$를 다양한 평면그래프로 검증.",
     "tools": ["GeoGebra"],
     "doi": "",
     "ref": "[https://scholar.google.com/scholar?q=planar+graph+Euler+characteristic+education](https://scholar.google.com/scholar?q=planar+graph+Euler+characteristic+education)",
@@ -851,7 +851,7 @@
       "simplification": "연결·평면 임베딩.",
       "visualization": "GeoGebra",
       "formulation": "$V-E+F=2$",
-      "advanced": "비평면 그래프($K_5,K*{3,3}$) 비교"
+      "advanced": "비평면 그래프 $K_5,K*{3,3}$ 비교"
     }
   },
   {
@@ -880,7 +880,7 @@
       "observation": "한붓그리기와 여행자 문제 대비.",
       "simplification": "작은 예제 그래프 구성.",
       "visualization": "GeoGebra",
-      "formulation": "오일러: 차수 조건, 해밀턴: 충분조건(Dirac 등)",
+      "formulation": "오일러: 차수 조건, 해밀턴: 충분조건 Dirac 등",
       "advanced": "NP-완전성·휴리스틱 탐구"
     }
   },
