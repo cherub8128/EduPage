@@ -266,48 +266,6 @@
                 </div>
             </section>
 
-            <!-- 섹션 6 변경 -->
-            <section class="report-section p-8 break-inside-avoid">
-                <h2 class="text-2xl font-bold text-slate-800 border-b-2 border-slate-200 pb-3 mb-6">6. 코드 저장소 (README.md)</h2>
-                <h3 class="text-lg font-semibold mt-4 text-slate-700">🚀 코드 실행 방법 (README 요약)</h3>
-                <div class="editable-container mt-2">
-                    <textarea class="savable markdown-input w-full border-slate-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 min-h-[250px] hidden" id="section6-1" placeholder="(GitHub 저장소의 README.md 파일 내용을 여기에 붙여넣거나, 실행 방법을 요약하여 작성하세요.)
-
----
-
-### 1. 환경 설정
-
-```bash
-# 1. 저장소 클론
-git clone [Your Repo URL]
-cd [Repo Folder]
-
-# 2. (선택) 가상환경 생성 및 활성화
-python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
-
-# 3. 필요 라이브러리 설치
-# (Unity ML-Agents, Stable-Baselines3 등)
-pip install -r requirements.txt
-```
-
-### 2. 학습 실행
-
-```bash
-# mlagents-learn <config-file.yaml> --run-id=<run-name>
-# 또는
-python train.py --timesteps=200000
-```
-
-### 3. 평가 실행
-
-```bash
-python evaluate.py --model_path=models/ppo_model_200000.zip
-```
-"></textarea>
-                    <div class="markdown-preview prose max-w-none"></div>
-                </div>
-            </section>
         </div>
         
         <!-- 푸터 (유지) -->
