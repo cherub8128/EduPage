@@ -1017,7 +1017,11 @@
         html += '<div class="prose">';
         this.blocks.forEach(block => {
           if (block.type === 'text') {
-            const converter = new showdown.Converter({ tables: true, ghCodeBlocks: true });
+            const converter = new showdown.Converter({
+              tables: true,
+              ghCodeBlocks: true,
+              literalMidWordUnderscores: true
+            });
             html += converter.makeHtml(block.content || '');
           } else if (block.type === 'image' && block.content) {
             html += `
