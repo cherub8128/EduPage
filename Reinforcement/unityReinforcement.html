@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- 문서 제목 수정 -->
+    <title>강화학습 프로젝트 요약 보고서</title>
+    
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    
+    <!-- Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/showdown/2.1.0/showdown.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    <!-- highlight.js (마크다운 내 코드 블럭용) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/bash.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
+
+    <style>
+        @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+        
+        body { font-family: 'Pretendard', sans-serif; background-color: #f8fafc; }
+        .editable-container .prose { cursor: text; transition: background-color 0.2s; }
+        .editable-container .prose { min-height: 80px; padding: 0.75rem; border-radius: 0.375rem; border: 1px solid transparent; }
+        .editable-container .prose:hover { background-color: #f8fafc; border-color: #e2e8f0;}
+        
+        /* 인쇄(PDF) 스타일 */
+        @media print {
+        @page { size: A4; margin: 15mm; }        
+        html, body { background: #fff !important; }
+        body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+        .report-section { break-inside: auto !important; page-break-inside: auto !important; }
+        figure, table, .screenshot-wrapper {
+            break-inside: avoid-page !important; page-break-inside: avoid !important;
+        }
+        img {
+            max-width: 100% !important;
+            height: auto !important;
+            max-height: calc(297mm - 40mm) !important;
+            object-fit: contain !important;
+            break-inside: avoid-page !important; page-break-inside: avoid !important;
+        }
+        pre, code {
+            white-space: pre-wrap !important;
+            word-break: break-word !important;
+            overflow-wrap: anywhere !important;
+        }
+        pre { break-inside: auto !important; page-break-inside: auto !important; }
+        table { table-layout: fixed; width: 100%; }
+        th, td { word-break: break-word; }
+        .no-print { display: none !important; }
+        }
+
+        @media print {
+        body { font-size: 11pt; line-height: 1.45; }
+        h1 { font-size: 20pt; }
+        h2 { font-size: 16pt; }
+        h3 { font-size: 13pt; }
+        }
+    </style>
+</head>
+<body class="p-4 sm:p-8">
+
+    <main class="max-w-4xl mx-auto">
+        <header class="text-center mb-10 no-print">
+            <div class="flex justify-center items-center gap-3 mb-4">
+                 <!-- 아이콘 변경 (퍼즐) -->
+                 <div class="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 10V6.5a3.5 3.5 0 1 1 7 0V10M10.5 10c-1.11 0-2.22 0-3.33-0.03A3.5 3.5 0 0 1 3.5 6.5V6.5a3.5 3.5 0 1 1 7 0V10M10.5 14H14v3.5a3.5 3.5 0 1 1-7 0V14M14 14c1.11 0 2.22 0 3.33 0.03A3.5 3.5 0 0 1 20.97 17.5v0a3.5 3.5 0 1 1-7 0V14"></path></svg>
+                 </div>
+                 <!-- 제목 변경 -->
+                <h1 class="text-4xl font-extrabold text-slate-800">강화학습 프로젝트 요약 보고서</h1>
+            </div>
+            <!-- 부제 변경 -->
+            <p class="text-slate-500">수행 과제 기준에 맞춰 각 항목에 내용을 입력하고 스크린샷과 시연 영상을 첨부하세요.</p>
+        </header>
+
+        <!-- 보고서 내용 시작 -->
+        <div id="report-content" class="bg-white rounded-lg shadow-md">
+            <!-- 학번/이름 (유지) -->
+            <section class="report-section p-8 break-inside-avoid">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead><tr><th class="p-4 bg-slate-50 rounded-tl-lg font-semibold text-slate-700">학번</th><th class="p-4 bg-slate-50 rounded-tr-lg font-semibold text-slate-700">이름</th></tr></thead>
+                        <tbody><tr>
+                            <td class="p-2 border-t border-slate-200"><input type="text" id="student-id" placeholder="예: 11301" class="savable w-full p-2 bg-transparent focus:outline-none focus:ring-2 focus:ring-blue-200 rounded-md"></td>
+                            <td class="p-2 border-t border-slate-200"><input type="text" id="student-name" placeholder="예: 홍길동" class="savable w-full p-2 bg-transparent focus:outline-none focus:ring-2 focus:ring-blue-200 rounded-md"></td>
+                        </tr></tbody>
+                    </table>
+                </div>
+            </section>
+            
+            <!-- 섹션 1 변경 -->
+            <section class="report-section p-8 break-inside-avoid">
+                <h2 class="text-2xl font-bold text-slate-800 border-b-2 border-slate-200 pb-3 mb-6">1. 문제 정의 및 환경 요약</h2>
+                <h3 class="text-lg font-semibold mt-4 text-slate-700">🎯 프로젝트 목표 (Goal)</h3>
+                <div class="editable-container mt-2">
+                    <textarea class="savable markdown-input w-full border-slate-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 min-h-[100px] hidden" id="section1-1" placeholder="예: Unity 그리드 월드 환경에서 에이전트가 장애물을 피해 목표 지점까지 도달하도록 학습시킵니다."></textarea>
+                    <div class="markdown-preview prose max-w-none"></div>
+                </div>
+                <h3 class="text-lg font-semibold mt-6 text-slate-700">🎮 게임 환경 요약 (Environment Summary)</h3>
+                <div class="editable-container mt-2">
+                    <textarea class="savable markdown-input w-full border-slate-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 min-h-[120px] hidden" id="section1-2" placeholder="**환경:** 10x10 크기의 그리드 월드 (Unity로 제작)
+**요소:** 에이전트(1), 목표 지점(1), 장애물(3)
+**종료 조건:**
+1.  목표 지점 도달 (성공)
+2.  장애물 충돌 (실패)
+3.  100 스텝 초과 (타임아웃)"></textarea>
+                    <div class="markdown-preview prose max-w-none"></div>
+                </div>
+            </section>
+
+            <!-- 섹션 2 변경 -->
+            <section class="report-section p-8 break-inside-avoid">
+                <h2 class="text-2xl font-bold text-slate-800 border-b-2 border-slate-200 pb-3 mb-6">2. 환경 설계 (Observation, Action, Reward)</h2>
+                <h3 class="text-lg font-semibold mt-4 text-slate-700">👁️ 관측 공간 (Observation Space)</h3>
+                <div class="editable-container mt-2">
+                    <textarea class="savable markdown-input w-full border-slate-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 min-h-[120px] hidden" id="section2-1" placeholder="**유형:** 연속(Continuous)
+**정의:** 에이전트의 현 위치(x, y)와 목표 지점까지의 상대 거리(dx, dy)를 정규화(-1 ~ 1)하여 사용
+**값 (예시):** `Box(shape=(4,), low=-1.0, high=1.0)`
+(예: `[agent_x, agent_y, target_dx, target_dy]`)"></textarea>
+                    <div class="markdown-preview prose max-w-none"></div>
+                </div>
+                <h3 class="text-lg font-semibold mt-6 text-slate-700">🏃 행동 공간 (Action Space)</h3>
+                <div class="editable-container mt-2">
+                    <textarea class="savable markdown-input w-full border-slate-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 min-h-[120px] hidden" id="section2-2" placeholder="**유형:** 이산(Discrete)
+**정의:** 4방향 이동 (상, 하, 좌, 우)
+**값 (예시):** `Discrete(4)`
+* `0`: 위로 이동
+* `1`: 아래로 이동
+* `2`: 왼쪽으로 이동
+* `3`: 오른쪽으로 이동"></textarea>
+                    <div class="markdown-preview prose max-w-none"></div>
+                </div>
+                <h3 class="text-lg font-semibold mt-6 text-slate-700">🏆 보상 설계 (Reward Design)</h3>
+                <div class="editable-container mt-2">
+                    <textarea class="savable markdown-input w-full border-slate-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 min-h-[150px] hidden" id="section2-3" placeholder="* 목표 지점 도달 시 (성공): **+1.0**
+* 장애물 충돌 시 (실패): **-1.0**
+* 매 스텝 (Time Penalty): **-0.01**
+
+**[보상 튜닝]**
+초기 설계에서는 Time Penalty만 주었으나 에이전트가 목표 지점을 찾지 못하고 헤매는 현상 발생.
+**개선:** 목표 지점과의 거리가 가까워질수록 추가 보상을 주는 Reward Shaping 도입.
+* (이전 거리 - 현재 거리) * 0.1 만큼의 보상을 매 스텝 추가"></textarea>
+                    <div class="markdown-preview prose max-w-none"></div>
+                </div>
+            </section>
+            
+            <!-- 섹션 3 변경 -->
+            <section class="report-section p-8 break-inside-avoid">
+                <h2 class="text-2xl font-bold text-slate-800 border-b-2 border-slate-200 pb-3 mb-6">3. 학습 및 튜닝 (Training & Tuning)</h2>
+                <!-- 3-1: 코드 블럭 -> 마크다운으로 변경 -->
+                <h3 class="text-lg font-semibold mt-4 text-slate-700">🧠 사용 알고리즘 (Algorithm)</h3>
+                <div class="editable-container mt-2">
+                    <textarea class="savable markdown-input w-full border-slate-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 min-h-[120px] hidden" id="section3-1" placeholder="**알고리즘:** PPO (Proximal Policy Optimization)
+**선택 근거:** PPO는 관측/행동 공간 유형(연속/이산)에 관계없이 안정적인 성능을 보여주며, 하이퍼파라미터 튜닝이 비교적 용이하여 첫 시도로 선택했습니다. (Unity ML-Agents의 기본 알고리즘 중 하나이기도 함)"></textarea>
+                    <div class="markdown-preview prose max-w-none"></div>
+                </div>
+                
+                <h3 class="text-lg font-semibold mt-6 text-slate-700">⚙️ 주요 하이퍼파라미터 (Hyperparameters)</h3>
+                <div class="editable-container mt-2">
+                    <textarea class="savable markdown-input w-full border-slate-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 min-h-[120px] hidden" id="section3-2" placeholder="* `learning_rate`: 0.0003 (또는 3e-4)
+* `n_steps`: 2048
+* `batch_size`: 64
+* `gamma` (감가율): 0.99
+* `total_timesteps` (총 학습 스텝): 200,000"></textarea>
+                    <div class="markdown-preview prose max-w-none"></div>
+                </div>
+                <h3 class="text-lg font-semibold mt-6 text-slate-700">📊 학습 과정 및 튜닝 (Learning Curve & Tuning)</h3>
+                <div class="editable-container mt-2">
+                    <textarea class="savable markdown-input w-full border-slate-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 min-h-[150px] hidden" id="section3-3" placeholder="(학습 과정 중 TensorBoard의 mean reward 그래프를 캡처하여 아래 '4. 평가 및 시연'의 스크린샷 1번에 첨부하세요.)
+
+**튜닝 시도 (예시):**
+* **항목:** `gamma` (감가율)
+* **변경 전 (0.9):** 에이전트가 단기적인 보상(가까운 거리 보상)에만 집중하고, 멀리 있는 최종 목표 지점 도달을 어려워했습니다.
+* **변경 후 (0.99):** 에이전트가 더 장기적인 보상(최종 목표 도달)을 고려하게 되어, 성공률이 60%에서 90% 이상으로 크게 향상되었습니다."></textarea>
+                    <div class="markdown-preview prose max-w-none"></div>
+                </div>
+                <!-- 3-4 섹션 제거 -->
+            </section>
+            
+            <!-- 섹션 4 변경 -->
+            <section class="report-section p-8 break-inside-avoid">
+                 <h2 class="text-2xl font-bold text-slate-800 border-b-2 border-slate-200 pb-3 mb-6">4. 평가 및 시연 (Evaluation & Demo)</h2>
+                 
+                 <!-- 4-1: 평가 결과 (텍스트) -->
+                <h3 class="text-lg font-semibold mt-4 text-slate-700">📈 평가 결과 (Evaluation Results)</h3>
+                <div class="editable-container mt-2">
+                    <textarea class="savable markdown-input w-full border-slate-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 min-h-[150px] hidden" id="section4-1" placeholder="**평가 프로토콜:**
+* 학습에 사용되지 않은 5개의 다른 시드(seed)로 고정
+* 시드 당 20 에피소드, 총 100 에피소드 평가 수행
+
+**평가 지표 (평균 ± 표준편차):**
+* **평균 누적 보상 (Mean Reward):** 0.85 (± 0.12)
+* **성공률 (Success Rate):** 94% (100회 중 94회 성공)
+* **평균 에피소드 길이 (Mean Episode Length):** 25.3 스텝"></textarea>
+                    <div class="markdown-preview prose max-w-none"></div>
+                </div>
+
+                <!-- 4-2: 스크린샷 -->
+                <h3 class="text-lg font-semibold mt-6 text-slate-700">🖼️ 학습된 정책 시연 (스크린샷)</h3>
+                <p class="text-sm text-slate-600 mt-1 mb-4">학습 결과(러닝 커브) 1장, 실제 시연(게임 화면) 1장을 첨부하세요.</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+                    <div class="screenshot-wrapper">
+                        <label for="screenshot-input-1" class="flex flex-col items-center justify-center w-full min-h-48 border-2 border-slate-300 border-dashed rounded-lg cursor-pointer bg-slate-50 hover:bg-slate-100">
+                            <img id="screenshot-preview-1" class="hidden w-full h-full object-contain rounded-lg">
+                            <div id="screenshot-placeholder-1" class="text-center text-slate-500 p-4">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="mx-auto mb-2 text-slate-400"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                                스크린샷 1 (예: 학습 그래프)
+                            </div>
+                        </label>
+                        <input type="file" accept="image/*" class="hidden" id="screenshot-input-1">
+                    </div>
+                    <div class="screenshot-wrapper">
+                         <label for="screenshot-input-2" class="flex flex-col items-center justify-center w-full min-h-48 border-2 border-slate-300 border-dashed rounded-lg cursor-pointer bg-slate-50 hover:bg-slate-100">
+                            <img id="screenshot-preview-2" class="hidden w-full h-full object-contain rounded-lg">
+                            <div id="screenshot-placeholder-2" class="text-center text-slate-500 p-4">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="mx-auto mb-2 text-slate-400"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                                스크린샷 2 (예: 시연 화면)
+                            </div>
+                        </label>
+                        <input type="file" accept="image/*" class="hidden" id="screenshot-input-2">
+                    </div>
+                </div>
+
+                <!-- 4-3: 시연 영상 첨부 안내 (신규) -->
+                <h3 class="text-lg font-semibold mt-8 text-slate-700">🎥 시연 영상 (Demo Video)</h3>
+                <div class="mt-2 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <p class="text-sm text-slate-700">
+                        20~60초 분량의 학습된 에이전트 시연 영상(GIF 또는 MP4)을 <strong>Google Classroom 과제에 별도 파일로 첨부</strong>해주세요.
+                    </p>
+                </div>
+            </section>
+            
+            <!-- 섹션 5 변경 -->
+            <section class="report-section p-8 break-inside-avoid">
+                <h2 class="text-2xl font-bold text-slate-800 border-b-2 border-slate-200 pb-3 mb-6">5. 결론 및 고찰 (Conclusion & Learnings)</h2>
+                <h3 class="text-lg font-semibold mt-4 text-slate-700">🤔 잘된 점 및 어려웠던 점 (Pros & Cons)</h3>
+                <div class="editable-container mt-2">
+                    <textarea class="savable markdown-input w-full border-slate-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 min-h-[150px] hidden" id="section5-1" placeholder="**잘된 점:**
+* 보상 설계를 명확하게(목표 +1.0, 장애물 -1.0) 하니 학습이 빠르게 진행되었습니다.
+* `gamma` 값을 0.9에서 0.99로 튜닝한 후 성공률이 크게 향상되는 것을 수치로 확인했습니다.
+
+**어려웠던 점:**
+* 초기 보상 설계 시 에이전트가 장애물 근처에서 움직이지 않는 로컬 미니마(local minima)에 빠지는 현상이 있었습니다.
+* **해결:** 스텝마다 약간의 페널티(-0.01)를 주고, 목표에 가까워지는 보상을 추가하여 에이전트가 더 적극적으로 탐색하도록 유도했습니다."></textarea>
+                    <div class="markdown-preview prose max-w-none"></div>
+                </div>
+                <h3 class="text-lg font-semibold mt-6 text-slate-700">🌱 배운 점 및 다음 개선 사항 (Learnings & Future Work)</h3>
+                <div class="editable-container mt-2">
+                    <textarea class="savable markdown-input w-full border-slate-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 min-h-[150px] hidden" id="section5-2" placeholder="**배운 점:**
+* 강화학습에서 보상 설계(reward shaping)가 학습 결과에 얼마나 큰 영향을 미치는지 직접 체험했습니다.
+* 하이퍼파라미터(특히 `gamma`)가 에이전트의 단기적/장기적 행동 결정에 미치는 중요성을 이해했습니다.
+* 평가 프로토콜(시드 고정, 반복 측정)이 결과의 신뢰도를 높이는 데 필수적임을 깨달았습니다.
+
+**다음 개선 사항 (제안):**
+* 관측 공간에 장애물의 위치 정보(RayCast 등)를 추가하여 에이전트가 더 지능적으로 회피할 수 있도록 모델을 개선하고 싶습니다.
+* A2C, DQN 등 다른 알고리즘과 학습 성능 및 효율성을 비교 분석해보고 싶습니다."></textarea>
+                    <div class="markdown-preview prose max-w-none"></div>
+                </div>
+            </section>
+
+            <!-- 섹션 6 변경 -->
+            <section class="report-section p-8 break-inside-avoid">
+                <h2 class="text-2xl font-bold text-slate-800 border-b-2 border-slate-200 pb-3 mb-6">6. 코드 저장소 (README.md)</h2>
+                <h3 class="text-lg font-semibold mt-4 text-slate-700">🚀 코드 실행 방법 (README 요약)</h3>
+                <div class="editable-container mt-2">
+                    <textarea class="savable markdown-input w-full border-slate-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 min-h-[250px] hidden" id="section6-1" placeholder="(GitHub 저장소의 README.md 파일 내용을 여기에 붙여넣거나, 실행 방법을 요약하여 작성하세요.)
+
+---
+
+### 1. 환경 설정
+
+```bash
+# 1. 저장소 클론
+git clone [Your Repo URL]
+cd [Repo Folder]
+
+# 2. (선택) 가상환경 생성 및 활성화
+python -m venv venv
+source venv/bin/activate  # Windows: venv\Scripts\activate
+
+# 3. 필요 라이브러리 설치
+# (Unity ML-Agents, Stable-Baselines3 등)
+pip install -r requirements.txt
+```
+
+### 2. 학습 실행
+
+```bash
+# mlagents-learn <config-file.yaml> --run-id=<run-name>
+# 또는
+python train.py --timesteps=200000
+```
+
+### 3. 평가 실행
+
+```bash
+python evaluate.py --model_path=models/ppo_model_200000.zip
+```
+"></textarea>
+                    <div class="markdown-preview prose max-w-none"></div>
+                </div>
+            </section>
+        </div>
+        
+        <!-- 푸터 (유지) -->
+        <footer class="text-center mt-8 py-6 no-print">
+            <p class="text-sm text-slate-500 mb-2">
+                인쇄 창이 뜨면 '대상' 또는 '프린터' 항목에서 <strong>'PDF로 저장'</strong>을 선택하세요.
+            </p>
+            <div id="validation-message" class="text-red-600 font-semibold mb-4 h-6"></div>
+            <button id="export-pdf" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg flex items-center gap-2 mx-auto">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                보고서 PDF로 저장
+            </button>
+        </footer>
+    </main>
+
+    <!-- 자동저장 상태 표시 (유지) -->
+    <div id="autosave-status" class="no-print fixed bottom-6 right-6 flex items-center bg-slate-800 text-white py-2 px-4 rounded-lg shadow-lg opacity-0 transition-opacity duration-500 z-50">
+        <svg id="autosave-icon-saving" class="animate-spin h-5 w-5 mr-3 hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+        <svg id="autosave-icon-saved" class="h-5 w-5 mr-3 hidden text-green-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>
+        <span id="autosave-text"></span>
+    </div>
+
+    <!-- PDF 생성 로더 (유지) -->
+    <div id="loader-overlay" class="fixed inset-0 bg-black bg-opacity-60 flex-col items-center justify-center hidden z-50 no-print">
+        <div class="bg-white p-8 rounded-lg shadow-xl text-center">
+            <svg class="animate-spin h-10 w-10 text-blue-600 mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <p class="text-lg font-semibold text-slate-700">PDF 생성 중...</p>
+            <p class="text-sm text-slate-500 mt-1">보고서 내용을 변환하고 있습니다. 잠시만 기다려주세요.</p>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            // JS 설정: 코드 블럭 제거, 스크린샷 2개 유지
+            const config = {
+                storageKey: 'rlProjectData', // 저장키 변경
+                savableSelector: '.savable',
+                screenshotCount: 2,
+                hasCodeBlock: false // 특수 코드 에디터 비활성화
+            };
+            
+            const { storageKey, savableSelector, screenshotCount, hasCodeBlock } = config;
+            // showdown: 마크다운 -> HTML 변환기
+            const converter = new showdown.Converter({ simpleLineBreaks: true, tables: true, strikethrough: true, ghCompatibleHeaderId: true, emoji: true });
+            const exportBtn = document.getElementById('export-pdf');
+            const loaderOverlay = document.getElementById('loader-overlay');
+            const autosaveStatusEl = document.getElementById('autosave-status');
+            let saveTimer, statusTimer;
+
+            // 자동저장 상태 UI 업데이트
+            function showSaveStatus(state) {
+                if (!autosaveStatusEl) return;
+                const textEl = autosaveStatusEl.querySelector('#autosave-text');
+                const iconSaving = autosaveStatusEl.querySelector('#autosave-icon-saving');
+                const iconSaved = autosaveStatusEl.querySelector('#autosave-icon-saved');
+                
+                clearTimeout(statusTimer);
+                autosaveStatusEl.classList.remove('opacity-0');
+
+                if (state === 'saving') {
+                    if(textEl) textEl.textContent = '저장 중...';
+                    if(iconSaving) iconSaving.classList.remove('hidden');
+                    if(iconSaved) iconSaved.classList.add('hidden');
+                } else if (state === 'saved') {
+                    if(textEl) textEl.textContent = '모든 변경사항이 저장되었습니다.';
+                    if(iconSaving) iconSaving.classList.add('hidden');
+                    if(iconSaved) iconSaved.classList.remove('hidden');
+                    statusTimer = setTimeout(() => autosaveStatusEl.classList.add('opacity-0'), 2000);
+                }
+            }
+
+            // 마크다운 입력 -> HTML 프리뷰로 변환
+            function updateMarkdownPreview(textareaElement) {
+                if (!textareaElement) return;
+                const container = textareaElement.closest('.editable-container');
+                if (!container) return;
+                const preview = container.querySelector('.markdown-preview');
+                if (preview) {
+                    const placeholder = '<p class="text-slate-400">내용을 입력하세요...</p>';
+                    let html = textareaElement.value ? converter.makeHtml(textareaElement.value) : placeholder;
+                    
+                    // HTML 변환 후 코드 하이라이팅 적용
+                    preview.innerHTML = html;
+                    preview.querySelectorAll('pre code').forEach((block) => {
+                        hljs.highlightElement(block);
+                    });
+
+                    // 수식 렌더링 (KaTeX)
+                    if(window.renderMathInElement) {
+                        renderMathInElement(preview, { delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}] });
+                    }
+                }
+            }
+            
+            // 텍스트 영역 자동 높이 조절
+            function autoResizeTextarea(textarea) {
+                textarea.style.height = 'auto';
+                textarea.style.height = (textarea.scrollHeight + 2) + 'px'; // 2px 여유
+            }
+
+            // 로컬 스토리지에 내용 저장
+            function saveContent() {
+                clearTimeout(saveTimer);
+                showSaveStatus('saving');
+                saveTimer = setTimeout(() => {
+                    const data = {};
+                    document.querySelectorAll(savableSelector).forEach(el => {
+                        data[el.id] = el.value;
+                    });
+                    for (let i = 1; i <= screenshotCount; i++) {
+                        const img = document.getElementById(`screenshot-preview-${i}`);
+                        if (img && img.src && !img.src.includes('placeholder')) {
+                            data[`screenshot-preview-${i}`] = img.src;
+                        }
+                    }
+                    localStorage.setItem(storageKey, JSON.stringify(data));
+                    showSaveStatus('saved');
+                }, 1000);
+            }
+
+            // 로컬 스토리지에서 내용 불러오기
+            function loadContent() {
+                const data = JSON.parse(localStorage.getItem(storageKey));
+                const textareas = document.querySelectorAll('.markdown-input');
+
+                if (!data) {
+                    textareas.forEach(el => {
+                        updateMarkdownPreview(el);
+                        autoResizeTextarea(el);
+                    });
+                    return;
+                }
+
+                document.querySelectorAll(savableSelector).forEach(field => {
+                    if (data.hasOwnProperty(field.id)) {
+                        field.value = data[field.id];
+                    }
+                });
+                
+                for (let i = 1; i <= screenshotCount; i++) {
+                    if (data[`screenshot-preview-${i}`]) {
+                        const preview = document.getElementById(`screenshot-preview-${i}`);
+                        const placeholder = document.getElementById(`screenshot-placeholder-${i}`);
+                        preview.src = data[`screenshot-preview-${i}`];
+                        preview.classList.remove('hidden');
+                        if (placeholder) placeholder.classList.add('hidden');
+                    }
+                }
+
+                textareas.forEach(el => {
+                    updateMarkdownPreview(el);
+                    autoResizeTextarea(el);
+                });
+            }
+
+            // PDF로 내보내기 (브라우저 인쇄 기능 사용)
+            async function exportToPdf() {
+                const root = document.getElementById('report-content') || document.body;
+                if(loaderOverlay) loaderOverlay.style.display = 'flex';
+
+                // 1) 인쇄 직전 상태 준비: 모든 편집창 숨기고 프리뷰 보이기
+                const editors  = root.querySelectorAll('.editable-container textarea');
+                const previews = root.querySelectorAll('.editable-container .markdown-preview');
+                editors.forEach(el  => el.style.display = 'none');
+                previews.forEach(el => {
+                    el.style.display = 'block';
+                    // 프리뷰가 비어있으면(플레이스홀더) 인쇄 시 안보이게 처리
+                    if (el.innerHTML.includes('text-slate-400')) {
+                        el.style.display = 'none';
+                    }
+                });
+
+                // 2) 수식/코드 재렌더링 (인쇄용)
+                if (window.renderMathInElement) {
+                    renderMathInElement(root, {
+                    delimiters: [
+                        { left: '$$', right: '$$', display: true },
+                        { left: '$',  right: '$',  display: false }
+                    ]
+                    });
+                }
+                root.querySelectorAll('pre code').forEach(el => { 
+                    delete el.dataset.highlighted; 
+                    hljs.highlightElement(el); 
+                });
+                
+                // 3) 폰트/이미지 로딩 보장
+                try { await document.fonts.ready; } catch (e) {}
+                const imgs = Array.from(root.querySelectorAll('img'));
+                await Promise.all(imgs.map(img => {
+                    if (img.complete) return Promise.resolve();
+                    return new Promise(res => { img.addEventListener('load', res); img.addEventListener('error', res); });
+                }));
+                
+                // 4) 파일명 설정 (제목_학번_이름)
+                const prevTitle = document.title;
+                const studentId = document.getElementById('student-id')?.value.trim() || '학번';
+                const studentName = document.getElementById('student-name')?.value.trim() || '이름';
+                const baseTitle = "강화학습_보고서";
+                document.title = `${baseTitle}_${studentId}_${studentName}`;
+                
+                if(loaderOverlay) loaderOverlay.style.display = 'none';
+                
+                // 5) 인쇄 후 정리 작업
+                const cleanup = () => {
+                    editors.forEach(el  => el.style.display = '');
+                    previews.forEach(el => el.style.display = '');
+                    document.title = prevTitle; // 원래 제목으로 복구
+                    window.removeEventListener('afterprint', cleanup);
+                };
+                window.addEventListener('afterprint', cleanup);
+
+                // 6) 브라우저 인쇄 창 띄우기
+                window.print();
+            }
+
+            // 초기화 함수
+            function initialize() {
+                // 마크다운 프리뷰 <-> 편집창 전환 이벤트
+                document.querySelectorAll('.editable-container').forEach(container => {
+                    const preview = container.querySelector('.markdown-preview');
+                    const editor = container.querySelector('textarea');
+
+                    if (preview && editor) {
+                        preview.addEventListener('click', () => {
+                            preview.style.display = 'none';
+                            editor.style.display = 'block';
+                            editor.focus();
+                            autoResizeTextarea(editor);
+                        });
+
+                        editor.addEventListener('blur', () => {
+                            editor.style.display = 'none';
+                            preview.style.display = 'block';
+                            updateMarkdownPreview(editor);
+                        });
+                    }
+                });
+
+                // 모든 .savable 요소에 자동 저장 이벤트 바인딩
+                document.querySelectorAll(savableSelector).forEach(el => {
+                    el.addEventListener('input', () => {
+                        saveContent();
+                        if (el.tagName === 'TEXTAREA') autoResizeTextarea(el);
+                    });
+                });
+
+                // 스크린샷 첨부 이벤트
+                for (let i = 1; i <= screenshotCount; i++) {
+                    const input = document.getElementById(`screenshot-input-${i}`);
+                    if (input) {
+                        input.addEventListener('change', (event) => {
+                            const preview = document.getElementById(`screenshot-preview-${i}`);
+                            const placeholder = document.getElementById(`screenshot-placeholder-${i}`);
+                            const file = event.target.files[0];
+                            if (file) {
+                                const reader = new FileReader();
+                                reader.onload = (e) => {
+                                    preview.src = e.target.result;
+                                    preview.classList.remove('hidden');
+                                    if (placeholder) placeholder.classList.add('hidden');
+                                    saveContent();
+                                }
+                                reader.readAsDataURL(file);
+                            }
+                        });
+                    }
+                }
+                
+                if (exportBtn) exportBtn.addEventListener('click', exportToPdf);
+
+                // 페이지 로드 시 저장된 데이터 불러오기
+                loadContent();
+            }
+
+            initialize();
+        });
+    </script>
+</body>
+</html>
