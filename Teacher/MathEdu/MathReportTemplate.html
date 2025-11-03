@@ -512,6 +512,14 @@
             </svg>
             초기화
           </button>
+          <button id="export-html" class="btn btn-success btn-small">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            HTML 저장
+          </button>
           <button id="export-pdf" class="btn btn-primary btn-small">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
@@ -1128,6 +1136,10 @@
           this.saveData();
         });
 
+        document.getElementById('export-html').addEventListener('click', () => {
+          this.exportHTML();
+        });
+
         document.getElementById('export-pdf').addEventListener('click', () => {
           // Check integrity
           const requiredFields = [
@@ -1152,8 +1164,101 @@
             if (!confirm(msg)) return;
           }
 
+          // Set document title for PDF filename
+          const topicRef = document.getElementById('topic-reference').value || '수학탐구';
+          const author = document.getElementById('report-author').value || '이름없음';
+          const filename = `${topicRef}_${author}`.replace(/[^a-zA-Z0-9가-힣_]/g, '_');
+          document.title = filename;
+
           window.print();
         });
+      },
+
+      exportHTML() {
+        const title = document.getElementById('report-title').value || '수학_탐구_보고서';
+        const author = document.getElementById('report-author').value || '이름없음';
+        const topicRef = document.getElementById('topic-reference').value || '수학탐구';
+
+        // Generate filename: 주제명_이름
+        const filename = `${topicRef}_${author}`.replace(/[^a-zA-Z0-9가-힣_]/g, '_');
+
+        // Get the preview content
+        const previewContent = document.getElementById('preview-content').innerHTML;
+
+        // Build HTML content
+        const htmlContent = '<!DOCTYPE html>\n' +
+'<html lang="ko">\n' +
+'<head>\n' +
+'  <meta charset="UTF-8">\n' +
+'  <meta name="viewport" content="width=device-width, initial-scale=1.0">\n' +
+'  <title>' + title + '</title>\n' +
+'  <link rel="preconnect" href="https://fonts.googleapis.com">\n' +
+'  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>\n' +
+'  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">\n' +
+'  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">\n' +
+'  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"><\/script>\n' +
+'  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"><\/script>\n' +
+'  <style>\n' +
+'    :root {\n' +
+'      --bg: #f7fafc;\n' +
+'      --card: #ffffff;\n' +
+'      --ink: #0f172a;\n' +
+'      --muted: #475569;\n' +
+'      --accent: #1d4ed8;\n' +
+'      --pill: #eef2ff;\n' +
+'    }\n' +
+'    * { box-sizing: border-box; }\n' +
+'    body {\n' +
+'      font-family: "Noto Sans KR", system-ui, -apple-system, sans-serif;\n' +
+'      background: white;\n' +
+'      color: var(--ink);\n' +
+'      margin: 0;\n' +
+'      padding: 2rem;\n' +
+'      max-width: 1000px;\n' +
+'      margin: 0 auto;\n' +
+'    }\n' +
+'    .prose { line-height: 1.7; }\n' +
+'    .prose h1 { font-size: 2rem; font-weight: 700; margin: 1.5rem 0 1rem; }\n' +
+'    .prose h2 { font-size: 1.5rem; font-weight: 700; margin: 1.25rem 0 0.75rem; color: var(--accent); }\n' +
+'    .prose h3 { font-size: 1.25rem; font-weight: 600; margin: 1rem 0 0.5rem; }\n' +
+'    .prose p { margin: 0.75rem 0; }\n' +
+'    .prose ul, .prose ol { padding-left: 2rem; margin: 0.75rem 0; }\n' +
+'    .prose li { margin: 0.5rem 0; }\n' +
+'    .prose code { background: #f1f5f9; padding: 0.2rem 0.4rem; border-radius: 0.25rem; font-family: monospace; }\n' +
+'    .prose pre { background: #1e293b; color: #e2e8f0; padding: 1rem; border-radius: 0.5rem; overflow-x: auto; }\n' +
+'    .prose pre code { background: transparent; padding: 0; }\n' +
+'    .prose img { max-width: 100%; height: auto; border-radius: 0.5rem; margin: 1rem 0; }\n' +
+'  </style>\n' +
+'</head>\n' +
+'<body>\n' +
+'  ' + previewContent + '\n' +
+'  <script>\n' +
+'    window.addEventListener("DOMContentLoaded", () => {\n' +
+'      if (window.renderMathInElement) {\n' +
+'        renderMathInElement(document.body, {\n' +
+'          delimiters: [\n' +
+'            {left: "$$", right: "$$", display: true},\n' +
+'            {left: "$", right: "$", display: false},\n' +
+'            {left: "\\\\(", right: "\\\\)", display: false},\n' +
+'            {left: "\\\\[", right: "\\\\]", display: true}\n' +
+'          ],\n' +
+'          throwOnError: false\n' +
+'        });\n' +
+'      }\n' +
+'    });\n' +
+'  <\/script>\n' +
+'</body>\n' +
+'</html>';
+
+        const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${filename}.html`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
       }
     };
 
