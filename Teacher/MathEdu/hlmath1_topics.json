@@ -577,10 +577,10 @@
     "doi": "",
     "ref": "[https://scholar.google.com/scholar?q=De+Moivre+education](https://scholar.google.com/scholar?q=De+Moivre+education)",
     "flow": {
-      "observation": "(cos+isin)^n 전개가 규칙을 만듦.",
+      "observation": "$(\\cos \\theta +i \\sin \\theta)^n$ 전개가 규칙을 만듦.",
       "simplification": "오일러 공식 사용.",
       "visualization": "Python",
-      "formulation": "$(\\cos\\theta+i\\sin\\theta)^n=\\cos n\\theta+i\\sin n\\theta$",
+      "formulation": "$(\\cos\\theta+i\\sin\\theta)^n=\\cos n\\theta+i \\sin n\\theta$",
       "advanced": "체비셰프 다항식과 연결"
     }
   },
@@ -970,7 +970,7 @@
       "observation": "부모-자식 계층과 깊이 관찰.",
       "simplification": "사이클 없는 연결 그래프.",
       "visualization": "GeoGebra",
-      "formulation": "$\\text{높이·깊이·서브트리}$",
+      "formulation": "높이·깊이·서브트리",
       "advanced": "LCA·트리 동적 계획법 소개"
     }
   },
@@ -985,7 +985,7 @@
       "observation": "모든 정점 연결·총 비용 최소.",
       "simplification": "연결·양의 가중치.",
       "visualization": "Python",
-      "formulation": "$\\text{Kruskal: 정렬+Union-Find}$",
+      "formulation": "Kruskal: 정렬+Union-Find",
       "advanced": "실시간 네트워크 설계 응용"
     }
   },
@@ -1030,7 +1030,7 @@
       "observation": "탐색 순서·경로 차이 체험.",
       "simplification": "격자 그래프 모델.",
       "visualization": "HTML/JS",
-      "formulation": "$\\text{큐/스택 기반 탐색}$",
+      "formulation": "큐/스택 기반 탐색",
       "advanced": "가중치 포함(0-1 BFS) 확장"
     }
   },
@@ -1060,7 +1060,7 @@
       "observation": "허브 제거 시 분리 가속.",
       "simplification": "무작위/스케일프리 모델.",
       "visualization": "Python",
-      "formulation": "$\\text{연결성 확률·거대 성분 크기}$",
+      "formulation": "연결성 확률·거대 성분 크기",
       "advanced": "퍼콜레이션 임계 분석"
     }
   },
@@ -1075,7 +1075,7 @@
       "observation": "비슷한 픽셀끼리 묶임.",
       "simplification": "유사도 가중치 정의.",
       "visualization": "Python",
-      "formulation": "$\\text{Cut/Normalized Cut 최소화}$",
+      "formulation": "Cut/Normalized Cut 최소화",
       "advanced": "스펙트럴 클러스터링 비교"
     }
   },
