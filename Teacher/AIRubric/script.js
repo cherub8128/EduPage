@@ -49,6 +49,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const externalPresets = [
     { name: 'AI 모델 탐사 보고서', path: 'data/ai_model_report.json' },
+    { name: '유니티 강화학습 보고서', path: 'data/unity_reinforcement.json' },
     { name: '고급 수학 벡터 보고서', path: 'data/high_level_math1_vector_report.json' },
     { name: '고급 수학 행렬 보고서', path: 'data/high_level_math1_matrix_report.json' },
     { name: '고급 수학 복소수와 극형식 보고서', path: 'data/high_level_math1_complex_report.json' },
