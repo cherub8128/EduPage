@@ -1,1187 +1,1097 @@
 [
-  {
-    "cat": "vector",
-    "title": "로렌츠 끌개와 카오스",
-    "desc": "3변수 벡터 미분방정식으로 대기 대류의 카오스 궤도를 탐구합니다.",
-    "tools": ["Python"],
-    "doi": "10.1175/1520-0469(1963)020<0130:DNF>2.0.CO;2",
-    "ref": "[https://scholar.google.com/scholar?q=Lorenz+1963+Deterministic+Nonperiodic+Flow](https://scholar.google.com/scholar?q=Lorenz+1963+Deterministic+Nonperiodic+Flow)",
-    "flow": {
-      "observation": "대류 실험/데이터에서 나비형 궤도가 관찰됩니다.",
-      "simplification": "로렌츠 3식으로 유체 방정식을 축약합니다.",
-      "visualization": "Python",
-      "formulation": "$$1$1dot x=$1$1sigma(y-x),$1$1;$1$1dot y=x($1$1rho-z)-y,$1$1;$1$1dot z=xy-$1$1beta z$",
-      "advanced": "파라미터 변화에 따른 분기·프랙탈 차원 분석"
-    }
-  },
-  {
-    "cat": "vector",
-    "title": "Boids 군집운동 벡터 모델",
-    "desc": "정렬·응집·분리 규칙의 속도벡터 합으로 무리 운동을 시뮬레이션합니다.",
-    "tools": ["HTML/JS"],
-    "doi": "10.1145/37402.37406",
-    "ref": "[https://scholar.google.com/scholar?q=Reynolds+1987+Flocks+Herds+and+Schools](https://scholar.google.com/scholar?q=Reynolds+1987+Flocks+Herds+and+Schools)",
-    "flow": {
-      "observation": "새 떼·물고기 떼의 집단 패턴을 관찰합니다.",
-      "simplification": "개체를 질점, 국소 이웃만 고려합니다.",
-      "visualization": "HTML/JS",
-      "formulation": "$v_{new}=v+c_1$1$1,$1$1text{align}+c_2$1$1,$1$1text{cohere}+c_3$1$1,$1$1text{separate}$",
-      "advanced": "시야각, 밀도, 장애물 포함 군집 패턴 비교"
-    }
-  },
-  {
-    "cat": "vector",
-    "title": "마그누스 효과와 회전 공의 궤적",
-    "desc": "회전벡터와 속도벡터의 외적으로 횡력을 모델링합니다.",
-    "tools": ["Python", "GeoGebra"],
-    "doi": "10.1119/1.2805242",
-    "ref": "[https://scholar.google.com/scholar?q=Alan+Nathan+spin+baseball+2008](https://scholar.google.com/scholar?q=Alan+Nathan+spin+baseball+2008)",
-    "flow": {
-      "observation": "커브볼/프리킥 궤도가 휘어지는 현상을 봅니다.",
-      "simplification": "이상 유체·상수 계수 저항 가정.",
-      "visualization": "Python",
-      "formulation": "$m$1$1ddot{r}=m$1$1mathbf g+k$1$1,$1$1boldsymbol$1$1omega$1$1times$1$1mathbf v$",
-      "advanced": "레이놀즈 수에 따른 역마그누스 전이 분석"
-    }
-  },
-  {
-    "cat": "vector",
-    "title": "팽이 세차운동과 자이로스코프",
-    "desc": "토크와 각운동량 벡터 관계로 세차 속도를 해석합니다.",
-    "tools": ["MATLAB", "HTML/JS"],
-    "doi": "10.1119/1.1479741",
-    "ref": "[https://scholar.google.com/scholar?q=tippe+top+precession+American+Journal+of+Physics+2002](https://scholar.google.com/scholar?q=tippe+top+precession+American+Journal+of+Physics+2002)",
-    "flow": {
-      "observation": "돌아가는 팽이 축이 천천히 도는 현상을 관찰합니다.",
-      "simplification": "대칭 강체·마찰 무시 모델.",
-      "visualization": "MATLAB",
-      "formulation": "$$1$1dot{$1$1mathbf L}=$1$1boldsymbol$1$1tau,$1$1;$1$1Omega$1$1approx$1$1dfrac{mgr}{L}$",
-      "advanced": "마찰 포함 감쇠 세차·너테이션 수치해석"
-    }
-  },
-  {
-    "cat": "vector",
-    "title": "런지–렌츠(LRL) 벡터와 행성 궤도",
-    "desc": "2체 문제에서 궤도 장축 방향을 보존하는 벡터를 시각화합니다.",
-    "tools": ["Python"],
-    "doi": "10.1119/1.1524165",
-    "ref": "[https://scholar.google.com/scholar?q=Laplace+Runge+Lenz+vector+education](https://scholar.google.com/scholar?q=Laplace+Runge+Lenz+vector+education)",
-    "flow": {
-      "observation": "타원 궤도의 방향성이 일정함을 관찰합니다.",
-      "simplification": "점질량 2체·섭동 무시.",
-      "visualization": "Python",
-      "formulation": "$$1$1mathbf A=$1$1mathbf v$1$1times$1$1mathbf H-$1$1mu$1$1,$1$1dfrac{$1$1mathbf r}{r}$",
-      "advanced": "GR 섭동 시 perihelion 이동·LRL 변화 탐구"
-    }
-  },
-  {
-    "cat": "vector",
-    "title": "대권 항로와 구면 벡터기하",
-    "desc": "위치벡터와 법선벡터로 지구 표면 최단 경로를 구합니다.",
-    "tools": ["GeoGebra", "Python"],
-    "doi": "",
-    "ref": "[https://scholar.google.com/scholar?q=great+circle+navigation+vector+parametric+form](https://scholar.google.com/scholar?q=great+circle+navigation+vector+parametric+form)",
-    "flow": {
-      "observation": "항공기가 고위도로 우회하는 경로를 봅니다.",
-      "simplification": "지구를 완전한 구로 이상화.",
-      "visualization": "GeoGebra",
-      "formulation": "$$1$1mathbf r(t)=$1$1frac{$1$1sin((1-t)$1$1theta)}{$1$1sin$1$1theta}$1$1mathbf A+$1$1frac{$1$1sin(t$1$1theta)}{$1$1sin$1$1theta}$1$1mathbf B$",
-      "advanced": "WGS84 타원체 보정·륌브선 비교"
-    }
-  },
-  {
-    "cat": "vector",
-    "title": "푸코 진자와 코리올리 힘",
-    "desc": "회전계에서의 가짜힘을 벡터 외적으로 설명합니다.",
-    "tools": ["MATLAB", "HTML/JS"],
-    "doi": "10.1119/5.0150867",
-    "ref": "[https://scholar.google.com/scholar?q=Foucault+pendulum+Coriolis+The+Physics+Teacher+2024](https://scholar.google.com/scholar?q=Foucault+pendulum+Coriolis+The+Physics+Teacher+2024)",
-    "flow": {
-      "observation": "진자 진동면이 하루에 걸쳐 회전함을 봅니다.",
-      "simplification": "소진폭, 회전구 무시, 코리올리만 고려.",
-      "visualization": "MATLAB",
-      "formulation": "$$1$1mathbf a_c=2$1$1,$1$1boldsymbol$1$1Omega$1$1times$1$1mathbf v,$1$1;$1$1Omega_{plane}=2$1$1Omega$1$1sin$1$1lambda$",
-      "advanced": "위도별 회전속도 비교·유체 소용돌이 연결"
-    }
-  },
-  {
-    "cat": "vector",
-    "title": "교류(AC) 페이저의 벡터 기하",
-    "desc": "회전하는 복소벡터로 위상과 전력 계산을 단순화합니다.",
-    "tools": ["GeoGebra", "Python"],
-    "doi": "",
-    "ref": "[https://scholar.google.com/scholar?q=phasor+education+AC+circuits](https://scholar.google.com/scholar?q=phasor+education+AC+circuits)",
-    "flow": {
-      "observation": "위상차가 있는 전압/전류를 비교합니다.",
-      "simplification": "단일 주파수 정현파 가정.",
-      "visualization": "GeoGebra",
-      "formulation": "$V(t)=$1$1Re$1$1{V_0 e^{j($1$1omega t+$1$1phi)}$1$1},$1$1;S=VI^*$",
-      "advanced": "역률 보정·병렬/직렬 공진 해석"
-    }
-  },
-  {
-    "cat": "vector",
-    "title": "4차원 테서랙트의 벡터 투영",
-    "desc": "4D 좌표를 3D로 투영하는 회전·투영 변환을 구현합니다.",
-    "tools": ["HTML/JS", "Python"],
-    "doi": "",
-    "ref": "[https://scholar.google.com/scholar?q=Hypercube+projection+education+Banchoff](https://scholar.google.com/scholar?q=Hypercube+projection+education+Banchoff)",
-    "flow": {
-      "observation": "4D 큐브의 3D 그림자를 관찰합니다.",
-      "simplification": "정점 (±1,±1,±1,±1) 단위 테서랙트.",
-      "visualization": "HTML/JS",
-      "formulation": "$$1$1mathbf x' = P$1$1,R($1$1alpha,$1$1beta,$1$1gamma,$1$1delta)$1$1,$1$1mathbf x$",
-      "advanced": "4D 회전군 성질·정다면체 확장 탐구"
-    }
-  },
-  {
-    "cat": "vector",
-    "title": "유도전동기의 dq 벡터 제어",
-    "desc": "Park 변환으로 자속·토크를 직교 벡터로 분리 제어합니다.",
-    "tools": ["MATLAB", "GeoGebra"],
-    "doi": "10.1109/IECON.1972.0034049",
-    "ref": "[https://scholar.google.com/scholar?q=Blaschke+field+oriented+control+1972](https://scholar.google.com/scholar?q=Blaschke+field+oriented+control+1972)",
-    "flow": {
-      "observation": "AC 모터가 정밀 제어되는 현상을 봅니다.",
-      "simplification": "3상 정현파·선형 등가 모델.",
-      "visualization": "MATLAB",
-      "formulation": "$[i_d$1$1;i_q]^T=T($1$1theta)[i_a$1$1;i_b$1$1;i_c]^T$",
-      "advanced": "파라미터 불확실성·SVPWM·관측기 설계"
-    }
-  },
-  {
-    "cat": "vector",
-    "title": "TRIAD로 위성 자세 추정",
-    "desc": "두 기준 벡터 측정으로 3D 회전행렬을 복원합니다.",
-    "tools": ["Python"],
-    "doi": "10.2514/3.2868",
-    "ref": "[https://scholar.google.com/scholar?q=Black+1964+Passive+System+Attitude+TRIAD](https://scholar.google.com/scholar?q=Black+1964+Passive+System+Attitude+TRIAD)",
-    "flow": {
-      "observation": "자력계·태양센서로 자세를 구합니다.",
-      "simplification": "노이즈 무시·두 비공선 벡터 가정.",
-      "visualization": "Python",
-      "formulation": "$R=[s_1$1$1;s_2$1$1;s_3][t_1$1$1;t_2$1$1;t_3]^T$",
-      "advanced": "QUEST·EKF 융합·잡음 민감도 분석"
-    }
-  },
-  {
-    "cat": "vector",
-    "title": "삼체 8자 주기 궤도의 수치 재현",
-    "desc": "대칭 초기조건의 세 질점 중력계를 적분합니다.",
-    "tools": ["Python"],
-    "doi": "10.1103/PhysRevLett.70.3675",
-    "ref": "[https://scholar.google.com/scholar?q=figure+eight+three+body+orbit+Moore+1993](https://scholar.google.com/scholar?q=figure+eight+three+body+orbit+Moore+1993)",
-    "flow": {
-      "observation": "세 천체가 8자 궤도를 추는 현상을 봅니다.",
-      "simplification": "동질량·뉴턴 중력·섭동 무시.",
-      "visualization": "Python",
-      "formulation": "$m$1$1ddot{$1$1mathbf r}*i=$1$1sum*{j$1$1neq i}Gm^2$1$1dfrac{$1$1mathbf r_j-$1$1mathbf r_i}{$1$1|$1$1mathbf r_j-$1$1mathbf r_i$1$1|^3}$",
-      "advanced": "안정성·다른 대칭 주기해 탐색"
-    }
-  },
-  {
-    "cat": "vector",
-    "title": "특수상대성의 4-벡터 해석",
-    "desc": "로렌츠 변환을 선형대수 관점에서 시각화합니다.",
-    "tools": ["HTML/JS", "Python"],
-    "doi": "",
-    "ref": "[https://scholar.google.com/scholar?q=Spacetime+Physics+Taylor+Wheeler](https://scholar.google.com/scholar?q=Spacetime+Physics+Taylor+Wheeler)",
-    "flow": {
-      "observation": "시간 지연·길이 수축 사례를 관찰합니다.",
-      "simplification": "등속 관성계·중력 무시.",
-      "visualization": "HTML/JS",
-      "formulation": "$X'=$1$1Lambda X,$1$1;ds^2=-(cdt)^2+dx^2+dy^2+dz^2$",
-      "advanced": "세계선·속도합성·Minkowski 도표 확장"
-    }
-  },
-  {
-    "cat": "vector",
-    "title": "편광과 Jones 벡터",
-    "desc": "빛의 전기장 성분을 2D 복소벡터로 표현합니다.",
-    "tools": ["Python", "MATLAB"],
-    "doi": "10.1103/PhysRevA.90.023809",
-    "ref": "[https://scholar.google.com/scholar?q=Sheppard+Jones+Stokes+3D+2014](https://scholar.google.com/scholar?q=Sheppard+Jones+Stokes+3D+2014)",
-    "flow": {
-      "observation": "선·원·타원 편광을 관찰합니다.",
-      "simplification": "단일파·완전 편광 가정.",
-      "visualization": "Python",
-      "formulation": "$E=$1$1begin{pmatrix}E_x$1$1$1$1E_y$1$1end{pmatrix},$1$1;I$1$1propto EE^*$",
-      "advanced": "연속 소자·Mueller 형식 비교"
-    }
-  },
-  {
-    "cat": "vector",
-    "title": "포식–피식자 벡터장(LV)",
-    "desc": "2D 동역학계 위상궤적으로 생태 주기를 해석합니다.",
-    "tools": ["Python"],
-    "doi": "10.1126/science.171.3969.385",
-    "ref": "[https://scholar.google.com/scholar?q=Rosenzweig+Paradox+of+Enrichment+1971](https://scholar.google.com/scholar?q=Rosenzweig+Paradox+of+Enrichment+1971)",
-    "flow": {
-      "observation": "토끼–스라소니 주기 데이터를 관찰합니다.",
-      "simplification": "2종 상호작용·환경 일정.",
-      "visualization": "Python",
-      "formulation": "$$1$1dot N=aN-bNP,$1$1;$1$1dot P=-cP+dNP$",
-      "advanced": "수확·환경 수용력 포함 확장"
-    }
-  },
-  {
-    "cat": "vector",
-    "title": "사막개미 경로적분과 귀소 벡터",
-    "desc": "걸음 벡터 누적으로 집까지의 순변위를 추정합니다.",
-    "tools": ["Python"],
-    "doi": "10.1073/pnas.85.14.5287",
-    "ref": "[https://scholar.google.com/scholar?q=M%C3%BCller+Wehner+1988+Path+integration+desert+ants](https://scholar.google.com/scholar?q=M%C3%BCller+Wehner+1988+Path+integration+desert+ants)",
-    "flow": {
-      "observation": "지그재그 후 직선 귀소를 관찰합니다.",
-      "simplification": "거리·방향 추정 오차 무시.",
-      "visualization": "Python",
-      "formulation": "$$1$1mathbf R=$1$1sum_{k=1}^n$1$1mathbf d_k$",
-      "advanced": "오차 누적·보정 전략(태양 나침반) 실험"
-    }
-  },
-  {
-    "cat": "vector",
-    "title": "PageRank와 고유벡터",
-    "desc": "링크 행렬의 지배 고유벡터로 페이지 중요도를 산출합니다.",
-    "tools": ["Python", "GeoGebra"],
-    "doi": "10.1016/S0169-7552(98)00110-X",
-    "ref": "[https://scholar.google.com/scholar?q=PageRank+Brin+Page+1998](https://scholar.google.com/scholar?q=PageRank+Brin+Page+1998)",
-    "flow": {
-      "observation": "인기 페이지가 상위에 오는 현상을 봅니다.",
-      "simplification": "랜덤 서퍼·감쇠인자 도입.",
-      "visualization": "Python",
-      "formulation": "$p=dL^Tp+(1-d)u$",
-      "advanced": "감쇠율 변화·스팸 링크 영향 분석"
-    }
-  },
-  {
-    "cat": "vector",
-    "title": "GPS 삼변측량의 벡터 해법",
-    "desc": "위성-사용자 거리 구 교차로 위치벡터를 복원합니다.",
-    "tools": ["Python", "GeoGebra"],
-    "doi": "10.1109/TAES.1985.310538",
-    "ref": "[https://scholar.google.com/scholar?q=Bancroft+1985+algebraic+solution+GPS](https://scholar.google.com/scholar?q=Bancroft+1985+algebraic+solution+GPS)",
-    "flow": {
-      "observation": "다중 위성으로 위치가 정해짐을 관찰합니다.",
-      "simplification": "지연·굴절 무시·4미지수 가정.",
-      "visualization": "GeoGebra",
-      "formulation": "$$1$1|$1$1mathbf x-$1$1mathbf s_i$1$1|^2=c^2(t_i-$1$1tau)^2$",
-      "advanced": "GDOP·칼만 필터 보정 탐구"
-    }
-  },
-  {
-    "cat": "vector",
-    "title": "자전거 자체안정과 벡터 동역학",
-    "desc": "선형화 상태벡터로 균형 안정 조건을 분석합니다.",
-    "tools": ["Python"],
-    "doi": "10.1126/science.1201959",
-    "ref": "[https://scholar.google.com/scholar?q=bicycle+self-stable+Kooijman+2011](https://scholar.google.com/scholar?q=bicycle+self-stable+Kooijman+2011)",
-    "flow": {
-      "observation": "무인 자전거가 똑바로 달리는 현상.",
-      "simplification": "소각도 선형·자이로/트레일 제거 모델.",
-      "visualization": "Python",
-      "formulation": "$M$1$1ddot x+C$1$1dot x+Kx=0$",
-      "advanced": "속도-안정 영역·특이치 분석"
-    }
-  },
-  {
-    "cat": "vector",
-    "title": "그래디언트 벡터와 에지 검출",
-    "desc": "밝기 함수의 기울기 벡터로 경계를 추출합니다.",
-    "tools": ["Python", "MATLAB"],
-    "doi": "10.1109/TPAMI.1986.4767851",
-    "ref": "[https://scholar.google.com/scholar?q=Canny+1986+edge+detection](https://scholar.google.com/scholar?q=Canny+1986+edge+detection)",
-    "flow": {
-      "observation": "윤곽선이 강한 변화 위치임을 관찰.",
-      "simplification": "그레이스케일·가우시안 블러 전처리.",
-      "visualization": "Python",
-      "formulation": "$$1$1nabla I=(I_x,I_y),$1$1;$1$1|$1$1nabla I$1$1|>T$",
-      "advanced": "비최대 억제·히스테리시스 임계값 실험"
-    }
-  },
-  {
-    "cat": "matrix",
-    "title": "마코프 전이행렬과 안정분포",
-    "desc": "전이행렬의 고유벡터로 장기 분포를 예측합니다.",
-    "tools": ["Python", "MATLAB"],
-    "doi": "",
-    "ref": "[https://scholar.google.com/scholar?q=Markov+chain+stationary+distribution+education](https://scholar.google.com/scholar?q=Markov+chain+stationary+distribution+education)",
-    "flow": {
-      "observation": "확률적 상태 전이가 수렴함을 관찰.",
-      "simplification": "유한 상태·정규성·불가약성 가정.",
-      "visualization": "Python",
-      "formulation": "$$1$1pi^T=$1$1pi^T P,$1$1;$1$1sum $1$1pi_i=1$",
-      "advanced": "혼합속도·스펙트럴 갭 분석"
-    }
-  },
-  {
-    "cat": "matrix",
-    "title": "가우스 소거와 회로해석",
-    "desc": "Kirchhoff 연립식을 행렬로 풀어 전류를 구합니다.",
-    "tools": ["Python"],
-    "doi": "",
-    "ref": "[https://scholar.google.com/scholar?q=Gaussian+elimination+circuit+Kirchhoff+education](https://scholar.google.com/scholar?q=Gaussian+elimination+circuit+Kirchhoff+education)",
-    "flow": {
-      "observation": "복잡 회로의 전류 분포를 측정합니다.",
-      "simplification": "선형 저항망·정상상태 가정.",
-      "visualization": "Python",
-      "formulation": "$A$1$1mathbf i=$1$1mathbf b,$1$1;$1$1mathbf i=A^{-1}$1$1mathbf b$",
-      "advanced": "희소 행렬·LU 분해 효율 비교"
-    }
-  },
-  {
-    "cat": "matrix",
-    "title": "2D 기하 변환의 행렬 표현",
-    "desc": "회전·대칭·닮음을 2×2 행렬로 모델링합니다.",
-    "tools": ["GeoGebra", "HTML/JS"],
-    "doi": "",
-    "ref": "[https://scholar.google.com/scholar?q=linear+transformation+geometry+education](https://scholar.google.com/scholar?q=linear+transformation+geometry+education)",
-    "flow": {
-      "observation": "도형이 선형변환으로 왜곡되는 모습.",
-      "simplification": "선형(원점 고정) 변환만 고려.",
-      "visualization": "GeoGebra",
-      "formulation": "$$1$1mathbf x' = A$1$1mathbf x$",
-      "advanced": "고유분해로 주축·스케일 해석"
-    }
-  },
-  {
-    "cat": "matrix",
-    "title": "로봇팔 정·역기구학과 행렬 곱",
-    "desc": "DH 파라미터 행렬의 곱으로 말단 위치를 계산합니다.",
-    "tools": ["Python", "MATLAB"],
-    "doi": "",
-    "ref": "[https://scholar.google.com/scholar?q=robot+kinematics+DH+parameters+education](https://scholar.google.com/scholar?q=robot+kinematics+DH+parameters+education)",
-    "flow": {
-      "observation": "관절 회전에 따른 말단 위치 변화를 관찰.",
-      "simplification": "강체 링크·조인트 이상화.",
-      "visualization": "Python",
-      "formulation": "$T=$1$1prod_i T_i($1$1theta_i,d_i,a_i,$1$1alpha_i)$",
-      "advanced": "자코비안·특이점 회피 경로계획"
-    }
-  },
-  {
-    "cat": "matrix",
-    "title": "질량-스프링 행렬과 고유모드",
-    "desc": "M,C,K 행렬의 고유값으로 공진과 모드를 찾습니다.",
-    "tools": ["MATLAB", "Python"],
-    "doi": "",
-    "ref": "[https://scholar.google.com/scholar?q=normal+modes+eigenvalues+education](https://scholar.google.com/scholar?q=normal+modes+eigenvalues+education)",
-    "flow": {
-      "observation": "연결된 질량이 특정 모양으로 진동.",
-      "simplification": "작은 진폭·선형 탄성 가정.",
-      "visualization": "MATLAB",
-      "formulation": "$M$1$1ddot x+C$1$1dot x+Kx=0,$1$1;K$1$1phi=$1$1omega^2 M$1$1phi$",
-      "advanced": "모드 중첩·감쇠 포함 응답"
-    }
-  },
-  {
-    "cat": "matrix",
-    "title": "야코비안으로 평형 안정성 해석",
-    "desc": "비선형계를 선형화해 고유값 부호로 안정성 판정.",
-    "tools": ["Python"],
-    "doi": "",
-    "ref": "[https://scholar.google.com/scholar?q=Jacobian+linearization+stability+education](https://scholar.google.com/scholar?q=Jacobian+linearization+stability+education)",
-    "flow": {
-      "observation": "평형 주변에서 수렴/발산 거동 관찰.",
-      "simplification": "테일러 1차 근사.",
-      "visualization": "Python",
-      "formulation": "$$1$1dot x=f(x),$1$1;$1$1dot $1$1xi=J$1$1xi,$1$1;J=$1$1partial f/$1$1partial x$",
-      "advanced": "Hopf 분기·비선형 효과 비교"
-    }
-  },
-  {
-    "cat": "matrix",
-    "title": "PCA와 고유분해",
-    "desc": "공분산 행렬의 고유벡터로 주성분을 구합니다.",
-    "tools": ["Python"],
-    "doi": "",
-    "ref": "[https://scholar.google.com/scholar?q=PCA+eigendecomposition+education](https://scholar.google.com/scholar?q=PCA+eigendecomposition+education)",
-    "flow": {
-      "observation": "고차원 데이터의 주축 방향을 관찰.",
-      "simplification": "평균 제거·선형성 가정.",
-      "visualization": "Python",
-      "formulation": "$$1$1Sigma=$1$1frac{1}{n}X^TX=Q$1$1Lambda Q^T$",
-      "advanced": "SVD 연결·차원 축소 성능 비교"
-    }
-  },
-  {
-    "cat": "matrix",
-    "title": "특이값 분해(SVD)와 영상 압축",
-    "desc": "랭크-k 근사로 화질-용량 트레이드오프를 실험합니다.",
-    "tools": ["Python", "MATLAB"],
-    "doi": "",
-    "ref": "[https://scholar.google.com/scholar?q=SVD+image+compression+education](https://scholar.google.com/scholar?q=SVD+image+compression+education)",
-    "flow": {
-      "observation": "낮은 랭크로도 형태가 유지됨을 관찰.",
-      "simplification": "회색조·노이즈 무시.",
-      "visualization": "Python",
-      "formulation": "$A$1$1approx U_k$1$1Sigma_k V_k^T$",
-      "advanced": "압축률·PSNR 곡선·컬러 확장"
-    }
-  },
-  {
-    "cat": "matrix",
-    "title": "Hill 암호와 역행렬",
-    "desc": "블록 문자 벡터를 행렬 곱으로 암복호화합니다.",
-    "tools": ["Python"],
-    "doi": "",
-    "ref": "[https://scholar.google.com/scholar?q=Hill+cipher+education](https://scholar.google.com/scholar?q=Hill+cipher+education)",
-    "flow": {
-      "observation": "행렬 키로 텍스트가 뒤섞임을 관찰.",
-      "simplification": "mod 26 선형 변환 가정.",
-      "visualization": "Python",
-      "formulation": "$C=K$1$1,P$1$1;($1$1bmod$1$1;26),$1$1;P=K^{-1}C$",
-      "advanced": "키 보안성·선형 대수 취약점 토론"
-    }
-  },
-  {
-    "cat": "matrix",
-    "title": "동차좌표와 아핀 변환",
-    "desc": "회전·이동·스케일을 3×3/4×4 하나로 묶습니다.",
-    "tools": ["HTML/JS", "GeoGebra"],
-    "doi": "",
-    "ref": "[https://scholar.google.com/scholar?q=homogeneous+coordinates+affine+transforms+education](https://scholar.google.com/scholar?q=homogeneous+coordinates+affine+transforms+education)",
-    "flow": {
-      "observation": "연속 변환 합성이 하나의 행렬이 됨.",
-      "simplification": "원근효과 무시(아핀만).",
-      "visualization": "HTML/JS",
-      "formulation": "$x' = Hx,$1$1;H=$1$1begin{pmatrix}A&t$1$1$1$10&1$1$1end{pmatrix}$",
-      "advanced": "원근투영 추가·역변환 안정성"
-    }
-  },
-  {
-    "cat": "matrix",
-    "title": "가상 카메라 뷰 행렬",
-    "desc": "모델→뷰→투영 행렬 파이프라인을 구현합니다.",
-    "tools": ["HTML/JS"],
-    "doi": "",
-    "ref": "[https://scholar.google.com/scholar?q=view+matrix+projection+education+graphics](https://scholar.google.com/scholar?q=view+matrix+projection+education+graphics)",
-    "flow": {
-      "observation": "카메라 이동/회전에 따른 장면 변화.",
-      "simplification": "핀홀 카메라·왜곡 무시.",
-      "visualization": "HTML/JS",
-      "formulation": "$x_{clip}=P$1$1,V$1$1,M$1$1,x_{model}$",
-      "advanced": "왜곡 모델·역투영(PnP) 연결"
-    }
-  },
-  {
-    "cat": "matrix",
-    "title": "행렬식과 면적·부피",
-    "desc": "행렬식의 기하 의미를 실험으로 확인합니다.",
-    "tools": ["GeoGebra"],
-    "doi": "",
-    "ref": "[https://scholar.google.com/scholar?q=determinant+area+volume+education](https://scholar.google.com/scholar?q=determinant+area+volume+education)",
-    "flow": {
-      "observation": "기저 변환이 넓이/부피를 스케일.",
-      "simplification": "선형 변환만 고려.",
-      "visualization": "GeoGebra",
-      "formulation": "$|$1$1det A|=$1$1text{면적/부피 배율}$",
-      "advanced": "오리엔테이션·외적 연결"
-    }
-  },
-  {
-    "cat": "matrix",
-    "title": "구조물 모드해석 유한요소 맛보기",
-    "desc": "강성·질량 행렬로 고유진동수를 계산합니다.",
-    "tools": ["MATLAB"],
-    "doi": "",
-    "ref": "[https://scholar.google.com/scholar?q=finite+element+eigenmode+education](https://scholar.google.com/scholar?q=finite+element+eigenmode+education)",
-    "flow": {
-      "observation": "보/판 구조의 모드 형태 관찰.",
-      "simplification": "선형 탄성·작은 변형.",
-      "visualization": "MATLAB",
-      "formulation": "$K$1$1phi=$1$1omega^2M$1$1phi$",
-      "advanced": "경계조건·감쇠 모델 비교"
-    }
-  },
-  {
-    "cat": "matrix",
-    "title": "영상 재구성과 선형 역문제",
-    "desc": "라돈 변환 행렬을 최소제곱으로 역문제 해결.",
-    "tools": ["Python", "MATLAB"],
-    "doi": "",
-    "ref": "[https://scholar.google.com/scholar?q=CT+reconstruction+linear+inverse+education](https://scholar.google.com/scholar?q=CT+reconstruction+linear+inverse+education)",
-    "flow": {
-      "observation": "투영 데이터로 원영상을 복원.",
-      "simplification": "잡음·산란 무시한 선형 모델.",
-      "visualization": "Python",
-      "formulation": "$$1$1min_x$1$1|Ax-b$1$1|*2^2$",
-      "advanced": "정규화(Tikhonov)·SIRT 비교"
-    }
-  },
-  {
-    "cat": "matrix",
-    "title": "산업연관표와 레온티에프 역행렬",
-    "desc": "최종수요 변화가 총산출에 미치는 효과 분석.",
-    "tools": ["Python"],
-    "doi": "",
-    "ref": "[https://scholar.google.com/scholar?q=Leontief+inverse+education](https://scholar.google.com/scholar?q=Leontief+inverse+education)",
-    "flow": {
-      "observation": "한 산업 수요가 전반 생산에 파급.",
-      "simplification": "고정 투입계수·선형 가정.",
-      "visualization": "Python",
-      "formulation": "$x=(I-A)^{-1}y$",
-      "advanced": "민감도·부문별 승수 분석"
-    }
-  },
-  {
-    "cat": "matrix",
-    "title": "로봇 자코비안과 속도제어",
-    "desc": "말단 속도를 관절속도와 선형관계로 연결합니다.",
-    "tools": ["MATLAB", "Python"],
-    "doi": "",
-    "ref": "[https://scholar.google.com/scholar?q=robot+jacobian+education](https://scholar.google.com/scholar?q=robot+jacobian+education)",
-    "flow": {
-      "observation": "관절 미소변화가 말단 위치/자세 변화.",
-      "simplification": "강체·비마찰 조인트.",
-      "visualization": "MATLAB",
-      "formulation": "$$1$1dot x=J($1$1theta)$1$1,$1$1dot$1$1theta$",
-      "advanced": "역자코비안·특이점 회피"
-    }
-  },
-  {
-    "cat": "complex_polar",
-    "title": "복소수 곱셈의 기하학",
-    "desc": "극형식으로 회전·확대를 해석합니다.",
-    "tools": ["GeoGebra"],
-    "doi": "",
-    "ref": "[https://scholar.google.com/scholar?q=complex+number+geometry+education](https://scholar.google.com/scholar?q=complex+number+geometry+education)",
-    "flow": {
-      "observation": "복소 곱이 방향·크기를 바꿈.",
-      "simplification": "평면 등각 변환 관점.",
-      "visualization": "GeoGebra",
-      "formulation": "$re^{i$1$1theta}$1$1cdot se^{i$1$1phi}=rs e^{i($1$1theta+$1$1phi)}$",
-      "advanced": "모비우스 변환 소개"
-    }
-  },
-  {
-    "cat": "complex_polar",
-    "title": "단위근과 정n각형",
-    "desc": "z^n=1의 해들을 복소평면에서 탐구합니다.",
-    "tools": ["Python", "GeoGebra"],
-    "doi": "",
-    "ref": "[https://scholar.google.com/scholar?q=roots+of+unity+geometry+education](https://scholar.google.com/scholar?q=roots+of+unity+geometry+education)",
-    "flow": {
-      "observation": "단위원 위 점들이 정n각형을 이룸.",
-      "simplification": "단위원·등간격 위상.",
-      "visualization": "GeoGebra",
-      "formulation": "$z_k=e^{2$1$1pi i k/n}$",
-      "advanced": "대칭군·FFT 연결"
-    }
-  },
-  {
-    "cat": "complex_polar",
-    "title": "드무아브르 정리와 삼각항등식",
-    "desc": "복소지수로 삼배각·배각 공식을 유도합니다.",
-    "tools": ["Python"],
-    "doi": "",
-    "ref": "[https://scholar.google.com/scholar?q=De+Moivre+education](https://scholar.google.com/scholar?q=De+Moivre+education)",
-    "flow": {
-      "observation": "(cos+isin)^n 전개가 규칙을 만듦.",
-      "simplification": "오일러 공식 사용.",
-      "visualization": "Python",
-      "formulation": "$($1$1cos$1$1theta+i$1$1sin$1$1theta)^n=$1$1cos n$1$1theta+i$1$1sin n$1$1theta$",
-      "advanced": "체비셰프 다항식과 연결"
-    }
-  },
-  {
-    "cat": "complex_polar",
-    "title": "극좌표 곡선: 장미곡선",
-    "desc": "r=a sin(nθ) 그래프와 대칭성을 분석합니다.",
-    "tools": ["GeoGebra", "Python"],
-    "doi": "",
-    "ref": "[https://scholar.google.com/scholar?q=rose+curve+education+polar](https://scholar.google.com/scholar?q=rose+curve+education+polar)",
-    "flow": {
-      "observation": "꽃잎 개수 규칙 확인.",
-      "simplification": "정수 n, a>0 가정.",
-      "visualization": "GeoGebra",
-      "formulation": "$r=a$1$1sin(n$1$1theta),$1$1;r=a$1$1cos(n$1$1theta)$",
-      "advanced": "곡률·호길이 계산"
-    }
-  },
-  {
-    "cat": "complex_polar",
-    "title": "편광과 복소 위상",
-    "desc": "두 직교 성분의 위상차로 편광 상태를 표현.",
-    "tools": ["MATLAB", "Python"],
-    "doi": "10.1103/PhysRevA.90.023809",
-    "ref": "[https://scholar.google.com/scholar?q=Jones+Stokes+3D+Sheppard](https://scholar.google.com/scholar?q=Jones+Stokes+3D+Sheppard)",
-    "flow": {
-      "observation": "선/원/타원 편광 실험 관찰.",
-      "simplification": "완전 편광·단일파.",
-      "visualization": "MATLAB",
-      "formulation": "$E=[A_x e^{i$1$1delta_x},A_y e^{i$1$1delta_y}]^T$",
-      "advanced": "Mueller 행렬·편광 측정"
-    }
-  },
-  {
-    "cat": "complex_polar",
-    "title": "푸리에 급수의 복소지수 표현",
-    "desc": "주기함수를 e^{inx} 기저로 전개합니다.",
-    "tools": ["Python"],
-    "doi": "",
-    "ref": "[https://scholar.google.com/scholar?q=complex+Fourier+series+education](https://scholar.google.com/scholar?q=complex+Fourier+series+education)",
-    "flow": {
-      "observation": "소리/파형이 주파수 성분의 합.",
-      "simplification": "주기함수·정칙성 가정.",
-      "visualization": "Python",
-      "formulation": "$f(x)=$1$1sum c_n e^{inx},$1$1;c_n=$1$1frac{1}{2$1$1pi}$1$1int f e^{-inx}$",
-      "advanced": "깁스 현상·필터링"
-    }
-  },
-  {
-    "cat": "complex_polar",
-    "title": "임피던스와 극형식",
-    "desc": "Z=R+jX를 극형식으로 분석해 위상·전력을 계산.",
-    "tools": ["GeoGebra", "Python"],
-    "doi": "",
-    "ref": "[https://scholar.google.com/scholar?q=impedance+phasor+education](https://scholar.google.com/scholar?q=impedance+phasor+education)",
-    "flow": {
-      "observation": "RC/RL 위상지연 관측.",
-      "simplification": "정현파 정상상태.",
-      "visualization": "GeoGebra",
-      "formulation": "$I=V/Z,$1$1;P=VI$1$1cos$1$1phi$",
-      "advanced": "공진 주파수 최적화"
-    }
-  },
-  {
-    "cat": "complex_polar",
-    "title": "망델브로/줄리아 프랙탈",
-    "desc": "복소 이터레이션의 수렴/발산 경계를 시각화.",
-    "tools": ["Python", "HTML/JS"],
-    "doi": "",
-    "ref": "[https://scholar.google.com/scholar?q=Mandelbrot+Julia+education](https://scholar.google.com/scholar?q=Mandelbrot+Julia+education)",
-    "flow": {
-      "observation": "프랙탈 경계의 자기유사성.",
-      "simplification": "z*{n+1}=z_n^2+c 단순식.",
-      "visualization": "Python",
-      "formulation": "$c$1$1in $1$1mathbb C,$1$1;$1$1sup_n|z_n|<$1$1infty?$",
-      "advanced": "파라미터 공간 탐색"
-    }
-  },
-  {
-    "cat": "complex_polar",
-    "title": "Hilbert 변환과 해석신호",
-    "desc": "복소 해석신호로 순간 진폭·위상을 구합니다.",
-    "tools": ["Python", "MATLAB"],
-    "doi": "",
-    "ref": "[https://scholar.google.com/scholar?q=Hilbert+transform+analytic+signal+education](https://scholar.google.com/scholar?q=Hilbert+transform+analytic+signal+education)",
-    "flow": {
-      "observation": "진동 신호의 포락선·위상 관찰.",
-      "simplification": "협대역 신호 가정.",
-      "visualization": "MATLAB",
-      "formulation": "$x_a=x+j$1$1,$1$1mathcal H$1$1{x$1$1}=A e^{j$1$1phi}$",
-      "advanced": "EEG/ECG 신호분석 적용"
-    }
-  },
-  {
-    "cat": "complex_polar",
-    "title": "복소 로그와 분지절단",
-    "desc": "다가 로그의 주가지를 정의하고 시각화합니다.",
-    "tools": ["Python"],
-    "doi": "",
-    "ref": "[https://scholar.google.com/scholar?q=complex+logarithm+branch+cut+education](https://scholar.google.com/scholar?q=complex+logarithm+branch+cut+education)",
-    "flow": {
-      "observation": "log z가 나선형 표면을 형성.",
-      "simplification": "분지절단으로 단일값화.",
-      "visualization": "Python",
-      "formulation": "$$1$1log z=$1$1ln|z|+i$1$1arg z,$1$1;$1$1arg$1$1in(-$1$1pi,$1$1pi]$",
-      "advanced": "복소 거듭제곱·다가성 탐구"
-    }
-  },
-  {
-    "cat": "complex_polar",
-    "title": "극좌표 접선과 교각",
-    "desc": "극방정식 곡선의 접선 기울기와 교각을 구합니다.",
-    "tools": ["GeoGebra"],
-    "doi": "",
-    "ref": "[https://scholar.google.com/scholar?q=polar+curve+tangent+angle+education](https://scholar.google.com/scholar?q=polar+curve+tangent+angle+education)",
-    "flow": {
-      "observation": "극곡선의 접선 방향을 관찰.",
-      "simplification": "r=r($1$1theta) 미분 가능.",
-      "visualization": "GeoGebra",
-      "formulation": "$$1$1tan$1$1psi=$1$1frac{r}{dr/d$1$1theta}$",
-      "advanced": "두 극곡선 교각 계산"
-    }
-  },
-  {
-    "cat": "complex_polar",
-    "title": "직선·원의 복소 표현",
-    "desc": "복소 평면에서 직선과 원의 방정식을 유도.",
-    "tools": ["GeoGebra"],
-    "doi": "",
-    "ref": "[https://scholar.google.com/scholar?q=complex+plane+line+circle+equation](https://scholar.google.com/scholar?q=complex+plane+line+circle+equation)",
-    "flow": {
-      "observation": "거리·투영이 간단히 표현됨.",
-      "simplification": "유클리드 평면 가정.",
-      "visualization": "GeoGebra",
-      "formulation": "$|z-a|=r,$1$1;$1$1Re$1$1{(z-a)$1$1overline{b}$1$1}=0$",
-      "advanced": "모비우스 변환의 원-직선 보존"
-    }
-  },
-  {
-    "cat": "complex_polar",
-    "title": "복소 지수와 2차 진동",
-    "desc": "선형 상미분방정식 해를 복소 지수로 표현.",
-    "tools": ["Python"],
-    "doi": "",
-    "ref": "[https://scholar.google.com/scholar?q=complex+exponential+ODE+education](https://scholar.google.com/scholar?q=complex+exponential+ODE+education)",
-    "flow": {
-      "observation": "감쇠/증폭 진동 파형 관찰.",
-      "simplification": "상수계수·선형 ODE.",
-      "visualization": "Python",
-      "formulation": "$y''+ay'+by=0$1$1Rightarrow e^{rt}$",
-      "advanced": "실수해로의 변환·공진 해석"
-    }
-  },
-  {
-    "cat": "complex_polar",
-    "title": "Lambert W와 복소 근",
-    "desc": "x e^x=a 유형 방정식을 Lambert W로 풉니다.",
-    "tools": ["Python"],
-    "doi": "",
-    "ref": "[https://scholar.google.com/scholar?q=Lambert+W+education](https://scholar.google.com/scholar?q=Lambert+W+education)",
-    "flow": {
-      "observation": "실수해 외 복소해 다가 존재.",
-      "simplification": "분지별 해 정의.",
-      "visualization": "Python",
-      "formulation": "$x=W(a)$1$1Rightarrow x e^x=a$",
-      "advanced": "복소분지 시각화·수렴성"
-    }
-  },
-  {
-    "cat": "complex_polar",
-    "title": "복소수와 응력집중(쌍곡좌표)",
-    "desc": "복소 잠재함수로 구멍 주변 응력장을 근사.",
-    "tools": ["MATLAB"],
-    "doi": "",
-    "ref": "[https://scholar.google.com/scholar?q=complex+potential+plane+elasticity+education](https://scholar.google.com/scholar?q=complex+potential+plane+elasticity+education)",
-    "flow": {
-      "observation": "구멍 가장자리에 응력 집중.",
-      "simplification": "평면응력·선형탄성.",
-      "visualization": "MATLAB",
-      "formulation": "Airy 함수/복소 잠재함수 이용",
-      "advanced": "타공 형상별 $K_t$ 비교"
-    }
-  },
-  {
-    "cat": "complex_polar",
-    "title": "복소 신경망 개념 체험",
-    "desc": "가중치·활성화에 복소수를 도입해 학습 실험.",
-    "tools": ["Python"],
-    "doi": "",
-    "ref": "[https://scholar.google.com/scholar?q=complex-valued+neural+networks+education](https://scholar.google.com/scholar?q=complex-valued+neural+networks+education)",
-    "flow": {
-      "observation": "위상 정보가 특징 추출에 기여.",
-      "simplification": "소형 데이터·단층 모델.",
-      "visualization": "Python",
-      "formulation": "$z'=$1$1phi(Wz+b)$",
-      "advanced": "안정성/적대적 강인성 비교"
-    }
-  },
-  {
-    "cat": "complex_polar",
-    "title": "에피사이클로이드의 복소 매개화",
-    "desc": "회전 원의 합성 회전을 e^{iθ}로 표현.",
-    "tools": ["HTML/JS", "Python"],
-    "doi": "",
-    "ref": "[https://scholar.google.com/scholar?q=epicycloid+complex+parametrization+education](https://scholar.google.com/scholar?q=epicycloid+complex+parametrization+education)",
-    "flow": {
-      "observation": "톱니 모양 궤적을 관찰.",
-      "simplification": "두 원의 순수 회전·굴림.",
-      "visualization": "HTML/JS",
-      "formulation": "$z($1$1theta)=R e^{i$1$1theta}+r e^{i$1$1frac{R}{r}$1$1theta}$",
-      "advanced": "카우스틱·포락선 연결"
-    }
-  },
-  {
-    "cat": "graph",
-    "title": "오일러 경로와 7개 다리",
-    "desc": "오일러 경로 조건을 도시 다리 문제로 확인.",
-    "tools": ["GeoGebra", "HTML/JS"],
-    "doi": "",
-    "ref": "[https://scholar.google.com/scholar?q=K%C3%B6nigsberg+bridges+education](https://scholar.google.com/scholar?q=K%C3%B6nigsberg+bridges+education)",
-    "flow": {
-      "observation": "모든 다리를 한 번씩 건널 수 있는가?",
-      "simplification": "교차/다리는 간선, 지점은 정점.",
-      "visualization": "HTML/JS",
-      "formulation": "모든 정점 차수 짝수 $$1$1Rightarrow$ 오일러 회로",
-      "advanced": "유향/가중 그래프로 확장"
-    }
-  },
-  {
-    "cat": "graph",
-    "title": "핸드셰이크 정리",
-    "desc": "차수 합이 간선 수의 두 배임을 실험 확인.",
-    "tools": ["GeoGebra"],
-    "doi": "",
-    "ref": "[https://scholar.google.com/scholar?q=handshaking+lemma+education](https://scholar.google.com/scholar?q=handshaking+lemma+education)",
-    "flow": {
-      "observation": "파티 악수 수와 사람별 악수 횟수.",
-      "simplification": "단순 무방향 그래프.",
-      "visualization": "GeoGebra",
-      "formulation": "$$1$1sum $1$1deg(v)=2|E|$",
-      "advanced": "자기고리/다중간선 포함 토론"
-    }
-  },
-  {
-    "cat": "graph",
-    "title": "인접행렬과 경로 개수",
-    "desc": "A^k의 (i,j) 원소가 길이 k 경로 수임을 증명.",
-    "tools": ["Python"],
-    "doi": "",
-    "ref": "[https://scholar.google.com/scholar?q=adjacency+matrix+walks+education](https://scholar.google.com/scholar?q=adjacency+matrix+walks+education)",
-    "flow": {
-      "observation": "제곱·세제곱과 경로 수 관계.",
-      "simplification": "무방향/단순 그래프 가정.",
-      "visualization": "Python",
-      "formulation": "$(A^k)*{ij}=$1$1#$1$1text{walks of length }k$",
-      "advanced": "유향·가중 그래프 확장"
-    }
-  },
-  {
-    "cat": "graph",
-    "title": "평면그래프와 오일러 지표",
-    "desc": "$V-E+F=2$를 다양한 평면그래프로 검증.",
-    "tools": ["GeoGebra"],
-    "doi": "",
-    "ref": "[https://scholar.google.com/scholar?q=planar+graph+Euler+characteristic+education](https://scholar.google.com/scholar?q=planar+graph+Euler+characteristic+education)",
-    "flow": {
-      "observation": "그림을 바꿔도 지표가 일정.",
-      "simplification": "연결·평면 임베딩.",
-      "visualization": "GeoGebra",
-      "formulation": "$V-E+F=2$",
-      "advanced": "비평면 그래프 $K_5,K*{3,3}$ 비교"
-    }
-  },
-  {
-    "cat": "graph",
-    "title": "비평면 그래프의 예",
-    "desc": "K5, K3,3가 평면에 그려지지 않음을 실험.",
-    "tools": ["HTML/JS"],
-    "doi": "",
-    "ref": "[https://scholar.google.com/scholar?q=Kuratowski+theorem+education](https://scholar.google.com/scholar?q=Kuratowski+theorem+education)",
-    "flow": {
-      "observation": "교차 제거 불가 사례 관찰.",
-      "simplification": "최소 비평면 그래프 선정.",
-      "visualization": "HTML/JS",
-      "formulation": "Kuratowski 소부그래프 존재",
-      "advanced": "와그너 정리·도식성 토론"
-    }
-  },
-  {
-    "cat": "graph",
-    "title": "오일러 vs 해밀턴",
-    "desc": "변-중심 vs 정점-중심 경로 차이를 비교.",
-    "tools": ["GeoGebra"],
-    "doi": "",
-    "ref": "[https://scholar.google.com/scholar?q=Euler+Hamiltonian+graph+education](https://scholar.google.com/scholar?q=Euler+Hamiltonian+graph+education)",
-    "flow": {
-      "observation": "한붓그리기와 여행자 문제 대비.",
-      "simplification": "작은 예제 그래프 구성.",
-      "visualization": "GeoGebra",
-      "formulation": "오일러: 차수 조건, 해밀턴: 충분조건 Dirac 등",
-      "advanced": "NP-완전성·휴리스틱 탐구"
-    }
-  },
-  {
-    "cat": "graph",
-    "title": "생성수형도 스패닝 트리",
-    "desc": "사이클을 제거해 모든 정점을 잇는 트리를 찾음.",
-    "tools": ["Python", "GeoGebra"],
-    "doi": "",
-    "ref": "[https://scholar.google.com/scholar?q=spanning+tree+education](https://scholar.google.com/scholar?q=spanning+tree+education)",
-    "flow": {
-      "observation": "최소 간선으로 연결 유지.",
-      "simplification": "연결 그래프 가정.",
-      "visualization": "Python",
-      "formulation": "$$1$1text{트리는 }|V|-1$1$1text{ 간선}$",
-      "advanced": "MST로 비용 최소화"
-    }
-  },
-  {
-    "cat": "graph",
-    "title": "지하철 노선 최단경로",
-    "desc": "역·구간을 그래프로 모델링해 길찾기.",
-    "tools": ["Python", "GeoGebra"],
-    "doi": "",
-    "ref": "[https://scholar.google.com/scholar?q=shortest+path+transport+education](https://scholar.google.com/scholar?q=shortest+path+transport+education)",
-    "flow": {
-      "observation": "환승 포함 최단 이동 경로 탐색.",
-      "simplification": "가중치=시간/거리.",
-      "visualization": "Python",
-      "formulation": "최단경로(Dijkstra)",
-      "advanced": "혼잡·환승 패널티 모델"
-    }
-  },
-  {
-    "cat": "graph",
-    "title": "다익스트라 알고리즘 실습",
-    "desc": "가중 그래프에서 단일 시작점 최단거리 계산.",
-    "tools": ["Python"],
-    "doi": "",
-    "ref": "[https://scholar.google.com/scholar?q=Dijkstra+algorithm+education](https://scholar.google.com/scholar?q=Dijkstra+algorithm+education)",
-    "flow": {
-      "observation": "프런티어 확장 과정 관찰.",
-      "simplification": "비음수 가중치 가정.",
-      "visualization": "Python",
-      "formulation": "우선순위 큐 기반 반복",
-      "advanced": "A* 휴리스틱 비교"
-    }
-  },
-  {
-    "cat": "graph",
-    "title": "체스 나이트 투어",
-    "desc": "나이트 이동 그래프의 해밀턴 경로 탐색.",
-    "tools": ["Python", "HTML/JS"],
-    "doi": "",
-    "ref": "[https://scholar.google.com/scholar?q=knight%27s+tour+graph+Hamiltonian+education](https://scholar.google.com/scholar?q=knight%27s+tour+graph+Hamiltonian+education)",
-    "flow": {
-      "observation": "모든 칸 1회 방문 경로 실험.",
-      "simplification": "정방 격자·이동 규칙.",
-      "visualization": "HTML/JS",
-      "formulation": "백트래킹/Warnsdorff 규칙",
-      "advanced": "보드 크기별 존재성 비교"
-    }
-  },
-  {
-    "cat": "graph",
-    "title": "6단계 분리와 그래프 지름",
-    "desc": "사회 네트워크 평균 경로 길이 측정.",
-    "tools": ["Python"],
-    "doi": "",
-    "ref": "[https://scholar.google.com/scholar?q=six+degrees+of+separation+graph+diameter+education](https://scholar.google.com/scholar?q=six+degrees+of+separation+graph+diameter+education)",
-    "flow": {
-      "observation": "작은 세계 현상 관찰.",
-      "simplification": "난수 그래프·스케일프리 모델.",
-      "visualization": "Python",
-      "formulation": "지름, 평균 거리 계산",
-      "advanced": "클러스터링 계수 비교"
-    }
-  },
-  {
-    "cat": "graph",
-    "title": "트리 구조와 계층 모델",
-    "desc": "가계도/조직도를 트리로 분석.",
-    "tools": ["GeoGebra"],
-    "doi": "",
-    "ref": "[https://scholar.google.com/scholar?q=tree+graph+education](https://scholar.google.com/scholar?q=tree+graph+education)",
-    "flow": {
-      "observation": "부모-자식 계층과 깊이 관찰.",
-      "simplification": "사이클 없는 연결 그래프.",
-      "visualization": "GeoGebra",
-      "formulation": "높이·깊이·서브트리",
-      "advanced": "LCA·트리 동적 계획법 소개"
-    }
-  },
-  {
-    "cat": "graph",
-    "title": "최소신장트리 MST",
-    "desc": "크루스칼/프림으로 비용 최소 연결망 구성.",
-    "tools": ["Python", "GeoGebra"],
-    "doi": "",
-    "ref": "[https://scholar.google.com/scholar?q=minimum+spanning+tree+education](https://scholar.google.com/scholar?q=minimum+spanning+tree+education)",
-    "flow": {
-      "observation": "모든 정점 연결·총 비용 최소.",
-      "simplification": "연결·양의 가중치.",
-      "visualization": "Python",
-      "formulation": "Kruskal: 정렬+Union-Find",
-      "advanced": "실시간 네트워크 설계 응용"
-    }
-  },
-  {
-    "cat": "graph",
-    "title": "그래프 2-색칠과 이분성",
-    "desc": "BFS로 이분 그래프 여부를 판정.",
-    "tools": ["Python"],
-    "doi": "",
-    "ref": "[https://scholar.google.com/scholar?q=bipartite+graph+2-coloring+education](https://scholar.google.com/scholar?q=bipartite+graph+2-coloring+education)",
-    "flow": {
-      "observation": "인접 정점 서로 다른 색.",
-      "simplification": "무향 단순 그래프.",
-      "visualization": "Python",
-      "formulation": "사이클 길이 짝수 $$1$1Leftrightarrow$ 이분성",
-      "advanced": "매칭·네트워크 플로우 연결"
-    }
-  },
-  {
-    "cat": "graph",
-    "title": "지도 색칠과 평면 그래프",
-    "desc": "국가 인접 그래프의 최소 색 수 실험.",
-    "tools": ["HTML/JS"],
-    "doi": "",
-    "ref": "[https://scholar.google.com/scholar?q=map+coloring+education](https://scholar.google.com/scholar?q=map+coloring+education)",
-    "flow": {
-      "observation": "인접 영역 다른 색으로 칠하기.",
-      "simplification": "평면 그래프 가정.",
-      "visualization": "HTML/JS",
-      "formulation": "$$1$1chi(G)$",
-      "advanced": "4색 정리 역사·컴퓨터 증명"
-    }
-  },
-  {
-    "cat": "graph",
-    "title": "BFS/DFS와 미로 탐색",
-    "desc": "그래프 탐색으로 최단/임의 경로 찾기.",
-    "tools": ["Python", "HTML/JS"],
-    "doi": "",
-    "ref": "[https://scholar.google.com/scholar?q=BFS+DFS+maze+education](https://scholar.google.com/scholar?q=BFS+DFS+maze+education)",
-    "flow": {
-      "observation": "탐색 순서·경로 차이 체험.",
-      "simplification": "격자 그래프 모델.",
-      "visualization": "HTML/JS",
-      "formulation": "큐/스택 기반 탐색",
-      "advanced": "가중치 포함(0-1 BFS) 확장"
-    }
-  },
-  {
-    "cat": "graph",
-    "title": "스펙트럴 그래프와 중심성",
-    "desc": "인접행렬 고유벡터로 영향력 측정.",
-    "tools": ["Python"],
-    "doi": "",
-    "ref": "[https://scholar.google.com/scholar?q=spectral+graph+centrality+education](https://scholar.google.com/scholar?q=spectral+graph+centrality+education)",
-    "flow": {
-      "observation": "중심 노드가 네트워크를 지배.",
-      "simplification": "정규화 필요시 정규화 라플라시안.",
-      "visualization": "Python",
-      "formulation": "$Ax=$1$1lambda x,$1$1;$1$1lambda_{max} $1$1text{ 관련 중심성}$",
-      "advanced": "PageRank·Katz 비교"
-    }
-  },
-  {
-    "cat": "graph",
-    "title": "네트워크 취약성과 신뢰성",
-    "desc": "노드/간선 제거가 연결성에 미치는 영향.",
-    "tools": ["Python"],
-    "doi": "",
-    "ref": "[https://scholar.google.com/scholar?q=network+robustness+percolation+education](https://scholar.google.com/scholar?q=network+robustness+percolation+education)",
-    "flow": {
-      "observation": "허브 제거 시 분리 가속.",
-      "simplification": "무작위/스케일프리 모델.",
-      "visualization": "Python",
-      "formulation": "연결성 확률·거대 성분 크기",
-      "advanced": "퍼콜레이션 임계 분석"
-    }
-  },
-  {
-    "cat": "graph",
-    "title": "그래프 기반 이미지 분할",
-    "desc": "픽셀을 그래프 노드로 보고 세그멘테이션.",
-    "tools": ["Python"],
-    "doi": "",
-    "ref": "[https://scholar.google.com/scholar?q=graph+cut+segmentation+education](https://scholar.google.com/scholar?q=graph+cut+segmentation+education)",
-    "flow": {
-      "observation": "비슷한 픽셀끼리 묶임.",
-      "simplification": "유사도 가중치 정의.",
-      "visualization": "Python",
-      "formulation": "Cut/Normalized Cut 최소화",
-      "advanced": "스펙트럴 클러스터링 비교"
-    }
-  },
-  {
-    "cat": "graph",
-    "title": "Matrix-Tree 정리와 스패닝 트리 개수",
-    "desc": "라플라시안 소행렬식으로 트리 수 계산.",
-    "tools": ["Python"],
-    "doi": "",
-    "ref": "[https://scholar.google.com/scholar?q=Matrix-Tree+theorem+education](https://scholar.google.com/scholar?q=Matrix-Tree+theorem+education)",
-    "flow": {
-      "observation": "작은 그래프의 모든 트리 열거.",
-      "simplification": "연결 그래프 가정.",
-      "visualization": "Python",
-      "formulation": "$$1$1tau(G)=$1$1det L_{ii}$",
-      "advanced": "가중 그래프 확장"
-    }
-  },
-  {
-    "cat": "graph",
-    "title": "분리된 평면 그래프에서 $V-E+F=1+c$",
-    "desc": "연결 성분이 여러 개인 평면 그래프에서 오일러 값이 2가 아닌 1+c가 됨을 실험으로 확인합니다.",
-    "tools": ["GeoGebra", "Python", "HTML/JS"],
-    "doi": "",
-    "ref": "https://www.math.ucdavis.edu/~webfiles/undergrad_thesis/202003_Wang_Thesis.pdf",
-    "flow": {
-      "observation": "평면에 두세 개의 분리된 그래프를 그려 면(바깥 면 포함) 개수를 세어 봅니다.",
-      "simplification": "모든 면이 원판(디스크)과 위상동형이 되도록 단순한 그래프만 고려합니다.",
-      "visualization": "GeoGebra로 성분 수를 바꾸며 $F$ 변화를 동적으로 확인.",
-      "formulation": "$V-E+F=1+c$ (연결 성분이 $c$개인 평면 그래프). 예: $c=2$1Rightarrow 3$, $c=3$1Rightarrow 4$",
-      "advanced": "성분을 연결하는 간선을 하나씩 추가하며 언제 $V-E+F$가 불변인지(면이 나뉠 때) 추적합니다."
-    }
-  },
-  {
-    "cat": "graph",
-    "title": "경계가 있는 표면 원판, 환대, 바지 표면에서의 오일러 특성",
-    "desc": "원판($$1chi=1$), 환대/고리띠($$1chi=0$), 바지 표면($$1chi=-1$)에 셀룰러 임베딩한 그래프로 $V-E+F$1in$1{1,0,-1$1}$을 검증합니다.",
-    "tools": ["GeoGebra", "HTML/JS"],
-    "doi": "",
-    "ref": "https://www.open.edu/openlearn/science-maths-technology/mathematics-statistics/surfaces/content-section-4.5.1",
-    "flow": {
-      "observation": "종이 모형으로 원판, 구멍 뚫린 원판(환대), ‘바지’ 표면을 만들고 그래프를 그려 셉니다.",
-      "simplification": "셀룰러 임베딩(모든 면이 디스크)만 고려합니다.",
-      "visualization": "HTML/JS로 경계 성분 수를 바꾸는 인터랙티브 도구 제작.",
-      "formulation": "$V-E+F=$1chi(S)$,$1; 경계가 $b$개인 가향 표면에서 $$1chi=2-2g-b$. 원판($g=0,b=1$): $1$, 환대($g=0,b=2$): $0$, 바지($g=0,b=3$): $-1$",
-      "advanced": "구멍/경계 추가·제거에 따른 $$1chi$의 덧셈법칙을 실험으로 확인합니다."
-    }
-  },
-  {
-    "cat": "graph",
-    "title": "토러스 위 그래프 $V-E+F=0$",
-    "desc": "가향 폐곡면의 일반화된 오일러 공식으로 토러스에서 $V-E+F=0$을 확인하고 비평면 그래프의 임베딩을 탐구합니다.",
-    "tools": ["Python", "HTML/JS"],
-    "doi": "",
-    "ref": "https://mathworld.wolfram.com/EulerCharacteristic.html",
-    "flow": {
-      "observation": "토러스 전개도(사각형의 맞붙임)를 사용해 $K_5$ 등의 그래프를 임베딩해 봅니다.",
-      "simplification": "셀룰러 임베딩이 되도록 면 경계를 단순 사이클로 구성합니다.",
-      "visualization": "HTML/JS로 사각형 ‘겹침’ 가장자리를 식별해 토러스 위 경로를 시각화.",
-      "formulation": "$V-E+F=$1chi(S)$,$1; 가향 폐곡면의 경우 $$1chi=2-2g$, 토러스($g=1$)에서 $$1chi=0$",
-      "advanced": "같은 그래프의 평면 임베딩 불가능성(쿠라토프스키)과 토러스 임베딩 가능성을 비교합니다."
-    }
-  },
-  {
-    "cat": "graph",
-    "title": "사영평면/클라인 병 등 비가향 표면에서 $V-E+F$1in$1{1,0,-1,$1dots$1}$",
-    "desc": "비가향 폐곡면의 오일러 특성 $$1chi=2-k$를 이용해 $$1chi=1$ 사영평면, $$1chi=0$ 클라인 병, $$1chi=-1$ 교차캡 3개 등 사례를 구성합니다.",
-    "tools": ["GeoGebra", "HTML/JS"],
-    "doi": "",
-    "ref": "https://faculty.etsu.edu/gardnerr/5340/notes-Bondy-Murty-GT/Bondy-Murty-GT-10-6.pdf",
-    "flow": {
-      "observation": "사영평면 도식(한 변에 반전 접합) 위에 $K_6$, Petersen 그래프 임베딩 예를 관찰합니다.",
-      "simplification": "셀룰러 임베딩만 고려하여 면이 모두 디스크가 되게 합니다.",
-      "visualization": "HTML/JS로 ‘테두리 식별’을 시뮬레이터로 구현해 면의 개수 변화를 자동 계산.",
-      "formulation": "$V-E+F=$1chi($1Sigma)$,$1; 비가향 폐곡면에서 $$1chi=2-k$ (교차캡 수 $k$). 예: 사영평면 $k=1$1Rightarrow1$, 클라인 병 $k=2$1Rightarrow0$, $k=3$1Rightarrow-1$",
-      "advanced": "동일 그래프의 서로 다른 표면 임베딩(가향/비가향)에서 면 수와 $$1chi$ 비교."
-    }
-  },
-  {
-    "cat": "graph",
-    "title": "임의 표면으로의 일반화: 일반화된 오일러 공식 검증",
-    "desc": "연결/비연결·가향/비가향·셀룰러/비셀룰러 임베딩까지 아우르는 최신 일반화 공식을 사례로 검증합니다.",
-    "tools": ["Python", "GeoGebra"],
-    "doi": "10.1007/978-3-031-83864-4_14",
-    "ref": "https://link.springer.com/chapter/10.1007/978-3-031-83864-4_14",
-    "flow": {
-      "observation": "여러 표면(구, 토러스, 사영평면, 경계 포함 표면)에 그래프를 올려 $r$(면 수)을 계산합니다.",
-      "simplification": "셀룰러 임베딩과 비셀룰러 임베딩을 구분하여 정의를 명확히 합니다.",
-      "visualization": "GeoGebra로 표면/그래프 선택 → Python으로 $V,E,F$ 집계 UI를 구성.",
-      "formulation": "$V-E+R=$1chi(S)$ (셀룰러 임베딩), 더 일반적 임베딩에서도 $R=E-V+$1chi(S)$이면 셀룰러 임베딩임을 활용",
-      "advanced": "같은 그래프를 여러 표면에 재임베딩하며 $$1chi$ 값(-1,0,1,3,4 …)의 발생 조건을 분류합니다."
-    }
-  },
-  {
-    "cat": "graph",
-    "title": "디스크와 환대의 $$1chi$ 값 실험: $1$1to0$1to-1$",
-    "desc": "‘밴드 붙이기/자르기’ 수술로 디스크($$1chi=1$)→환대($$1chi=0$)→두 구멍 디스크($$1chi=-1$)로 변환하며 그래프의 $V,E,F$ 변화를 추적합니다.",
-    "tools": ["HTML/JS", "GeoGebra"],
-    "doi": "",
-    "ref": "https://faculty.etsu.edu/gardnerr/Knot-Theory/Beamer-Livingston/Proofs-Livingston-KT-4-4.pdf",
-    "flow": {
-      "observation": "종이 표면에 띠(band)를 하나씩 붙이며 실제로 표면의 종류와 $$1chi$가 바뀌는 것을 관찰합니다.",
-      "simplification": "각 단계에서 그래프는 셀룰러 임베딩이 되도록 단순 다각 분할만 사용.",
-      "visualization": "HTML/JS로 ‘띠 추가/제거’ 버튼을 눌러 자동으로 $V,E,F$를 갱신.",
-      "formulation": "$$1chi($1text{디스크})=1,$1;$1chi($1text{환대})=0,$1;$1chi($1text{두 구멍 디스크})=-1$",
-      "advanced": "수술 전후 $$1chi$의 가법성 및 경계 성분 수 $b$ 변화와 $$1chi=2-2g-b$의 일치 검증."
-    }
-  }
+{
+"cat": "vector",
+"title": "로렌츠 끌개와 카오스",
+"desc": "3변수 벡터 미분방정식으로 대기 대류의 카오스 궤도를 탐구합니다.",
+"tools": ["Python"],
+"doi": "10.1175/1520-0469(1963)020<0130:DNF>2.0.CO;2",
+"ref": "[https://scholar.google.com/scholar?q=Lorenz+1963+Deterministic+Nonperiodic+Flow](https://scholar.google.com/scholar?q=Lorenz+1963+Deterministic+Nonperiodic+Flow)",
+"flow": {
+"observation": "대류 실험/데이터에서 나비형 궤도가 관찰됩니다.",
+"simplification": "로렌츠 3식으로 유체 방정식을 축약합니다.",
+"visualization": "Python",
+"formulation": "$\\dot x=\\sigma(y-x),\\;\\dot y=x(\\rho-z)-y,\\;\\dot z=xy-\\beta z$",
+"advanced": "파라미터 변화에 따른 분기·프랙탈 차원 분석"
+}
+},
+{
+"cat": "vector",
+"title": "Boids 군집운동 벡터 모델",
+"desc": "정렬·응집·분리 규칙의 속도벡터 합으로 무리 운동을 시뮬레이션합니다.",
+"tools": ["HTML/JS"],
+"doi": "10.1145/37402.37406",
+"ref": "[https://scholar.google.com/scholar?q=Reynolds+1987+Flocks+Herds+and+Schools](https://scholar.google.com/scholar?q=Reynolds+1987+Flocks+Herds+and+Schools)",
+"flow": {
+"observation": "새 떼·물고기 떼의 집단 패턴을 관찰합니다.",
+"simplification": "개체를 질점, 국소 이웃만 고려합니다.",
+"visualization": "HTML/JS",
+"formulation": "$v_{new}=v+c_1\\,\\text{align}+c_2\\,\\text{cohere}+c_3\\,\\text{separate}$",
+"advanced": "시야각, 밀도, 장애물 포함 군집 패턴 비교"
+}
+},
+{
+"cat": "vector",
+"title": "마그누스 효과와 회전 공의 궤적",
+"desc": "회전벡터와 속도벡터의 외적으로 횡력을 모델링합니다.",
+"tools": ["Python", "GeoGebra"],
+"doi": "10.1119/1.2805242",
+"ref": "[https://scholar.google.com/scholar?q=Alan+Nathan+spin+baseball+2008](https://scholar.google.com/scholar?q=Alan+Nathan+spin+baseball+2008)",
+"flow": {
+"observation": "커브볼/프리킥 궤도가 휘어지는 현상을 봅니다.",
+"simplification": "이상 유체·상수 계수 저항 가정.",
+"visualization": "Python",
+"formulation": "$m\\ddot{r}=m\\mathbf g+k\\,\\boldsymbol\\omega\\times\\mathbf v$",
+"advanced": "레이놀즈 수에 따른 역마그누스 전이 분석"
+}
+},
+{
+"cat": "vector",
+"title": "팽이 세차운동과 자이로스코프",
+"desc": "토크와 각운동량 벡터 관계로 세차 속도를 해석합니다.",
+"tools": ["MATLAB", "HTML/JS"],
+"doi": "10.1119/1.1479741",
+"ref": "[https://scholar.google.com/scholar?q=tippe+top+precession+American+Journal+of+Physics+2002](https://scholar.google.com/scholar?q=tippe+top+precession+American+Journal+of+Physics+2002)",
+"flow": {
+"observation": "돌아가는 팽이 축이 천천히 도는 현상을 관찰합니다.",
+"simplification": "대칭 강체·마찰 무시 모델.",
+"visualization": "MATLAB",
+"formulation": "$\\dot{\\mathbf L}=\\boldsymbol\\tau,\\;\\Omega\\approx\\dfrac{mgr}{L}$",
+"advanced": "마찰 포함 감쇠 세차·너테이션 수치해석"
+}
+},
+{
+"cat": "vector",
+"title": "런지–렌츠(LRL) 벡터와 행성 궤도",
+"desc": "2체 문제에서 궤도 장축 방향을 보존하는 벡터를 시각화합니다.",
+"tools": ["Python"],
+"doi": "10.1119/1.1524165",
+"ref": "[https://scholar.google.com/scholar?q=Laplace+Runge+Lenz+vector+education](https://scholar.google.com/scholar?q=Laplace+Runge+Lenz+vector+education)",
+"flow": {
+"observation": "타원 궤도의 방향성이 일정함을 관찰합니다.",
+"simplification": "점질량 2체·섭동 무시.",
+"visualization": "Python",
+"formulation": "$\\mathbf A=\\mathbf v\\times\\mathbf H-\\mu\\,\\dfrac{\\mathbf r}{r}$",
+"advanced": "GR 섭동 시 perihelion 이동·LRL 변화 탐구"
+}
+},
+{
+"cat": "vector",
+"title": "대권 항로와 구면 벡터기하",
+"desc": "위치벡터와 법선벡터로 지구 표면 최단 경로를 구합니다.",
+"tools": ["GeoGebra", "Python"],
+"doi": "",
+"ref": "[https://scholar.google.com/scholar?q=great+circle+navigation+vector+parametric+form](https://scholar.google.com/scholar?q=great+circle+navigation+vector+parametric+form)",
+"flow": {
+"observation": "항공기가 고위도로 우회하는 경로를 봅니다.",
+"simplification": "지구를 완전한 구로 이상화.",
+"visualization": "GeoGebra",
+"formulation": "$\\mathbf r(t)=\\frac{\\sin((1-t)\\theta)}{\\sin\\theta}\\mathbf A+\\frac{\\sin(t\\theta)}{\\sin\\theta}\\mathbf B$",
+"advanced": "WGS84 타원체 보정·륌브선 비교"
+}
+},
+{
+"cat": "vector",
+"title": "푸코 진자와 코리올리 힘",
+"desc": "회전계에서의 가짜힘을 벡터 외적으로 설명합니다.",
+"tools": ["MATLAB", "HTML/JS"],
+"doi": "10.1119/5.0150867",
+"ref": "[https://scholar.google.com/scholar?q=Foucault+pendulum+Coriolis+The+Physics+Teacher+2024](https://scholar.google.com/scholar?q=Foucault+pendulum+Coriolis+The+Physics+Teacher+2024)",
+"flow": {
+"observation": "진자 진동면이 하루에 걸쳐 회전함을 봅니다.",
+"simplification": "소진폭, 회전구 무시, 코리올리만 고려.",
+"visualization": "MATLAB",
+"formulation": "$\\mathbf a_c=2\\,\\boldsymbol\\Omega\\times\\mathbf v,\\;\\Omega_{plane}=2\\Omega\\sin\\lambda$",
+"advanced": "위도별 회전속도 비교·유체 소용돌이 연결"
+}
+},
+{
+"cat": "vector",
+"title": "교류(AC) 페이저의 벡터 기하",
+"desc": "회전하는 복소벡터로 위상과 전력 계산을 단순화합니다.",
+"tools": ["GeoGebra", "Python"],
+"doi": "",
+"ref": "[https://scholar.google.com/scholar?q=phasor+education+AC+circuits](https://scholar.google.com/scholar?q=phasor+education+AC+circuits)",
+"flow": {
+"observation": "위상차가 있는 전압/전류를 비교합니다.",
+"simplification": "단일 주파수 정현파 가정.",
+"visualization": "GeoGebra",
+"formulation": "$V(t)=\\Re\\{V_0 e^{j(\\omega t+\\phi)}\\},\\;S=VI^*$",
+"advanced": "역률 보정·병렬/직렬 공진 해석"
+}
+},
+{
+"cat": "vector",
+"title": "4차원 테서랙트의 벡터 투영",
+"desc": "4D 좌표를 3D로 투영하는 회전·투영 변환을 구현합니다.",
+"tools": ["HTML/JS", "Python"],
+"doi": "",
+"ref": "[https://scholar.google.com/scholar?q=Hypercube+projection+education+Banchoff](https://scholar.google.com/scholar?q=Hypercube+projection+education+Banchoff)",
+"flow": {
+"observation": "4D 큐브의 3D 그림자를 관찰합니다.",
+"simplification": "정점 (±1,±1,±1,±1) 단위 테서랙트.",
+"visualization": "HTML/JS",
+"formulation": "$\\mathbf x' = P\\,R(\\alpha,\\beta,\\gamma,\\delta)\\,\\mathbf x$",
+"advanced": "4D 회전군 성질·정다면체 확장 탐구"
+}
+},
+{
+"cat": "vector",
+"title": "유도전동기의 dq 벡터 제어",
+"desc": "Park 변환으로 자속·토크를 직교 벡터로 분리 제어합니다.",
+"tools": ["MATLAB", "GeoGebra"],
+"doi": "10.1109/IECON.1972.0034049",
+"ref": "[https://scholar.google.com/scholar?q=Blaschke+field+oriented+control+1972](https://scholar.google.com/scholar?q=Blaschke+field+oriented+control+1972)",
+"flow": {
+"observation": "AC 모터가 정밀 제어되는 현상을 봅니다.",
+"simplification": "3상 정현파·선형 등가 모델.",
+"visualization": "MATLAB",
+"formulation": "$[i_d\\;i_q]^T=T(\\theta)[i_a\\;i_b\\;i_c]^T$",
+"advanced": "파라미터 불확실성·SVPWM·관측기 설계"
+}
+},
+{
+"cat": "vector",
+"title": "TRIAD로 위성 자세 추정",
+"desc": "두 기준 벡터 측정으로 3D 회전행렬을 복원합니다.",
+"tools": ["Python"],
+"doi": "10.2514/3.2868",
+"ref": "[https://scholar.google.com/scholar?q=Black+1964+Passive+System+Attitude+TRIAD](https://scholar.google.com/scholar?q=Black+1964+Passive+System+Attitude+TRIAD)",
+"flow": {
+"observation": "자력계·태양센서로 자세를 구합니다.",
+"simplification": "노이즈 무시·두 비공선 벡터 가정.",
+"visualization": "Python",
+"formulation": "$R=[s_1\\;s_2\\;s_3][t_1\\;t_2\\;t_3]^T$",
+"advanced": "QUEST·EKF 융합·잡음 민감도 분석"
+}
+},
+{
+"cat": "vector",
+"title": "삼체 8자 주기 궤도의 수치 재현",
+"desc": "대칭 초기조건의 세 질점 중력계를 적분합니다.",
+"tools": ["Python"],
+"doi": "10.1103/PhysRevLett.70.3675",
+"ref": "[https://scholar.google.com/scholar?q=figure+eight+three+body+orbit+Moore+1993](https://scholar.google.com/scholar?q=figure+eight+three+body+orbit+Moore+1993)",
+"flow": {
+"observation": "세 천체가 8자 궤도를 추는 현상을 봅니다.",
+"simplification": "동질량·뉴턴 중력·섭동 무시.",
+"visualization": "Python",
+"formulation": "$m\\ddot{\\mathbf r}*i=\\sum*{j\\neq i}Gm^2\\dfrac{\\mathbf r_j-\\mathbf r_i}{\\|\\mathbf r_j-\\mathbf r_i\\|^3}$",
+"advanced": "안정성·다른 대칭 주기해 탐색"
+}
+},
+{
+"cat": "vector",
+"title": "특수상대성의 4-벡터 해석",
+"desc": "로렌츠 변환을 선형대수 관점에서 시각화합니다.",
+"tools": ["HTML/JS", "Python"],
+"doi": "",
+"ref": "[https://scholar.google.com/scholar?q=Spacetime+Physics+Taylor+Wheeler](https://scholar.google.com/scholar?q=Spacetime+Physics+Taylor+Wheeler)",
+"flow": {
+"observation": "시간 지연·길이 수축 사례를 관찰합니다.",
+"simplification": "등속 관성계·중력 무시.",
+"visualization": "HTML/JS",
+"formulation": "$X'=\\Lambda X,\\;ds^2=-(cdt)^2+dx^2+dy^2+dz^2$",
+"advanced": "세계선·속도합성·Minkowski 도표 확장"
+}
+},
+{
+"cat": "vector",
+"title": "편광과 Jones 벡터",
+"desc": "빛의 전기장 성분을 2D 복소벡터로 표현합니다.",
+"tools": ["Python", "MATLAB"],
+"doi": "10.1103/PhysRevA.90.023809",
+"ref": "[https://scholar.google.com/scholar?q=Sheppard+Jones+Stokes+3D+2014](https://scholar.google.com/scholar?q=Sheppard+Jones+Stokes+3D+2014)",
+"flow": {
+"observation": "선·원·타원 편광을 관찰합니다.",
+"simplification": "단일파·완전 편광 가정.",
+"visualization": "Python",
+"formulation": "$E=\\begin{pmatrix}E_x\\\\E_y\\end{pmatrix},\\;I\\propto EE^*$",
+"advanced": "연속 소자·Mueller 형식 비교"
+}
+},
+{
+"cat": "vector",
+"title": "포식–피식자 벡터장(LV)",
+"desc": "2D 동역학계 위상궤적으로 생태 주기를 해석합니다.",
+"tools": ["Python"],
+"doi": "10.1126/science.171.3969.385",
+"ref": "[https://scholar.google.com/scholar?q=Rosenzweig+Paradox+of+Enrichment+1971](https://scholar.google.com/scholar?q=Rosenzweig+Paradox+of+Enrichment+1971)",
+"flow": {
+"observation": "토끼–스라소니 주기 데이터를 관찰합니다.",
+"simplification": "2종 상호작용·환경 일정.",
+"visualization": "Python",
+"formulation": "$\\dot N=aN-bNP,\\;\\dot P=-cP+dNP$",
+"advanced": "수확·환경 수용력 포함 확장"
+}
+},
+{
+"cat": "vector",
+"title": "사막개미 경로적분과 귀소 벡터",
+"desc": "걸음 벡터 누적으로 집까지의 순변위를 추정합니다.",
+"tools": ["Python"],
+"doi": "10.1073/pnas.85.14.5287",
+"ref": "[https://scholar.google.com/scholar?q=M%C3%BCller+Wehner+1988+Path+integration+desert+ants](https://scholar.google.com/scholar?q=M%C3%BCller+Wehner+1988+Path+integration+desert+ants)",
+"flow": {
+"observation": "지그재그 후 직선 귀소를 관찰합니다.",
+"simplification": "거리·방향 추정 오차 무시.",
+"visualization": "Python",
+"formulation": "$\\mathbf R=\\sum_{k=1}^n\\mathbf d_k$",
+"advanced": "오차 누적·보정 전략(태양 나침반) 실험"
+}
+},
+{
+"cat": "vector",
+"title": "PageRank와 고유벡터",
+"desc": "링크 행렬의 지배 고유벡터로 페이지 중요도를 산출합니다.",
+"tools": ["Python", "GeoGebra"],
+"doi": "10.1016/S0169-7552(98)00110-X",
+"ref": "[https://scholar.google.com/scholar?q=PageRank+Brin+Page+1998](https://scholar.google.com/scholar?q=PageRank+Brin+Page+1998)",
+"flow": {
+"observation": "인기 페이지가 상위에 오는 현상을 봅니다.",
+"simplification": "랜덤 서퍼·감쇠인자 도입.",
+"visualization": "Python",
+"formulation": "$p=dL^Tp+(1-d)u$",
+"advanced": "감쇠율 변화·스팸 링크 영향 분석"
+}
+},
+{
+"cat": "vector",
+"title": "GPS 삼변측량의 벡터 해법",
+"desc": "위성-사용자 거리 구 교차로 위치벡터를 복원합니다.",
+"tools": ["Python", "GeoGebra"],
+"doi": "10.1109/TAES.1985.310538",
+"ref": "[https://scholar.google.com/scholar?q=Bancroft+1985+algebraic+solution+GPS](https://scholar.google.com/scholar?q=Bancroft+1985+algebraic+solution+GPS)",
+"flow": {
+"observation": "다중 위성으로 위치가 정해짐을 관찰합니다.",
+"simplification": "지연·굴절 무시·4미지수 가정.",
+"visualization": "GeoGebra",
+"formulation": "$\\|\\mathbf x-\\mathbf s_i\\|^2=c^2(t_i-\\tau)^2$",
+"advanced": "GDOP·칼만 필터 보정 탐구"
+}
+},
+{
+"cat": "vector",
+"title": "자전거 자체안정과 벡터 동역학",
+"desc": "선형화 상태벡터로 균형 안정 조건을 분석합니다.",
+"tools": ["Python"],
+"doi": "10.1126/science.1201959",
+"ref": "[https://scholar.google.com/scholar?q=bicycle+self-stable+Kooijman+2011](https://scholar.google.com/scholar?q=bicycle+self-stable+Kooijman+2011)",
+"flow": {
+"observation": "무인 자전거가 똑바로 달리는 현상.",
+"simplification": "소각도 선형·자이로/트레일 제거 모델.",
+"visualization": "Python",
+"formulation": "$M\\ddot x+C\\dot x+Kx=0$",
+"advanced": "속도-안정 영역·특이치 분석"
+}
+},
+{
+"cat": "vector",
+"title": "그래디언트 벡터와 에지 검출",
+"desc": "밝기 함수의 기울기 벡터로 경계를 추출합니다.",
+"tools": ["Python", "MATLAB"],
+"doi": "10.1109/TPAMI.1986.4767851",
+"ref": "[https://scholar.google.com/scholar?q=Canny+1986+edge+detection](https://scholar.google.com/scholar?q=Canny+1986+edge+detection)",
+"flow": {
+"observation": "윤곽선이 강한 변화 위치임을 관찰.",
+"simplification": "그레이스케일·가우시안 블러 전처리.",
+"visualization": "Python",
+"formulation": "$\\nabla I=(I_x,I_y),\\;\\|\\nabla I\\|>T$",
+"advanced": "비최대 억제·히스테리시스 임계값 실험"
+}
+},
+{
+"cat": "matrix",
+"title": "마코프 전이행렬과 안정분포",
+"desc": "전이행렬의 고유벡터로 장기 분포를 예측합니다.",
+"tools": ["Python", "MATLAB"],
+"doi": "",
+"ref": "[https://scholar.google.com/scholar?q=Markov+chain+stationary+distribution+education](https://scholar.google.com/scholar?q=Markov+chain+stationary+distribution+education)",
+"flow": {
+"observation": "확률적 상태 전이가 수렴함을 관찰.",
+"simplification": "유한 상태·정규성·불가약성 가정.",
+"visualization": "Python",
+"formulation": "$\\pi^T=\\pi^T P,\\;\\sum \\pi_i=1$",
+"advanced": "혼합속도·스펙트럴 갭 분석"
+}
+},
+{
+"cat": "matrix",
+"title": "가우스 소거와 회로해석",
+"desc": "Kirchhoff 연립식을 행렬로 풀어 전류를 구합니다.",
+"tools": ["Python"],
+"doi": "",
+"ref": "[https://scholar.google.com/scholar?q=Gaussian+elimination+circuit+Kirchhoff+education](https://scholar.google.com/scholar?q=Gaussian+elimination+circuit+Kirchhoff+education)",
+"flow": {
+"observation": "복잡 회로의 전류 분포를 측정합니다.",
+"simplification": "선형 저항망·정상상태 가정.",
+"visualization": "Python",
+"formulation": "$A\\mathbf i=\\mathbf b,\\;\\mathbf i=A^{-1}\\mathbf b$",
+"advanced": "희소 행렬·LU 분해 효율 비교"
+}
+},
+{
+"cat": "matrix",
+"title": "2D 기하 변환의 행렬 표현",
+"desc": "회전·대칭·닮음을 2×2 행렬로 모델링합니다.",
+"tools": ["GeoGebra", "HTML/JS"],
+"doi": "",
+"ref": "[https://scholar.google.com/scholar?q=linear+transformation+geometry+education](https://scholar.google.com/scholar?q=linear+transformation+geometry+education)",
+"flow": {
+"observation": "도형이 선형변환으로 왜곡되는 모습.",
+"simplification": "선형(원점 고정) 변환만 고려.",
+"visualization": "GeoGebra",
+"formulation": "$\\mathbf x' = A\\mathbf x$",
+"advanced": "고유분해로 주축·스케일 해석"
+}
+},
+{
+"cat": "matrix",
+"title": "로봇팔 정·역기구학과 행렬 곱",
+"desc": "DH 파라미터 행렬의 곱으로 말단 위치를 계산합니다.",
+"tools": ["Python", "MATLAB"],
+"doi": "",
+"ref": "[https://scholar.google.com/scholar?q=robot+kinematics+DH+parameters+education](https://scholar.google.com/scholar?q=robot+kinematics+DH+parameters+education)",
+"flow": {
+"observation": "관절 회전에 따른 말단 위치 변화를 관찰.",
+"simplification": "강체 링크·조인트 이상화.",
+"visualization": "Python",
+"formulation": "$T=\\prod_i T_i(\\theta_i,d_i,a_i,\\alpha_i)$",
+"advanced": "자코비안·특이점 회피 경로계획"
+}
+},
+{
+"cat": "matrix",
+"title": "질량-스프링 행렬과 고유모드",
+"desc": "M,C,K 행렬의 고유값으로 공진과 모드를 찾습니다.",
+"tools": ["MATLAB", "Python"],
+"doi": "",
+"ref": "[https://scholar.google.com/scholar?q=normal+modes+eigenvalues+education](https://scholar.google.com/scholar?q=normal+modes+eigenvalues+education)",
+"flow": {
+"observation": "연결된 질량이 특정 모양으로 진동.",
+"simplification": "작은 진폭·선형 탄성 가정.",
+"visualization": "MATLAB",
+"formulation": "$M\\ddot x+C\\dot x+Kx=0,\\;K\\phi=\\omega^2 M\\phi$",
+"advanced": "모드 중첩·감쇠 포함 응답"
+}
+},
+{
+"cat": "matrix",
+"title": "야코비안으로 평형 안정성 해석",
+"desc": "비선형계를 선형화해 고유값 부호로 안정성 판정.",
+"tools": ["Python"],
+"doi": "",
+"ref": "[https://scholar.google.com/scholar?q=Jacobian+linearization+stability+education](https://scholar.google.com/scholar?q=Jacobian+linearization+stability+education)",
+"flow": {
+"observation": "평형 주변에서 수렴/발산 거동 관찰.",
+"simplification": "테일러 1차 근사.",
+"visualization": "Python",
+"formulation": "$\\dot x=f(x),\\;\\dot \\xi=J\\xi,\\;J=\\partial f/\\partial x$",
+"advanced": "Hopf 분기·비선형 효과 비교"
+}
+},
+{
+"cat": "matrix",
+"title": "PCA와 고유분해",
+"desc": "공분산 행렬의 고유벡터로 주성분을 구합니다.",
+"tools": ["Python"],
+"doi": "",
+"ref": "[https://scholar.google.com/scholar?q=PCA+eigendecomposition+education](https://scholar.google.com/scholar?q=PCA+eigendecomposition+education)",
+"flow": {
+"observation": "고차원 데이터의 주축 방향을 관찰.",
+"simplification": "평균 제거·선형성 가정.",
+"visualization": "Python",
+"formulation": "$\\Sigma=\\frac{1}{n}X^TX=Q\\Lambda Q^T$",
+"advanced": "SVD 연결·차원 축소 성능 비교"
+}
+},
+{
+"cat": "matrix",
+"title": "특이값 분해(SVD)와 영상 압축",
+"desc": "랭크-k 근사로 화질-용량 트레이드오프를 실험합니다.",
+"tools": ["Python", "MATLAB"],
+"doi": "",
+"ref": "[https://scholar.google.com/scholar?q=SVD+image+compression+education](https://scholar.google.com/scholar?q=SVD+image+compression+education)",
+"flow": {
+"observation": "낮은 랭크로도 형태가 유지됨을 관찰.",
+"simplification": "회색조·노이즈 무시.",
+"visualization": "Python",
+"formulation": "$A\\approx U_k\\Sigma_k V_k^T$",
+"advanced": "압축률·PSNR 곡선·컬러 확장"
+}
+},
+{
+"cat": "matrix",
+"title": "Hill 암호와 역행렬",
+"desc": "블록 문자 벡터를 행렬 곱으로 암복호화합니다.",
+"tools": ["Python"],
+"doi": "",
+"ref": "[https://scholar.google.com/scholar?q=Hill+cipher+education](https://scholar.google.com/scholar?q=Hill+cipher+education)",
+"flow": {
+"observation": "행렬 키로 텍스트가 뒤섞임을 관찰.",
+"simplification": "mod 26 선형 변환 가정.",
+"visualization": "Python",
+"formulation": "$C=K\\,P\\;(\\bmod\\;26),\\;P=K^{-1}C$",
+"advanced": "키 보안성·선형 대수 취약점 토론"
+}
+},
+{
+"cat": "matrix",
+"title": "동차좌표와 아핀 변환",
+"desc": "회전·이동·스케일을 3×3/4×4 하나로 묶습니다.",
+"tools": ["HTML/JS", "GeoGebra"],
+"doi": "",
+"ref": "[https://scholar.google.com/scholar?q=homogeneous+coordinates+affine+transforms+education](https://scholar.google.com/scholar?q=homogeneous+coordinates+affine+transforms+education)",
+"flow": {
+"observation": "연속 변환 합성이 하나의 행렬이 됨.",
+"simplification": "원근효과 무시(아핀만).",
+"visualization": "HTML/JS",
+"formulation": "$x' = Hx,\\;H=\\begin{pmatrix}A&t\\\\0&1\\end{pmatrix}$",
+"advanced": "원근투영 추가·역변환 안정성"
+}
+},
+{
+"cat": "matrix",
+"title": "가상 카메라 뷰 행렬",
+"desc": "모델→뷰→투영 행렬 파이프라인을 구현합니다.",
+"tools": ["HTML/JS"],
+"doi": "",
+"ref": "[https://scholar.google.com/scholar?q=view+matrix+projection+education+graphics](https://scholar.google.com/scholar?q=view+matrix+projection+education+graphics)",
+"flow": {
+"observation": "카메라 이동/회전에 따른 장면 변화.",
+"simplification": "핀홀 카메라·왜곡 무시.",
+"visualization": "HTML/JS",
+"formulation": "$x_{clip}=P\\,V\\,M\\,x_{model}$",
+"advanced": "왜곡 모델·역투영(PnP) 연결"
+}
+},
+{
+"cat": "matrix",
+"title": "행렬식과 면적·부피",
+"desc": "행렬식의 기하 의미를 실험으로 확인합니다.",
+"tools": ["GeoGebra"],
+"doi": "",
+"ref": "[https://scholar.google.com/scholar?q=determinant+area+volume+education](https://scholar.google.com/scholar?q=determinant+area+volume+education)",
+"flow": {
+"observation": "기저 변환이 넓이/부피를 스케일.",
+"simplification": "선형 변환만 고려.",
+"visualization": "GeoGebra",
+"formulation": "$|\\det A|=\\text{면적/부피 배율}$",
+"advanced": "오리엔테이션·외적 연결"
+}
+},
+{
+"cat": "matrix",
+"title": "구조물 모드해석(유한요소 맛보기)",
+"desc": "강성·질량 행렬로 고유진동수를 계산합니다.",
+"tools": ["MATLAB"],
+"doi": "",
+"ref": "[https://scholar.google.com/scholar?q=finite+element+eigenmode+education](https://scholar.google.com/scholar?q=finite+element+eigenmode+education)",
+"flow": {
+"observation": "보/판 구조의 모드 형태 관찰.",
+"simplification": "선형 탄성·작은 변형.",
+"visualization": "MATLAB",
+"formulation": "$K\\phi=\\omega^2M\\phi$",
+"advanced": "경계조건·감쇠 모델 비교"
+}
+},
+{
+"cat": "matrix",
+"title": "영상 재구성과 선형 역문제",
+"desc": "라돈 변환 행렬을 최소제곱으로 역문제 해결.",
+"tools": ["Python", "MATLAB"],
+"doi": "",
+"ref": "[https://scholar.google.com/scholar?q=CT+reconstruction+linear+inverse+education](https://scholar.google.com/scholar?q=CT+reconstruction+linear+inverse+education)",
+"flow": {
+"observation": "투영 데이터로 원영상을 복원.",
+"simplification": "잡음·산란 무시한 선형 모델.",
+"visualization": "Python",
+"formulation": "$\\min_x\\|Ax-b\\|*2^2$",
+"advanced": "정규화(Tikhonov)·SIRT 비교"
+}
+},
+{
+"cat": "matrix",
+"title": "산업연관표와 레온티에프 역행렬",
+"desc": "최종수요 변화가 총산출에 미치는 효과 분석.",
+"tools": ["Python"],
+"doi": "",
+"ref": "[https://scholar.google.com/scholar?q=Leontief+inverse+education](https://scholar.google.com/scholar?q=Leontief+inverse+education)",
+"flow": {
+"observation": "한 산업 수요가 전반 생산에 파급.",
+"simplification": "고정 투입계수·선형 가정.",
+"visualization": "Python",
+"formulation": "$x=(I-A)^{-1}y$",
+"advanced": "민감도·부문별 승수 분석"
+}
+},
+{
+"cat": "matrix",
+"title": "로봇 자코비안과 속도제어",
+"desc": "말단 속도를 관절속도와 선형관계로 연결합니다.",
+"tools": ["MATLAB", "Python"],
+"doi": "",
+"ref": "[https://scholar.google.com/scholar?q=robot+jacobian+education](https://scholar.google.com/scholar?q=robot+jacobian+education)",
+"flow": {
+"observation": "관절 미소변화가 말단 위치/자세 변화.",
+"simplification": "강체·비마찰 조인트.",
+"visualization": "MATLAB",
+"formulation": "$\\dot x=J(\\theta)\\,\\dot\\theta$",
+"advanced": "역자코비안·특이점 회피"
+}
+},
+{
+"cat": "complex_polar",
+"title": "복소수 곱셈의 기하학",
+"desc": "극형식으로 회전·확대를 해석합니다.",
+"tools": ["GeoGebra"],
+"doi": "",
+"ref": "[https://scholar.google.com/scholar?q=complex+number+geometry+education](https://scholar.google.com/scholar?q=complex+number+geometry+education)",
+"flow": {
+"observation": "복소 곱이 방향·크기를 바꿈.",
+"simplification": "평면 등각 변환 관점.",
+"visualization": "GeoGebra",
+"formulation": "$re^{i\\theta}\\cdot se^{i\\phi}=rs e^{i(\\theta+\\phi)}$",
+"advanced": "모비우스 변환 소개"
+}
+},
+{
+"cat": "complex_polar",
+"title": "단위근과 정n각형",
+"desc": "z^n=1의 해들을 복소평면에서 탐구합니다.",
+"tools": ["Python", "GeoGebra"],
+"doi": "",
+"ref": "[https://scholar.google.com/scholar?q=roots+of+unity+geometry+education](https://scholar.google.com/scholar?q=roots+of+unity+geometry+education)",
+"flow": {
+"observation": "단위원 위 점들이 정n각형을 이룸.",
+"simplification": "단위원·등간격 위상.",
+"visualization": "GeoGebra",
+"formulation": "$z_k=e^{2\\pi i k/n}$",
+"advanced": "대칭군·FFT 연결"
+}
+},
+{
+"cat": "complex_polar",
+"title": "드무아브르 정리와 삼각항등식",
+"desc": "복소지수로 삼배각·배각 공식을 유도합니다.",
+"tools": ["Python"],
+"doi": "",
+"ref": "[https://scholar.google.com/scholar?q=De+Moivre+education](https://scholar.google.com/scholar?q=De+Moivre+education)",
+"flow": {
+"observation": "(cos+isin)^n 전개가 규칙을 만듦.",
+"simplification": "오일러 공식 사용.",
+"visualization": "Python",
+"formulation": "$(\\cos\\theta+i\\sin\\theta)^n=\\cos n\\theta+i\\sin n\\theta$",
+"advanced": "체비셰프 다항식과 연결"
+}
+},
+{
+"cat": "complex_polar",
+"title": "극좌표 곡선: 장미곡선",
+"desc": "r=a sin(nθ) 그래프와 대칭성을 분석합니다.",
+"tools": ["GeoGebra", "Python"],
+"doi": "",
+"ref": "[https://scholar.google.com/scholar?q=rose+curve+education+polar](https://scholar.google.com/scholar?q=rose+curve+education+polar)",
+"flow": {
+"observation": "꽃잎 개수 규칙 확인.",
+"simplification": "정수 n, a>0 가정.",
+"visualization": "GeoGebra",
+"formulation": "$r=a\\sin(n\\theta),\\;r=a\\cos(n\\theta)$",
+"advanced": "곡률·호길이 계산"
+}
+},
+{
+"cat": "complex_polar",
+"title": "편광과 복소 위상",
+"desc": "두 직교 성분의 위상차로 편광 상태를 표현.",
+"tools": ["MATLAB", "Python"],
+"doi": "10.1103/PhysRevA.90.023809",
+"ref": "[https://scholar.google.com/scholar?q=Jones+Stokes+3D+Sheppard](https://scholar.google.com/scholar?q=Jones+Stokes+3D+Sheppard)",
+"flow": {
+"observation": "선/원/타원 편광 실험 관찰.",
+"simplification": "완전 편광·단일파.",
+"visualization": "MATLAB",
+"formulation": "$E=[A_x e^{i\\delta_x},A_y e^{i\\delta_y}]^T$",
+"advanced": "Mueller 행렬·편광 측정"
+}
+},
+{
+"cat": "complex_polar",
+"title": "푸리에 급수의 복소지수 표현",
+"desc": "주기함수를 e^{inx} 기저로 전개합니다.",
+"tools": ["Python"],
+"doi": "",
+"ref": "[https://scholar.google.com/scholar?q=complex+Fourier+series+education](https://scholar.google.com/scholar?q=complex+Fourier+series+education)",
+"flow": {
+"observation": "소리/파형이 주파수 성분의 합.",
+"simplification": "주기함수·정칙성 가정.",
+"visualization": "Python",
+"formulation": "$f(x)=\\sum c_n e^{inx},\\;c_n=\\frac{1}{2\\pi}\\int f e^{-inx}$",
+"advanced": "깁스 현상·필터링"
+}
+},
+{
+"cat": "complex_polar",
+"title": "임피던스와 극형식",
+"desc": "Z=R+jX를 극형식으로 분석해 위상·전력을 계산.",
+"tools": ["GeoGebra", "Python"],
+"doi": "",
+"ref": "[https://scholar.google.com/scholar?q=impedance+phasor+education](https://scholar.google.com/scholar?q=impedance+phasor+education)",
+"flow": {
+"observation": "RC/RL 위상지연 관측.",
+"simplification": "정현파 정상상태.",
+"visualization": "GeoGebra",
+"formulation": "$I=V/Z,\\;P=VI\\cos\\phi$",
+"advanced": "공진 주파수 최적화"
+}
+},
+{
+"cat": "complex_polar",
+"title": "망델브로/줄리아 프랙탈",
+"desc": "복소 이터레이션의 수렴/발산 경계를 시각화.",
+"tools": ["Python", "HTML/JS"],
+"doi": "",
+"ref": "[https://scholar.google.com/scholar?q=Mandelbrot+Julia+education](https://scholar.google.com/scholar?q=Mandelbrot+Julia+education)",
+"flow": {
+"observation": "프랙탈 경계의 자기유사성.",
+"simplification": "z*{n+1}=z_n^2+c 단순식.",
+"visualization": "Python",
+"formulation": "$c\\in \\mathbb C,\\;\\sup_n|z_n|<\\infty?$",
+"advanced": "파라미터 공간 탐색"
+}
+},
+{
+"cat": "complex_polar",
+"title": "Hilbert 변환과 해석신호",
+"desc": "복소 해석신호로 순간 진폭·위상을 구합니다.",
+"tools": ["Python", "MATLAB"],
+"doi": "",
+"ref": "[https://scholar.google.com/scholar?q=Hilbert+transform+analytic+signal+education](https://scholar.google.com/scholar?q=Hilbert+transform+analytic+signal+education)",
+"flow": {
+"observation": "진동 신호의 포락선·위상 관찰.",
+"simplification": "협대역 신호 가정.",
+"visualization": "MATLAB",
+"formulation": "$x_a=x+j\\,\\mathcal H\\{x\\}=A e^{j\\phi}$",
+"advanced": "EEG/ECG 신호분석 적용"
+}
+},
+{
+"cat": "complex_polar",
+"title": "복소 로그와 분지절단",
+"desc": "다가 로그의 주가지를 정의하고 시각화합니다.",
+"tools": ["Python"],
+"doi": "",
+"ref": "[https://scholar.google.com/scholar?q=complex+logarithm+branch+cut+education](https://scholar.google.com/scholar?q=complex+logarithm+branch+cut+education)",
+"flow": {
+"observation": "log z가 나선형 표면을 형성.",
+"simplification": "분지절단으로 단일값화.",
+"visualization": "Python",
+"formulation": "$\\log z=\\ln|z|+i\\arg z,\\;\\arg\\in(-\\pi,\\pi]$",
+"advanced": "복소 거듭제곱·다가성 탐구"
+}
+},
+{
+"cat": "complex_polar",
+"title": "극좌표 접선과 교각",
+"desc": "극방정식 곡선의 접선 기울기와 교각을 구합니다.",
+"tools": ["GeoGebra"],
+"doi": "",
+"ref": "[https://scholar.google.com/scholar?q=polar+curve+tangent+angle+education](https://scholar.google.com/scholar?q=polar+curve+tangent+angle+education)",
+"flow": {
+"observation": "극곡선의 접선 방향을 관찰.",
+"simplification": "r=r(\\theta) 미분 가능.",
+"visualization": "GeoGebra",
+"formulation": "$\\tan\\psi=\\frac{r}{dr/d\\theta}$",
+"advanced": "두 극곡선 교각 계산"
+}
+},
+{
+"cat": "complex_polar",
+"title": "직선·원의 복소 표현",
+"desc": "복소 평면에서 직선과 원의 방정식을 유도.",
+"tools": ["GeoGebra"],
+"doi": "",
+"ref": "[https://scholar.google.com/scholar?q=complex+plane+line+circle+equation](https://scholar.google.com/scholar?q=complex+plane+line+circle+equation)",
+"flow": {
+"observation": "거리·투영이 간단히 표현됨.",
+"simplification": "유클리드 평면 가정.",
+"visualization": "GeoGebra",
+"formulation": "$|z-a|=r,\\;\\Re\\{(z-a)\\overline{b}\\}=0$",
+"advanced": "모비우스 변환의 원-직선 보존"
+}
+},
+{
+"cat": "complex_polar",
+"title": "복소 지수와 2차 진동",
+"desc": "선형 상미분방정식 해를 복소 지수로 표현.",
+"tools": ["Python"],
+"doi": "",
+"ref": "[https://scholar.google.com/scholar?q=complex+exponential+ODE+education](https://scholar.google.com/scholar?q=complex+exponential+ODE+education)",
+"flow": {
+"observation": "감쇠/증폭 진동 파형 관찰.",
+"simplification": "상수계수·선형 ODE.",
+"visualization": "Python",
+"formulation": "$y''+ay'+by=0\\Rightarrow e^{rt}$",
+"advanced": "실수해로의 변환·공진 해석"
+}
+},
+{
+"cat": "complex_polar",
+"title": "Lambert W와 복소 근",
+"desc": "x e^x=a 유형 방정식을 Lambert W로 풉니다.",
+"tools": ["Python"],
+"doi": "",
+"ref": "[https://scholar.google.com/scholar?q=Lambert+W+education](https://scholar.google.com/scholar?q=Lambert+W+education)",
+"flow": {
+"observation": "실수해 외 복소해 다가 존재.",
+"simplification": "분지별 해 정의.",
+"visualization": "Python",
+"formulation": "$x=W(a)\\Rightarrow x e^x=a$",
+"advanced": "복소분지 시각화·수렴성"
+}
+},
+{
+"cat": "complex_polar",
+"title": "복소수와 응력집중(쌍곡좌표)",
+"desc": "복소 잠재함수로 구멍 주변 응력장을 근사.",
+"tools": ["MATLAB"],
+"doi": "",
+"ref": "[https://scholar.google.com/scholar?q=complex+potential+plane+elasticity+education](https://scholar.google.com/scholar?q=complex+potential+plane+elasticity+education)",
+"flow": {
+"observation": "구멍 가장자리에 응력 집중.",
+"simplification": "평면응력·선형탄성.",
+"visualization": "MATLAB",
+"formulation": "$\\text{Airy 함수/복소 잠재함수 이용}$",
+"advanced": "타공 형상별 $K_t$ 비교"
+}
+},
+{
+"cat": "complex_polar",
+"title": "복소 신경망(개념 체험)",
+"desc": "가중치·활성화에 복소수를 도입해 학습 실험.",
+"tools": ["Python"],
+"doi": "",
+"ref": "[https://scholar.google.com/scholar?q=complex-valued+neural+networks+education](https://scholar.google.com/scholar?q=complex-valued+neural+networks+education)",
+"flow": {
+"observation": "위상 정보가 특징 추출에 기여.",
+"simplification": "소형 데이터·단층 모델.",
+"visualization": "Python",
+"formulation": "$z'=\\phi(Wz+b)$",
+"advanced": "안정성/적대적 강인성 비교"
+}
+},
+{
+"cat": "complex_polar",
+"title": "에피사이클로이드의 복소 매개화",
+"desc": "회전 원의 합성 회전을 e^{iθ}로 표현.",
+"tools": ["HTML/JS", "Python"],
+"doi": "",
+"ref": "[https://scholar.google.com/scholar?q=epicycloid+complex+parametrization+education](https://scholar.google.com/scholar?q=epicycloid+complex+parametrization+education)",
+"flow": {
+"observation": "톱니 모양 궤적을 관찰.",
+"simplification": "두 원의 순수 회전·굴림.",
+"visualization": "HTML/JS",
+"formulation": "$z(\\theta)=R e^{i\\theta}+r e^{i\\frac{R}{r}\\theta}$",
+"advanced": "카우스틱·포락선 연결"
+}
+},
+{
+"cat": "graph",
+"title": "오일러 경로와 7개 다리",
+"desc": "오일러 경로 조건을 도시 다리 문제로 확인.",
+"tools": ["GeoGebra", "HTML/JS"],
+"doi": "",
+"ref": "[https://scholar.google.com/scholar?q=K%C3%B6nigsberg+bridges+education](https://scholar.google.com/scholar?q=K%C3%B6nigsberg+bridges+education)",
+"flow": {
+"observation": "모든 다리를 한 번씩 건널 수 있는가?",
+"simplification": "교차/다리는 간선, 지점은 정점.",
+"visualization": "HTML/JS",
+"formulation": "$\\text{모든 정점 차수 짝수} \\Rightarrow \\text{오일러 회로}$",
+"advanced": "유향/가중 그래프로 확장"
+}
+},
+{
+"cat": "graph",
+"title": "핸드셰이크 정리",
+"desc": "차수 합이 간선 수의 두 배임을 실험 확인.",
+"tools": ["GeoGebra"],
+"doi": "",
+"ref": "[https://scholar.google.com/scholar?q=handshaking+lemma+education](https://scholar.google.com/scholar?q=handshaking+lemma+education)",
+"flow": {
+"observation": "파티 악수 수와 사람별 악수 횟수.",
+"simplification": "단순 무방향 그래프.",
+"visualization": "GeoGebra",
+"formulation": "$\\sum \\deg(v)=2|E|$",
+"advanced": "자기고리/다중간선 포함 토론"
+}
+},
+{
+"cat": "graph",
+"title": "인접행렬과 경로 개수",
+"desc": "A^k의 (i,j) 원소가 길이 k 경로 수임을 증명.",
+"tools": ["Python"],
+"doi": "",
+"ref": "[https://scholar.google.com/scholar?q=adjacency+matrix+walks+education](https://scholar.google.com/scholar?q=adjacency+matrix+walks+education)",
+"flow": {
+"observation": "제곱·세제곱과 경로 수 관계.",
+"simplification": "무방향/단순 그래프 가정.",
+"visualization": "Python",
+"formulation": "$(A^k)*{ij}=\\#\\text{walks of length }k$",
+"advanced": "유향·가중 그래프 확장"
+}
+},
+{
+"cat": "graph",
+"title": "평면그래프와 오일러 지표",
+"desc": "V−E+F=2를 다양한 평면그래프로 검증.",
+"tools": ["GeoGebra"],
+"doi": "",
+"ref": "[https://scholar.google.com/scholar?q=planar+graph+Euler+characteristic+education](https://scholar.google.com/scholar?q=planar+graph+Euler+characteristic+education)",
+"flow": {
+"observation": "그림을 바꿔도 지표가 일정.",
+"simplification": "연결·평면 임베딩.",
+"visualization": "GeoGebra",
+"formulation": "$V-E+F=2$",
+"advanced": "비평면 그래프($K_5,K*{3,3}$) 비교"
+}
+},
+{
+"cat": "graph",
+"title": "비평면 그래프의 예",
+"desc": "K5, K3,3가 평면에 그려지지 않음을 실험.",
+"tools": ["HTML/JS"],
+"doi": "",
+"ref": "[https://scholar.google.com/scholar?q=Kuratowski+theorem+education](https://scholar.google.com/scholar?q=Kuratowski+theorem+education)",
+"flow": {
+"observation": "교차 제거 불가 사례 관찰.",
+"simplification": "최소 비평면 그래프 선정.",
+"visualization": "HTML/JS",
+"formulation": "$\\text{Kuratowski 소부그래프 존재}$",
+"advanced": "와그너 정리·도식성 토론"
+}
+},
+{
+"cat": "graph",
+"title": "오일러 vs 해밀턴",
+"desc": "변-중심 vs 정점-중심 경로 차이를 비교.",
+"tools": ["GeoGebra"],
+"doi": "",
+"ref": "[https://scholar.google.com/scholar?q=Euler+Hamiltonian+graph+education](https://scholar.google.com/scholar?q=Euler+Hamiltonian+graph+education)",
+"flow": {
+"observation": "한붓그리기와 여행자 문제 대비.",
+"simplification": "작은 예제 그래프 구성.",
+"visualization": "GeoGebra",
+"formulation": "$\\text{오일러: 차수 조건, 해밀턴: 충분조건(Dirac 등)}$",
+"advanced": "NP-완전성·휴리스틱 탐구"
+}
+},
+{
+"cat": "graph",
+"title": "생성수형도(스패닝 트리)",
+"desc": "사이클을 제거해 모든 정점을 잇는 트리를 찾음.",
+"tools": ["Python", "GeoGebra"],
+"doi": "",
+"ref": "[https://scholar.google.com/scholar?q=spanning+tree+education](https://scholar.google.com/scholar?q=spanning+tree+education)",
+"flow": {
+"observation": "최소 간선으로 연결 유지.",
+"simplification": "연결 그래프 가정.",
+"visualization": "Python",
+"formulation": "$\\text{트리는 }|V|-1\\text{ 간선}$",
+"advanced": "MST로 비용 최소화"
+}
+},
+{
+"cat": "graph",
+"title": "지하철 노선 최단경로",
+"desc": "역·구간을 그래프로 모델링해 길찾기.",
+"tools": ["Python", "GeoGebra"],
+"doi": "",
+"ref": "[https://scholar.google.com/scholar?q=shortest+path+transport+education](https://scholar.google.com/scholar?q=shortest+path+transport+education)",
+"flow": {
+"observation": "환승 포함 최단 이동 경로 탐색.",
+"simplification": "가중치=시간/거리.",
+"visualization": "Python",
+"formulation": "$\\text{최단경로(Dijkstra)}$",
+"advanced": "혼잡·환승 패널티 모델"
+}
+},
+{
+"cat": "graph",
+"title": "다익스트라 알고리즘 실습",
+"desc": "가중 그래프에서 단일 시작점 최단거리 계산.",
+"tools": ["Python"],
+"doi": "",
+"ref": "[https://scholar.google.com/scholar?q=Dijkstra+algorithm+education](https://scholar.google.com/scholar?q=Dijkstra+algorithm+education)",
+"flow": {
+"observation": "프런티어 확장 과정 관찰.",
+"simplification": "비음수 가중치 가정.",
+"visualization": "Python",
+"formulation": "$\\text{우선순위 큐 기반 반복}$",
+"advanced": "A* 휴리스틱 비교"
+}
+},
+{
+"cat": "graph",
+"title": "체스 나이트 투어",
+"desc": "나이트 이동 그래프의 해밀턴 경로 탐색.",
+"tools": ["Python", "HTML/JS"],
+"doi": "",
+"ref": "[https://scholar.google.com/scholar?q=knight%27s+tour+graph+Hamiltonian+education](https://scholar.google.com/scholar?q=knight%27s+tour+graph+Hamiltonian+education)",
+"flow": {
+"observation": "모든 칸 1회 방문 경로 실험.",
+"simplification": "정방 격자·이동 규칙.",
+"visualization": "HTML/JS",
+"formulation": "$\\text{백트래킹/Warnsdorff 규칙}$",
+"advanced": "보드 크기별 존재성 비교"
+}
+},
+{
+"cat": "graph",
+"title": "6단계 분리와 그래프 지름",
+"desc": "사회 네트워크 평균 경로 길이 측정.",
+"tools": ["Python"],
+"doi": "",
+"ref": "[https://scholar.google.com/scholar?q=six+degrees+of+separation+graph+diameter+education](https://scholar.google.com/scholar?q=six+degrees+of+separation+graph+diameter+education)",
+"flow": {
+"observation": "작은 세계 현상 관찰.",
+"simplification": "난수 그래프·스케일프리 모델.",
+"visualization": "Python",
+"formulation": "$\\text{지름, 평균 거리 계산}$",
+"advanced": "클러스터링 계수 비교"
+}
+},
+{
+"cat": "graph",
+"title": "트리 구조와 계층 모델",
+"desc": "가계도/조직도를 트리로 분석.",
+"tools": ["GeoGebra"],
+"doi": "",
+"ref": "[https://scholar.google.com/scholar?q=tree+graph+education](https://scholar.google.com/scholar?q=tree+graph+education)",
+"flow": {
+"observation": "부모-자식 계층과 깊이 관찰.",
+"simplification": "사이클 없는 연결 그래프.",
+"visualization": "GeoGebra",
+"formulation": "$\\text{높이·깊이·서브트리}$",
+"advanced": "LCA·트리 동적 계획법 소개"
+}
+},
+{
+"cat": "graph",
+"title": "최소신장트리(MST)",
+"desc": "크루스칼/프림으로 비용 최소 연결망 구성.",
+"tools": ["Python", "GeoGebra"],
+"doi": "",
+"ref": "[https://scholar.google.com/scholar?q=minimum+spanning+tree+education](https://scholar.google.com/scholar?q=minimum+spanning+tree+education)",
+"flow": {
+"observation": "모든 정점 연결·총 비용 최소.",
+"simplification": "연결·양의 가중치.",
+"visualization": "Python",
+"formulation": "$\\text{Kruskal: 정렬+Union-Find}$",
+"advanced": "실시간 네트워크 설계 응용"
+}
+},
+{
+"cat": "graph",
+"title": "그래프 2-색칠과 이분성",
+"desc": "BFS로 이분 그래프 여부를 판정.",
+"tools": ["Python"],
+"doi": "",
+"ref": "[https://scholar.google.com/scholar?q=bipartite+graph+2-coloring+education](https://scholar.google.com/scholar?q=bipartite+graph+2-coloring+education)",
+"flow": {
+"observation": "인접 정점 서로 다른 색.",
+"simplification": "무향 단순 그래프.",
+"visualization": "Python",
+"formulation": "$\\text{사이클 길이 짝수} \\Leftrightarrow \\text{이분성}$",
+"advanced": "매칭·네트워크 플로우 연결"
+}
+},
+{
+"cat": "graph",
+"title": "지도 색칠과 평면 그래프",
+"desc": "국가 인접 그래프의 최소 색 수 실험.",
+"tools": ["HTML/JS"],
+"doi": "",
+"ref": "[https://scholar.google.com/scholar?q=map+coloring+education](https://scholar.google.com/scholar?q=map+coloring+education)",
+"flow": {
+"observation": "인접 영역 다른 색으로 칠하기.",
+"simplification": "평면 그래프 가정.",
+"visualization": "HTML/JS",
+"formulation": "$\\chi(G)$",
+"advanced": "4색 정리 역사·컴퓨터 증명"
+}
+},
+{
+"cat": "graph",
+"title": "BFS/DFS와 미로 탐색",
+"desc": "그래프 탐색으로 최단/임의 경로 찾기.",
+"tools": ["Python", "HTML/JS"],
+"doi": "",
+"ref": "[https://scholar.google.com/scholar?q=BFS+DFS+maze+education](https://scholar.google.com/scholar?q=BFS+DFS+maze+education)",
+"flow": {
+"observation": "탐색 순서·경로 차이 체험.",
+"simplification": "격자 그래프 모델.",
+"visualization": "HTML/JS",
+"formulation": "$\\text{큐/스택 기반 탐색}$",
+"advanced": "가중치 포함(0-1 BFS) 확장"
+}
+},
+{
+"cat": "graph",
+"title": "스펙트럴 그래프와 중심성",
+"desc": "인접행렬 고유벡터로 영향력 측정.",
+"tools": ["Python"],
+"doi": "",
+"ref": "[https://scholar.google.com/scholar?q=spectral+graph+centrality+education](https://scholar.google.com/scholar?q=spectral+graph+centrality+education)",
+"flow": {
+"observation": "중심 노드가 네트워크를 지배.",
+"simplification": "정규화 필요시 정규화 라플라시안.",
+"visualization": "Python",
+"formulation": "$Ax=\\lambda x,\\;\\lambda_{max} \\text{ 관련 중심성}$",
+"advanced": "PageRank·Katz 비교"
+}
+},
+{
+"cat": "graph",
+"title": "네트워크 취약성과 신뢰성",
+"desc": "노드/간선 제거가 연결성에 미치는 영향.",
+"tools": ["Python"],
+"doi": "",
+"ref": "[https://scholar.google.com/scholar?q=network+robustness+percolation+education](https://scholar.google.com/scholar?q=network+robustness+percolation+education)",
+"flow": {
+"observation": "허브 제거 시 분리 가속.",
+"simplification": "무작위/스케일프리 모델.",
+"visualization": "Python",
+"formulation": "$\\text{연결성 확률·거대 성분 크기}$",
+"advanced": "퍼콜레이션 임계 분석"
+}
+},
+{
+"cat": "graph",
+"title": "그래프 기반 이미지 분할",
+"desc": "픽셀을 그래프 노드로 보고 세그멘테이션.",
+"tools": ["Python"],
+"doi": "",
+"ref": "[https://scholar.google.com/scholar?q=graph+cut+segmentation+education](https://scholar.google.com/scholar?q=graph+cut+segmentation+education)",
+"flow": {
+"observation": "비슷한 픽셀끼리 묶임.",
+"simplification": "유사도 가중치 정의.",
+"visualization": "Python",
+"formulation": "$\\text{Cut/Normalized Cut 최소화}$",
+"advanced": "스펙트럴 클러스터링 비교"
+}
+},
+{
+"cat": "graph",
+"title": "Matrix-Tree 정리와 스패닝 트리 개수",
+"desc": "라플라시안 소행렬식으로 트리 수 계산.",
+"tools": ["Python"],
+"doi": "",
+"ref": "[https://scholar.google.com/scholar?q=Matrix-Tree+theorem+education](https://scholar.google.com/scholar?q=Matrix-Tree+theorem+education)",
+"flow": {
+"observation": "작은 그래프의 모든 트리 열거.",
+"simplification": "연결 그래프 가정.",
+"visualization": "Python",
+"formulation": "$\\tau(G)=\\det L_{ii}$",
+"advanced": "가중 그래프 확장"
+}
+}
 ]
