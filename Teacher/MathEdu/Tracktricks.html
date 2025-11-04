@@ -217,7 +217,7 @@
                             <h4 class="font-semibold text-lg mb-2">시뮬레이션 설명</h4>
                             <p>▪️ <span class="text-red-500 font-bold">붉은 점</span>: 당겨지는 물체 (지우개)</p>
                             <p>▪️ <span class="text-blue-500 font-bold">파란 점</span>: 끄는 점 (손)</p>
-                            <p>▪️ 끄는 점(손)을 $y$축을 따라 **드래그**해 보세요.</p>
+                            <p>▪️ 끄는 점(손)을 $y$축을 따라 <strong>드래그</strong>해 보세요.</p>
                             <p>▪️ 물체(지우개)의 궤적이 <span class="text-green-600">녹색 선</span>으로 표시됩니다.</p>
                         </div>
                     </div>
@@ -313,19 +313,19 @@ hold off;</code></pre></div>
                 <div class="bg-gray-100 p-6 rounded-lg mb-8">
                     <h4 class="font-semibold text-lg mb-2">Tractrix의 주요 속성 및 방정식</h4>
                     <p class="mb-2">
-                        1.  **정의:** 물체 $P(x, y)$에서 그은 접선이 $y$축과 만나는 점 $T(0, t_y)$까지의 거리($PT$)가 항상 줄의 길이 $L$로 일정합니다.
+                        1.  <strong>정의:</strong> 물체 $P(x, y)$에서 그은 접선이 $y$축과 만나는 점 $T(0, t_y)$까지의 거리($PT$)가 항상 줄의 길이 $L$로 일정합니다.
                     </p>
                     <p class="mb-2">
-                        2.  **접선:** $P(x, y)$에서의 접선의 기울기는 $\frac{dy}{dx}$입니다. 접선의 방정식은 $Y - y = \frac{dy}{dx}(X - x)$입니다.
+                        2.  <strong>접선:</strong> $P(x, y)$에서의 접선의 기울기는 $\frac{dy}{dx}$입니다. 접선의 방정식은 $Y - y = \frac{dy}{dx}(X - x)$입니다.
                     </p>
                     <p class="mb-2">
-                        3.  **$y$절편 ($T$):** $X=0$을 대입하면 $t_y = y - x \frac{dy}{dx}$ 입니다.
+                        3.  <strong>$y$절편 ($T$):</strong> $X=0$을 대입하면 $t_y = y - x \frac{dy}{dx}$ 입니다.
                     </p>
                     <p class="mb-2">
-                        4.  **거리 공식:** $PT = \sqrt{(x - 0)^2 + (y - t_y)^2} = L$
+                        4.  <strong>거리 공식:</strong> $PT = \sqrt{(x - 0)^2 + (y - t_y)^2} = L$
                     </p>
                     <p class="mb-2">
-                        5.  **미분 방정식:** 위 식들을 연립하면 $x^2 + \left(x \frac{dy}{dx}\right)^2 = L^2$ 또는 $\frac{dy}{dx} = \pm \frac{\sqrt{L^2 - x^2}}{x}$ 를 얻을 수 있습니다.
+                        5.  <strong>미분 방정식:</strong> 위 식들을 연립하면 $x^2 + \left(x \frac{dy}{dx}\right)^2 = L^2$ 또는 $\frac{dy}{dx} = \pm \frac{\sqrt{L^2 - x^2}}{x}$ 를 얻을 수 있습니다.
                     </p>
                     <p class="font-semibold mt-4">
                         ▪️ <strong>매개변수 방정식 (Parametric Equations)</strong> ( $t$는 $y$축과 줄이 이루는 각)
@@ -413,14 +413,27 @@ hold off;</code></pre></div>
     </div>
 
     <script>
+        // 커스텀 마크다운 처리: **text** = 굵게, __text__ = 기울임꼴만 허용
+        showdown.extension('customMarkdown', function() {
+            return [
+                {
+                    // __text__를 기울임꼴로 변환
+                    type: 'lang',
+                    regex: /__((?:(?!__).)+)__/g,
+                    replace: '<em>$1</em>'
+                }
+            ];
+        });
+
         const converter = new showdown.Converter({
             ghCodeBlocks: true,
             simpleLineBreaks: true,
-            literalMidWordUnderscores: true,
+            literalMidWordUnderscores: true,  // 단일 언더스코어 무시
+            literalMidWordAsterisks: true,     // 단일 별표 무시
             disableForced4SpacesIndentedSublists: true,
-            excludeTrailingPunctuationFromURLs: true
+            excludeTrailingPunctuationFromURLs: true,
+            extensions: ['customMarkdown']
         });
-        showdown.setOption('literalMidWordAsterisks', true);
 
         let saveTimer = null;
         let statusTimer = null;
@@ -480,14 +493,8 @@ hold off;</code></pre></div>
                 markdownText = "```" + lang + "\n" + element.value + "\n```";
             }
 
-            // 변환 전 전처리: * 하나를 임시로 보호
-            markdownText = markdownText.replace(/\*([^\*]+)\*/g, '⚡ASTERISK⚡$1⚡ASTERISK⚡');
-
             const placeholder = '<p class="text-slate-400">내용을 입력하세요...</p>';
             let html = markdownText ? converter.makeHtml(markdownText) : placeholder;
-
-            // 변환 후 후처리: 임시 보호 기호를 다시 * 로 복원
-            html = html.replace(/⚡ASTERISK⚡/g, '*');
 
             preview.innerHTML = html;
             renderAllMathInElement(preview);

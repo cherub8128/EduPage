@@ -1025,12 +1025,31 @@
         html += '<div class="prose">';
         this.blocks.forEach(block => {
           if (block.type === 'text') {
+            let content = block.content || '';
+
+            // Custom markdown processing
+            // 1. Protect single * and _ by temporarily replacing them
+            content = content.replace(/(?<!\*)\*(?!\*)(?=[^\s*])/g, '\x00STAR\x00');
+            content = content.replace(/(?<!\*)\*(?!\*)(?<=[^\s*])/g, '\x00STAR\x00');
+            content = content.replace(/(?<!_)_(?!_)(?=[^\s_])/g, '\x00UNDERSCORE\x00');
+            content = content.replace(/(?<!_)_(?!_)(?<=[^\s_])/g, '\x00UNDERSCORE\x00');
+
+            // 2. Convert __ to <em> (italic)
+            content = content.replace(/__([^\s_].*?[^\s_])__/g, '<em>$1</em>');
+            content = content.replace(/__([^\s_])__/g, '<em>$1</em>');
+
+            // 3. Use Showdown for ** (bold) and other markdown
             const converter = new showdown.Converter({
               tables: true,
               ghCodeBlocks: true,
-              literalMidWordUnderscores: true
+              literalMidWordUnderscores: true,
+              literalMidWordAsterisks: true
             });
-            html += converter.makeHtml(block.content || '');
+
+            html += converter.makeHtml(content)
+              // 4. Restore single * and _ as literal text
+              .replace(/\x00STAR\x00/g, '*')
+              .replace(/\x00UNDERSCORE\x00/g, '_');
           } else if (block.type === 'image' && block.content) {
             html += `
               <div style="margin: 1.5rem 0; text-align: center;">
