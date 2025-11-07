@@ -146,6 +146,7 @@
                 <h2 class="text-3xl font-bold mb-4 border-b-2 border-green-200 pb-2">Step 1: Tractrix 실험 및 궤적 분석</h2>
                 <p class="mb-6 text-gray-600">
                     지우개에 털실을 묶고, 털실의 다른 쪽 끝(손)을 책상 위에서 직선으로 당겨보세요. 이때 지우개가 그리는 궤적(Tractrix)을 스마트폰 등으로 촬영하고, 'Tracker'와 같은 물리 분석 프로그램으로 궤적을 분석해 봅시다.
+                    <a href="https://opensourcephysics.github.io/tracker-website/" target="_blank" class="underline text-green-600 hover:text-green-800">Tracker 프로그램 다운로드</a>
                 </p>
                 <div class="grid md:grid-cols-2 gap-8">
                     <!-- Image Upload 1 -->
@@ -230,72 +231,167 @@
                         <div id="geogebra" class="tab-content active">
                             <h4 class="text-lg font-semibold mb-2">GeoGebra (매개변수 곡선)</h4>
                             <ol class="list-decimal list-inside space-y-2 text-sm">
-                                <li>도구 → 점  → $y$축 위에서 클릭 (왼쪽 아래 마우스 버튼 누른 후 y축 위에서 드래그하여 잘 움직이는지 확인)</li>
-                                <li>대수 → 슬라이더 생성: <code>L = slider(1,10)</code> (줄의 길이)</li>
-                                <li>도구 → 맨아래 펼치기  → 원: 중심과 반지름  →  반지름이 L 입력</li>
-                                <li></li>
-                                <li></li>
+                                <li>계산기 시작하기 클릭</li>
+                                <li>대수 메뉴로 이동</li>
+                                <li>슬라이더 생성: <code>L = slider(1,10)</code> (줄의 길이)</li>
+                                <li>슬라이더 생성: <code>dx = slider(0.05, 0.1, 0.01)</code> (변화량)</li>
+                                <li>함수 생성: <code>xn(x) = L - dx * x</code> (물체의 x좌표, 왼쪽 동그라미를 눌러 안보이게 하기) </li>
+                                <li>함수 생성: <code>f(x) = sqrt(L^2 - xn^2)/xn(x)</code> (실의 기울기, 왼쪽 동그라미를 눌러 안보이게 하기)</li>
+                                <li>슬라이더 생성: <code>N = slider(0,L/dx)</code> </li>
+                                <li>슬라이더 생성: <code>yn = sequence(sum(f(t)*dx,t,0,m-1),m,0,N)</code> </li>
+                                <li>점들을 생성: <code>p = sequence(((xn(n),yn(n)),n,0,N)</code> </li>
+                                <li>선분들을 생성: <code>p = sequence(segment(p(n),p(n+1)),n,1,N-1)</code> </li>
+                                <li>움직여 봅시다!</li>
                             </ol>
                         </div>
                         <div id="python" class="tab-content"><h4 class="text-lg font-semibold mb-2">Python (Matplotlib)</h4><pre><code class="language-python text-sm">import numpy as np
+import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.animation import FuncAnimation
 
-L = 1.0  # 줄의 길이
-t = np.linspace(0.01, np.pi - 0.01, 500) # t 범위 (0, pi)
+# 한글 폰트 설정
+plt.rcParams['font.family'] = 'Malgun Gothic'  # Windows
+plt.rcParams['axes.unicode_minus'] = False  # 마이너스 기호 깨짐 방지
 
-# Tractrix 매개변수 방정식 (x축을 따라 당기는 경우)
-# x = L * (np.log(np.tan(t / 2)) + np.cos(t))
-# y = L * np.sin(t)
+L = 1.0  # 줄의 길이 (고정)
 
-# y축을 따라 당기는 경우 (x와 y 교체)
-x_tractrix = L * np.sin(t)
-y_tractrix = L * (np.log(np.tan(t / 2)) + np.cos(t))
+# 애니메이션 설정
+fig, ax = plt.subplots(figsize=(8, 8))
+ax.set_xlim(-0.2, 1.2)
+ax.set_ylim(-0.5, 2.5)
+ax.set_xlabel('x')
+ax.set_ylabel('y')
+ax.set_title('고정된 줄로 끌려오는 물체 (Tractrix)', fontsize=14, fontweight='bold', color='#2C3E50')
+ax.grid(True, alpha=0.3, linestyle=':', color='#BDC3C7')
+ax.set_aspect('equal')
+ax.set_facecolor('#F8F9FA')  # 연한 회색 배경
 
-plt.figure(figsize=(8, 8))
-plt.plot(x_tractrix, y_tractrix, 'g-', label='Tractrix (Object)')
-plt.plot(np.zeros_like(y_tractrix), y_tractrix, 'b--', label='Puller Path (y-axis)') # 끄는 점의 경로
+# 플롯 요소 초기화 (예쁜 색상 팔레트)
+tractrix_line, = ax.plot([], [], color='#9B59B6', linewidth=2.5, alpha=0.7, label='이동 경로')  # 보라색
+object_point, = ax.plot([], [], 'o', color='#E74C3C', markersize=22, label='끌려오는 물체', zorder=5, markeredgecolor='#C0392B', markeredgewidth=2)  # 빨간색
+puller_point, = ax.plot([], [], 's', color='#3498DB', markersize=18, label='끄는 사람', zorder=5, markeredgecolor='#2980B9', markeredgewidth=2)  # 파란색
+string_line, = ax.plot([], [], color='#F39C12', linewidth=4, alpha=0.85, label=f'줄 (길이={L}m)', zorder=4, linestyle='-')  # 주황색
+puller_path, = ax.plot([], [], color='#3498DB', linestyle='--', alpha=0.4, linewidth=1.5, label='끄는 사람 경로')  # 연한 파란색
 
-# 특정 t값에서의 줄(접선) 표시 (예: t = pi/2)
-t_val = np.pi / 2
-obj_x = L * np.sin(t_val)
-obj_y = L * (np.log(np.tan(t_val / 2)) + np.cos(t_val))
-puller_y = L * np.log(np.tan(t_val / 2)) # 끄는 점의 y좌표
-plt.plot([obj_x, 0], [obj_y, puller_y], 'r-o', label=f'String (t={t_val:.2f})')
+# 궤적을 저장할 변수
+trajectory_x = []
+trajectory_y = []
 
-plt.title('Tractrix Simulation')
-plt.xlabel('x')
-plt.ylabel('y')
-plt.legend()
-plt.grid(True)
-plt.axis('equal')
+ax.legend()
+ax.axhline(y=0, color='k', linestyle='-', linewidth=0.5)  # x축 표시
+
+# 애니메이션 함수
+def init():
+    global trajectory_x, trajectory_y
+    trajectory_x = []
+    trajectory_y = []
+    tractrix_line.set_data([], [])
+    object_point.set_data([], [])
+    puller_point.set_data([], [])
+    string_line.set_data([], [])
+    puller_path.set_data([], [])
+    return tractrix_line, object_point, puller_point, string_line, puller_path
+
+def animate(frame):
+    global trajectory_x, trajectory_y
+
+    # 프레임에 따라 t 값 설정 (0부터 시작해서 증가)
+    t = frame * 3.0 / 200  # 0부터 3까지
+
+    # Tractrix 표준 매개변수 방정식
+    # x = L * sech(t), y = L * (t - tanh(t))
+    obj_x = L / np.cosh(t)  # L * sech(t)
+    obj_y = L * (t - np.tanh(t))
+
+    # 끄는 점의 위치 (y축 위, 줄의 길이 L 유지)
+    # 끄는 점은 (0, L*t) 위치에 있음
+    puller_x = 0
+    puller_y = L * t
+
+    # 줄의 길이 확인 (항상 L이어야 함)
+    string_length = np.sqrt((obj_x - puller_x)**2 + (obj_y - puller_y)**2)
+
+    # 물체의 궤적 업데이트 (전체 경로 유지)
+    trajectory_x.append(obj_x)
+    trajectory_y.append(obj_y)
+
+    # 끄는 점의 경로 (y축, 0부터 시작)
+    puller_path_y = np.linspace(0, puller_y, 100)
+
+    # 데이터 업데이트
+    tractrix_line.set_data(trajectory_x, trajectory_y)
+    object_point.set_data([obj_x], [obj_y])
+    puller_point.set_data([puller_x], [puller_y])
+    string_line.set_data([obj_x, puller_x], [obj_y, puller_y])
+    puller_path.set_data(np.zeros_like(puller_path_y), puller_path_y)
+
+    # 제목에 줄의 길이와 위치 표시
+    ax.set_title(f'고정된 줄로 끌려오는 물체 | 줄 길이: {string_length:.3f}m = {L}m | 물체 위치: ({obj_x:.2f}, {obj_y:.2f})')
+
+    return tractrix_line, object_point, puller_point, string_line, puller_path
+
+# 애니메이션 생성
+anim = FuncAnimation(fig, animate, init_func=init, frames=200, 
+                     interval=50, blit=False, repeat=True)
+
 plt.show()</code></pre></div>
                          <div id="matlab" class="tab-content"><h4 class="text-lg font-semibold mb-2">MATLAB</h4><pre><code class="language-matlab text-sm">L = 1.0; % 줄의 길이
-t = linspace(0.01, pi - 0.01, 500); % t 범위 (0, pi)
+% 줄의 길이 (고정)
+L = 1.0;
 
-% y축을 따라 당기는 경우
-x_tractrix = L .* sin(t);
-y_tractrix = L .* (log(tan(t / 2)) + cos(t));
+% Tractrix 표준 매개변수 방정식
+% x = L * sech(t), y = L * (t - tanh(t))
+t = linspace(0, 3, 500); % t 범위 (0부터 시작)
 
-figure;
-plot(x_tractrix, y_tractrix, 'g-', 'LineWidth', 2);
+% Tractrix 곡선 계산
+x_tractrix = L ./ cosh(t);  % L * sech(t)
+y_tractrix = L .* (t - tanh(t));
+
+% 끄는 점의 y 좌표
+puller_y = L .* t;
+
+% 그림 설정
+figure('Color', [0.97 0.98 0.98]);
+ax = axes('Color', [0.97 0.98 0.98]);
 hold on;
 
-% 끄는 점의 경로 (y축)
-plot(zeros(size(y_tractrix)), y_tractrix, 'b--');
+% 이동 경로 (보라색)
+plot(x_tractrix, y_tractrix, 'Color', [0.61 0.35 0.71], 'LineWidth', 2.5);
 
-% 특정 t값에서의 줄(접선) 표시 (예: t = pi/2)
-t_val = pi / 2;
-obj_x = L * sin(t_val);
-obj_y = L * (log(tan(t_val / 2)) + cos(t_val));
-puller_y = L * log(tan(t_val / 2)); % 끄는 점의 y좌표
-plot([obj_x, 0], [obj_y, puller_y], 'r-o', 'MarkerFaceColor', 'r');
+% 끄는 점의 경로 (연한 파란색 점선)
+plot(zeros(size(puller_y)), puller_y, '--', 'Color', [0.20 0.60 0.86], 'LineWidth', 1.5);
 
-title('Tractrix Simulation');
-xlabel('x');
-ylabel('y');
-legend('Tractrix (Object)', 'Puller Path (y-axis)', 'String');
+% 특정 t값에서의 줄 표시 (예: t = 1.5)
+t_val = 1.5;
+obj_x = L / cosh(t_val);
+obj_y = L * (t_val - tanh(t_val));
+puller_y_val = L * t_val;
+
+% 줄 (주황색)
+plot([obj_x, 0], [obj_y, puller_y_val], '-', 'Color', [0.95 0.61 0.07], 'LineWidth', 4);
+
+% 끌려오는 물체 (빨간색)
+plot(obj_x, obj_y, 'o', 'MarkerSize', 12, 'MarkerFaceColor', [0.91 0.30 0.24], ...
+    'MarkerEdgeColor', [0.75 0.22 0.17], 'LineWidth', 2);
+
+% 끄는 사람 (파란색)
+plot(0, puller_y_val, 's', 'MarkerSize', 10, 'MarkerFaceColor', [0.20 0.60 0.86], ...
+    'MarkerEdgeColor', [0.16 0.50 0.73], 'LineWidth', 2);
+
+% 줄의 길이 확인
+string_length = sqrt(obj_x^2 + (obj_y - puller_y_val)^2);
+
+title(sprintf('고정된 줄로 끌려오는 물체 (Tractrix) | 줄 길이: %.3fm', string_length), ...
+    'FontSize', 14, 'FontWeight', 'bold', 'Color', [0.17 0.24 0.31]);
+xlabel('x', 'FontSize', 11);
+ylabel('y', 'FontSize', 11);
+legend('이동 경로', '끄는 사람 경로', '줄', '끌려오는 물체', '끄는 사람', ...
+    'Location', 'best');
 grid on;
+set(gca, 'GridAlpha', 0.3, 'GridLineStyle', ':');
 axis equal;
+xlim([-0.2 1.2]);
+ylim([-0.5 2.5]);
 hold off;</code></pre></div>
                     </div>
                 </div>
@@ -314,25 +410,30 @@ hold off;</code></pre></div>
                 <div class="bg-gray-100 p-6 rounded-lg mb-8">
                     <h4 class="font-semibold text-lg mb-2">Tractrix의 주요 속성 및 방정식</h4>
                     <p class="mb-2">
-                        1.  <strong>정의:</strong> 물체 $P(x, y)$에서 그은 접선이 $y$축과 만나는 점 $T(0, t_y)$까지의 거리($PT$)가 항상 줄의 길이 $L$로 일정합니다.
+                        1. <strong>정의:</strong> 물체 $P(x, y)$에서 그은 접선이 $y$축과 만나는 점 $T(0, t_y)$까지의 거리($PT$)가 항상 줄의 길이 $L$로 일정합니다.
                     </p>
                     <p class="mb-2">
-                        2.  <strong>접선:</strong> $P(x, y)$에서의 접선의 기울기는 $\frac{dy}{dx}$입니다. 접선의 방정식은 $Y - y = \frac{dy}{dx}(X - x)$입니다.
+                        2. <strong>피타고라스 정리:</strong> 점 $P(x, y)$, $T(0, t_y)$, 그리고 $S(x, t_y)$는 $\triangle PST$ 직각삼각형을 이룹니다. 빗변($PT$)은 $L$, 밑변($ST$)은 $x$, 높이($PS$)는 $y - t_y$ 이므로, $x^2 + (y - t_y)^2 = L^2$ 입니다.
                     </p>
                     <p class="mb-2">
-                        3.  <strong>$y$절편 ($T$):</strong> $X=0$을 대입하면 $t_y = y - x \frac{dy}{dx}$ 입니다.
+                        3. <strong>기울기:</strong> $P$에서의 접선의 기울기 $\frac{dy}{dx}$는 두 점 $P(x, y)$와 $T(0, t_y)$를 잇는 직선(줄)의 기울기와 같습니다. $\frac{dy}{dx} = \frac{y - t_y}{x - 0}$, 따라서 $y - t_y = x \frac{dy}{dx}$ 입니다.
                     </p>
                     <p class="mb-2">
-                        4.  <strong>거리 공식:</strong> $PT = \sqrt{(x - 0)^2 + (y - t_y)^2} = L$
+                        4. <strong>미분 방정식:</strong> '기울기' 식(3)을 '피타고라스 정리' 식(2)에 대입합니다. $x^2 + \left(x \frac{dy}{dx}\right)^2 = L^2$
                     </p>
                     <p class="mb-2">
-                        5.  <strong>미분 방정식:</strong> 위 식들을 연립하면 $x^2 + \left(x \frac{dy}{dx}\right)^2 = L^2$ 또는 $\frac{dy}{dx} = \pm \frac{\sqrt{L^2 - x^2}}{x}$ 를 얻을 수 있습니다.
+                        5. <strong>방정식 정리:</strong> 위 식(4)를 $\frac{dy}{dx}$에 대해 풀면 $\frac{dy}{dx} = \pm \frac{\sqrt{L^2 - x^2}}{x}$ 를 얻습니다.
                     </p>
                     <p class="font-semibold mt-4">
                         ▪️ <strong>매개변수 방정식 (Parametric Equations)</strong> ( $t$는 $y$축과 줄이 이루는 각)
                     </p>
-                    <p class="ml-4">$x(t) = L \sin(t)$</p>
-                    <p class="ml-4">$y(t) = L \left( \cos(t) + \ln\left(\tan\left(\frac{t}{2}\right)\right) \right)$</p>
+                    <p class="mb-2">
+                        6. <strong>적분 및 정리:</strong> 5번의 미분 방정식을 $x = L \sin(t)$로 치환 적분하고 초기조건 $(L, 0)$을 적용하면 다음 매개변수 방정식을 얻습니다.
+                    </p>
+                    <p class="mb-2" style="padding-left: 40px;">
+                        $x(t) = L \sin(t)$ <br>
+                        $y(t) = L \left( \ln\left(\cot\left(\frac{t}{2}\right)\right) - \cos(t) \right)$
+                    </p>
                 </div>
                 <!-- Markdown Input for Derivation -->
                 <label for="derivation" class="block text-lg font-semibold mb-2">🔍 수식 유도 과정</label>
