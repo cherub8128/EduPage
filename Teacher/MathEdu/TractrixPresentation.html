@@ -1002,6 +1002,47 @@
             </div>
         </div>
 
+        <!-- Slide 17: GeoGebra 실습 -->
+        <div class="slide" data-slide="17" data-title="GeoGebra 실습">
+            <h1 class="fit mb-4">GeoGebra 실습</h1>
+            <div class="fill-height col justify-start gap">
+                <p style="font-size: 1.1rem; margin-bottom: 1rem;">미분 방정식을 수치적으로 풀어 Tractrix 곡선 그리기</p>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; width: 100%;">
+                    <div>
+                        <h3 style="font-size: 1.2rem; margin-bottom: 0.8rem; color: #16a34a;">📐 단계별 구현</h3>
+                        <ol style="font-size: 0.95rem; line-height: 1.8; text-align: left; padding-left: 1.5rem;">
+                            <li>줄의 길이: <code style="background: #f3f4f6; padding: 0.2rem 0.4rem; border-radius: 0.25rem;">L = slider(1,10)</code></li>
+                            <li>변화량: <code style="background: #f3f4f6; padding: 0.2rem 0.4rem; border-radius: 0.25rem;">dx = slider(0.05, 0.1, 0.01)</code></li>
+                            <li>x좌표: <code style="background: #f3f4f6; padding: 0.2rem 0.4rem; border-radius: 0.25rem;">xn(x) = L - dx * x</code></li>
+                            <li>기울기: <code style="background: #f3f4f6; padding: 0.2rem 0.4rem; border-radius: 0.25rem;">f(x) = sqrt(L² - xn²)/xn(x)</code></li>
+                            <li>진행 정도: <code style="background: #f3f4f6; padding: 0.2rem 0.4rem; border-radius: 0.25rem;">N = slider(0,L/dx)</code></li>
+                            <li>y좌표 계산: <code style="background: #f3f4f6; padding: 0.2rem 0.4rem; border-radius: 0.25rem;">yn = sequence(sum(f(t)*dx,t,0,m-1),m,0,N)</code></li>
+                            <li>점 생성: <code style="background: #f3f4f6; padding: 0.2rem 0.4rem; border-radius: 0.25rem;">p = sequence((xn(n),yn(n)),n,0,N)</code></li>
+                            <li>선분 연결: <code style="background: #f3f4f6; padding: 0.2rem 0.4rem; border-radius: 0.25rem;">segment(p(n),p(n+1))</code></li>
+                        </ol>
+                    </div>
+                    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                        <div class="formula-box" style="width: 100%; text-align: center;">
+                            <p style="font-size: 1rem; margin-bottom: 0.5rem;"><strong>핵심 아이디어</strong></p>
+                            <p style="font-size: 0.9rem;">미분방정식 \(\frac{dy}{dx} = \frac{\sqrt{L^2 - x^2}}{x}\)</p>
+                            <p style="font-size: 0.9rem; margin-top: 0.5rem;">→ 수치적분으로 근사</p>
+                            <p style="font-size: 0.85rem; margin-top: 0.8rem; color: #6b7280;">슬라이더 N을 조절하여 곡선이 그려지는 과정을 관찰</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 18: GeoGebra 결과 -->
+        <div class="slide" data-slide="18" data-title="GeoGebra 시뮬레이션 결과">
+            <h1 class="fit mb-4">GeoGebra 시뮬레이션 결과</h1>
+            <div class="fill-height col justify-center items-center gap">
+                <img src="Tractrix_geogebra_animation.gif" alt="GeoGebra Tractrix Animation" style="max-width: 85%; max-height: 70vh; border-radius: 0.5rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                <p style="font-size: 1.1rem; margin-top: 1rem;">슬라이더를 움직이면 실시간으로 곡선이 그려지는 모습</p>
+            </div>
+        </div>
+
+
         <!-- Slide 19: 미분방정식 유도 1 -->
         <div class="slide" data-slide="19" data-title="미분방정식 유도 (1)">
             <h1 class="fit mb-4">미분방정식 유도 (1)</h1>
