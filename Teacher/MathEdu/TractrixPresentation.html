@@ -1,1610 +1,1510 @@
 <!DOCTYPE html>
 <html lang="ko">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tractrix 곡선 강의</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap"
-      rel="stylesheet"
-    />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
-    <script
-      defer
-      src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
-    ></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
 
     <style>
-      :root {
-        --bg-dark: #0f172a;
-        --bg-gradient-start: #1e293b;
-        --bg-gradient-end: #0f172a;
-        --surface: #ffffff;
-        --surface-muted: #f8fafc;
-        --accent: #16a34a;
-        --accent-light: #4ade80;
-        --accent-dark: #15803d;
-        --blue: #2563eb;
-        --blue-light: #3b82f6;
-        --purple: #9333ea;
-        --yellow: #eab308;
-        --red: #ef4444;
-        --text-dark: #0f172a;
-        --text-gray: #475569;
-        --text-muted: #64748b;
-        --border: #e2e8f0;
-        --shadow: rgba(15, 23, 42, 0.1);
-        --shadow-lg: rgba(15, 23, 42, 0.2);
-      }
-
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
-
-      body {
-        font-family: 'Noto Sans KR', sans-serif;
-        background: linear-gradient(135deg, var(--bg-gradient-start), var(--bg-gradient-end));
-        color: var(--text-dark);
-        min-height: 100vh;
-        overflow: hidden;
-      }
-
-      /* Presentation Container */
-      .presentation-container {
-        width: 100vw;
-        height: 100vh;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 40px 20px 140px;
-        position: relative;
-      }
-
-      /* Slide Styles */
-      .slide {
-        width: min(1200px, 92vw);
-        height: min(720px, calc(92vh - 160px));
-        background: var(--surface);
-        border-radius: 24px;
-        padding: 60px;
-        box-shadow: 0 25px 80px var(--shadow-lg), 0 0 0 1px rgba(22, 163, 74, 0.05);
-        position: absolute;
-        overflow-y: auto;
-        opacity: 0;
-        visibility: hidden;
-        transform: translateY(20px) scale(0.95);
-        transition: opacity 0.4s ease, transform 0.4s ease, visibility 0.4s;
-      }
-
-      .slide.active {
-        opacity: 1;
-        visibility: visible;
-        transform: translateY(0) scale(1);
-      }
-
-      .slide::-webkit-scrollbar {
-        width: 10px;
-      }
-
-      .slide::-webkit-scrollbar-track {
-        background: var(--surface-muted);
-        border-radius: 10px;
-      }
-
-      .slide::-webkit-scrollbar-thumb {
-        background: var(--accent);
-        border-radius: 10px;
-      }
-
-      .slide::-webkit-scrollbar-thumb:hover {
-        background: var(--accent-dark);
-      }
-
-      /* Typography */
-      h1 {
-        font-size: clamp(2rem, 5vw, 3.5rem);
-        font-weight: 700;
-        color: var(--text-dark);
-        margin-bottom: 1rem;
-        line-height: 1.2;
-      }
-
-      h2 {
-        font-size: clamp(1.5rem, 3.5vw, 2.25rem);
-        font-weight: 600;
-        color: var(--accent);
-        margin-bottom: 1rem;
-      }
-
-      h3 {
-        font-size: clamp(1.25rem, 2.5vw, 1.75rem);
-        font-weight: 600;
-        color: var(--text-dark);
-        margin-bottom: 0.75rem;
-      }
-
-      p,
-      li {
-        font-size: clamp(1rem, 2vw, 1.25rem);
-        line-height: 1.7;
-        color: var(--text-gray);
-      }
-
-      .subtitle {
-        color: var(--text-muted);
-        font-size: clamp(1rem, 2vw, 1.35rem);
-        margin-bottom: 2rem;
-        font-weight: 400;
-      }
-
-      /* Tag */
-      .tag {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        background: linear-gradient(135deg, var(--accent), var(--accent-light));
-        color: white;
-        padding: 8px 20px;
-        border-radius: 999px;
-        font-size: 0.95rem;
-        font-weight: 500;
-        margin-bottom: 1.5rem;
-        box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3);
-      }
-
-      /* Layout Utilities */
-      .grid-two {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        gap: 2rem;
-        margin-top: 2rem;
-      }
-
-      .grid-three {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-        gap: 1.5rem;
-        margin-top: 1.5rem;
-      }
-
-      /* Card */
-      .card {
-        background: var(--surface-muted);
-        border-radius: 20px;
-        padding: 2rem;
-        border: 2px solid var(--border);
-        transition: transform 0.3s, box-shadow 0.3s, border-color 0.3s;
-      }
-
-      .card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 15px 40px var(--shadow);
-        border-color: var(--accent-light);
-      }
-
-      /* Steps List */
-      .steps-list {
-        list-style: none;
-        padding: 0;
-        margin-top: 1.5rem;
-        display: flex;
-        flex-direction: column;
-        gap: 1rem;
-      }
-
-      .steps-list li {
-        background: var(--surface-muted);
-        padding: 1.25rem 1.5rem;
-        border-radius: 16px;
-        border-left: 6px solid var(--accent);
-        font-size: clamp(1rem, 2vw, 1.2rem);
-        transition: transform 0.2s, box-shadow 0.2s;
-      }
-
-      .steps-list li:hover {
-        transform: translateX(8px);
-        box-shadow: 0 8px 20px var(--shadow);
-      }
-
-      .steps-list li strong {
-        color: var(--accent-dark);
-        font-weight: 600;
-      }
-
-      /* Media Elements */
-      .media-row {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        gap: 2rem;
-        margin-top: 2rem;
-      }
-
-      .media-row video,
-      .media-row img,
-      .example-grid img {
-        width: 100%;
-        max-height: 400px;
-        object-fit: cover;
-        border-radius: 20px;
-        box-shadow: 0 15px 50px var(--shadow-lg);
-        transition: transform 0.3s;
-      }
-
-      .media-row video:hover,
-      .media-row img:hover,
-      .example-grid img:hover {
-        transform: scale(1.05);
-      }
-
-      .example-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        gap: 2rem;
-        margin-top: 2rem;
-      }
-
-      /* Special Boxes */
-      .note-box {
-        margin-top: 2rem;
-        padding: 1.5rem 2rem;
-        background: linear-gradient(135deg, #fef3c7, #fde68a);
-        color: #78350f;
-        border-radius: 20px;
-        border: 2px solid #fbbf24;
-        font-weight: 500;
-      }
-
-      .definition-box,
-      .property-box,
-      .assumption-box,
-      .formula-box,
-      .application-box,
-      .concept-box,
-      .ref-box,
-      .experiment-box,
-      .relation-box,
-      .intro-box,
-      .timeline-item,
-      .toc-section {
-        background: var(--surface-muted);
-        border-radius: 18px;
-        padding: 1.5rem 2rem;
-        border: 2px solid var(--border);
-        margin-bottom: 1.25rem;
-        transition: all 0.3s;
-      }
-
-      .definition-box:hover,
-      .property-box:hover,
-      .assumption-box:hover,
-      .formula-box:hover,
-      .application-box:hover,
-      .concept-box:hover,
-      .experiment-box:hover,
-      .relation-box:hover,
-      .intro-box:hover {
-        border-color: var(--accent);
-        transform: translateY(-3px);
-        box-shadow: 0 10px 30px var(--shadow);
-      }
-
-      .timeline-item {
-        border-left: 6px solid var(--blue);
-      }
-
-      .timeline-item .year {
-        font-weight: 700;
-        color: var(--blue);
-        font-size: 1.3rem;
-        margin-bottom: 0.5rem;
-      }
-
-      .property-title {
-        font-weight: 600;
-        color: var(--accent);
-        font-size: 1.2rem;
-        margin-bottom: 0.75rem;
-      }
-
-      .highlight,
-      .highlight-formula {
-        background: linear-gradient(135deg, #dbeafe, #bfdbfe);
-        border-radius: 18px;
-        padding: 1.5rem 2rem;
-        border: 2px solid var(--blue-light);
-        margin-top: 1rem;
-        font-weight: 600;
-        color: var(--text-dark);
-      }
-
-      .note {
-        margin-top: 1.5rem;
-        padding: 1rem 1.5rem;
-        background: #fef3c7;
-        border-radius: 14px;
-        border: 2px solid #fbbf24;
-        color: #78350f;
-      }
-
-      /* Step Components */
-      .step {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        margin-bottom: 0.75rem;
-      }
-
-      .step-num {
-        width: 36px;
-        height: 36px;
-        background: linear-gradient(135deg, var(--accent), var(--accent-light));
-        color: white;
-        border-radius: 50%;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1rem;
-        font-weight: 700;
-        flex-shrink: 0;
-        box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3);
-      }
-
-      .step-note {
-        font-size: 1rem;
-        color: var(--text-muted);
-        font-style: italic;
-      }
-
-      .toc-section {
-        background: white;
-        border: 2px solid var(--border);
-      }
-
-      .toc-section:hover {
-        border-color: var(--accent);
-        transform: translateX(8px);
-      }
-
-      .toc-number {
-        font-weight: 700;
-        color: var(--accent);
-        font-size: 1.3rem;
-        margin-right: 0.5rem;
-      }
-
-      /* Navigation Controls */
-      .nav-controls {
-        position: fixed;
-        bottom: 30px;
-        left: 50%;
-        transform: translateX(-50%);
-        display: flex;
-        flex-direction: column;
-        gap: 1rem;
-        padding: 1.5rem 2rem;
-        background: rgba(15, 23, 42, 0.95);
-        border-radius: 30px;
-        backdrop-filter: blur(20px);
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
-        color: white;
-        z-index: 100;
-        width: min(90vw, 650px);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-      }
-
-      .nav-buttons {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 1.5rem;
-        flex-wrap: wrap;
-      }
-
-      .nav-btn {
-        background: linear-gradient(135deg, var(--accent), var(--accent-light));
-        border: none;
-        color: white;
-        padding: 12px 32px;
-        border-radius: 999px;
-        font-size: 1.1rem;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        box-shadow: 0 4px 15px rgba(22, 163, 74, 0.4);
-      }
-
-      .nav-btn:disabled {
-        opacity: 0.3;
-        cursor: not-allowed;
-      }
-
-      .nav-btn:not(:disabled):hover {
-        transform: translateY(-3px) scale(1.05);
-        box-shadow: 0 8px 25px rgba(22, 163, 74, 0.6);
-      }
-
-      .slide-counter {
-        font-weight: 700;
-        font-size: 1.1rem;
-        letter-spacing: 0.05em;
-        color: white;
-      }
-
-      .jump-controls {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 1rem;
-        flex-wrap: wrap;
-      }
-
-      .jump-controls label {
-        color: rgba(255, 255, 255, 0.9);
-        font-weight: 500;
-      }
-
-      .jump-controls input {
-        width: 100px;
-        padding: 8px 12px;
-        border-radius: 12px;
-        border: 2px solid rgba(255, 255, 255, 0.2);
-        background: rgba(255, 255, 255, 0.1);
-        color: white;
-        font-size: 1rem;
-        font-weight: 600;
-      }
-
-      .jump-controls input:focus {
-        outline: none;
-        border-color: var(--accent-light);
-        background: rgba(255, 255, 255, 0.15);
-      }
-
-      .jump-controls button {
-        background: var(--blue-light);
-        border: none;
-        color: white;
-        padding: 8px 24px;
-        border-radius: 999px;
-        cursor: pointer;
-        font-weight: 600;
-        transition: all 0.3s;
-      }
-
-      .jump-controls button:hover {
-        background: var(--blue);
-        transform: translateY(-2px);
-      }
-
-      /* Top Buttons */
-      .fullscreen-btn,
-      .keyboard-hint {
-        position: fixed;
-        top: 25px;
-        padding: 12px 24px;
-        border-radius: 999px;
-        border: 2px solid rgba(255, 255, 255, 0.2);
-        background: rgba(15, 23, 42, 0.9);
-        color: white;
-        font-size: 1rem;
-        font-weight: 500;
-        backdrop-filter: blur(15px);
-        z-index: 100;
-        transition: all 0.3s;
-      }
-
-      .fullscreen-btn {
-        right: 25px;
-        cursor: pointer;
-      }
-
-      .fullscreen-btn:hover {
-        background: rgba(15, 23, 42, 1);
-        transform: translateY(-2px);
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
-      }
-
-      .keyboard-hint {
-        left: 180px;
-      }
-
-      /* TOC */
-      .toc-toggle {
-        position: fixed;
-        top: 25px;
-        left: 25px;
-        background: rgba(15, 23, 42, 0.9);
-        color: white;
-        border: 2px solid rgba(22, 163, 74, 0.5);
-        border-radius: 999px;
-        padding: 12px 24px;
-        cursor: pointer;
-        z-index: 101;
-        font-weight: 600;
-        transition: all 0.3s;
-        backdrop-filter: blur(15px);
-      }
-
-      .toc-toggle:hover {
-        background: rgba(15, 23, 42, 1);
-        border-color: var(--accent-light);
-        transform: translateY(-2px);
-      }
-
-      .toc-panel {
-        position: fixed;
-        top: 80px;
-        left: 25px;
-        width: 350px;
-        max-width: calc(100vw - 50px);
-        max-height: 75vh;
-        background: white;
-        border-radius: 24px;
-        box-shadow: 0 25px 80px rgba(0, 0, 0, 0.3);
-        padding: 2rem;
-        transform: translateX(-120%);
-        transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        z-index: 102;
-        display: flex;
-        flex-direction: column;
-        border: 2px solid var(--accent);
-      }
-
-      .toc-panel.open {
-        transform: translateX(0);
-      }
-
-      .toc-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-bottom: 1.5rem;
-        padding-bottom: 1rem;
-        border-bottom: 2px solid var(--border);
-      }
-
-      .toc-header strong {
-        font-size: 1.4rem;
-        color: var(--text-dark);
-      }
-
-      .toc-close {
-        border: none;
-        background: var(--surface-muted);
-        font-size: 1.5rem;
-        cursor: pointer;
-        width: 36px;
-        height: 36px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: all 0.3s;
-      }
-
-      .toc-close:hover {
-        background: var(--red);
-        color: white;
-        transform: rotate(90deg);
-      }
-
-      #tocList {
-        list-style: none;
-        margin: 0;
-        padding: 0;
-        overflow-y: auto;
-        flex: 1;
-      }
-
-      #tocList li {
-        margin-bottom: 0.75rem;
-      }
-
-      #tocList button {
-        width: 100%;
-        text-align: left;
-        padding: 12px 16px;
-        border-radius: 14px;
-        border: 2px solid var(--border);
-        background: white;
-        cursor: pointer;
-        font-size: 1rem;
-        transition: all 0.3s;
-        color: var(--text-gray);
-      }
-
-      #tocList button:hover {
-        background: var(--surface-muted);
-        border-color: var(--accent);
-        transform: translateX(5px);
-      }
-
-      #tocList li.active button {
-        background: linear-gradient(135deg, var(--accent), var(--accent-light));
-        border-color: var(--accent);
-        color: white;
-        font-weight: 600;
-      }
-
-      /* Layout Utilities */
-      .fill-height {
-        display: flex;
-        flex-direction: column;
-        height: 100%;
-      }
-
-      .col {
-        display: flex;
-        flex-direction: column;
-      }
-
-      .center {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        text-align: center;
-      }
-
-      .justify-center {
-        justify-content: center;
-      }
-
-      .gap-sm {
-        gap: 1rem;
-      }
-
-      .gap {
-        gap: 1.5rem;
-      }
-
-      .gap-lg {
-        gap: 2.5rem;
-      }
-
-      .pb-6 {
-        padding-bottom: 1.5rem;
-      }
-
-      .pb-8 {
-        padding-bottom: 2rem;
-      }
-
-      .mb-4 {
-        margin-bottom: 1.5rem;
-      }
-
-      .text-center {
-        text-align: center;
-      }
-
-      .fit {
-        font-size: clamp(2.2rem, 5vw, 3.2rem);
-      }
-
-      /* Responsive */
-      @media (max-width: 840px) {
+        :root {
+            --bg-dark: #0f172a;
+            --bg-gradient-start: #1e293b;
+            --bg-gradient-end: #0f172a;
+            --surface: #ffffff;
+            --surface-muted: #f8fafc;
+            --accent: #16a34a;
+            --accent-light: #4ade80;
+            --accent-dark: #15803d;
+            --blue: #2563eb;
+            --blue-light: #3b82f6;
+            --purple: #9333ea;
+            --yellow: #eab308;
+            --red: #ef4444;
+            --text-dark: #0f172a;
+            --text-gray: #475569;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --shadow: rgba(15, 23, 42, 0.1);
+            --shadow-lg: rgba(15, 23, 42, 0.2);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background: linear-gradient(135deg, var(--bg-gradient-start), var(--bg-gradient-end));
+            color: var(--text-dark);
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Presentation Container */
         .presentation-container {
-          align-items: flex-start;
-          padding: 20px 16px 200px;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px 140px;
+            position: relative;
         }
 
+        /* Slide Styles */
         .slide {
-          position: relative;
-          height: auto;
-          min-height: 60vh;
-          padding: 40px 30px;
+            width: min(1200px, 92vw);
+            height: min(720px, calc(92vh - 160px));
+            background: var(--surface);
+            border-radius: 24px;
+            padding: 60px;
+            box-shadow: 0 25px 80px var(--shadow-lg), 0 0 0 1px rgba(22, 163, 74, 0.05);
+            position: absolute;
+            overflow-y: auto;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(20px) scale(0.95);
+            transition: opacity 0.4s ease, transform 0.4s ease, visibility 0.4s;
         }
 
-        .nav-controls {
-          width: min(96vw, 540px);
+        .slide.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0) scale(1);
         }
 
-        .keyboard-hint {
-          left: 25px;
-          top: 80px;
+        .slide::-webkit-scrollbar {
+            width: 10px;
         }
 
-        .toc-panel {
-          top: 140px;
-          width: calc(100vw - 50px);
+        .slide::-webkit-scrollbar-track {
+            background: var(--surface-muted);
+            border-radius: 10px;
         }
 
+        .slide::-webkit-scrollbar-thumb {
+            background: var(--accent);
+            border-radius: 10px;
+        }
+
+        .slide::-webkit-scrollbar-thumb:hover {
+            background: var(--accent-dark);
+        }
+
+        /* Typography */
         h1 {
-          font-size: 2rem;
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 1rem;
+            line-height: 1.2;
         }
 
         h2 {
-          font-size: 1.5rem;
+            font-size: clamp(1.5rem, 3.5vw, 2.25rem);
+            font-weight: 600;
+            color: var(--accent);
+            margin-bottom: 1rem;
         }
-      }
+
+        h3 {
+            font-size: clamp(1.25rem, 2.5vw, 1.75rem);
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 0.75rem;
+        }
+
+        p, li {
+            font-size: clamp(1rem, 2vw, 1.25rem);
+            line-height: 1.7;
+            color: var(--text-gray);
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: clamp(1rem, 2vw, 1.35rem);
+            margin-bottom: 2rem;
+            font-weight: 400;
+        }
+
+        /* Tag */
+        .tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-light));
+            color: white;
+            padding: 8px 20px;
+            border-radius: 999px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3);
+        }
+
+        /* Layout Utilities */
+        .grid-two {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .grid-three {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        /* Card */
+        .card {
+            background: var(--surface-muted);
+            border-radius: 20px;
+            padding: 2rem;
+            border: 2px solid var(--border);
+            transition: transform 0.3s, box-shadow 0.3s, border-color 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px var(--shadow);
+            border-color: var(--accent-light);
+        }
+
+        /* Steps List */
+        .steps-list {
+            list-style: none;
+            padding: 0;
+            margin-top: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .steps-list li {
+            background: var(--surface-muted);
+            padding: 1.25rem 1.5rem;
+            border-radius: 16px;
+            border-left: 6px solid var(--accent);
+            font-size: clamp(1rem, 2vw, 1.2rem);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .steps-list li:hover {
+            transform: translateX(8px);
+            box-shadow: 0 8px 20px var(--shadow);
+        }
+
+        .steps-list li strong {
+            color: var(--accent-dark);
+            font-weight: 600;
+        }
+
+        /* Media Elements */
+        .media-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .media-row video,
+        .media-row img,
+        .example-grid img {
+            width: 100%;
+            max-height: 400px;
+            object-fit: cover;
+            border-radius: 20px;
+            box-shadow: 0 15px 50px var(--shadow-lg);
+            transition: transform 0.3s;
+        }
+
+        .media-row video:hover,
+        .media-row img:hover,
+        .example-grid img:hover {
+            transform: scale(1.05);
+        }
+
+        .example-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        /* Special Boxes */
+        .note-box {
+            margin-top: 2rem;
+            padding: 1.5rem 2rem;
+            background: linear-gradient(135deg, #fef3c7, #fde68a);
+            color: #78350f;
+            border-radius: 20px;
+            border: 2px solid #fbbf24;
+            font-weight: 500;
+        }
+
+        .definition-box,
+        .property-box,
+        .assumption-box,
+        .formula-box,
+        .application-box,
+        .concept-box,
+        .ref-box,
+        .experiment-box,
+        .relation-box,
+        .intro-box,
+        .timeline-item,
+        .toc-section {
+            background: var(--surface-muted);
+            border-radius: 18px;
+            padding: 1.5rem 2rem;
+            border: 2px solid var(--border);
+            margin-bottom: 1.25rem;
+            transition: all 0.3s;
+        }
+
+        .definition-box:hover,
+        .property-box:hover,
+        .assumption-box:hover,
+        .formula-box:hover,
+        .application-box:hover,
+        .concept-box:hover,
+        .experiment-box:hover,
+        .relation-box:hover,
+        .intro-box:hover {
+            border-color: var(--accent);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px var(--shadow);
+        }
+
+        .timeline-item {
+            border-left: 6px solid var(--blue);
+        }
+
+        .timeline-item .year {
+            font-weight: 700;
+            color: var(--blue);
+            font-size: 1.3rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .property-title {
+            font-weight: 600;
+            color: var(--accent);
+            font-size: 1.2rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .highlight,
+        .highlight-formula {
+            background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+            border-radius: 18px;
+            padding: 1.5rem 2rem;
+            border: 2px solid var(--blue-light);
+            margin-top: 1rem;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        .note {
+            margin-top: 1.5rem;
+            padding: 1rem 1.5rem;
+            background: #fef3c7;
+            border-radius: 14px;
+            border: 2px solid #fbbf24;
+            color: #78350f;
+        }
+
+        /* Step Components */
+        .step {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .step-num {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-light));
+            color: white;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            font-weight: 700;
+            flex-shrink: 0;
+            box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3);
+        }
+
+        .step-note {
+            font-size: 1rem;
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        .toc-section {
+            background: white;
+            border: 2px solid var(--border);
+        }
+
+        .toc-section:hover {
+            border-color: var(--accent);
+            transform: translateX(8px);
+        }
+
+        .toc-number {
+            font-weight: 700;
+            color: var(--accent);
+            font-size: 1.3rem;
+            margin-right: 0.5rem;
+        }
+
+        /* Navigation Controls */
+        .nav-controls {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            padding: 1.5rem 2rem;
+            background: rgba(15, 23, 42, 0.95);
+            border-radius: 30px;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+            color: white;
+            z-index: 100;
+            width: min(90vw, 650px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-buttons {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .nav-btn {
+            background: linear-gradient(135deg, var(--accent), var(--accent-light));
+            border: none;
+            color: white;
+            padding: 12px 32px;
+            border-radius: 999px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(22, 163, 74, 0.4);
+        }
+
+        .nav-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .nav-btn:not(:disabled):hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 8px 25px rgba(22, 163, 74, 0.6);
+        }
+
+        .slide-counter {
+            font-weight: 700;
+            font-size: 1.1rem;
+            letter-spacing: 0.05em;
+            color: white;
+        }
+
+        .jump-controls {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .jump-controls label {
+            color: rgba(255, 255, 255, 0.9);
+            font-weight: 500;
+        }
+
+        .jump-controls input {
+            width: 100px;
+            padding: 8px 12px;
+            border-radius: 12px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .jump-controls input:focus {
+            outline: none;
+            border-color: var(--accent-light);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .jump-controls button {
+            background: var(--blue-light);
+            border: none;
+            color: white;
+            padding: 8px 24px;
+            border-radius: 999px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .jump-controls button:hover {
+            background: var(--blue);
+            transform: translateY(-2px);
+        }
+
+        /* Top Buttons */
+        .fullscreen-btn,
+        .keyboard-hint {
+            position: fixed;
+            top: 25px;
+            padding: 12px 24px;
+            border-radius: 999px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            background: rgba(15, 23, 42, 0.9);
+            color: white;
+            font-size: 1rem;
+            font-weight: 500;
+            backdrop-filter: blur(15px);
+            z-index: 100;
+            transition: all 0.3s;
+        }
+
+        .fullscreen-btn {
+            right: 25px;
+            cursor: pointer;
+        }
+
+        .fullscreen-btn:hover {
+            background: rgba(15, 23, 42, 1);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .keyboard-hint {
+            left: 180px;
+        }
+
+        /* TOC */
+        .toc-toggle {
+            position: fixed;
+            top: 25px;
+            left: 25px;
+            background: rgba(15, 23, 42, 0.9);
+            color: white;
+            border: 2px solid rgba(22, 163, 74, 0.5);
+            border-radius: 999px;
+            padding: 12px 24px;
+            cursor: pointer;
+            z-index: 101;
+            font-weight: 600;
+            transition: all 0.3s;
+            backdrop-filter: blur(15px);
+        }
+
+        .toc-toggle:hover {
+            background: rgba(15, 23, 42, 1);
+            border-color: var(--accent-light);
+            transform: translateY(-2px);
+        }
+
+        .toc-panel {
+            position: fixed;
+            top: 80px;
+            left: 25px;
+            width: 350px;
+            max-width: calc(100vw - 50px);
+            max-height: 75vh;
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 25px 80px rgba(0, 0, 0, 0.3);
+            padding: 2rem;
+            transform: translateX(-120%);
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 102;
+            display: flex;
+            flex-direction: column;
+            border: 2px solid var(--accent);
+        }
+
+        .toc-panel.open {
+            transform: translateX(0);
+        }
+
+        .toc-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .toc-header strong {
+            font-size: 1.4rem;
+            color: var(--text-dark);
+        }
+
+        .toc-close {
+            border: none;
+            background: var(--surface-muted);
+            font-size: 1.5rem;
+            cursor: pointer;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+
+        .toc-close:hover {
+            background: var(--red);
+            color: white;
+            transform: rotate(90deg);
+        }
+
+        #tocList {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        #tocList li {
+            margin-bottom: 0.75rem;
+        }
+
+        #tocList button {
+            width: 100%;
+            text-align: left;
+            padding: 12px 16px;
+            border-radius: 14px;
+            border: 2px solid var(--border);
+            background: white;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s;
+            color: var(--text-gray);
+        }
+
+        #tocList button:hover {
+            background: var(--surface-muted);
+            border-color: var(--accent);
+            transform: translateX(5px);
+        }
+
+        #tocList li.active button {
+            background: linear-gradient(135deg, var(--accent), var(--accent-light));
+            border-color: var(--accent);
+            color: white;
+            font-weight: 600;
+        }
+
+        /* Layout Utilities */
+        .fill-height {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .col {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .center {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .justify-center {
+            justify-content: center;
+        }
+
+        .gap-sm {
+            gap: 1rem;
+        }
+
+        .gap {
+            gap: 1.5rem;
+        }
+
+        .gap-lg {
+            gap: 2.5rem;
+        }
+
+        .pb-6 {
+            padding-bottom: 1.5rem;
+        }
+
+        .pb-8 {
+            padding-bottom: 2rem;
+        }
+
+        .mb-4 {
+            margin-bottom: 1.5rem;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .fit {
+            font-size: clamp(2.2rem, 5vw, 3.2rem);
+        }
+
+        /* Responsive */
+        @media (max-width: 840px) {
+            .presentation-container {
+                align-items: flex-start;
+                padding: 20px 16px 200px;
+            }
+
+            .slide {
+                position: relative;
+                height: auto;
+                min-height: 60vh;
+                padding: 40px 30px;
+            }
+
+            .nav-controls {
+                width: min(96vw, 540px);
+            }
+
+            .keyboard-hint {
+                left: 25px;
+                top: 80px;
+            }
+
+            .toc-panel {
+                top: 140px;
+                width: calc(100vw - 50px);
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            h2 {
+                font-size: 1.5rem;
+            }
+        }
     </style>
-  </head>
-  <body>
+</head>
+<body>
     <!-- TOC Toggle -->
     <button class="toc-toggle" id="tocToggle">📚 목차</button>
 
     <!-- TOC Panel -->
     <div class="toc-panel" id="tocPanel">
-      <div class="toc-header">
-        <strong>슬라이드 목차</strong>
-        <button class="toc-close" id="tocClose">×</button>
-      </div>
-      <ol id="tocList"></ol>
+        <div class="toc-header">
+            <strong>슬라이드 목차</strong>
+            <button class="toc-close" id="tocClose">×</button>
+        </div>
+        <ol id="tocList"></ol>
     </div>
 
     <!-- Presentation Container -->
     <div class="presentation-container">
-      <!-- Slide 1: Tractrix 표지 -->
-      <div class="slide active" data-slide="1" data-title="Tractrix 곡선">
-        <div class="center fill-height">
-          <div>
-            <h1>Tractrix 곡선</h1>
-            <h2>추적곡선의 수학적 이해</h2>
-            <p class="subtitle">The Tractrix and Its Mathematical Properties</p>
-          </div>
-        </div>
-      </div>
 
-      <!-- Slide 2: 목차 -->
-      <div class="slide" data-slide="2" data-title="목차">
-        <h1 class="fit mb-4 text-center">목차</h1>
-        <div class="fill-height col justify-center gap-sm">
-          <div class="toc-section">
-            <p><span class="toc-number">1.</span> Tractrix의 정의와 역사</p>
-          </div>
-          <div class="toc-section">
-            <p><span class="toc-number">2.</span> 기하학적 성질</p>
-          </div>
-          <div class="toc-section">
-            <p><span class="toc-number">3.</span> 미분방정식과 해</p>
-          </div>
-          <div class="toc-section">
-            <p><span class="toc-number">4.</span> Catenary와의 관계</p>
-          </div>
-          <div class="toc-section">
-            <p><span class="toc-number">5.</span> Circular Tractrix</p>
-          </div>
-          <div class="toc-section">
-            <p><span class="toc-number">6.</span> 응용 사례</p>
-          </div>
-        </div>
-      </div>
+        
 
-      <!-- Slide 3: Tractrix 정의 -->
-      <div class="slide" data-slide="3" data-title="Tractrix의 정의">
-        <h1 class="fit mb-4">Tractrix의 정의</h1>
-        <div class="fill-height col justify-center gap-lg">
-          <div class="definition-box">
-            <h3>추적곡선 (Tractrix)</h3>
-            <p>물체가 일정한 길이의 줄로 끌려갈 때 그리는 곡선</p>
-          </div>
-          <div class="definition-box">
-            <h3>기하학적 특징</h3>
-            <p>곡선 위의 한 점에서 그은 접선이 준선과 만나는 점까지의 거리가 항상 일정</p>
-          </div>
+        <!-- Slide 1: Tractrix 표지 -->
+        <div class="slide active" data-slide="1" data-title="Tractrix 곡선">
+            <div class="center fill-height">
+                <div>
+                    <h1>Tractrix 곡선</h1>
+                    <h2>추적곡선의 수학적 이해</h2>
+                    <p class="subtitle">The Tractrix and Its Mathematical Properties</p>
+                </div>
+            </div>
         </div>
-      </div>
 
-      <!-- Slide 4: 어원과 역사 -->
-      <div class="slide" data-slide="4" data-title="어원과 역사">
-        <h1 class="fit mb-4">어원과 역사</h1>
-        <div class="fill-height col justify-center pb-6">
-          <div class="timeline-item">
-            <p class="year">1670s</p>
-            <p>Claude Perrault이 처음 연구</p>
-          </div>
-          <div class="timeline-item">
-            <p class="year">1676</p>
-            <p>Christiaan Huygens가 방정식 유도</p>
-          </div>
-          <div class="timeline-item">
-            <p class="year">어원</p>
-            <p>라틴어 <strong>trahere</strong> (끌다)</p>
-          </div>
+        <!-- Slide 2: 목차 -->
+        <div class="slide" data-slide="2" data-title="목차">
+            <h1 class="fit mb-4 text-center">목차</h1>
+            <div class="fill-height col justify-center gap-sm">
+                <div class="toc-section">
+                    <p><span class="toc-number">1.</span> Tractrix의 정의와 역사</p>
+                </div>
+                <div class="toc-section">
+                    <p><span class="toc-number">2.</span> 기하학적 성질</p>
+                </div>
+                <div class="toc-section">
+                    <p><span class="toc-number">3.</span> 미분방정식과 해</p>
+                </div>
+                <div class="toc-section">
+                    <p><span class="toc-number">4.</span> Catenary와의 관계</p>
+                </div>
+                <div class="toc-section">
+                    <p><span class="toc-number">5.</span> Circular Tractrix</p>
+                </div>
+                <div class="toc-section">
+                    <p><span class="toc-number">6.</span> 응용 사례</p>
+                </div>
+            </div>
         </div>
-      </div>
 
-      <!-- Slide 5: Tractrix 실험 -->
-      <div class="slide" data-slide="5" data-title="Tractrix 실험 설정">
-        <h1 class="fit mb-4">Tractrix 실험</h1>
-        <div class="fill-height col justify-center gap">
-          <div class="experiment-box">
-            <h3>준비물</h3>
-            <ul>
-              <li>지우개 (물체)</li>
-              <li>일정 길이의 실 (L)</li>
-              <li>책상 (평면)</li>
-            </ul>
-          </div>
-          <div class="experiment-box">
-            <h3>실험 방법</h3>
-            <p class="step"><span class="step-num">1</span> 실을 지우개에 고정</p>
-            <p class="step"><span class="step-num">2</span> 실의 다른 끝을 직선으로 이동</p>
-            <p class="step"><span class="step-num">3</span> 지우개의 궤적 관찰</p>
-          </div>
+        <!-- Slide 3: Tractrix 정의 -->
+        <div class="slide" data-slide="3" data-title="Tractrix의 정의">
+            <h1 class="fit mb-4">Tractrix의 정의</h1>
+            <div class="fill-height col justify-center gap-lg">
+                <div class="definition-box">
+                    <h3>추적곡선 (Tractrix)</h3>
+                    <p>물체가 일정한 길이의 줄로 끌려갈 때 그리는 곡선</p>
+                </div>
+                <div class="definition-box">
+                    <h3>기하학적 특징</h3>
+                    <p>곡선 위의 한 점에서 그은 접선이 준선과 만나는 점까지의 거리가 항상 일정</p>
+                </div>
+            </div>
         </div>
-      </div>
 
-      <!-- Slide 6: 실험 설정 -->
-      <div class="slide" data-slide="6" data-title="실제 실험 사진">
-        <h1 class="fit text-center mb-4">실험 설정</h1>
-        <div class="fill-height center gap">
-          <div class="media-row">
-            <video
-              controls
-              poster="Tractrix_experiment.jpg"
-              src="Tractrix_experiment.mp4"
-              style="max-height: 500px"
-            ></video>
-            <img src="Tractrix_experiment.jpg" alt="Tractrix 실험" style="max-height: 500px" />
-          </div>
+        <!-- Slide 4: 어원과 역사 -->
+        <div class="slide" data-slide="4" data-title="어원과 역사">
+            <h1 class="fit mb-4">어원과 역사</h1>
+            <div class="fill-height col justify-center pb-6">
+                <div class="timeline-item">
+                    <p class="year">1670s</p>
+                    <p>Claude Perrault이 처음 연구</p>
+                </div>
+                <div class="timeline-item">
+                    <p class="year">1676</p>
+                    <p>Christiaan Huygens가 방정식 유도</p>
+                </div>
+                <div class="timeline-item">
+                    <p class="year">어원</p>
+                    <p>라틴어 <strong>trahere</strong> (끌다)</p>
+                </div>
+            </div>
         </div>
-      </div>
 
-      <!-- Slide 7: 표지 -->
-      <div class="slide" data-slide="7" data-title="표지">
-        <div class="tag">슬라이드 7 · 표지</div>
-        <h1>영상 속 물체의 운동 분석</h1>
-        <h2>오픈소스 Tracker로 x-t, y-t, x-y 그래프 그리기</h2>
-        <p class="subtitle">영상 데이터를 이용해 세 가지 핵심 그래프를 동시에 구성하는 방법</p>
-        <div class="media-row">
-          <img src="TrackerMain.png" alt="Tractrix 실험 이미지" />
-          <img src="TrackerGraph.png" alt="트래커 그래프 이미지" />
+        <!-- Slide 5: Tractrix 실험 -->
+        <div class="slide" data-slide="5" data-title="Tractrix 실험 설정">
+            <h1 class="fit mb-4">Tractrix 실험</h1>
+            <div class="fill-height col justify-center gap">
+                <div class="experiment-box">
+                    <h3>준비물</h3>
+                    <ul>
+                        <li>지우개 (물체)</li>
+                        <li>일정 길이의 실 (L)</li>
+                        <li>책상 (평면)</li>
+                    </ul>
+                </div>
+                <div class="experiment-box">
+                    <h3>실험 방법</h3>
+                    <p class="step"><span class="step-num">1</span> 실을 지우개에 고정</p>
+                    <p class="step"><span class="step-num">2</span> 실의 다른 끝을 직선으로 이동</p>
+                    <p class="step"><span class="step-num">3</span> 지우개의 궤적 관찰</p>
+                </div>
+            </div>
         </div>
-      </div>
 
-      <!-- Slide 8: Tracker란? -->
-      <div class="slide" data-slide="8" data-title="Tracker란?">
-        <div class="tag">슬라이드 8 · Tracker란?</div>
-        <h1>'Tracker'란 무엇인가?</h1>
-        <div class="grid-two">
-          <div class="card">
-            <h2>핵심 개념</h2>
+        <!-- Slide 6: 실험 설정 -->
+        <div class="slide" data-slide="6" data-title="실제 실험 사진">
+            <h1 class="fit text-center mb-4">실험 설정</h1>
+            <div class="fill-height center gap">
+                <div class="media-row">
+                    <video controls poster="Tractrix_experiment.jpg" src="Tractrix_experiment.mp4" style="max-height: 500px;"></video>
+                    <img src="Tractrix_experiment.jpg" alt="Tractrix 실험" style="max-height: 500px;">
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 7: 표지 -->
+        <div class="slide" data-slide="7" data-title="표지">
+            <div class="tag">슬라이드 7 · 표지</div>
+            <h1>영상 속 물체의 운동 분석</h1>
+            <h2>오픈소스 Tracker로 x-t, y-t, x-y 그래프 그리기</h2>
+            <p class="subtitle">영상 데이터를 이용해 세 가지 핵심 그래프를 동시에 구성하는 방법</p>
+            <div class="media-row">
+                <video controls poster="TrackerMain.png" src="TrackerGraph.png"></video>
+                <img src="Tractrix_experiment.jpg" alt="Tractrix 실험 이미지">
+            </div>
+        </div>
+
+        <!-- Slide 8: Tracker란? -->
+        <div class="slide" data-slide="8" data-title="Tracker란?">
+            <div class="tag">슬라이드 8 · Tracker란?</div>
+            <h1>'Tracker'란 무엇인가?</h1>
+            <div class="grid-two">
+                <div class="card">
+                    <h2>핵심 개념</h2>
+                    <ul class="steps-list">
+                        <li>무료 오픈소스 물리(OSP) 영상 분석 도구</li>
+                        <li>동영상에서 물체의 운동을 정량적으로 측정</li>
+                        <li>데이터 테이블, 그래프, 벡터 등 다양한 시각화 제공</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h2>공식 정보</h2>
+                    <p><strong>Tracker 공식 사이트</strong></p>
+                    <p><a href="https://opensourcephysics.github.io/tracker-website/" target="_blank" style="color: var(--blue); text-decoration: underline;">https://opensourcephysics.github.io/tracker-website/</a></p>
+                    <p style="margin-top: 1rem;">Windows, macOS, Linux 지원</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 9: 학습 목표 -->
+        <div class="slide" data-slide="9" data-title="학습 목표">
+            <div class="tag">슬라이드 9 · 오늘의 목표</div>
+            <h1>학습 목표: 3가지 핵심 그래프 배치하기</h1>
             <ul class="steps-list">
-              <li>무료 오픈소스 물리(OSP) 영상 분석 도구</li>
-              <li>동영상에서 물체의 운동을 정량적으로 측정</li>
-              <li>데이터 테이블, 그래프, 벡터 등 다양한 시각화 제공</li>
+                <li><strong>x-t 그래프</strong>: 시간에 따른 수평 위치</li>
+                <li><strong>y-t 그래프</strong>: 시간에 따른 수직 위치 (높이)</li>
+                <li><strong>x-y 그래프</strong>: 시간에 따른 운동 궤적</li>
             </ul>
-          </div>
-          <div class="card">
-            <h2>공식 정보</h2>
-            <p><strong>Tracker 공식 사이트</strong></p>
-            <p>
-              <a
-                href="https://opensourcephysics.github.io/tracker-website/"
-                target="_blank"
-                style="color: var(--blue); text-decoration: underline"
-                >https://opensourcephysics.github.io/tracker-website/</a
-              >
-            </p>
-            <p style="margin-top: 1rem">Windows, macOS, Linux 지원</p>
-          </div>
         </div>
-      </div>
 
-      <!-- Slide 9: 학습 목표 -->
-      <div class="slide" data-slide="9" data-title="학습 목표">
-        <div class="tag">슬라이드 9 · 오늘의 목표</div>
-        <h1>학습 목표: 3가지 핵심 그래프 배치하기</h1>
-        <ul class="steps-list">
-          <li><strong>x-t 그래프</strong>: 시간에 따른 수평 위치</li>
-          <li><strong>y-t 그래프</strong>: 시간에 따른 수직 위치 (높이)</li>
-          <li><strong>x-y 그래프</strong>: 시간에 따른 운동 궤적</li>
-        </ul>
-      </div>
-
-      <!-- Slide 10: STEP 1 -->
-      <div class="slide" data-slide="10" data-title="STEP 1: 영상 준비">
-        <div class="tag">슬라이드 10 · STEP 1</div>
-        <h1>STEP 1: 영상 준비 및 기본 설정</h1>
-        <ol class="steps-list">
-          <li><strong>영상 불러오기:</strong> 분석할 영상을 트래커 창으로 드래그 앤 드롭</li>
-          <li><strong>분석 구간 설정:</strong> 하단 슬라이더로 물체가 움직이는 구간 선택</li>
-          <li><strong>교정(Calibration):</strong> '교정 막대' 도구로 실제 길이 설정</li>
-          <li><strong>좌표축 설정:</strong> '좌표축' 도구로 운동의 기준 원점 $(0,0)$ 지정</li>
-        </ol>
-      </div>
-
-      <!-- Slide 11: STEP 2 -->
-      <div class="slide" data-slide="11" data-title="STEP 2: 물체 추적">
-        <div class="tag">슬라이드 11 · STEP 2</div>
-        <h1>STEP 2: 물체 추적 (트랙 생성)</h1>
-        <ol class="steps-list">
-          <li><strong>트랙 생성:</strong> 만들기 → 점 질량(Point Mass) 선택</li>
-          <li><strong>수동 추적:</strong> Shift 키를 누른 채 프레임마다 물체의 중심 클릭</li>
-          <li><strong>자동 추적(선택):</strong> 물체-배경 대비가 뚜렷할 때 활용</li>
-        </ol>
-      </div>
-
-      <!-- Slide 12: STEP 3-1 -->
-      <div class="slide" data-slide="12" data-title="STEP 3-1: x-t, y-t 그래프">
-        <div class="tag">슬라이드 12 · STEP 3-1</div>
-        <h1>STEP 3-1: $x-t$ 및 $y-t$ 그래프 배치</h1>
-        <ol class="steps-list">
-          <li><strong>기본 표시:</strong> x-t 그래프 확인</li>
-          <li><strong>그래프 추가:</strong> 그래프 창 우클릭 → 플롯 추가(혹은 분할)</li>
-          <li>
-            <strong>y-t 그래프 설정:</strong> 새 그래프 세로축 레이블('x') 클릭 → y(위치) 선택
-          </li>
-        </ol>
-      </div>
-
-      <!-- Slide 13: STEP 3-2 -->
-      <div class="slide" data-slide="13" data-title="STEP 3-2: x-y 궤적">
-        <div class="tag">슬라이드 13 · STEP 3-2</div>
-        <h1>STEP 3-2: $x-y$ 궤적 그래프 배치</h1>
-        <ol class="steps-list">
-          <li><strong>새 플롯 추가:</strong> 그래프 창 우클릭 → 플롯 추가</li>
-          <li><strong>세로축 설정:</strong> 세로축 레이블 클릭 → $y$(위치) 선택</li>
-          <li><strong>가로축 설정:</strong> 가로축 레이블('$t$') 클릭 → $x$(위치) 선택</li>
-          <li><strong>결과:</strong> 세로축($y$), 가로축($x$) 궤적 그래프 완성</li>
-        </ol>
-      </div>
-
-      <!-- Slide 14: 분석 및 활용 -->
-      <div class="slide" data-slide="14" data-title="분석 및 활용">
-        <div class="tag">슬라이드 14 · 분석 및 활용</div>
-        <h1>분석 및 데이터 활용</h1>
-        <ul class="steps-list">
-          <li><strong>결과:</strong> $x-t, y-t, x-y$ 그래프 동시 배치 완료</li>
-          <li><strong>데이터 테이블:</strong> '테이블' 탭에서 $t, x, y, v$ 등 모든 수치 확인</li>
-          <li><strong>데이터 활용:</strong> 복사 후 Excel/Google Sheets 등에서 2차 분석</li>
-        </ul>
-        <div class="note-box">
-          💡 <strong>Tip:</strong> 그래프 우클릭 → 이미지로 내보내기를 사용하면 보고서에 바로 삽입할
-          수 있습니다.
+        <!-- Slide 10: STEP 1 -->
+        <div class="slide" data-slide="10" data-title="STEP 1: 영상 준비">
+            <div class="tag">슬라이드 10 · STEP 1</div>
+            <h1>STEP 1: 영상 준비 및 기본 설정</h1>
+            <ol class="steps-list">
+                <li><strong>영상 불러오기:</strong> 분석할 영상을 트래커 창으로 드래그 앤 드롭</li>
+                <li><strong>분석 구간 설정:</strong> 하단 슬라이더로 물체가 움직이는 구간 선택</li>
+                <li><strong>교정(Calibration):</strong> '교정 막대' 도구로 실제 길이 설정</li>
+                <li><strong>좌표축 설정:</strong> '좌표축' 도구로 운동의 기준 원점 $(0,0)$ 지정</li>
+            </ol>
         </div>
-      </div>
 
-      <!-- Slide 15: 실습 예시 -->
-      <div class="slide" data-slide="15" data-title="실습 예시">
-        <div class="tag">슬라이드 15 · 실제 예시</div>
-        <h1>Tracker 실습 화면 예시</h1>
-        <p class="subtitle">$x-t, y-t, x-y$ 그래프와 메인 화면 구성 예시</p>
-        <div class="example-grid">
-          <img src="TrackerMain.png" alt="Tracker 메인 화면" />
-          <img src="TrackerGraph.png" alt="Tracker 그래프 예시" />
+        <!-- Slide 11: STEP 2 -->
+        <div class="slide" data-slide="11" data-title="STEP 2: 물체 추적">
+            <div class="tag">슬라이드 11 · STEP 2</div>
+            <h1>STEP 2: 물체 추적 (트랙 생성)</h1>
+            <ol class="steps-list">
+                <li><strong>트랙 생성:</strong> 만들기 → 점 질량(Point Mass) 선택</li>
+                <li><strong>수동 추적:</strong> Shift 키를 누른 채 프레임마다 물체의 중심 클릭</li>
+                <li><strong>자동 추적(선택):</strong> 물체-배경 대비가 뚜렷할 때 활용</li>
+            </ol>
         </div>
-      </div>
 
-      <!-- Slide 16: 기하학적 성질 1 -->
-      <div class="slide" data-slide="16" data-title="기하학적 성질 (1)">
-        <h1 class="fit mb-4">기하학적 성질 (1)</h1>
-        <div class="fill-height col justify-center gap">
-          <div class="property-box">
-            <p class="property-title">접선 길이</p>
-            <p>곡선 위의 점 P에서 y축까지의 접선 길이가 항상 L로 일정</p>
-          </div>
-          <div class="property-box">
-            <p class="property-title">점근선</p>
-            <p>Tractrix는 y축에 점근적으로 접근 \((x \to 0\)일 때 \(y \to \infty)\)</p>
-          </div>
+        <!-- Slide 12: STEP 3-1 -->
+        <div class="slide" data-slide="12" data-title="STEP 3-1: x-t, y-t 그래프">
+            <div class="tag">슬라이드 12 · STEP 3-1</div>
+            <h1>STEP 3-1: $x-t$ 및 $y-t$ 그래프 배치</h1>
+            <ol class="steps-list">
+                <li><strong>기본 표시:</strong> x-t 그래프 확인</li>
+                <li><strong>그래프 추가:</strong> 그래프 창 우클릭 → 플롯 추가(혹은 분할)</li>
+                <li><strong>y-t 그래프 설정:</strong> 새 그래프 세로축 레이블('x') 클릭 → y(위치) 선택</li>
+            </ol>
         </div>
-      </div>
 
-      <!-- Slide 17: 기하학적 성질 2 -->
-      <div class="slide" data-slide="17" data-title="기하학적 성질 (2)">
-        <h1 class="fit mb-4">기하학적 성질 (2)</h1>
-        <div class="fill-height col justify-center gap">
-          <div class="property-box">
-            <p class="property-title">대칭성</p>
-            <p>$y$축에 대해 대칭</p>
-          </div>
-          <div class="property-box">
-            <p class="property-title">원과의 관계</p>
-            <p>점 P에서의 접선은 중심이 $P$의 수직선 위에 있고 반경이 $L$인 원에도 접함</p>
-          </div>
+        <!-- Slide 13: STEP 3-2 -->
+        <div class="slide" data-slide="13" data-title="STEP 3-2: x-y 궤적">
+            <div class="tag">슬라이드 13 · STEP 3-2</div>
+            <h1>STEP 3-2: $x-y$ 궤적 그래프 배치</h1>
+            <ol class="steps-list">
+                <li><strong>새 플롯 추가:</strong> 그래프 창 우클릭 → 플롯 추가</li>
+                <li><strong>세로축 설정:</strong> 세로축 레이블 클릭 → $y$(위치) 선택</li>
+                <li><strong>가로축 설정:</strong> 가로축 레이블('$t$') 클릭 → $x$(위치) 선택</li>
+                <li><strong>결과:</strong> 세로축($y$), 가로축($x$) 궤적 그래프 완성</li>
+            </ol>
         </div>
-      </div>
 
-      <!-- Slide 18: 수학적 모델링 가정 -->
-      <div class="slide" data-slide="18" data-title="수학적 모델링 가정">
-        <h1 class="fit mb-4">수학적 모델링 가정</h1>
-        <div class="fill-height col justify-center gap">
-          <div class="assumption-box">
-            <p><strong>1.</strong> 줄의 길이 $L$은 일정</p>
-          </div>
-          <div class="assumption-box">
-            <p><strong>2.</strong> 물체는 항상 줄이 당기는 방향(접선 방향)으로만 이동</p>
-          </div>
-          <div class="assumption-box">
-            <p><strong>3.</strong> 마찰력과 공기 저항 무시</p>
-          </div>
-          <div class="assumption-box">
-            <p><strong>4.</strong> 끄는 점은 직선(또는 원) 위를 이동</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Slide 17: GeoGebra 실습 -->
-      <div class="slide" data-slide="17" data-title="GeoGebra 실습">
-        <h1 class="fit mb-4">GeoGebra 실습</h1>
-        <div class="fill-height col justify-start gap">
-          <p style="font-size: 1.1rem; margin-bottom: 1rem">
-            미분 방정식을 수치적으로 풀어 Tractrix 곡선 그리기
-          </p>
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; width: 100%">
-            <div>
-              <h3 style="font-size: 1.2rem; margin-bottom: 0.8rem; color: #16a34a">
-                📐 단계별 구현
-              </h3>
-              <ol
-                style="font-size: 0.95rem; line-height: 1.8; text-align: left; padding-left: 1.5rem"
-              >
-                <li>
-                  줄의 길이:
-                  <code style="background: #f3f4f6; padding: 0.2rem 0.4rem; border-radius: 0.25rem"
-                    >L = slider(1,10)</code
-                  >
-                </li>
-                <li>
-                  변화량:
-                  <code style="background: #f3f4f6; padding: 0.2rem 0.4rem; border-radius: 0.25rem"
-                    >dx = slider(0.05, 0.1, 0.01)</code
-                  >
-                </li>
-                <li>
-                  x좌표:
-                  <code style="background: #f3f4f6; padding: 0.2rem 0.4rem; border-radius: 0.25rem"
-                    >xn(x) = L - dx * x</code
-                  >
-                </li>
-                <li>
-                  기울기:
-                  <code style="background: #f3f4f6; padding: 0.2rem 0.4rem; border-radius: 0.25rem"
-                    >f(x) = sqrt(L² - xn²)/xn(x)</code
-                  >
-                </li>
-                <li>
-                  진행 정도:
-                  <code style="background: #f3f4f6; padding: 0.2rem 0.4rem; border-radius: 0.25rem"
-                    >N = slider(0,L/dx)</code
-                  >
-                </li>
-                <li>
-                  y좌표 계산:
-                  <code style="background: #f3f4f6; padding: 0.2rem 0.4rem; border-radius: 0.25rem"
-                    >yn = sequence(sum(f(t)*dx,t,0,m-1),m,0,N)</code
-                  >
-                </li>
-                <li>
-                  점 생성:
-                  <code style="background: #f3f4f6; padding: 0.2rem 0.4rem; border-radius: 0.25rem"
-                    >p = sequence((xn(n),yn(n)),n,0,N)</code
-                  >
-                </li>
-                <li>
-                  선분 연결:
-                  <code style="background: #f3f4f6; padding: 0.2rem 0.4rem; border-radius: 0.25rem"
-                    >segment(p(n),p(n+1))</code
-                  >
-                </li>
-              </ol>
+        <!-- Slide 14: 분석 및 활용 -->
+        <div class="slide" data-slide="14" data-title="분석 및 활용">
+            <div class="tag">슬라이드 14 · 분석 및 활용</div>
+            <h1>분석 및 데이터 활용</h1>
+            <ul class="steps-list">
+                <li><strong>결과:</strong> $x-t, y-t, x-y$ 그래프 동시 배치 완료</li>
+                <li><strong>데이터 테이블:</strong> '테이블' 탭에서 $t, x, y, v$ 등 모든 수치 확인</li>
+                <li><strong>데이터 활용:</strong> 복사 후 Excel/Google Sheets 등에서 2차 분석</li>
+            </ul>
+            <div class="note-box">
+                💡 <strong>Tip:</strong> 그래프 우클릭 → 이미지로 내보내기를 사용하면 보고서에 바로 삽입할 수 있습니다.
             </div>
-            <div
-              style="
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                justify-content: center;
-              "
-            >
-              <div class="formula-box" style="width: 100%; text-align: center">
-                <p style="font-size: 1rem; margin-bottom: 0.5rem"><strong>핵심 아이디어</strong></p>
-                <p style="font-size: 0.9rem">
-                  미분방정식 \(\frac{dy}{dx} = \frac{\sqrt{L^2 - x^2}}{x}\)
-                </p>
-                <p style="font-size: 0.9rem; margin-top: 0.5rem">→ 수치적분으로 근사</p>
-                <p style="font-size: 0.85rem; margin-top: 0.8rem; color: #6b7280">
-                  슬라이더 N을 조절하여 곡선이 그려지는 과정을 관찰
-                </p>
-              </div>
+        </div>
+
+        <!-- Slide 15: 실습 예시 -->
+        <div class="slide" data-slide="15" data-title="실습 예시">
+            <div class="tag">슬라이드 15 · 실제 예시</div>
+            <h1>Tracker 실습 화면 예시</h1>
+            <p class="subtitle">$x-t, y-t, x-y$ 그래프와 메인 화면 구성 예시</p>
+            <div class="example-grid">
+                <img src="TrackerMain.png" alt="Tracker 메인 화면">
+                <img src="TrackerGraph.png" alt="Tracker 그래프 예시">
             </div>
-          </div>
         </div>
-      </div>
 
-      <!-- Slide 18: GeoGebra 결과 -->
-      <div class="slide" data-slide="18" data-title="GeoGebra 시뮬레이션 결과">
-        <h1 class="fit mb-4">GeoGebra 시뮬레이션 결과</h1>
-        <div class="fill-height col justify-center items-center gap">
-          <img
-            src="Tractrix_geogebra_animation.gif"
-            alt="GeoGebra Tractrix Animation"
-            style="
-              max-width: 85%;
-              max-height: 70vh;
-              border-radius: 0.5rem;
-              box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            "
-          />
-          <p style="font-size: 1.1rem; margin-top: 1rem">
-            슬라이더를 움직이면 실시간으로 곡선이 그려지는 모습
-          </p>
+        <!-- Slide 16: 기하학적 성질 1 -->
+        <div class="slide" data-slide="16" data-title="기하학적 성질 (1)">
+            <h1 class="fit mb-4">기하학적 성질 (1)</h1>
+            <div class="fill-height col justify-center gap">
+                <div class="property-box">
+                    <p class="property-title">접선 길이</p>
+                    <p>곡선 위의 점 P에서 y축까지의 접선 길이가 항상 L로 일정</p>
+                </div>
+                <div class="property-box">
+                    <p class="property-title">점근선</p>
+                    <p>Tractrix는 y축에 점근적으로 접근 \((x \to 0\)일 때 \(y \to \infty)\)</p>
+                </div>
+            </div>
         </div>
-      </div>
 
-      <!-- Slide 19: 미분방정식 유도 1 -->
-      <div class="slide" data-slide="19" data-title="미분방정식 유도 (1)">
-        <h1 class="fit mb-4">미분방정식 유도 (1)</h1>
-        <div class="fill-height col justify-center gap">
-          <p style="font-size: 1.3rem">점 \(P(x, y)\)에서 y축까지의 접선 길이 = \(L\)</p>
-          <div class="formula-box">
-            <p><strong>접선:</strong> \(Y - y = y'(X - x)\)</p>
-          </div>
-          <div class="formula-box">
-            <p><strong>y축과의 교점 T:</strong> \((0, y - xy')\)</p>
-            <p class="note">\(X = 0\)을 대입</p>
-          </div>
+        <!-- Slide 17: 기하학적 성질 2 -->
+        <div class="slide" data-slide="17" data-title="기하학적 성질 (2)">
+            <h1 class="fit mb-4">기하학적 성질 (2)</h1>
+            <div class="fill-height col justify-center gap">
+                <div class="property-box">
+                    <p class="property-title">대칭성</p>
+                    <p>$y$축에 대해 대칭</p>
+                </div>
+                <div class="property-box">
+                    <p class="property-title">원과의 관계</p>
+                    <p>점 P에서의 접선은 중심이 $P$의 수직선 위에 있고 반경이 $L$인 원에도 접함</p>
+                </div>
+            </div>
         </div>
-      </div>
 
-      <!-- Slide 20: 미분방정식 유도 2 -->
-      <div class="slide" data-slide="20" data-title="미분방정식 유도 (2)">
-        <h1 class="fit mb-4">미분방정식 유도 (2)</h1>
-        <div class="fill-height col justify-center gap">
-          <p style="font-size: 1.3rem">거리 \(PT = L\)</p>
-          <div class="formula-box">
-            <p>\(\sqrt{x^2 + (xy')^2} = L\)</p>
-          </div>
-          <div class="formula-box">
-            <p>\(x^2(1 + (y')^2) = L^2\)</p>
-          </div>
+        <!-- Slide 18: 수학적 모델링 가정 -->
+        <div class="slide" data-slide="18" data-title="수학적 모델링 가정">
+            <h1 class="fit mb-4">수학적 모델링 가정</h1>
+            <div class="fill-height col justify-center gap">
+                <div class="assumption-box">
+                    <p><strong>1.</strong> 줄의 길이 $L$은 일정</p>
+                </div>
+                <div class="assumption-box">
+                    <p><strong>2.</strong> 물체는 항상 줄이 당기는 방향(접선 방향)으로만 이동</p>
+                </div>
+                <div class="assumption-box">
+                    <p><strong>3.</strong> 마찰력과 공기 저항 무시</p>
+                </div>
+                <div class="assumption-box">
+                    <p><strong>4.</strong> 끄는 점은 직선(또는 원) 위를 이동</p>
+                </div>
+            </div>
         </div>
-      </div>
 
-      <!-- Slide 21: 미분방정식 유도 3 -->
-      <div class="slide" data-slide="21" data-title="미분방정식 유도 (3)">
-        <h1 class="fit mb-4">미분방정식 유도 (3)</h1>
-        <div class="fill-height col justify-center gap">
-          <div class="formula-box">
-            <p>\(x^2(1 + (y')^2) = L^2\)</p>
-          </div>
-          <div class="formula-box">
-            <p>\((y')^2 = \frac{L^2 - x^2}{x^2}\)</p>
-          </div>
-          <div class="highlight-formula">
-            <p style="font-size: 1.5rem"><strong>\(y' = \pm\frac{\sqrt{L^2 - x^2}}{x}\)</strong></p>
-          </div>
+        <!-- Slide 17: GeoGebra 실습 -->
+        <div class="slide" data-slide="17" data-title="GeoGebra 실습">
+            <h1 class="fit mb-4">GeoGebra 실습</h1>
+            <div class="fill-height col justify-start gap">
+                <p style="font-size: 1.1rem; margin-bottom: 1rem;">미분 방정식을 수치적으로 풀어 Tractrix 곡선 그리기</p>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; width: 100%;">
+                    <div>
+                        <h3 style="font-size: 1.2rem; margin-bottom: 0.8rem; color: #16a34a;">📐 단계별 구현</h3>
+                        <ol style="font-size: 0.95rem; line-height: 1.8; text-align: left; padding-left: 1.5rem;">
+                            <li>줄의 길이: <code style="background: #f3f4f6; padding: 0.2rem 0.4rem; border-radius: 0.25rem;">L = slider(1,10)</code></li>
+                            <li>변화량: <code style="background: #f3f4f6; padding: 0.2rem 0.4rem; border-radius: 0.25rem;">dx = slider(0.05, 0.1, 0.01)</code></li>
+                            <li>x좌표: <code style="background: #f3f4f6; padding: 0.2rem 0.4rem; border-radius: 0.25rem;">xn(x) = L - dx * x</code></li>
+                            <li>기울기: <code style="background: #f3f4f6; padding: 0.2rem 0.4rem; border-radius: 0.25rem;">f(x) = sqrt(L² - xn²)/xn(x)</code></li>
+                            <li>진행 정도: <code style="background: #f3f4f6; padding: 0.2rem 0.4rem; border-radius: 0.25rem;">N = slider(0,L/dx)</code></li>
+                            <li>y좌표 계산: <code style="background: #f3f4f6; padding: 0.2rem 0.4rem; border-radius: 0.25rem;">yn = sequence(sum(f(t)*dx,t,0,m-1),m,0,N)</code></li>
+                            <li>점 생성: <code style="background: #f3f4f6; padding: 0.2rem 0.4rem; border-radius: 0.25rem;">p = sequence((xn(n),yn(n)),n,0,N)</code></li>
+                            <li>선분 연결: <code style="background: #f3f4f6; padding: 0.2rem 0.4rem; border-radius: 0.25rem;">segment(p(n),p(n+1))</code></li>
+                        </ol>
+                    </div>
+                    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                        <div class="formula-box" style="width: 100%; text-align: center;">
+                            <p style="font-size: 1rem; margin-bottom: 0.5rem;"><strong>핵심 아이디어</strong></p>
+                            <p style="font-size: 0.9rem;">미분방정식 \(\frac{dy}{dx} = \frac{\sqrt{L^2 - x^2}}{x}\)</p>
+                            <p style="font-size: 0.9rem; margin-top: 0.5rem;">→ 수치적분으로 근사</p>
+                            <p style="font-size: 0.85rem; margin-top: 0.8rem; color: #6b7280;">슬라이더 N을 조절하여 곡선이 그려지는 과정을 관찰</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-      </div>
 
-      <!-- Slide 22: 미분방정식 해법 -->
-      <div class="slide" data-slide="22" data-title="미분방정식 해법">
-        <h1 class="fit mb-4">미분방정식 해법</h1>
-        <div class="fill-height col justify-center pb-8 gap">
-          <div class="formula-box">
-            <p><strong>\(\frac{dy}{dx} = -\frac{\sqrt{L^2 - x^2}}{x}\)</strong></p>
-            <p class="step-note">아래쪽으로 감소하는 경우</p>
-          </div>
-          <div class="formula-box">
-            <p><strong>변수 분리:</strong> \(dy = -\frac{\sqrt{L^2 - x^2}}{x} \cdot dx\)</p>
-          </div>
-          <div class="formula-box">
-            <p><strong>치환:</strong> \(x = L \sin(t)\)</p>
-            <p class="step-note">\(dx = L \cos(t) \, dt\)</p>
-          </div>
+        <!-- Slide 18: GeoGebra 결과 -->
+        <div class="slide" data-slide="18" data-title="GeoGebra 시뮬레이션 결과">
+            <h1 class="fit mb-4">GeoGebra 시뮬레이션 결과</h1>
+            <div class="fill-height col justify-center items-center gap">
+                <img src="Tractrix_geogebra_animation.gif" alt="GeoGebra Tractrix Animation" style="max-width: 85%; max-height: 70vh; border-radius: 0.5rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                <p style="font-size: 1.1rem; margin-top: 1rem;">슬라이더를 움직이면 실시간으로 곡선이 그려지는 모습</p>
+            </div>
         </div>
-      </div>
 
-      <!-- Slide 23: 매개변수 방정식 1 -->
-      <div class="slide" data-slide="23" data-title="매개변수 방정식 (1)">
-        <h1 class="fit mb-4">매개변수 방정식 (1)</h1>
-        <div class="fill-height col justify-center gap">
-          <p style="font-size: 1.2rem">치환 후 적분</p>
-          <div class="formula-box">
-            <p>\(dy = -L \frac{\cos^2 t}{\sin t} \, dt\)</p>
-          </div>
-          <div class="formula-box">
-            <p>\(dy = -L \frac{1 - \sin^2 t}{\sin t} \, dt\)</p>
-          </div>
-        </div>
-      </div>
 
-      <!-- Slide 24: 매개변수 방정식 2 -->
-      <div class="slide" data-slide="24" data-title="매개변수 방정식 (2)">
-        <h1 class="fit mb-4">매개변수 방정식 (2)</h1>
-        <div class="fill-height col justify-center pb-8 gap">
-          <div class="formula-box">
-            <p>\(y = L \int (\csc t - \sin t) \, dt\)</p>
-          </div>
-          <div class="formula-box">
-            <p>\(y = L(\ln|\csc t - \cot t| + \cos t) + C\)</p>
-          </div>
-          <div class="highlight-formula">
-            <p style="font-size: 1.3rem"><strong>\(x(t) = L \sin(t)\)</strong></p>
-            <p style="font-size: 1.3rem">
-              <strong
-                >\(y(t) = L\left(\ln\left(\cot\left(\frac{t}{2}\right)\right) -
-                \cos(t)\right)\)</strong
-              >
-            </p>
-          </div>
+        <!-- Slide 19: 미분방정식 유도 1 -->
+        <div class="slide" data-slide="19" data-title="미분방정식 유도 (1)">
+            <h1 class="fit mb-4">미분방정식 유도 (1)</h1>
+            <div class="fill-height col justify-center gap">
+                <p style="font-size: 1.3rem;">점 \(P(x, y)\)에서 y축까지의 접선 길이 = \(L\)</p>
+                <div class="formula-box">
+                    <p><strong>접선:</strong> \(Y - y = y'(X - x)\)</p>
+                </div>
+                <div class="formula-box">
+                    <p><strong>y축과의 교점 T:</strong> \((0, y - xy')\)</p>
+                    <p class="note">\(X = 0\)을 대입</p>
+                </div>
+            </div>
         </div>
-      </div>
 
-      <!-- Slide 25: 직교좌표 방정식 -->
-      <div class="slide" data-slide="25" data-title="직교좌표 방정식">
-        <h1 class="fit mb-4">직교좌표 방정식</h1>
-        <div class="fill-height col justify-center gap">
-          <div class="formula-box">
-            <p>\(x = L \operatorname{sech}^{-1}\left(\frac{y}{L}\right) - \sqrt{L^2 - y^2}\)</p>
-          </div>
-          <div class="formula-box">
-            <p><strong>또는</strong></p>
-            <p>\(x = L \ln\left|\frac{L + \sqrt{L^2 - y^2}}{y}\right| - \sqrt{L^2 - y^2}\)</p>
-          </div>
+        <!-- Slide 20: 미분방정식 유도 2 -->
+        <div class="slide" data-slide="20" data-title="미분방정식 유도 (2)">
+            <h1 class="fit mb-4">미분방정식 유도 (2)</h1>
+            <div class="fill-height col justify-center gap">
+                <p style="font-size: 1.3rem;">거리 \(PT = L\)</p>
+                <div class="formula-box">
+                    <p>\(\sqrt{x^2 + (xy')^2} = L\)</p>
+                </div>
+                <div class="formula-box">
+                    <p>\(x^2(1 + (y')^2) = L^2\)</p>
+                </div>
+            </div>
         </div>
-      </div>
 
-      <!-- Slide 26: 접선 성질 -->
-      <div class="slide" data-slide="26" data-title="접선 성질">
-        <h1 class="fit mb-4">접선 성질</h1>
-        <div class="fill-height col justify-center gap">
-          <div class="property-box">
-            <h3>접선 길이의 일정성</h3>
-            <p style="font-size: 1.3rem"><strong>\(PT = L\)</strong> (일정)</p>
-          </div>
-          <div class="property-box">
-            <h3>접선 기울기</h3>
-            <p style="font-size: 1.3rem">
-              <strong>\(\frac{dy}{dx} = -\frac{\sqrt{L^2 - x^2}}{x}\)</strong>
-            </p>
-          </div>
+        <!-- Slide 21: 미분방정식 유도 3 -->
+        <div class="slide" data-slide="21" data-title="미분방정식 유도 (3)">
+            <h1 class="fit mb-4">미분방정식 유도 (3)</h1>
+            <div class="fill-height col justify-center gap">
+                <div class="formula-box">
+                    <p>\(x^2(1 + (y')^2) = L^2\)</p>
+                </div>
+                <div class="formula-box">
+                    <p>\((y')^2 = \frac{L^2 - x^2}{x^2}\)</p>
+                </div>
+                <div class="highlight-formula">
+                    <p style="font-size: 1.5rem;"><strong>\(y' = \pm\frac{\sqrt{L^2 - x^2}}{x}\)</strong></p>
+                </div>
+            </div>
         </div>
-      </div>
 
-      <!-- Slide 27: 곡률 공식 -->
-      <div class="slide" data-slide="27" data-title="곡률 공식">
-        <h1 class="fit mb-4">곡률 공식</h1>
-        <div class="fill-height col justify-center gap">
-          <div class="formula-box">
-            <p>\(\kappa = \frac{ds}{d\varphi}\)</p>
-          </div>
-          <div class="highlight">
-            <p style="font-size: 1.8rem"><strong>\(R = \frac{y^2}{L}\)</strong></p>
-            <p style="font-size: 1.3rem; margin-top: 1.5rem">곡률 반경</p>
-          </div>
+        <!-- Slide 22: 미분방정식 해법 -->
+        <div class="slide" data-slide="22" data-title="미분방정식 해법">
+            <h1 class="fit mb-4">미분방정식 해법</h1>
+            <div class="fill-height col justify-center pb-8 gap">
+                <div class="formula-box">
+                    <p><strong>\(\frac{dy}{dx} = -\frac{\sqrt{L^2 - x^2}}{x}\)</strong></p>
+                    <p class="step-note">아래쪽으로 감소하는 경우</p>
+                </div>
+                <div class="formula-box">
+                    <p><strong>변수 분리:</strong> \(dy = -\frac{\sqrt{L^2 - x^2}}{x} \cdot dx\)</p>
+                </div>
+                <div class="formula-box">
+                    <p><strong>치환:</strong> \(x = L \sin(t)\)</p>
+                    <p class="step-note">\(dx = L \cos(t) \, dt\)</p>
+                </div>
+            </div>
         </div>
-      </div>
 
-      <!-- Slide 28: 호장 공식 -->
-      <div class="slide" data-slide="28" data-title="호장 공식">
-        <h1 class="fit mb-4">호장 공식</h1>
-        <div class="fill-height col justify-center gap">
-          <div class="formula-box">
-            <p><strong>\(s = L \tan \theta\)</strong></p>
-            <p style="font-size: 1.2rem; margin-top: 1rem">\(\theta\): 접선과 y축이 이루는 각</p>
-          </div>
-          <div class="formula-box">
-            <p><strong>또는</strong></p>
-            <p><strong>\(s = L \ln\left(\tan\left(\frac{\theta}{2}\right)\right)\)</strong></p>
-          </div>
+        <!-- Slide 23: 매개변수 방정식 1 -->
+        <div class="slide" data-slide="23" data-title="매개변수 방정식 (1)">
+            <h1 class="fit mb-4">매개변수 방정식 (1)</h1>
+            <div class="fill-height col justify-center gap">
+                <p style="font-size: 1.2rem;">치환 후 적분</p>
+                <div class="formula-box">
+                    <p>\(dy = -L \frac{\cos^2 t}{\sin t} \, dt\)</p>
+                </div>
+                <div class="formula-box">
+                    <p>\(dy = -L \frac{1 - \sin^2 t}{\sin t} \, dt\)</p>
+                </div>
+            </div>
         </div>
-      </div>
 
-      <!-- Slide 29: Catenary 소개 -->
-      <div class="slide" data-slide="29" data-title="Catenary 소개">
-        <h1 class="fit mb-4">Catenary 소개</h1>
-        <div class="fill-height col justify-center gap">
-          <div class="intro-box">
-            <h3>현수선 (Catenary)</h3>
-            <p>양 끝이 고정된 무거운 줄이 중력에 의해 늘어진 곡선</p>
-          </div>
-          <div class="intro-box">
-            <h3>Tractrix와의 관계</h3>
-            <p>Tractrix는 Catenary의 <strong>involute</strong></p>
-          </div>
+        <!-- Slide 24: 매개변수 방정식 2 -->
+        <div class="slide" data-slide="24" data-title="매개변수 방정식 (2)">
+            <h1 class="fit mb-4">매개변수 방정식 (2)</h1>
+            <div class="fill-height col justify-center pb-8 gap">
+                <div class="formula-box">
+                    <p>\(y = L \int (\csc t - \sin t) \, dt\)</p>
+                </div>
+                <div class="formula-box">
+                    <p>\(y = L(\ln|\csc t - \cot t| + \cos t) + C\)</p>
+                </div>
+                <div class="highlight-formula">
+                    <p style="font-size: 1.3rem;"><strong>\(x(t) = L \sin(t)\)</strong></p>
+                    <p style="font-size: 1.3rem;"><strong>\(y(t) = L\left(\ln\left(\cot\left(\frac{t}{2}\right)\right) - \cos(t)\right)\)</strong></p>
+                </div>
+            </div>
         </div>
-      </div>
 
-      <!-- Slide 30: Catenary 방정식 -->
-      <div class="slide" data-slide="30" data-title="Catenary 방정식">
-        <h1 class="fit mb-4">Catenary 방정식</h1>
-        <div class="fill-height col justify-center gap">
-          <div class="highlight">
-            <p style="font-size: 1.8rem">
-              <strong>\(y = a \cosh\left(\frac{x}{a}\right)\)</strong>
-            </p>
-          </div>
-          <div class="formula-box">
-            <p>\(y = \frac{a}{2}\left(e^{x/a} + e^{-x/a}\right)\)</p>
-          </div>
-          <div class="formula-box">
-            <p><strong>\(a\):</strong> 곡선의 형태를 결정하는 매개변수</p>
-          </div>
+        <!-- Slide 25: 직교좌표 방정식 -->
+        <div class="slide" data-slide="25" data-title="직교좌표 방정식">
+            <h1 class="fit mb-4">직교좌표 방정식</h1>
+            <div class="fill-height col justify-center gap">
+                <div class="formula-box">
+                    <p>\(x = L \operatorname{sech}^{-1}\left(\frac{y}{L}\right) - \sqrt{L^2 - y^2}\)</p>
+                </div>
+                <div class="formula-box">
+                    <p><strong>또는</strong></p>
+                    <p>\(x = L \ln\left|\frac{L + \sqrt{L^2 - y^2}}{y}\right| - \sqrt{L^2 - y^2}\)</p>
+                </div>
+            </div>
         </div>
-      </div>
 
-      <!-- Slide 31: Tractrix와 Catenary 관계 1 -->
-      <div class="slide" data-slide="31" data-title="Tractrix와 Catenary 관계 (1)">
-        <h1 class="fit mb-4">Tractrix와 Catenary 관계 (1)</h1>
-        <div class="fill-height col justify-center gap">
-          <div class="relation-box">
-            <h3>Involute 관계</h3>
-            <p><strong>Tractrix</strong> = Catenary의 involute</p>
-            <p><strong>Catenary</strong> = Tractrix의 evolute</p>
-          </div>
-          <div class="relation-box">
-            <h3>기하학적 의미</h3>
-            <p>Catenary의 각 점에서 접선을 그어 일정 길이만큼 연장하면 Tractrix</p>
-          </div>
+        <!-- Slide 26: 접선 성질 -->
+        <div class="slide" data-slide="26" data-title="접선 성질">
+            <h1 class="fit mb-4">접선 성질</h1>
+            <div class="fill-height col justify-center gap">
+                <div class="property-box">
+                    <h3>접선 길이의 일정성</h3>
+                    <p style="font-size: 1.3rem;"><strong>\(PT = L\)</strong> (일정)</p>
+                </div>
+                <div class="property-box">
+                    <h3>접선 기울기</h3>
+                    <p style="font-size: 1.3rem;"><strong>\(\frac{dy}{dx} = -\frac{\sqrt{L^2 - x^2}}{x}\)</strong></p>
+                </div>
+            </div>
         </div>
-      </div>
 
-      <!-- Slide 32: Tractrix와 Catenary 관계 2 -->
-      <div class="slide" data-slide="32" data-title="Tractrix와 Catenary 관계 (2)">
-        <h1 class="fit mb-4">Tractrix와 Catenary 관계 (2)</h1>
-        <div class="fill-height col justify-center gap">
-          <div class="formula-box">
-            <p><strong>Catenary:</strong> \(y = a \sec \theta\)</p>
-            <p><strong>Tractrix:</strong> \(s = a \tan \theta\)</p>
-          </div>
-          <div class="formula-box">
-            <p>매개변수 <strong>\(\theta\)</strong>를 통해 연결</p>
-            <p style="font-size: 1.2rem; margin-top: 1rem">\(\theta\): 접선과 수직선이 이루는 각</p>
-          </div>
+        <!-- Slide 27: 곡률 공식 -->
+        <div class="slide" data-slide="27" data-title="곡률 공식">
+            <h1 class="fit mb-4">곡률 공식</h1>
+            <div class="fill-height col justify-center gap">
+                <div class="formula-box">
+                    <p>\(\kappa = \frac{ds}{d\varphi}\)</p>
+                </div>
+                <div class="highlight">
+                    <p style="font-size: 1.8rem;"><strong>\(R = \frac{y^2}{L}\)</strong></p>
+                    <p style="font-size: 1.3rem; margin-top: 1.5rem;">곡률 반경</p>
+                </div>
+            </div>
         </div>
-      </div>
 
-      <!-- Slide 33: Involute 관계 -->
-      <div class="slide" data-slide="33" data-title="Involute 관계">
-        <h1 class="fit mb-4">Involute 관계</h1>
-        <div class="fill-height col justify-center gap">
-          <div class="concept-box">
-            <h3>Involute 정의</h3>
-            <p>곡선 위의 각 점에서 접선을 따라 실을 풀어나갈 때, 실의 끝이 그리는 곡선</p>
-          </div>
-          <div class="concept-box">
-            <h3>Evolute 정의</h3>
-            <p>주어진 곡선의 모든 곡률 중심의 자취</p>
-          </div>
+        <!-- Slide 28: 호장 공식 -->
+        <div class="slide" data-slide="28" data-title="호장 공식">
+            <h1 class="fit mb-4">호장 공식</h1>
+            <div class="fill-height col justify-center gap">
+                <div class="formula-box">
+                    <p><strong>\(s = L \tan \theta\)</strong></p>
+                    <p style="font-size: 1.2rem; margin-top: 1rem;">\(\theta\): 접선과 y축이 이루는 각</p>
+                </div>
+                <div class="formula-box">
+                    <p><strong>또는</strong></p>
+                    <p><strong>\(s = L \ln\left(\tan\left(\frac{\theta}{2}\right)\right)\)</strong></p>
+                </div>
+            </div>
         </div>
-      </div>
 
-      <!-- Slide 34: 넓이 공식 -->
-      <div class="slide" data-slide="34" data-title="넓이 공식">
-        <h1 class="fit mb-4">넓이 공식</h1>
-        <div class="fill-height col justify-center gap">
-          <div class="formula-box">
-            <p>\(A = \int y \, dx\)</p>
-          </div>
-          <div class="highlight">
-            <p style="font-size: 2rem"><strong>\(A = \frac{L^2}{2}\)</strong></p>
-            <p style="font-size: 1.3rem; margin-top: 1.5rem">x축과 곡선 사이의 넓이</p>
-          </div>
+        <!-- Slide 29: Catenary 소개 -->
+        <div class="slide" data-slide="29" data-title="Catenary 소개">
+            <h1 class="fit mb-4">Catenary 소개</h1>
+            <div class="fill-height col justify-center gap">
+                <div class="intro-box">
+                    <h3>현수선 (Catenary)</h3>
+                    <p>양 끝이 고정된 무거운 줄이 중력에 의해 늘어진 곡선</p>
+                </div>
+                <div class="intro-box">
+                    <h3>Tractrix와의 관계</h3>
+                    <p>Tractrix는 Catenary의 <strong>involute</strong></p>
+                </div>
+            </div>
         </div>
-      </div>
 
-      <!-- Slide 35: 회전체 부피 -->
-      <div class="slide" data-slide="35" data-title="회전체 부피">
-        <h1 class="fit mb-4">회전체 부피</h1>
-        <div class="fill-height col justify-center gap">
-          <div class="formula-box">
-            <p>\(V = \pi\int y^2 \, dx\)</p>
-            <p style="font-size: 1.2rem; margin-top: 1rem">x축 주위로 회전</p>
-          </div>
-          <div class="highlight">
-            <p style="font-size: 2rem"><strong>\(V = \frac{2\pi}{3} L^3\)</strong></p>
-          </div>
+        <!-- Slide 30: Catenary 방정식 -->
+        <div class="slide" data-slide="30" data-title="Catenary 방정식">
+            <h1 class="fit mb-4">Catenary 방정식</h1>
+            <div class="fill-height col justify-center gap">
+                <div class="highlight">
+                    <p style="font-size: 1.8rem;"><strong>\(y = a \cosh\left(\frac{x}{a}\right)\)</strong></p>
+                </div>
+                <div class="formula-box">
+                    <p>\(y = \frac{a}{2}\left(e^{x/a} + e^{-x/a}\right)\)</p>
+                </div>
+                <div class="formula-box">
+                    <p><strong>\(a\):</strong> 곡선의 형태를 결정하는 매개변수</p>
+                </div>
+            </div>
         </div>
-      </div>
 
-      <!-- Slide 36: 회전체 표면적 -->
-      <div class="slide" data-slide="36" data-title="회전체 표면적">
-        <h1 class="fit mb-4">회전체 표면적</h1>
-        <div class="fill-height col justify-center gap">
-          <div class="formula-box">
-            <p>\(S = 2\pi\int y \, ds\)</p>
-            <p style="font-size: 1.2rem; margin-top: 1rem">x축 주위로 회전</p>
-          </div>
-          <div class="highlight">
-            <p style="font-size: 2rem"><strong>\(S = 2\pi L^2\)</strong></p>
-          </div>
+        <!-- Slide 31: Tractrix와 Catenary 관계 1 -->
+        <div class="slide" data-slide="31" data-title="Tractrix와 Catenary 관계 (1)">
+            <h1 class="fit mb-4">Tractrix와 Catenary 관계 (1)</h1>
+            <div class="fill-height col justify-center gap">
+                <div class="relation-box">
+                    <h3>Involute 관계</h3>
+                    <p><strong>Tractrix</strong> = Catenary의 involute</p>
+                    <p><strong>Catenary</strong> = Tractrix의 evolute</p>
+                </div>
+                <div class="relation-box">
+                    <h3>기하학적 의미</h3>
+                    <p>Catenary의 각 점에서 접선을 그어 일정 길이만큼 연장하면 Tractrix</p>
+                </div>
+            </div>
         </div>
-      </div>
 
-      <!-- Slide 37: Circular Tractrix 소개 -->
-      <div class="slide" data-slide="37" data-title="Circular Tractrix 소개">
-        <h1 class="fit mb-4">Circular Tractrix 소개</h1>
-        <div class="fill-height col justify-center gap">
-          <div class="intro-box">
-            <h3>정의</h3>
-            <p>지시선(directrix)이 직선이 아닌 <strong>원</strong>인 경우의 Tractrix</p>
-          </div>
-          <div class="intro-box">
-            <h3>특징</h3>
-            <p>직선 Tractrix보다 더 복잡하고 다양한 패턴을 생성</p>
-          </div>
+        <!-- Slide 32: Tractrix와 Catenary 관계 2 -->
+        <div class="slide" data-slide="32" data-title="Tractrix와 Catenary 관계 (2)">
+            <h1 class="fit mb-4">Tractrix와 Catenary 관계 (2)</h1>
+            <div class="fill-height col justify-center gap">
+                <div class="formula-box">
+                    <p><strong>Catenary:</strong> \(y = a \sec \theta\)</p>
+                    <p><strong>Tractrix:</strong> \(s = a \tan \theta\)</p>
+                </div>
+                <div class="formula-box">
+                    <p>매개변수 <strong>\(\theta\)</strong>를 통해 연결</p>
+                    <p style="font-size: 1.2rem; margin-top: 1rem;">\(\theta\): 접선과 수직선이 이루는 각</p>
+                </div>
+            </div>
         </div>
-      </div>
 
-      <!-- Slide 38: Circular Tractrix 정의 -->
-      <div class="slide" data-slide="38" data-title="Circular Tractrix 정의">
-        <h1 class="fit mb-4">Circular Tractrix 정의</h1>
-        <div class="fill-height col justify-center gap">
-          <div class="definition-box">
-            <p><strong>지시선:</strong> 반지름 \(R\)인 원</p>
-            <p><strong>줄의 길이:</strong> \(a\) (일정)</p>
-          </div>
-          <div class="definition-box">
-            <p><strong>경우 1:</strong> \(a < R\) → 끌리는 경우</p>
-            <p><strong>경우 2:</strong> \(a = R\) → 중심으로 나선</p>
-            <p><strong>경우 3:</strong> \(a > R\) → 밀리는 경우 (Trudrix)</p>
-          </div>
+        <!-- Slide 33: Involute 관계 -->
+        <div class="slide" data-slide="33" data-title="Involute 관계">
+            <h1 class="fit mb-4">Involute 관계</h1>
+            <div class="fill-height col justify-center gap">
+                <div class="concept-box">
+                    <h3>Involute 정의</h3>
+                    <p>곡선 위의 각 점에서 접선을 따라 실을 풀어나갈 때, 실의 끝이 그리는 곡선</p>
+                </div>
+                <div class="concept-box">
+                    <h3>Evolute 정의</h3>
+                    <p>주어진 곡선의 모든 곡률 중심의 자취</p>
+                </div>
+            </div>
         </div>
-      </div>
 
-      <!-- Slide 39: Circular Tractrix 극좌표 -->
-      <div class="slide" data-slide="39" data-title="Circular Tractrix 극좌표">
-        <h1 class="fit mb-4">Circular Tractrix 극좌표 방정식</h1>
-        <div class="fill-height col justify-center gap">
-          <div class="highlight">
-            <p style="font-size: 1.6rem"><strong>\(r = 2a \cos(t)\)</strong></p>
-            <p style="font-size: 1.6rem"><strong>\(\theta = t - \tan(t)\)</strong></p>
-          </div>
-          <div class="formula-box">
-            <p><strong>\(a\):</strong> 줄의 길이</p>
-            <p><strong>\(t\):</strong> 매개변수</p>
-          </div>
+        <!-- Slide 34: 넓이 공식 -->
+        <div class="slide" data-slide="34" data-title="넓이 공식">
+            <h1 class="fit mb-4">넓이 공식</h1>
+            <div class="fill-height col justify-center gap">
+                <div class="formula-box">
+                    <p>\(A = \int y \, dx\)</p>
+                </div>
+                <div class="highlight">
+                    <p style="font-size: 2rem;"><strong>\(A = \frac{L^2}{2}\)</strong></p>
+                    <p style="font-size: 1.3rem; margin-top: 1.5rem;">x축과 곡선 사이의 넓이</p>
+                </div>
+            </div>
         </div>
-      </div>
 
-      <!-- Slide 40: Circular Tractrix 성질 1 -->
-      <div class="slide" data-slide="40" data-title="Circular Tractrix 성질 (1)">
-        <h1 class="fit mb-4">Circular Tractrix 성질 (1)</h1>
-        <div class="fill-height col justify-center gap">
-          <div class="property-box">
-            <h3>점근원</h3>
-            <p>반지름: <strong>\(r = \sqrt{R^2 - a^2}\)</strong></p>
-          </div>
-          <div class="property-box">
-            <h3>곡선 패턴</h3>
-            <p><strong>\(a\)</strong>와 <strong>\(R\)</strong>의 비율에 따라 다양한 모양</p>
-          </div>
+        <!-- Slide 35: 회전체 부피 -->
+        <div class="slide" data-slide="35" data-title="회전체 부피">
+            <h1 class="fit mb-4">회전체 부피</h1>
+            <div class="fill-height col justify-center gap">
+                <div class="formula-box">
+                    <p>\(V = \pi\int y^2 \, dx\)</p>
+                    <p style="font-size: 1.2rem; margin-top: 1rem;">x축 주위로 회전</p>
+                </div>
+                <div class="highlight">
+                    <p style="font-size: 2rem;"><strong>\(V = \frac{2\pi}{3} L^3\)</strong></p>
+                </div>
+            </div>
         </div>
-      </div>
 
-      <!-- Slide 41: Circular Tractrix 성질 2 -->
-      <div class="slide" data-slide="41" data-title="Circular Tractrix 성질 (2)">
-        <h1 class="fit mb-4">Circular Tractrix 성질 (2)</h1>
-        <div class="fill-height col justify-center gap">
-          <div class="property-box">
-            <h3>Curve Stitching</h3>
-            <p>접선들의 포락선(envelope)으로 아름다운 패턴 생성</p>
-          </div>
-          <div class="property-box">
-            <h3>역사적 배경</h3>
-            <p>Euler가 처음 연구 (18세기)</p>
-          </div>
+        <!-- Slide 36: 회전체 표면적 -->
+        <div class="slide" data-slide="36" data-title="회전체 표면적">
+            <h1 class="fit mb-4">회전체 표면적</h1>
+            <div class="fill-height col justify-center gap">
+                <div class="formula-box">
+                    <p>\(S = 2\pi\int y \, ds\)</p>
+                    <p style="font-size: 1.2rem; margin-top: 1rem;">x축 주위로 회전</p>
+                </div>
+                <div class="highlight">
+                    <p style="font-size: 2rem;"><strong>\(S = 2\pi L^2\)</strong></p>
+                </div>
+            </div>
         </div>
-      </div>
 
-      <!-- Slide 42: Trudrix 소개 -->
-      <div class="slide" data-slide="42" data-title="Trudrix 소개">
-        <h1 class="fit mb-4">Trudrix 소개</h1>
-        <div class="fill-height col justify-center gap">
-          <div class="intro-box">
-            <h3>어원</h3>
-            <p>라틴어 <strong>"trudere"</strong> (밀다) → Trudrix</p>
-          </div>
-          <div class="intro-box">
-            <h3>정의</h3>
-            <p>물체를 <strong>밀</strong>때 생기는 곡선</p>
-            <p>줄의 길이 <strong>a &gt; 원의 반지름 R</strong>일 때 발생</p>
-          </div>
+        <!-- Slide 37: Circular Tractrix 소개 -->
+        <div class="slide" data-slide="37" data-title="Circular Tractrix 소개">
+            <h1 class="fit mb-4">Circular Tractrix 소개</h1>
+            <div class="fill-height col justify-center gap">
+                <div class="intro-box">
+                    <h3>정의</h3>
+                    <p>지시선(directrix)이 직선이 아닌 <strong>원</strong>인 경우의 Tractrix</p>
+                </div>
+                <div class="intro-box">
+                    <h3>특징</h3>
+                    <p>직선 Tractrix보다 더 복잡하고 다양한 패턴을 생성</p>
+                </div>
+            </div>
         </div>
-      </div>
 
-      <!-- Slide 43: Trudrix 특성 -->
-      <div class="slide" data-slide="43" data-title="Trudrix 특성">
-        <h1 class="fit mb-4">Trudrix 특성</h1>
-        <div class="fill-height col justify-center gap">
-          <div class="formula-box">
-            <p>여러 개의 <strong>cusp(뾰족점)</strong> 생성</p>
-          </div>
-          <div class="note-box">
-            <p><strong>패턴의 닫힘 조건</strong></p>
-            <p><strong>\(m = \frac{a}{a^2 - R^2}\)</strong> 가 유리수일 때만 곡선이 닫힘</p>
-          </div>
+        <!-- Slide 38: Circular Tractrix 정의 -->
+        <div class="slide" data-slide="38" data-title="Circular Tractrix 정의">
+            <h1 class="fit mb-4">Circular Tractrix 정의</h1>
+            <div class="fill-height col justify-center gap">
+                <div class="definition-box">
+                    <p><strong>지시선:</strong> 반지름 \(R\)인 원</p>
+                    <p><strong>줄의 길이:</strong> \(a\) (일정)</p>
+                </div>
+                <div class="definition-box">
+                    <p><strong>경우 1:</strong> \(a < R\) → 끌리는 경우</p>
+                    <p><strong>경우 2:</strong> \(a = R\) → 중심으로 나선</p>
+                    <p><strong>경우 3:</strong> \(a > R\) → 밀리는 경우 (Trudrix)</p>
+                </div>
+            </div>
         </div>
-      </div>
 
-      <!-- Slide 44: 응용: 기계공학 -->
-      <div class="slide" data-slide="44" data-title="응용: 기계공학">
-        <h1 class="fit mb-4">응용: 기계공학</h1>
-        <div class="fill-height col justify-center gap">
-          <div class="application-box">
-            <h3>Schiele Pivot</h3>
-            <p>곡률 중심이 일정한 거리를 유지하는 특수 피벗 메커니즘</p>
-          </div>
-          <div class="application-box">
-            <h3>케이블 추적</h3>
-            <p>케이블이나 체인이 끌릴 때의 경로 예측</p>
-          </div>
+        <!-- Slide 39: Circular Tractrix 극좌표 -->
+        <div class="slide" data-slide="39" data-title="Circular Tractrix 극좌표">
+            <h1 class="fit mb-4">Circular Tractrix 극좌표 방정식</h1>
+            <div class="fill-height col justify-center gap">
+                <div class="highlight">
+                    <p style="font-size: 1.6rem;"><strong>\(r = 2a \cos(t)\)</strong></p>
+                    <p style="font-size: 1.6rem;"><strong>\(\theta = t - \tan(t)\)</strong></p>
+                </div>
+                <div class="formula-box">
+                    <p><strong>\(a\):</strong> 줄의 길이</p>
+                    <p><strong>\(t\):</strong> 매개변수</p>
+                </div>
+            </div>
         </div>
-      </div>
 
-      <!-- Slide 45: 응용: 물리학 -->
-      <div class="slide" data-slide="45" data-title="응용: 물리학">
-        <h1 class="fit mb-4">응용: 물리학</h1>
-        <div class="fill-height col justify-center gap">
-          <div class="application-box">
-            <h3>추적 문제 (Pursuit Curve)</h3>
-            <p>물체가 다른 물체를 추적할 때의 경로</p>
-          </div>
-          <div class="application-box">
-            <h3>파동 전파</h3>
-            <p>특정 조건에서의 파동 전파 모델링</p>
-          </div>
+        <!-- Slide 40: Circular Tractrix 성질 1 -->
+        <div class="slide" data-slide="40" data-title="Circular Tractrix 성질 (1)">
+            <h1 class="fit mb-4">Circular Tractrix 성질 (1)</h1>
+            <div class="fill-height col justify-center gap">
+                <div class="property-box">
+                    <h3>점근원</h3>
+                    <p>반지름: <strong>\(r = \sqrt{R^2 - a^2}\)</strong></p>
+                </div>
+                <div class="property-box">
+                    <h3>곡선 패턴</h3>
+                    <p><strong>\(a\)</strong>와 <strong>\(R\)</strong>의 비율에 따라 다양한 모양</p>
+                </div>
+            </div>
         </div>
-      </div>
 
-      <!-- Slide 46: 응용: 미분기하학 -->
-      <div class="slide" data-slide="46" data-title="응용: 미분기하학">
-        <h1 class="fit mb-4">응용: 미분기하학</h1>
-        <div class="fill-height col justify-center gap">
-          <div class="application-box">
-            <h3>Pseudosphere (가구면)</h3>
-            <p>Tractrix를 x축 주위로 회전시킨 곡면</p>
-          </div>
-          <div class="application-box">
-            <h3>Beltrami가 연구</h3>
-            <p>일정한 음의 가우스 곡률을 가지는 곡면 예시</p>
-          </div>
+        <!-- Slide 41: Circular Tractrix 성질 2 -->
+        <div class="slide" data-slide="41" data-title="Circular Tractrix 성질 (2)">
+            <h1 class="fit mb-4">Circular Tractrix 성질 (2)</h1>
+            <div class="fill-height col justify-center gap">
+                <div class="property-box">
+                    <h3>Curve Stitching</h3>
+                    <p>접선들의 포락선(envelope)으로 아름다운 패턴 생성</p>
+                </div>
+                <div class="property-box">
+                    <h3>역사적 배경</h3>
+                    <p>Euler가 처음 연구 (18세기)</p>
+                </div>
+            </div>
         </div>
-      </div>
 
-      <!-- Slide 47: Pseudosphere -->
-      <div class="slide" data-slide="47" data-title="Pseudosphere">
-        <h1 class="fit mb-4">Pseudosphere (가구면)</h1>
-        <div class="fill-height col justify-center gap">
-          <div class="concept-box">
-            <h3>정의</h3>
-            <p>Tractrix를 y축 주위로 회전시킨 회전면</p>
-          </div>
-          <div class="highlight">
-            <p style="font-size: 1.8rem"><strong>가우스 곡률 \(K = -\frac{1}{L^2}\)</strong></p>
-          </div>
+        <!-- Slide 42: Trudrix 소개 -->
+        <div class="slide" data-slide="42" data-title="Trudrix 소개">
+            <h1 class="fit mb-4">Trudrix 소개</h1>
+            <div class="fill-height col justify-center gap">
+                <div class="intro-box">
+                    <h3>어원</h3>
+                    <p>라틴어 <strong>"trudere"</strong> (밀다) → Trudrix</p>
+                </div>
+                <div class="intro-box">
+                    <h3>정의</h3>
+                    <p>물체를 <strong>밀</strong>때 생기는 곡선</p>
+                    <p>줄의 길이 <strong>a &gt; 원의 반지름 R</strong>일 때 발생</p>
+                </div>
+            </div>
         </div>
-      </div>
 
-      <!-- Slide 48: 참고 문헌 -->
-      <div class="slide" data-slide="48" data-title="참고 문헌">
-        <h1 class="fit mb-4">참고 문헌</h1>
-        <div class="fill-height col justify-center gap-sm">
-          <div class="ref-box">
-            <p>
-              Yates, R. C. (1959). The Catenary and the Tractrix.
-              <em>The American Mathematical Monthly</em>, 66(6), 500-505.
-            </p>
-          </div>
-          <div class="ref-box">
-            <p>
-              Sharp, J. (1997). The Circular Tractrix and Trudrix. <em>Mathematics in School</em>,
-              26(1), 10-13.
-            </p>
-          </div>
-          <div class="ref-box">
-            <p>Lockwood, E. H. (1967). <em>A Book of Curves</em>. Cambridge University Press.</p>
-          </div>
+        <!-- Slide 43: Trudrix 특성 -->
+        <div class="slide" data-slide="43" data-title="Trudrix 특성">
+            <h1 class="fit mb-4">Trudrix 특성</h1>
+            <div class="fill-height col justify-center gap">
+                <div class="formula-box">
+                    <p>여러 개의 <strong>cusp(뾰족점)</strong> 생성</p>
+                </div>
+                <div class="note-box">
+                    <p><strong>패턴의 닫힘 조건</strong></p>
+                    <p><strong>\(m = \frac{a}{a^2 - R^2}\)</strong> 가 유리수일 때만 곡선이 닫힘</p>
+                </div>
+            </div>
         </div>
-      </div>
 
-      <!-- Slide 49: 마지막 -->
-      <div class="slide" data-slide="49" data-title="감사합니다">
-        <div class="center fill-height">
-          <div>
-            <h1 style="font-size: clamp(3rem, 8vw, 5rem)">감사합니다</h1>
-            <p style="font-size: 2.5rem; margin-top: 3rem; color: var(--accent)">Questions?</p>
-          </div>
+        <!-- Slide 44: 응용: 기계공학 -->
+        <div class="slide" data-slide="44" data-title="응용: 기계공학">
+            <h1 class="fit mb-4">응용: 기계공학</h1>
+            <div class="fill-height col justify-center gap">
+                <div class="application-box">
+                    <h3>Schiele Pivot</h3>
+                    <p>곡률 중심이 일정한 거리를 유지하는 특수 피벗 메커니즘</p>
+                </div>
+                <div class="application-box">
+                    <h3>케이블 추적</h3>
+                    <p>케이블이나 체인이 끌릴 때의 경로 예측</p>
+                </div>
+            </div>
         </div>
-      </div>
+
+        <!-- Slide 45: 응용: 물리학 -->
+        <div class="slide" data-slide="45" data-title="응용: 물리학">
+            <h1 class="fit mb-4">응용: 물리학</h1>
+            <div class="fill-height col justify-center gap">
+                <div class="application-box">
+                    <h3>추적 문제 (Pursuit Curve)</h3>
+                    <p>물체가 다른 물체를 추적할 때의 경로</p>
+                </div>
+                <div class="application-box">
+                    <h3>파동 전파</h3>
+                    <p>특정 조건에서의 파동 전파 모델링</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 46: 응용: 미분기하학 -->
+        <div class="slide" data-slide="46" data-title="응용: 미분기하학">
+            <h1 class="fit mb-4">응용: 미분기하학</h1>
+            <div class="fill-height col justify-center gap">
+                <div class="application-box">
+                    <h3>Pseudosphere (가구면)</h3>
+                    <p>Tractrix를 x축 주위로 회전시킨 곡면</p>
+                </div>
+                <div class="application-box">
+                    <h3>Beltrami가 연구</h3>
+                    <p>일정한 음의 가우스 곡률을 가지는 곡면 예시</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 47: Pseudosphere -->
+        <div class="slide" data-slide="47" data-title="Pseudosphere">
+            <h1 class="fit mb-4">Pseudosphere (가구면)</h1>
+            <div class="fill-height col justify-center gap">
+                <div class="concept-box">
+                    <h3>정의</h3>
+                    <p>Tractrix를 y축 주위로 회전시킨 회전면</p>
+                </div>
+                <div class="highlight">
+                    <p style="font-size: 1.8rem;"><strong>가우스 곡률 \(K = -\frac{1}{L^2}\)</strong></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 48: 참고 문헌 -->
+        <div class="slide" data-slide="48" data-title="참고 문헌">
+            <h1 class="fit mb-4">참고 문헌</h1>
+            <div class="fill-height col justify-center gap-sm">
+                <div class="ref-box">
+                    <p>Yates, R. C. (1959). The Catenary and the Tractrix. <em>The American Mathematical Monthly</em>, 66(6), 500-505.</p>
+                </div>
+                <div class="ref-box">
+                    <p>Sharp, J. (1997). The Circular Tractrix and Trudrix. <em>Mathematics in School</em>, 26(1), 10-13.</p>
+                </div>
+                <div class="ref-box">
+                    <p>Lockwood, E. H. (1967). <em>A Book of Curves</em>. Cambridge University Press.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 49: 마지막 -->
+        <div class="slide" data-slide="49" data-title="감사합니다">
+            <div class="center fill-height">
+                <div>
+                    <h1 style="font-size: clamp(3rem, 8vw, 5rem);">감사합니다</h1>
+                    <p style="font-size: 2.5rem; margin-top: 3rem; color: var(--accent);">Questions?</p>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <!-- Top Controls -->
@@ -1613,203 +1513,203 @@
 
     <!-- Navigation Controls -->
     <div class="nav-controls">
-      <div class="nav-buttons">
-        <button class="nav-btn" id="prevBtn" onclick="prevSlide()">⬅ 이전</button>
-        <span class="slide-counter">
-          <span id="currentSlide">1</span> / <span id="totalSlides">49</span>
-        </span>
-        <button class="nav-btn" id="nextBtn" onclick="nextSlide()">다음 ➡</button>
-      </div>
-      <div class="jump-controls">
-        <label for="jumpInput">원하는 페이지로 이동:</label>
-        <input type="number" id="jumpInput" min="1" value="1" />
-        <button type="button" id="jumpBtn">이동</button>
-      </div>
+        <div class="nav-buttons">
+            <button class="nav-btn" id="prevBtn" onclick="prevSlide()">⬅ 이전</button>
+            <span class="slide-counter">
+                <span id="currentSlide">1</span> / <span id="totalSlides">49</span>
+            </span>
+            <button class="nav-btn" id="nextBtn" onclick="nextSlide()">다음 ➡</button>
+        </div>
+        <div class="jump-controls">
+            <label for="jumpInput">원하는 페이지로 이동:</label>
+            <input type="number" id="jumpInput" min="1" value="1">
+            <button type="button" id="jumpBtn">이동</button>
+        </div>
     </div>
 
     <script>
-      // Slide management
-      const slides = Array.from(document.querySelectorAll('.slide'));
-      let currentSlide = 1;
-      const totalSlides = slides.length;
+        // Slide management
+        const slides = Array.from(document.querySelectorAll('.slide'));
+        let currentSlide = 1;
+        const totalSlides = slides.length;
 
-      const totalDisplay = document.getElementById('totalSlides');
-      const currentDisplay = document.getElementById('currentSlide');
-      const prevBtn = document.getElementById('prevBtn');
-      const nextBtn = document.getElementById('nextBtn');
-      const containerEl = document.querySelector('.presentation-container');
-      const tocToggle = document.getElementById('tocToggle');
-      const tocPanel = document.getElementById('tocPanel');
-      const tocClose = document.getElementById('tocClose');
-      const tocList = document.getElementById('tocList');
-      const jumpInput = document.getElementById('jumpInput');
-      const jumpBtn = document.getElementById('jumpBtn');
-      const tocItems = [];
+        const totalDisplay = document.getElementById('totalSlides');
+        const currentDisplay = document.getElementById('currentSlide');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const containerEl = document.querySelector('.presentation-container');
+        const tocToggle = document.getElementById('tocToggle');
+        const tocPanel = document.getElementById('tocPanel');
+        const tocClose = document.getElementById('tocClose');
+        const tocList = document.getElementById('tocList');
+        const jumpInput = document.getElementById('jumpInput');
+        const jumpBtn = document.getElementById('jumpBtn');
+        const tocItems = [];
 
-      // Initialize
-      if (totalDisplay) totalDisplay.textContent = totalSlides;
-      if (jumpInput) {
-        jumpInput.max = totalSlides;
-        jumpInput.value = 1;
-      }
-
-      // Build TOC
-      slides.forEach((slide, idx) => {
-        const title = slide.dataset.title || `슬라이드 ${idx + 1}`;
-        if (tocList) {
-          const li = document.createElement('li');
-          const btn = document.createElement('button');
-          btn.type = 'button';
-          btn.textContent = `${idx + 1}. ${title}`;
-          btn.addEventListener('click', () => {
-            showSlide(idx + 1);
-            setTocOpen(false);
-          });
-          li.appendChild(btn);
-          tocList.appendChild(li);
-          tocItems.push(li);
+        // Initialize
+        if (totalDisplay) totalDisplay.textContent = totalSlides;
+        if (jumpInput) {
+            jumpInput.max = totalSlides;
+            jumpInput.value = 1;
         }
-      });
 
-      function setTocOpen(open) {
-        if (!tocPanel) return;
-        tocPanel.classList.toggle('open', open);
-        if (tocToggle) tocToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
-      }
-
-      function updateTocActive() {
-        tocItems.forEach((item, idx) => {
-          item.classList.toggle('active', idx === currentSlide - 1);
-        });
-      }
-
-      function showSlide(n) {
-        currentSlide = Math.min(Math.max(n, 1), totalSlides);
+        // Build TOC
         slides.forEach((slide, idx) => {
-          slide.classList.toggle('active', idx === currentSlide - 1);
+            const title = slide.dataset.title || `슬라이드 ${idx + 1}`;
+            if (tocList) {
+                const li = document.createElement('li');
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.textContent = `${idx + 1}. ${title}`;
+                btn.addEventListener('click', () => {
+                    showSlide(idx + 1);
+                    setTocOpen(false);
+                });
+                li.appendChild(btn);
+                tocList.appendChild(li);
+                tocItems.push(li);
+            }
         });
-        if (currentDisplay) currentDisplay.textContent = currentSlide;
-        if (prevBtn) prevBtn.disabled = currentSlide === 1;
-        if (nextBtn) nextBtn.disabled = currentSlide === totalSlides;
-        if (jumpInput) jumpInput.value = currentSlide;
+
+        function setTocOpen(open) {
+            if (!tocPanel) return;
+            tocPanel.classList.toggle('open', open);
+            if (tocToggle) tocToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+        }
+
+        function updateTocActive() {
+            tocItems.forEach((item, idx) => {
+                item.classList.toggle('active', idx === currentSlide - 1);
+            });
+        }
+
+        function showSlide(n) {
+            currentSlide = Math.min(Math.max(n, 1), totalSlides);
+            slides.forEach((slide, idx) => {
+                slide.classList.toggle('active', idx === currentSlide - 1);
+            });
+            if (currentDisplay) currentDisplay.textContent = currentSlide;
+            if (prevBtn) prevBtn.disabled = currentSlide === 1;
+            if (nextBtn) nextBtn.disabled = currentSlide === totalSlides;
+            if (jumpInput) jumpInput.value = currentSlide;
+            updateTocActive();
+        }
+
+        function nextSlide() {
+            showSlide(currentSlide + 1);
+        }
+
+        function prevSlide() {
+            showSlide(currentSlide - 1);
+        }
+
+        function jumpToInput() {
+            if (!jumpInput) return;
+            const target = parseInt(jumpInput.value, 10);
+            if (!Number.isNaN(target)) {
+                showSlide(target);
+            }
+        }
+
+        // TOC events
+        if (tocToggle) {
+            tocToggle.addEventListener('click', () => {
+                const willOpen = !tocPanel.classList.contains('open');
+                setTocOpen(willOpen);
+            });
+        }
+
+        if (tocClose) {
+            tocClose.addEventListener('click', () => setTocOpen(false));
+        }
+
+        // Jump events
+        if (jumpBtn) {
+            jumpBtn.addEventListener('click', jumpToInput);
+        }
+
+        if (jumpInput) {
+            jumpInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    jumpToInput();
+                }
+            });
+        }
+
+        // Click to advance (except on controls)
+        if (containerEl) {
+            containerEl.addEventListener('click', (e) => {
+                if (
+                    !e.target.closest('.nav-controls') &&
+                    !e.target.closest('.fullscreen-btn') &&
+                    !e.target.closest('video') &&
+                    !e.target.closest('.jump-controls') &&
+                    !e.target.closest('.toc-panel') &&
+                    !e.target.closest('.toc-toggle')
+                ) {
+                    nextSlide();
+                }
+            });
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (['ArrowRight', ' ', 'PageDown'].includes(e.key)) {
+                e.preventDefault();
+                nextSlide();
+            } else if (['ArrowLeft', 'PageUp'].includes(e.key)) {
+                e.preventDefault();
+                prevSlide();
+            } else if (e.key === 'Home') {
+                e.preventDefault();
+                showSlide(1);
+            } else if (e.key === 'End') {
+                e.preventDefault();
+                showSlide(totalSlides);
+            } else if (e.key === 'Escape') {
+                setTocOpen(false);
+            }
+        });
+
+        // Close TOC when clicking outside
+        document.addEventListener('click', (e) => {
+            if (
+                tocPanel &&
+                tocPanel.classList.contains('open') &&
+                !tocPanel.contains(e.target) &&
+                e.target !== tocToggle
+            ) {
+                setTocOpen(false);
+            }
+        });
+
+        // Fullscreen toggle
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+            } else {
+                document.exitFullscreen();
+            }
+        }
+
+        // Initialize display
+        showSlide(1);
         updateTocActive();
-      }
 
-      function nextSlide() {
-        showSlide(currentSlide + 1);
-      }
-
-      function prevSlide() {
-        showSlide(currentSlide - 1);
-      }
-
-      function jumpToInput() {
-        if (!jumpInput) return;
-        const target = parseInt(jumpInput.value, 10);
-        if (!Number.isNaN(target)) {
-          showSlide(target);
-        }
-      }
-
-      // TOC events
-      if (tocToggle) {
-        tocToggle.addEventListener('click', () => {
-          const willOpen = !tocPanel.classList.contains('open');
-          setTocOpen(willOpen);
+        // Render math with KaTeX
+        document.addEventListener('DOMContentLoaded', function() {
+            if (window.renderMathInElement) {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        { left: '$$', right: '$$', display: true },
+                        { left: '\\(', right: '\\)', display: false },
+                        { left: '$', right: '$', display: false }
+                    ],
+                    throwOnError: false
+                });
+            }
         });
-      }
-
-      if (tocClose) {
-        tocClose.addEventListener('click', () => setTocOpen(false));
-      }
-
-      // Jump events
-      if (jumpBtn) {
-        jumpBtn.addEventListener('click', jumpToInput);
-      }
-
-      if (jumpInput) {
-        jumpInput.addEventListener('keydown', (e) => {
-          if (e.key === 'Enter') {
-            e.preventDefault();
-            jumpToInput();
-          }
-        });
-      }
-
-      // Click to advance (except on controls)
-      if (containerEl) {
-        containerEl.addEventListener('click', (e) => {
-          if (
-            !e.target.closest('.nav-controls') &&
-            !e.target.closest('.fullscreen-btn') &&
-            !e.target.closest('video') &&
-            !e.target.closest('.jump-controls') &&
-            !e.target.closest('.toc-panel') &&
-            !e.target.closest('.toc-toggle')
-          ) {
-            nextSlide();
-          }
-        });
-      }
-
-      // Keyboard navigation
-      document.addEventListener('keydown', (e) => {
-        if (['ArrowRight', ' ', 'PageDown'].includes(e.key)) {
-          e.preventDefault();
-          nextSlide();
-        } else if (['ArrowLeft', 'PageUp'].includes(e.key)) {
-          e.preventDefault();
-          prevSlide();
-        } else if (e.key === 'Home') {
-          e.preventDefault();
-          showSlide(1);
-        } else if (e.key === 'End') {
-          e.preventDefault();
-          showSlide(totalSlides);
-        } else if (e.key === 'Escape') {
-          setTocOpen(false);
-        }
-      });
-
-      // Close TOC when clicking outside
-      document.addEventListener('click', (e) => {
-        if (
-          tocPanel &&
-          tocPanel.classList.contains('open') &&
-          !tocPanel.contains(e.target) &&
-          e.target !== tocToggle
-        ) {
-          setTocOpen(false);
-        }
-      });
-
-      // Fullscreen toggle
-      function toggleFullscreen() {
-        if (!document.fullscreenElement) {
-          document.documentElement.requestFullscreen();
-        } else {
-          document.exitFullscreen();
-        }
-      }
-
-      // Initialize display
-      showSlide(1);
-      updateTocActive();
-
-      // Render math with KaTeX
-      document.addEventListener('DOMContentLoaded', function () {
-        if (window.renderMathInElement) {
-          renderMathInElement(document.body, {
-            delimiters: [
-              { left: '$$', right: '$$', display: true },
-              { left: '\\(', right: '\\)', display: false },
-              { left: '$', right: '$', display: false },
-            ],
-            throwOnError: false,
-          });
-        }
-      });
     </script>
-  </body>
+</body>
 </html>
