@@ -14,7 +14,6 @@
     .glass{background:var(--card)}
     .ring-grad{box-shadow:0 0 0 1px rgba(15,23,42,.08),0 2px 10px rgba(2,6,23,.06)}
     .tab-active{background:var(--accent);color:#fff}
-    .doi-btn{border:1px dashed rgba(29,78,216,.45); white-space:normal; word-break:break-all}
     .chip{background:var(--pill);color:var(--accent)}
     .grid-auto{grid-template-columns:repeat(auto-fill,minmax(320px,1fr))}
     .fade-in{animation:fade .5s ease}
@@ -84,7 +83,7 @@
       <ol class="list-decimal list-inside text-[var(--muted)] leading-7">
         <li>상단 탭에서 영역을 선택합니다.</li>
         <li>검색 및 도구 필터(HTML/JS, GeoGebra, Python, MATLAB)로 좁힙니다.</li>
-        <li>카드 하단의 <b>참고 문헌</b>에서 DOI를 눌러 바로 원문으로 이동합니다.</li>
+        <li>카드 하단의 <b>참고 문헌</b>에서 학술 검색 링크로 관련 논문을 찾아볼 수 있습니다.</li>
       </ol>
     </section>
   </main>
@@ -170,11 +169,7 @@
 
       const refsEl = node.querySelector('.refs');
       const refs = [];
-      if(d.doi){
-        refs.push(`<li>DOI: <a class=\"text-blue-700\" target=\"_blank\" href=\"https://doi.org/${d.doi}\">${d.doi}</a></li>`);
-      } else {
-        refs.push(`<li><a class=\"text-blue-700\" target=\"_blank\" href=\"https://scholar.google.com/scholar?q=${encodeURIComponent(d.title)}\">학술 검색</a></li>`);
-      }
+      refs.push(`<li><a class=\"text-blue-700\" target=\"_blank\" href=\"https://scholar.google.com/scholar?q=${encodeURIComponent(d.title)}\">학술 검색</a></li>`);
       if(d.yt){
         refs.push(`<li>관련 영상: <a class=\"text-blue-700\" target=\"_blank\" href=\"${d.yt}\">YouTube</a></li>`);
       }
