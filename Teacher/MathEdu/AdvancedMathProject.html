@@ -1,240 +1,439 @@
 <!DOCTYPE html>
 <html lang="ko">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>심화수학Ⅱ 주제 추천</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <style>
-    :root{--bg:#f7fafc;--card:#ffffff;--ink:#0f172a;--muted:#475569;--accent:#1d4ed8;--pill:#eef2ff}
-    html,body{background:var(--bg);color:var(--ink);font-family:'Noto Sans KR',ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,Apple Color Emoji,Segoe UI Emoji}
-    .glass{background:var(--card)}
-    .ring-grad{box-shadow:0 0 0 1px rgba(15,23,42,.08),0 2px 10px rgba(2,6,23,.06)}
-    .tab-active{background:var(--accent);color:#fff}
-    .chip{background:var(--pill);color:var(--accent)}
-    .grid-auto{grid-template-columns:repeat(auto-fill,minmax(320px,1fr))}
-    .fade-in{animation:fade .5s ease}
-    @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
-  .refs a{word-break:break-all}
-  </style>
-  <!-- KaTeX for math rendering -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
-  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
-  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
-</head>
-<body class="min-h-screen">
-  <header class="max-w-7xl mx-auto px-4 pt-8 pb-4">
-    <div class="flex items-center justify-between gap-4">
-      <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-xl bg-blue-50 grid place-items-center ring-grad">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2"><path d="M21 10a8.38 8.38 0 0 1-1.9 5.4A8.5 8.5 0 1 1 21 10Z"/><path d="M22 22 19 19"/></svg>
-        </div>
-        <div>
-          <h1 class="text-2xl font-bold tracking-tight">심화수학Ⅱ 주제 추천</h1>
-          <p class="text-sm text-[var(--muted)]">현상 발견 → 단순화 → 시각화 → 수식화 → 심화 탐구 (요약형)</p>
-        </div>
-      </div>
-      <a href="#howto" class="px-3 py-2 rounded-lg bg-blue-50 text-sm border border-blue-200">사용 가이드</a>
-    </div>
-
-    <div class="mt-4 grid md:grid-cols-3 gap-3">
-      <div class="col-span-2">
-        <div class="relative">
-          <input id="search" type="text" class="w-full glass ring-grad rounded-xl px-4 py-3 pr-10 placeholder:text-[var(--muted)]" placeholder="키워드 검색 (예: 포물선, 카이제곱, GPS, 타원, Lorenz)">
-          <svg class="absolute right-3 top-3.5" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-        </div>
-      </div>
-      <div class="flex gap-2 items-center">
-        <label class="text-sm text-[var(--muted)]">시각화 도구</label>
-        <select id="toolFilter" class="flex-1 glass ring-grad rounded-xl px-3 py-2">
-          <option value="">전체</option>
-          <option>HTML/JS</option>
-          <option>GeoGebra</option>
-          <option>Python</option>
-          <option>MATLAB</option>
-        </select>
-      </div>
-    </div>
-
-    <div class="mt-4 flex flex-wrap gap-2 text-xs">
-      <span class="chip px-3 py-1 rounded-full">총 <span id="countTotal">0</span>개</span>
-      <span class="chip px-3 py-1 rounded-full">적분 <span id="countInt">0</span></span>
-      <span class="chip px-3 py-1 rounded-full">이차 곡선 <span id="countConic">0</span></span>
-      <span class="chip px-3 py-1 rounded-full">공간좌표 <span id="countSpace">0</span></span>
-      <span class="chip px-3 py-1 rounded-full">확률·통계 <span id="countStat">0</span></span>
-    </div>
-  </header>
-
-  <main class="max-w-7xl mx-auto px-4 pb-24">
-    <div class="mt-2 grid grid-cols-2 md:grid-cols-4 gap-2">
-      <button data-tab="conic" class="tab glass ring-grad rounded-xl px-4 py-3 text-left hover:bg-blue-50">이차 곡선</button>
-      <button data-tab="integral" class="tab glass ring-grad rounded-xl px-4 py-3 text-left hover:bg-blue-50">적분</button>
-      <button data-tab="space" class="tab glass ring-grad rounded-xl px-4 py-3 text-left hover:bg-blue-50">공간도형·좌표</button>
-      <button data-tab="stat" class="tab glass ring-grad rounded-xl px-4 py-3 text-left hover:bg-blue-50">확률·통계</button>
-    </div>
-
-    <div id="list" class="mt-6 grid grid-auto gap-4"></div>
-
-    <section id="howto" class="mt-12 glass ring-grad rounded-2xl p-6">
-      <h2 class="text-xl font-semibold mb-2">사용 가이드</h2>
-      <ol class="list-decimal list-inside text-[var(--muted)] leading-7">
-        <li>상단 탭에서 영역을 선택합니다.</li>
-        <li>검색 및 도구 필터(HTML/JS, GeoGebra, Python, MATLAB)로 좁힙니다.</li>
-        <li>카드 하단의 <b>참고 문헌</b>에서 학술 검색 링크로 관련 논문을 찾아볼 수 있습니다.</li>
-      </ol>
-    </section>
-  </main>
-
-  <template id="cardTpl">
-    <article class="glass ring-grad rounded-2xl p-5 fade-in">
-      <div class="flex items-start justify-between gap-3">
-        <div>
-          <h3 class="font-semibold text-lg leading-snug"></h3>
-          <p class="mt-1 text-sm text-[var(--muted)]"></p>
-        </div>
-        <span class="px-2 py-1 text-xs rounded-md bg-blue-50 border border-blue-200 category"></span>
-      </div>
-      <div class="mt-3 flex flex-wrap gap-2 text-xs tools"></div>
-      <!-- 구체 요약 흐름 (토글 제거, 항상 노출) -->
-      <ul class="mt-3 text-sm leading-7 list-disc pl-6 flow"></ul>
-      <div class="mt-4 border-t pt-3">
-        <h4 class="text-sm font-semibold mb-1">참고 문헌</h4>
-        <ul class="text-sm leading-7 list-disc pl-6 refs"></ul>
-      </div>
-    </article>
-  </template>
-
-  <script>
-  // ----- Topic data - loaded from JSON -------------------------------------------------------
-  let TOPICS = [];
-
-  // ----- Load topics from JSON ----------------------------------------------------------
-  async function loadTopics() {
-    try {
-      const response = await fetch('admath2_topics.json');
-      TOPICS = await response.json();
-      return true;
-    } catch (error) {
-      console.error('Failed to load topics:', error);
-      return false;
-    }
-  }
-
-  const listEl = document.getElementById('list');
-  const tpl = document.getElementById('cardTpl');
-
-  function render(filterCat='', kw='', tool=''){
-    listEl.innerHTML='';
-    let items = TOPICS;
-
-    // Handle space category which includes multiple subcategories
-    if(filterCat === 'space') {
-      const spaceCats = ['space', 'structure', 'architecture', 'astronomy', 'time', 'optics', 'symmetry', 'packing', 'design', 'origami', 'mechanism', 'sections', 'biology', 'geology', 'navigation', 'paths'];
-      items = items.filter(x=>spaceCats.includes(x.cat));
-    } else if(filterCat) {
-      items = items.filter(x=>x.cat===filterCat);
-    }
-
-    if(kw){ const k=kw.toLowerCase(); items = items.filter(x=> (x.title+x.desc).toLowerCase().includes(k)); }
-    if(tool){ items = items.filter(x=>x.tools.includes(tool)); }
-
-    document.getElementById('countTotal').textContent = items.length;
-    document.getElementById('countConic').textContent = TOPICS.filter(x=>x.cat==='conic').length;
-    document.getElementById('countInt').textContent = TOPICS.filter(x=>x.cat==='integral').length;
-    // Count all space-related categories
-    const spaceCats = ['space', 'structure', 'architecture', 'astronomy', 'time', 'optics', 'symmetry', 'packing', 'design', 'origami', 'mechanism', 'sections', 'biology', 'geology', 'navigation', 'paths'];
-    document.getElementById('countSpace').textContent = TOPICS.filter(x=>spaceCats.includes(x.cat)).length;
-    document.getElementById('countStat').textContent = TOPICS.filter(x=>x.cat==='stat').length;
-
-    items.forEach(d=>{
-      const node = tpl.content.cloneNode(true);
-      node.querySelector('h3').textContent = d.title;
-      node.querySelector('p').textContent = d.desc;
-      node.querySelector('.category').textContent = ({conic:'이차 곡선', integral:'적분', space:'공간좌표', stat:'확률·통계', structure:'공간좌표', architecture:'공간좌표', astronomy:'공간좌표', time:'공간좌표', optics:'공간좌표', symmetry:'공간좌표', packing:'공간좌표', design:'공간좌표', origami:'공간좌표', mechanism:'공간좌표', sections:'공간좌표', biology:'공간좌표', geology:'공간좌표', navigation:'공간좌표', paths:'공간좌표'})[d.cat];
-      node.querySelector('.tools').innerHTML = (d.tools||[]).map(t=>`<span class="chip px-2 py-1 rounded-full">${t}</span>`).join('');
-
-      // Use flow object from JSON
-      const flowItems = [];
-      if(d.flow) {
-        if(d.flow.observation) flowItems.push(`현상: ${d.flow.observation}`);
-        if(d.flow.simplification) flowItems.push(`단순화: ${d.flow.simplification}`);
-        if(d.flow.visualization) flowItems.push(`시각화: ${d.flow.visualization}`);
-        if(d.flow.formulation) flowItems.push(`수식: ${d.flow.formulation}`);
-        if(d.flow.advanced) flowItems.push(`심화: ${d.flow.advanced}`);
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>심화수학Ⅱ 주제 추천</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #f7fafc;
+        --card: #ffffff;
+        --ink: #0f172a;
+        --muted: #475569;
+        --accent: #1d4ed8;
+        --pill: #eef2ff;
       }
-      node.querySelector('.flow').innerHTML = flowItems.map(x=>`<li>${x}</li>`).join('');
-
-      const refsEl = node.querySelector('.refs');
-      const refs = [];
-      refs.push(`<li><a class=\"text-blue-700\" target=\"_blank\" href=\"https://scholar.google.com/scholar?q=${encodeURIComponent(d.title)}\">학술 검색</a></li>`);
-      if(d.yt){
-        refs.push(`<li>관련 영상: <a class=\"text-blue-700\" target=\"_blank\" href=\"${d.yt}\">YouTube</a></li>`);
+      html,
+      body {
+        background: var(--bg);
+        color: var(--ink);
+        font-family: "Noto Sans KR", ui-sans-serif, system-ui, -apple-system,
+          BlinkMacSystemFont, Segoe UI, Roboto, Helvetica, Arial,
+          Apple Color Emoji, Segoe UI Emoji;
       }
-      refsEl.innerHTML = refs.join('');
-      listEl.appendChild(node);
-    });
-
-    // KaTeX auto-render for newly rendered cards
-    if (window.renderMathInElement) {
-      renderMathInElement(listEl, {
-        delimiters: [
-          {left: '$$', right: '$$', display: true},
-          {left: '$', right: '$', display: false},
-          {left: '\(', right: '\)', display: false},
-          {left: '\[', right: '\]', display: true}
-        ],
-        throwOnError: false
-      });
-    }
-  }
-
-  // Tabs & Search & Filter
-  let currentTab = 'stat';
-  const tabBtns = document.querySelectorAll('.tab');
-  function activateTab(key){
-    currentTab = key; tabBtns.forEach(b=>b.classList.remove('tab-active'));
-    document.querySelector(`.tab[data-tab="${key}"]`).classList.add('tab-active');
-    render(currentTab, search.value, toolFilter.value);
-  }
-  tabBtns.forEach(b=> b.addEventListener('click', ()=> activateTab(b.dataset.tab)) );
-
-  const search = document.getElementById('search');
-  search.addEventListener('input', ()=> render(currentTab, search.value, toolFilter.value));
-  const toolFilter = document.getElementById('toolFilter');
-  toolFilter.addEventListener('change', ()=> render(currentTab, search.value, toolFilter.value));
-
-  // init - Wait for KaTeX to load and load topics
-  async function initApp() {
-    // First load topics
-    const loaded = await loadTopics();
-    if (!loaded) {
-      console.error('Failed to load topics. Cannot initialize app.');
-      return;
-    }
-
-    // Then wait for KaTeX
-    if (window.renderMathInElement) {
-      activateTab('stat');
-    } else {
-      // KaTeX not loaded yet, wait a bit
-      setTimeout(() => {
-        if (window.renderMathInElement) {
-          activateTab('stat');
+      .glass {
+        background: var(--card);
+      }
+      .ring-grad {
+        box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.08),
+          0 2px 10px rgba(2, 6, 23, 0.06);
+      }
+      .tab-active {
+        background: var(--accent);
+        color: #fff;
+      }
+      .chip {
+        background: var(--pill);
+        color: var(--accent);
+      }
+      .grid-auto {
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      }
+      .fade-in {
+        animation: fade 0.5s ease;
+      }
+      @keyframes fade {
+        from {
+          opacity: 0;
+          transform: translateY(4px);
         }
-      }, 100);
-    }
-  }
+        to {
+          opacity: 1;
+          transform: none;
+        }
+      }
+    </style>
+    <!-- KaTeX for math rendering -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"
+    />
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"
+    ></script>
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+    ></script>
+  </head>
+  <body class="min-h-screen">
+    <header class="max-w-7xl mx-auto px-4 pt-8 pb-4">
+      <div class="flex items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <div
+            class="w-10 h-10 rounded-xl bg-blue-50 grid place-items-center ring-grad"
+          >
+            <svg
+              width="22"
+              height="22"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#3b82f6"
+              stroke-width="2"
+            >
+              <path d="M21 10a8.38 8.38 0 0 1-1.9 5.4A8.5 8.5 0 1 1 21 10Z" />
+              <path d="M22 22 19 19" />
+            </svg>
+          </div>
+          <div>
+            <h1 class="text-2xl font-bold tracking-tight">
+              심화수학Ⅱ 주제 추천
+            </h1>
+            <p class="text-sm text-[var(--muted)]">
+              현상 발견 → 단순화 → 시각화 → 수식화 → 심화 탐구 (요약형)
+            </p>
+          </div>
+        </div>
+        <a
+          href="#howto"
+          class="px-3 py-2 rounded-lg bg-blue-50 text-sm border border-blue-200"
+          >사용 가이드</a
+        >
+      </div>
 
-  // Wait for DOM and start initialization
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initApp);
-  } else {
-    initApp();
-  }
-  </script>
+      <div class="mt-4 grid md:grid-cols-3 gap-3">
+        <div class="col-span-2">
+          <div class="relative">
+            <input
+              id="search"
+              type="text"
+              class="w-full glass ring-grad rounded-xl px-4 py-3 pr-10 placeholder:text-[var(--muted)]"
+              placeholder="키워드 검색 (예: 포물선, 카이제곱, GPS, 타원, Lorenz)"
+            />
+            <svg
+              class="absolute right-3 top-3.5"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#64748b"
+              stroke-width="2"
+            >
+              <circle cx="11" cy="11" r="8" />
+              <path d="m21 21-4.3-4.3" />
+            </svg>
+          </div>
+        </div>
+        <div class="flex gap-2 items-center">
+          <label class="text-sm text-[var(--muted)]">시각화 도구</label>
+          <select
+            id="toolFilter"
+            class="flex-1 glass ring-grad rounded-xl px-3 py-2"
+          >
+            <option value="">전체</option>
+            <option>HTML/JS</option>
+            <option>GeoGebra</option>
+            <option>Python</option>
+            <option>MATLAB</option>
+          </select>
+        </div>
+      </div>
 
-</body>
+      <div class="mt-4 flex flex-wrap gap-2 text-xs">
+        <span class="chip px-3 py-1 rounded-full"
+          >총 <span id="countTotal">0</span>개</span
+        >
+        <span class="chip px-3 py-1 rounded-full"
+          >적분 <span id="countInt">0</span></span
+        >
+        <span class="chip px-3 py-1 rounded-full"
+          >이차 곡선 <span id="countConic">0</span></span
+        >
+        <span class="chip px-3 py-1 rounded-full"
+          >공간좌표 <span id="countSpace">0</span></span
+        >
+        <span class="chip px-3 py-1 rounded-full"
+          >확률·통계 <span id="countStat">0</span></span
+        >
+      </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 pb-24">
+      <div class="mt-2 grid grid-cols-2 md:grid-cols-4 gap-2">
+        <button
+          data-tab="conic"
+          class="tab glass ring-grad rounded-xl px-4 py-3 text-left hover:bg-blue-50"
+        >
+          이차 곡선
+        </button>
+        <button
+          data-tab="integral"
+          class="tab glass ring-grad rounded-xl px-4 py-3 text-left hover:bg-blue-50"
+        >
+          적분
+        </button>
+        <button
+          data-tab="space"
+          class="tab glass ring-grad rounded-xl px-4 py-3 text-left hover:bg-blue-50"
+        >
+          공간도형·좌표
+        </button>
+        <button
+          data-tab="stat"
+          class="tab glass ring-grad rounded-xl px-4 py-3 text-left hover:bg-blue-50"
+        >
+          확률·통계
+        </button>
+      </div>
+
+      <div id="list" class="mt-6 grid grid-auto gap-4"></div>
+
+      <section id="howto" class="mt-12 glass ring-grad rounded-2xl p-6">
+        <h2 class="text-xl font-semibold mb-2">사용 가이드</h2>
+        <ol class="list-decimal list-inside text-[var(--muted)] leading-7">
+          <li>상단 탭에서 영역을 선택합니다.</li>
+          <li>
+            관심 있는 주제를 선택하여 관련 논문을
+            <a href="https://scispace.com/ko">사이스페이스</a>에서 찾습니다.
+          </li>
+          <li>
+            각 주제의 흐름(현상→단순화→시각화→수식→심화)을 따라 탐구합니다.
+          </li>
+        </ol>
+      </section>
+    </main>
+
+    <template id="cardTpl">
+      <article class="glass ring-grad rounded-2xl p-5 fade-in">
+        <div class="flex items-start justify-between gap-3">
+          <div>
+            <h3 class="font-semibold text-lg leading-snug"></h3>
+            <p class="mt-1 text-sm text-[var(--muted)]"></p>
+          </div>
+          <span
+            class="px-2 py-1 text-xs rounded-md bg-blue-50 border border-blue-200 category"
+          ></span>
+        </div>
+        <div class="mt-3 flex flex-wrap gap-2 text-xs tools"></div>
+        <!-- 구체 요약 흐름 (토글 제거, 항상 노출) -->
+        <ul class="mt-3 text-sm leading-7 list-disc pl-6 flow"></ul>
+      </article>
+    </template>
+
+    <script>
+      // ----- Topic data - loaded from JSON -------------------------------------------------------
+      let TOPICS = [];
+
+      // ----- Load topics from JSON ----------------------------------------------------------
+      async function loadTopics() {
+        try {
+          const response = await fetch("admath2_topics.json");
+          TOPICS = await response.json();
+          return true;
+        } catch (error) {
+          console.error("Failed to load topics:", error);
+          return false;
+        }
+      }
+
+      const listEl = document.getElementById("list");
+      const tpl = document.getElementById("cardTpl");
+
+      function render(filterCat = "", kw = "", tool = "") {
+        listEl.innerHTML = "";
+        let items = TOPICS;
+
+        // Handle space category which includes multiple subcategories
+        if (filterCat === "space") {
+          const spaceCats = [
+            "space",
+            "structure",
+            "architecture",
+            "astronomy",
+            "time",
+            "optics",
+            "symmetry",
+            "packing",
+            "design",
+            "origami",
+            "mechanism",
+            "sections",
+            "biology",
+            "geology",
+            "navigation",
+            "paths",
+          ];
+          items = items.filter((x) => spaceCats.includes(x.cat));
+        } else if (filterCat) {
+          items = items.filter((x) => x.cat === filterCat);
+        }
+
+        if (kw) {
+          const k = kw.toLowerCase();
+          items = items.filter((x) =>
+            (x.title + x.desc).toLowerCase().includes(k)
+          );
+        }
+        if (tool) {
+          items = items.filter((x) => x.tools.includes(tool));
+        }
+
+        document.getElementById("countTotal").textContent = items.length;
+        document.getElementById("countConic").textContent = TOPICS.filter(
+          (x) => x.cat === "conic"
+        ).length;
+        document.getElementById("countInt").textContent = TOPICS.filter(
+          (x) => x.cat === "integral"
+        ).length;
+        // Count all space-related categories
+        const spaceCats = [
+          "space",
+          "structure",
+          "architecture",
+          "astronomy",
+          "time",
+          "optics",
+          "symmetry",
+          "packing",
+          "design",
+          "origami",
+          "mechanism",
+          "sections",
+          "biology",
+          "geology",
+          "navigation",
+          "paths",
+        ];
+        document.getElementById("countSpace").textContent = TOPICS.filter((x) =>
+          spaceCats.includes(x.cat)
+        ).length;
+        document.getElementById("countStat").textContent = TOPICS.filter(
+          (x) => x.cat === "stat"
+        ).length;
+
+        items.forEach((d) => {
+          const node = tpl.content.cloneNode(true);
+          node.querySelector("h3").textContent = d.title;
+          node.querySelector("p").textContent = d.desc;
+          node.querySelector(".category").textContent = {
+            conic: "이차 곡선",
+            integral: "적분",
+            space: "공간좌표",
+            stat: "확률·통계",
+            structure: "공간좌표",
+            architecture: "공간좌표",
+            astronomy: "공간좌표",
+            time: "공간좌표",
+            optics: "공간좌표",
+            symmetry: "공간좌표",
+            packing: "공간좌표",
+            design: "공간좌표",
+            origami: "공간좌표",
+            mechanism: "공간좌표",
+            sections: "공간좌표",
+            biology: "공간좌표",
+            geology: "공간좌표",
+            navigation: "공간좌표",
+            paths: "공간좌표",
+          }[d.cat];
+          node.querySelector(".tools").innerHTML = (d.tools || [])
+            .map((t) => `<span class="chip px-2 py-1 rounded-full">${t}</span>`)
+            .join("");
+
+          // Use flow object from JSON
+          const flowItems = [];
+          if (d.flow) {
+            if (d.flow.observation)
+              flowItems.push(`현상: ${d.flow.observation}`);
+            if (d.flow.simplification)
+              flowItems.push(`단순화: ${d.flow.simplification}`);
+            if (d.flow.visualization)
+              flowItems.push(`시각화: ${d.flow.visualization}`);
+            if (d.flow.formulation)
+              flowItems.push(`수식: ${d.flow.formulation}`);
+            if (d.flow.advanced) flowItems.push(`심화: ${d.flow.advanced}`);
+          }
+          node.querySelector(".flow").innerHTML = flowItems
+            .map((x) => `<li>${x}</li>`)
+            .join("");
+
+          listEl.appendChild(node);
+        });
+
+        // KaTeX auto-render for newly rendered cards
+        if (window.renderMathInElement) {
+          renderMathInElement(listEl, {
+            delimiters: [
+              { left: "$$", right: "$$", display: true },
+              { left: "$", right: "$", display: false },
+              { left: "\(", right: "\)", display: false },
+              { left: "\[", right: "\]", display: true },
+            ],
+            throwOnError: false,
+          });
+        }
+      }
+
+      // Tabs & Search & Filter
+      let currentTab = "stat";
+      const tabBtns = document.querySelectorAll(".tab");
+      function activateTab(key) {
+        currentTab = key;
+        tabBtns.forEach((b) => b.classList.remove("tab-active"));
+        document
+          .querySelector(`.tab[data-tab="${key}"]`)
+          .classList.add("tab-active");
+        render(currentTab, search.value, toolFilter.value);
+      }
+      tabBtns.forEach((b) =>
+        b.addEventListener("click", () => activateTab(b.dataset.tab))
+      );
+
+      const search = document.getElementById("search");
+      search.addEventListener("input", () =>
+        render(currentTab, search.value, toolFilter.value)
+      );
+      const toolFilter = document.getElementById("toolFilter");
+      toolFilter.addEventListener("change", () =>
+        render(currentTab, search.value, toolFilter.value)
+      );
+
+      // init - Wait for KaTeX to load and load topics
+      async function initApp() {
+        // First load topics
+        const loaded = await loadTopics();
+        if (!loaded) {
+          console.error("Failed to load topics. Cannot initialize app.");
+          return;
+        }
+
+        // Then wait for KaTeX
+        if (window.renderMathInElement) {
+          activateTab("stat");
+        } else {
+          // KaTeX not loaded yet, wait a bit
+          setTimeout(() => {
+            if (window.renderMathInElement) {
+              activateTab("stat");
+            }
+          }, 100);
+        }
+      }
+
+      // Wait for DOM and start initialization
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", initApp);
+      } else {
+        initApp();
+      }
+    </script>
+  </body>
 </html>
