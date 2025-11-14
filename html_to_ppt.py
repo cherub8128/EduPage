@@ -34,7 +34,7 @@ def capture_slides_to_ppt(html_path, output_ppt_path, total_slides=49):
         page = browser.new_page(viewport={'width': 1920, 'height': 1080})
 
         # HTML 파일 열기
-        file_url = f"file:///{os.path.abspath(html_path).replace(os.sep, '/')}"
+        file_url = f"file://{os.path.abspath(html_path).replace(os.sep,'/')}"
         page.goto(file_url)
 
         # KaTeX 수식 렌더링 대기
@@ -124,7 +124,7 @@ if __name__ == "__main__":
     # 설정
     HTML_FILE = r"Teacher\MathEdu\TractrixPresentation.html"
     OUTPUT_PPT = "Tractrix_Presentation.pptx"
-    TOTAL_SLIDES = 49
+    TOTAL_SLIDES = 51
 
     # 실행
     capture_slides_to_ppt(HTML_FILE, OUTPUT_PPT, TOTAL_SLIDES)

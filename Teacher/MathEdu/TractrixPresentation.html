@@ -503,6 +503,16 @@
         backdrop-filter: blur(15px);
         z-index: 100;
         transition: all 0.3s;
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(-20px);
+      }
+
+      .fullscreen-btn.visible,
+      .keyboard-hint.visible {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
       }
 
       .fullscreen-btn {
@@ -535,9 +545,35 @@
         font-weight: 600;
         transition: all 0.3s;
         backdrop-filter: blur(15px);
+        opacity: 0;
+        visibility: hidden;
       }
 
       .toc-toggle:hover {
+        background: rgba(15, 23, 42, 1);
+        border-color: var(--accent-light);
+        transform: translateY(-2px);
+      }
+
+      /* Menu Toggle Button */
+      .menu-toggle {
+        position: fixed;
+        top: 25px;
+        right: 25px;
+        background: rgba(15, 23, 42, 0.9);
+        color: white;
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        border-radius: 999px;
+        padding: 12px 20px;
+        cursor: pointer;
+        z-index: 101;
+        font-weight: 600;
+        font-size: 1.2rem;
+        transition: all 0.3s;
+        backdrop-filter: blur(15px);
+      }
+
+      .menu-toggle:hover {
         background: rgba(15, 23, 42, 1);
         border-color: var(--accent-light);
         transform: translateY(-2px);
@@ -732,6 +768,9 @@
     </style>
   </head>
   <body>
+    <!-- Menu Toggle -->
+    <button class="menu-toggle" id="menuToggle">☰</button>
+
     <!-- TOC Toggle -->
     <button class="toc-toggle" id="tocToggle">📚 목차</button>
 
@@ -759,8 +798,8 @@
 
       <!-- Slide 2: 목차 -->
       <div class="slide" data-slide="2" data-title="목차">
-        <h1 class="fit mb-4 text-center">목차</h1>
-        <div class="fill-height col justify-center gap-sm">
+        <h1 class="fit mb-4 text-center" style="margin-bottom: 2rem;">목차</h1>
+        <div class="col justify-center gap-sm" style="padding-top: 1rem;">
           <div class="toc-section">
             <p><span class="toc-number">1.</span> Tractrix의 정의와 역사</p>
           </div>
@@ -1635,6 +1674,7 @@
           <div class="application-box">
             <h3>Schiele Pivot</h3>
             <p>곡률 중심이 일정한 거리를 유지하는 특수 피벗 메커니즘</p>
+            <p>곡률이 유지되도록 일정하게 마모가 일어나게 함</p>
           </div>
           <div class="application-box">
             <h3>케이블 추적</h3>
@@ -1664,7 +1704,7 @@
         <div class="fill-height col justify-center gap">
           <div class="application-box">
             <h3>Pseudosphere (위구면)</h3>
-            <p>Tractrix를 x축 주위로 회전시킨 곡면</p>
+            <p>Tractrix를 $x$축 주위로 회전시킨 곡면</p>
           </div>
           <div class="application-box">
             <h3>Beltrami가 연구</h3>
@@ -1679,7 +1719,7 @@
         <div class="fill-height col justify-center gap">
           <div class="concept-box">
             <h3>정의</h3>
-            <p>Tractrix를 y축 주위로 회전시킨 회전면 (소용돌이? 블랙홀?)</p>
+            <p>Tractrix를 $y$축 주위로 회전시킨 회전면 (소용돌이? 블랙홀?)</p>
           </div>
           <div class="highlight">
             <p style="font-size: 1.8rem"><strong>가우스 곡률 \(K = -\frac{1}{L^2}\)</strong></p>
@@ -1757,7 +1797,11 @@
       const tocList = document.getElementById('tocList');
       const jumpInput = document.getElementById('jumpInput');
       const jumpBtn = document.getElementById('jumpBtn');
+      const menuToggle = document.getElementById('menuToggle');
+      const fullscreenBtn = document.querySelector('.fullscreen-btn');
+      const keyboardHint = document.querySelector('.keyboard-hint');
       const tocItems = [];
+      let menuVisible = false;
 
       // Initialize
       if (totalDisplay) totalDisplay.textContent = totalSlides;
@@ -1824,6 +1868,19 @@
         }
       }
 
+      // Menu toggle events
+      function toggleMenu() {
+        menuVisible = !menuVisible;
+        if (fullscreenBtn) fullscreenBtn.classList.toggle('visible', menuVisible);
+        if (keyboardHint) keyboardHint.classList.toggle('visible', menuVisible);
+        if (tocToggle) tocToggle.style.visibility = menuVisible ? 'visible' : 'hidden';
+        if (tocToggle) tocToggle.style.opacity = menuVisible ? '1' : '0';
+      }
+
+      if (menuToggle) {
+        menuToggle.addEventListener('click', toggleMenu);
+      }
+
       // TOC events
       if (tocToggle) {
         tocToggle.addEventListener('click', () => {
@@ -1850,19 +1907,95 @@
         });
       }
 
-      // Click to advance (except on controls)
+      // Swipe functionality
+      let touchStartX = 0;
+      let touchEndX = 0;
+      let touchStartY = 0;
+      let touchEndY = 0;
+
+      function handleSwipe() {
+        const swipeThreshold = 50; // minimum distance for swipe
+        const deltaX = touchEndX - touchStartX;
+        const deltaY = touchEndY - touchStartY;
+
+        // Check if horizontal swipe is more significant than vertical
+        if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > swipeThreshold) {
+          if (deltaX > 0) {
+            // Swipe right - previous slide
+            prevSlide();
+          } else {
+            // Swipe left - next slide
+            nextSlide();
+          }
+        }
+      }
+
       if (containerEl) {
-        containerEl.addEventListener('click', (e) => {
+        containerEl.addEventListener('touchstart', (e) => {
+          if (
+            !e.target.closest('.nav-controls') &&
+            !e.target.closest('.toc-panel') &&
+            !e.target.closest('.toc-toggle') &&
+            !e.target.closest('.menu-toggle')
+          ) {
+            touchStartX = e.changedTouches[0].screenX;
+            touchStartY = e.changedTouches[0].screenY;
+          }
+        }, { passive: true });
+
+        containerEl.addEventListener('touchend', (e) => {
+          if (
+            !e.target.closest('.nav-controls') &&
+            !e.target.closest('.toc-panel') &&
+            !e.target.closest('.toc-toggle') &&
+            !e.target.closest('.menu-toggle')
+          ) {
+            touchEndX = e.changedTouches[0].screenX;
+            touchEndY = e.changedTouches[0].screenY;
+            handleSwipe();
+          }
+        }, { passive: true });
+
+        // Mouse swipe support for desktop
+        let mouseDown = false;
+        let mouseStartX = 0;
+
+        containerEl.addEventListener('mousedown', (e) => {
           if (
             !e.target.closest('.nav-controls') &&
             !e.target.closest('.fullscreen-btn') &&
+            !e.target.closest('.keyboard-hint') &&
             !e.target.closest('video') &&
             !e.target.closest('.jump-controls') &&
             !e.target.closest('.toc-panel') &&
-            !e.target.closest('.toc-toggle')
+            !e.target.closest('.toc-toggle') &&
+            !e.target.closest('.menu-toggle') &&
+            !e.target.closest('a') &&
+            !e.target.closest('button')
           ) {
-            nextSlide();
+            mouseDown = true;
+            mouseStartX = e.screenX;
           }
+        });
+
+        containerEl.addEventListener('mouseup', (e) => {
+          if (mouseDown) {
+            const deltaX = e.screenX - mouseStartX;
+            const swipeThreshold = 50;
+
+            if (Math.abs(deltaX) > swipeThreshold) {
+              if (deltaX > 0) {
+                prevSlide();
+              } else {
+                nextSlide();
+              }
+            }
+            mouseDown = false;
+          }
+        });
+
+        containerEl.addEventListener('mouseleave', () => {
+          mouseDown = false;
         });
       }
 
