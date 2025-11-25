@@ -1,0 +1,2060 @@
+<!DOCTYPE html>
+
+<html lang="ko">
+
+<head>
+
+  <meta charset="UTF-8" />
+
+  <title>회전하는 사각 물통의 포물선 단면 - 심화 연구용 인터랙티브 교재</title>
+
+
+
+  <style>
+
+    :root {
+
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+
+      line-height: 1.5;
+
+      color: #111827;
+
+      background: #f3f4f6;
+
+    }
+
+
+
+    body {
+
+      margin: 0;
+
+      padding: 0;
+
+      background: radial-gradient(circle at top left, #e5f0ff, #f9fafb 40%);
+
+    }
+
+
+
+    header {
+
+      position: sticky;
+
+      top: 0;
+
+      z-index: 10;
+
+      backdrop-filter: blur(12px);
+
+      background: rgba(249, 250, 251, 0.9);
+
+      border-bottom: 1px solid #e5e7eb;
+
+      padding: 0.5rem 1.5rem;
+
+      display: flex;
+
+      justify-content: space-between;
+
+      align-items: center;
+
+    }
+
+
+
+    header h1 {
+
+      font-size: 1rem;
+
+      margin: 0;
+
+    }
+
+
+
+    nav a {
+
+      margin-left: 0.75rem;
+
+      text-decoration: none;
+
+      font-size: 0.85rem;
+
+      color: #4b5563;
+
+    }
+
+
+
+    nav a:hover {
+
+      color: #111827;
+
+      text-decoration: underline;
+
+    }
+
+
+
+    main {
+
+      max-width: 1200px;
+
+      margin: 0 auto;
+
+      padding: 1.5rem;
+
+    }
+
+
+
+    section {
+
+      margin-bottom: 2.5rem;
+
+      padding: 1.5rem;
+
+      border-radius: 1rem;
+
+      background: rgba(255, 255, 255, 0.9);
+
+      box-shadow: 0 12px 24px rgba(15, 23, 42, 0.05);
+
+    }
+
+
+
+    section h2 {
+
+      font-size: 1.3rem;
+
+      margin-top: 0;
+
+      margin-bottom: 0.75rem;
+
+      display: flex;
+
+      align-items: center;
+
+      gap: 0.4rem;
+
+    }
+
+
+
+    section h2 span.badge {
+
+      font-size: 0.7rem;
+
+      padding: 0.1rem 0.4rem;
+
+      border-radius: 999px;
+
+      background: #eef2ff;
+
+      color: #4338ca;
+
+      border: 1px solid #c7d2fe;
+
+    }
+
+
+
+    .sub {
+
+      font-size: 0.9rem;
+
+      color: #4b5563;
+
+      margin-bottom: 0.75rem;
+
+    }
+
+
+
+    .two-column {
+
+      display: grid;
+
+      grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+
+      gap: 1.25rem;
+
+    }
+
+
+
+    @media (max-width: 900px) {
+
+      .two-column {
+
+        grid-template-columns: 1fr;
+
+      }
+
+    }
+
+
+
+    .math-box {
+
+      font-family: "SF Mono", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+
+      font-size: 0.9rem;
+
+      background: #0f172a;
+
+      color: #e5e7eb;
+
+      padding: 1rem;
+
+      border-radius: 0.75rem;
+
+      overflow-x: auto;
+
+      white-space: pre-wrap;
+
+    }
+
+
+
+    .math-box strong {
+
+      color: #a5b4fc;
+
+    }
+
+
+
+    details {
+
+      margin: 0.5rem 0 0.75rem;
+
+    }
+
+
+
+    details summary {
+
+      cursor: pointer;
+
+      font-size: 0.9rem;
+
+      color: #4b5563;
+
+    }
+
+
+
+    .controls {
+
+      display: grid;
+
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+
+      gap: 0.75rem;
+
+      margin-bottom: 0.75rem;
+
+      font-size: 0.85rem;
+
+    }
+
+
+
+    .control {
+
+      display: flex;
+
+      flex-direction: column;
+
+      gap: 0.25rem;
+
+    }
+
+
+
+    .control label span {
+
+      font-weight: 600;
+
+    }
+
+
+
+    .control input[type="range"] {
+
+      width: 100%;
+
+    }
+
+
+
+    .control input[type="number"] {
+
+      width: 100%;
+
+      padding: 0.2rem 0.4rem;
+
+      border-radius: 0.5rem;
+
+      border: 1px solid #d1d5db;
+
+      font-size: 0.85rem;
+
+    }
+
+
+
+    .pill {
+
+      display: inline-flex;
+
+      align-items: center;
+
+      gap: 0.3rem;
+
+      font-size: 0.75rem;
+
+      padding: 0.2rem 0.5rem;
+
+      border-radius: 999px;
+
+      border: 1px solid #e5e7eb;
+
+      background: #f9fafb;
+
+      color: #6b7280;
+
+      margin-right: 0.25rem;
+
+    }
+
+
+
+    canvas {
+
+      border-radius: 0.75rem;
+
+      background: #f9fafb;
+
+      border: 1px solid #e5e7eb;
+
+    }
+
+
+
+    #threeContainer {
+
+      width: 100%;
+
+      height: 320px;
+
+      border-radius: 0.75rem;
+
+      background: #020617;
+
+      border: 1px solid #0f172a;
+
+      overflow: hidden;
+
+      position: relative;
+
+    }
+
+
+
+    .tagline {
+
+      font-size: 0.85rem;
+
+      color: #6b7280;
+
+    }
+
+
+
+    .note {
+
+      font-size: 0.8rem;
+
+      color: #6b7280;
+
+      margin-top: 0.5rem;
+
+    }
+
+
+
+    textarea {
+
+      width: 100%;
+
+      min-height: 120px;
+
+      padding: 0.75rem;
+
+      border-radius: 0.75rem;
+
+      border: 1px solid #d1d5db;
+
+      font-size: 0.9rem;
+
+      resize: vertical;
+
+      font-family: inherit;
+
+    }
+
+
+
+    .card {
+
+      border-radius: 0.75rem;
+
+      border: 1px solid #e5e7eb;
+
+      padding: 0.75rem 0.9rem;
+
+      font-size: 0.85rem;
+
+      background: #f9fafb;
+
+    }
+
+
+
+    .chip-row {
+
+      display: flex;
+
+      flex-wrap: wrap;
+
+      gap: 0.25rem;
+
+      margin-bottom: 0.5rem;
+
+    }
+
+
+
+    .chip {
+
+      padding: 0.15rem 0.45rem;
+
+      font-size: 0.7rem;
+
+      border-radius: 999px;
+
+      border: 1px dashed #d1d5db;
+
+      color: #4b5563;
+
+      background: #fefce8;
+
+    }
+
+
+
+    footer {
+
+      text-align: center;
+
+      font-size: 0.8rem;
+
+      color: #9ca3af;
+
+      padding-bottom: 2rem;
+
+    }
+
+
+
+    button {
+
+      font-size: 0.8rem;
+
+      padding: 0.25rem 0.6rem;
+
+      border-radius: 999px;
+
+      border: 1px solid #d1d5db;
+
+      background: #f3f4f6;
+
+      cursor: pointer;
+
+    }
+
+
+
+    button:hover {
+
+      background: #e5e7eb;
+
+    }
+
+
+
+    select {
+
+      font-size: 0.8rem;
+
+      padding: 0.2rem 0.4rem;
+
+      border-radius: 999px;
+
+      border: 1px solid #d1d5db;
+
+      background: #f9fafb;
+
+    }
+
+  </style>
+
+
+
+  <!-- MathJax (LaTeX 수식용) -->
+
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+
+  <script id="MathJax-script" async
+
+          src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+
+
+  <!-- Three.js & OrbitControls (3D 시각화용) -->
+
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/js/controls/OrbitControls.js"></script>
+
+
+
+  <!-- Cannon.js (물리엔진) -->
+
+  <script src="https://cdn.jsdelivr.net/npm/cannon@0.6.2/build/cannon.min.js"></script>
+
+</head>
+
+
+
+<body>
+
+<header>
+
+  <div>
+
+    <h1>회전하는 사각 물통의 포물선 단면 - 심화 연구용 인터랙티브 교재</h1>
+
+    <div class="tagline">논문 분석 → 모형화 → 시뮬레이션(이론+물리엔진) → 수식화 → 심화 탐구</div>
+
+  </div>
+
+  <nav>
+
+    <a href="#paper">1. 논문 관찰</a>
+
+    <a href="#model">2. 모형화</a>
+
+    <a href="#sim">3. 시뮬레이션</a>
+
+    <a href="#formula">4. 수식화</a>
+
+    <a href="#explore">5. 심화 탐구</a>
+
+  </nav>
+
+</header>
+
+
+
+<main>
+
+
+
+  <!-- 1. 논문 관찰 -->
+
+  <section id="paper">
+
+    <h2>
+
+      <span class="badge">STEP 1</span>
+
+      논문 기반 관찰
+
+    </h2>
+
+    <p class="sub">
+
+      Monteiro 등의 직사각형 좁은 물통 실험, Menker &amp; Herczyński의 다양한 기하 실험을 바탕으로,
+
+      “충분히 오래 회전한 액체의 자유수면은 포물선이 된다”는 공통 패턴을 관찰합니다.
+
+    </p>
+
+
+
+    <div class="two-column">
+
+      <div>
+
+        <div class="card">
+
+          <div class="chip-row">
+
+            <span class="chip">관찰 포인트</span>
+
+            <span class="chip">실험 → 수식</span>
+
+          </div>
+
+          <ul style="padding-left:1.1rem; margin:0;">
+
+            <li>직사각형 수조, 원통 수조 등 용기 모양과 상관없이,
+
+              회전이 충분히 유지되면 자유수면 단면이 포물선으로 수렴</li>
+
+            <li>각속도 \(\omega\) 가 커질수록 포물선이 더 가파르게 휘어짐</li>
+
+            <li>임계 각속도 이상에서는 중심이 바닥에 닿으며 “마른 영역(dry patch)”이 형성</li>
+
+            <li>논문에서는 스마트폰 자이로, 비디오 분석, 부피 보존 조건 등을 활용해
+
+              실험 데이터와 이론식을 비교함</li>
+
+          </ul>
+
+        </div>
+
+      </div>
+
+
+
+      <div>
+
+        <div class="math-box">
+
+<strong>[관찰을 수식으로 다시 쓰기]</strong>
+
+
+
+회전 좌표계(원통좌표 \(r,\theta,z\))에서 유체 요소에 작용하는 힘:
+
+
+
+- 중력: \(\rho \mathbf{g} = -\rho g\,\hat{z}\)
+
+- 원심력: \(\rho \mathbf{a} = \rho \omega^2 r\,\hat{r}\)
+
+
+
+정수압 평형 (정상 상태, 점성 무시):
+
+\[
+
+\nabla p = \rho(\mathbf{g} - \mathbf{a})
+
+\Rightarrow
+
+\begin{cases}
+
+\dfrac{\partial p}{\partial r} = \rho \omega^2 r \\
+
+\dfrac{\partial p}{\partial z} = - \rho g
+
+\end{cases}
+
+\]
+
+
+
+적분:
+
+\[
+
+p(r,z) = -\rho g z + \frac{1}{2}\rho\omega^2 r^2 + C
+
+\]
+
+
+
+자유수면 \(z = z_0(r)\) 에서 \(p = p_{\text{atm}}\) 이므로
+
+\[
+
+z_0(r) = \frac{\omega^2}{2g} r^2 + C'
+
+\]
+
+
+
+→ 관찰한 “포물선 단면”을 수식으로 확정.
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+
+  <!-- 2. 모형화/단순화 -->
+
+  <section id="model">
+
+    <h2>
+
+      <span class="badge">STEP 2</span>
+
+      모형화 · 단순화 (시뮬레이션용 모델)
+
+    </h2>
+
+    <p class="sub">
+
+      실제 유체 방정식(나비에-스토크스)을 직접 풀지 않고,
+
+      <strong>정상 상태 + 강체 회전 + 점성 무시</strong> 등의 가정으로
+
+      시뮬레이션에 쓸 수 있는 단순 모델로 축약합니다.
+
+    </p>
+
+
+
+    <div class="two-column">
+
+      <div>
+
+        <div class="math-box">
+
+<strong>[단순화 가정]</strong>
+
+
+
+(1) 정상 상태(steady):
+
+\[
+
+\frac{\partial}{\partial t} = 0
+
+\]
+
+
+
+(2) 강체 회전:
+
+\[
+
+\mathbf{u} = \omega r\,\hat{\theta}
+
+\]
+
+
+
+(3) 점성 무시:
+
+전단응력은 무시하고, 압력장만 고려
+
+
+
+(4) 직사각형 용기 (폭 \(L\), 깊이 \(d\), 폭이 비교적 좁다):
+
+한 방향 \(r\) 에만 의존하는 1차원 포물선으로 모델링
+
+
+
+<strong>[직사각형 용기 자유수면]</strong>
+
+
+
+부피 보존까지 고려하면,
+
+\[
+
+z_0(r) = H - \frac{\omega^2}{2g}
+
+\left(\frac{L^2}{12} - r^2\right),
+
+\quad -\frac{L}{2} \le r \le \frac{L}{2}
+
+\]
+
+
+
+- 포물선 계수:
+
+\[
+
+A = \frac{\omega^2}{2g}
+
+\]
+
+
+
+- 꼭짓점(중심) 높이:
+
+\[
+
+z_v = H - \frac{\omega^2 L^2}{24 g}
+
+\]
+
+
+
+<strong>[임계 각속도]</strong>
+
+
+
+꼭짓점이 바닥에 닿을 때:
+
+\[
+
+z_v = 0 \Rightarrow
+
+\omega_c = \sqrt{\frac{24 g H}{L^2}}
+
+\]
+
+
+
+이 모델을 이론 시뮬레이션의 “엔진”으로 사용하고,
+
+물리엔진으로는 입자(구슬) 집합에
+
+중력 + 원심력(가상힘)을 걸어 수치적으로 진화시킵니다.
+
+        </div>
+
+      </div>
+
+
+
+      <div>
+
+        <div class="card">
+
+          <div class="chip-row">
+
+            <span class="chip">모형화 체크리스트</span>
+
+            <span class="chip">정(正)-반(反)-합(合)</span>
+
+          </div>
+
+          <ul style="padding-left:1.1rem; margin:0;">
+
+            <li><strong>정(正)</strong>: 단순 포물선 이론 - 위 수식</li>
+
+            <li><strong>반(反)</strong>: 물리엔진 입자 시뮬레이션 - 이론과 다른 부분, 노이즈, 경계 효과</li>
+
+            <li><strong>합(合)</strong>: 두 결과를 비교하며 “어디까지가 이론의 적용범위인지”
+
+              분석 (심화 탐구 주제로 연결)</li>
+
+          </ul>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+
+  <!-- 3. 시뮬레이션 -->
+
+  <section id="sim">
+
+    <h2>
+
+      <span class="badge">STEP 3</span>
+
+      시뮬레이션: 이론 포물선 + 물리엔진 입자 유체
+
+    </h2>
+
+    <p class="sub">
+
+      아래 슬라이더로 \(\omega, H, L, g\) 을 조절하면
+
+      왼쪽에는 <strong>이론 포물선 단면</strong>,
+
+      오른쪽에는 <strong>3D 이론 수면 + Cannon.js 입자 유체</strong>가 동시에 갱신됩니다.
+
+      <br/>
+
+      파란 면: 이론 수면, 주황 구슬: 물리엔진이 계산하는 입자 유체입니다.
+
+    </p>
+
+
+
+    <div class="controls">
+
+      <div class="control">
+
+        <label>
+
+          <span>\(\omega\) (rad/s)</span>
+
+          <small>회전 각속도</small>
+
+        </label>
+
+        <input id="omegaSlider" type="range" min="0" max="10" step="0.1" value="3" />
+
+        <input id="omegaInput" type="number" step="0.1" value="3" />
+
+      </div>
+
+
+
+      <div class="control">
+
+        <label>
+
+          <span>H (m)</span>
+
+          <small>정지 상태 물높이</small>
+
+        </label>
+
+        <input id="HSlider" type="range" min="0.02" max="0.15" step="0.005" value="0.08" />
+
+        <input id="HInput" type="number" step="0.005" value="0.08" />
+
+      </div>
+
+
+
+      <div class="control">
+
+        <label>
+
+          <span>L (m)</span>
+
+          <small>물통 길이 (단면 폭)</small>
+
+        </label>
+
+        <input id="LSlider" type="range" min="0.1" max="0.5" step="0.01" value="0.25" />
+
+        <input id="LInput" type="number" step="0.01" value="0.25" />
+
+      </div>
+
+
+
+      <div class="control">
+
+        <label>
+
+          <span>g (m/s²)</span>
+
+          <small>중력 가속도</small>
+
+        </label>
+
+        <input id="gInput" type="number" step="0.1" value="9.8" />
+
+        <div style="font-size:0.8rem; color:#6b7280;">
+
+          (실험 데이터와 비교해 \(g\) 를 역추정하는 프로젝트 가능)
+
+        </div>
+
+      </div>
+
+
+
+      <div class="control">
+
+        <label><span>계산 결과</span></label>
+
+        <div id="calcInfo" style="font-size:0.8rem; color:#111827;"></div>
+
+      </div>
+
+
+
+      <div class="control">
+
+        <label><span>입자 유체 제어</span></label>
+
+        <div style="display:flex; gap:0.25rem; align-items:center; flex-wrap:wrap;">
+
+          <button id="resetFluidBtn">입자 초기화</button>
+
+          <span style="font-size:0.78rem; color:#6b7280;">
+
+            초기 상태로 되돌린 뒤, 다른 \(\omega\) 에서 다시 진화 관찰
+
+          </span>
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+
+    <div class="two-column">
+
+      <div>
+
+        <div class="pill">2D 단면 시뮬레이션 (r-z 평면)</div>
+
+        <canvas id="profileCanvas" width="600" height="320"></canvas>
+
+        <div class="note">
+
+          세로축: 높이 \(z\) (m), 가로축: 물통 길이 방향 좌표 \(r\) (m).<br/>
+
+          빨간 점선: 바닥, 파란 곡선: 이론 자유수면,
+
+          회색 사각형: 물통 경계입니다.
+
+        </div>
+
+      </div>
+
+
+
+      <div>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.25rem;">
+
+          <div>
+
+            <div class="pill">3D 이론 수면 + Cannon.js 입자 유체</div>
+
+          </div>
+
+          <div style="font-size:0.75rem; color:#9ca3af;">
+
+            드래그: 회전 · 휠: 확대/축소
+
+          </div>
+
+        </div>
+
+        <div id="threeContainer"></div>
+
+        <div class="note">
+
+          파란 포물면은 이론식에서 나온 높이장,
+
+          주황색 구슬들은 Cannon.js 물리엔진이 계산하는 입자입니다.<br/>
+
+          \(\omega\) 를 바꿔가며 두 형태가 얼마나 일치하는지 비교해 볼 수 있습니다.
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+
+  <!-- 4. 수식화 정리 -->
+
+  <section id="formula">
+
+    <h2>
+
+      <span class="badge">STEP 4</span>
+
+      수식화: 일반식 · 무차원화 · 다른 기하로의 확장 아이디어
+
+    </h2>
+
+    <p class="sub">
+
+      관찰과 시뮬레이션을 수식으로 정리하고,
+
+      무차원화와 다른 기하(원통, 정육면체)로의 확장 아이디어까지 연결합니다.
+
+    </p>
+
+
+
+    <div class="two-column">
+
+      <div>
+
+        <div class="math-box">
+
+<strong>[1D 포물선 모델 - 직사각형 수조]</strong>
+
+
+
+\[
+
+z(r) = H - \frac{\omega^2}{2g}\left(\frac{L^2}{12} - r^2\right)
+
+     = \frac{\omega^2}{2g} r^2 + \left(H - \frac{\omega^2 L^2}{24 g}\right)
+
+\]
+
+
+
+꼭짓점 높이:
+
+\[
+
+z_v = H - \frac{\omega^2 L^2}{24 g}
+
+\]
+
+
+
+임계 각속도:
+
+\[
+
+z_v = 0
+
+\Rightarrow
+
+\omega_c = \sqrt{\frac{24 g H}{L^2}}
+
+\]
+
+
+
+<strong>[무차원화]</strong>
+
+
+
+길이 스케일 \(R = L/2\) 로 두고
+
+\[
+
+X = \omega \sqrt{\frac{R}{g}},\quad
+
+H^* = \frac{H}{R},\quad
+
+Z = \frac{z}{R},\quad
+
+R^* = \frac{r}{R}
+
+\]
+
+
+
+이면
+
+\[
+
+Z(R^*) =
+
+H^* - \frac{X^2}{6}\left(1 - (R^*)^2\right)
+
+\]
+
+
+
+임계 조건:
+
+\[
+
+X_c^2 = 6 H^*
+
+\]
+
+
+
+→ 여러 크기의 물통을 하나의 무차원 곡선으로 통합 가능.
+
+        </div>
+
+      </div>
+
+
+
+      <div>
+
+        <div class="card">
+
+          <div class="chip-row">
+
+            <span class="chip">확장 아이디어 (원통, 정육면체 등)</span>
+
+          </div>
+
+          <ul style="padding-left:1.1rem; margin:0;">
+
+            <li><strong>원통 수조</strong>:
+
+              반지름 \(R\) 인 수조에서
+
+              \[
+
+              z(r) = \frac{\omega^2}{2g} r^2 + C,\quad 0 \le r \le R
+
+              \]
+
+              부피 보존으로 \(C\) 와 임계 \(\omega\) 를 결정.</li>
+
+            <li><strong>정육면체 수조</strong>:
+
+              마른 영역이 생기면 자유수면이 벽에서 끊기고,  
+
+              “마른 반지름”에 대해 3차 또는 4차 방정식을 풀어야 함.</li>
+
+            <li><strong>연구 주제 후보</strong>:
+
+              <ul>
+
+                <li>이론 포물선과 입자 유체의 “표면 점들을 회귀분석”해
+
+                  \(\omega\) 를 역추정하거나 \(g\) 를 추정</li>
+
+                <li>원통 vs 직사각형 vs 정육면체에서
+
+                  임계 각속도 \(\omega_c\) 의 스케일링 비교</li>
+
+                <li>점성을 고려한 이완 시간(relaxation time) 측정 시도</li>
+
+              </ul>
+
+            </li>
+
+          </ul>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+
+  <!-- 5. 심화 탐구용 인터랙티브 칸 -->
+
+  <section id="explore">
+
+    <h2>
+
+      <span class="badge">STEP 5</span>
+
+      심화 주제 탐구 - 학생 연구 메모 공간
+
+    </h2>
+
+    <p class="sub">
+
+      아래 칸들은 “질문 → 가설 → 실험/관찰 설계 → 시뮬레이션 → 수식화” 흐름을
+
+      학생이 직접 채워 넣도록 설계된 공간입니다.
+
+      (저장은 별도 도구/캡처 등을 활용하면 됩니다.)
+
+    </p>
+
+
+
+    <div class="two-column">
+
+      <div>
+
+        <div class="card">
+
+          <div class="chip-row">
+
+            <span class="chip">연구 질문 생성</span>
+
+          </div>
+
+          <textarea placeholder="여기에 스스로 만든 탐구 질문을 적어보세요.&#10;예) 입자 유체 시뮬레이션에서 측정한 자유수면의 곡률이 이론식 A = ω²/(2g)와 얼마나 일치하는가?&#10;예) 임계 각속도 이상에서 Cannon.js 입자들이 만드는 표면은 어떤 패턴을 보이는가?"></textarea>
+
+        </div>
+
+
+
+        <div class="card" style="margin-top:1rem;">
+
+          <div class="chip-row">
+
+            <span class="chip">가설 · 단순화 전략</span>
+
+          </div>
+
+          <textarea placeholder="어떤 가정을 추가/삭제하면 수식/시뮬레이션이 단순해질까요?&#10;예) z 방향으로는 균일하다고 가정, 점성·난류 무시, 입자 반지름을 0으로 두는 연속체 근사 등"></textarea>
+
+        </div>
+
+      </div>
+
+
+
+      <div>
+
+        <div class="card">
+
+          <div class="chip-row">
+
+            <span class="chip">실험/관찰 계획</span>
+
+          </div>
+
+          <textarea placeholder="직접 수행해보고 싶은 실험 또는 시뮬레이션 절차를 설계해보세요.&#10;• 실험 장비: 회전대, 스마트폰(자이로), 물통, 자, 카메라 등&#10;• 측정할 물리량: ω, 포물선 계수 A, 꼭짓점 높이 z_v, 마른 반지름 등&#10;• 데이터 처리: 비디오 분석(Tracker 등), 스프레드시트, 회귀분석"></textarea>
+
+        </div>
+
+
+
+        <div class="card" style="margin-top:1rem;">
+
+          <div class="chip-row">
+
+            <span class="chip">시뮬레이션 · 수식화 메모</span>
+
+          </div>
+
+          <textarea placeholder="위 2D/3D 시뮬레이터에서 바꿔본 값들(ω, H, L, g)을 정리하고,&#10;관찰한 패턴을 함수, 비례식, 무차원수 등의 형태로 정리해 보세요.&#10;예) z_v(ω), 곡률 A(ω), ω/ω_c, X = ω√(R/g) 등"></textarea>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+
+  <footer>
+
+    이론 포물선 + 물리엔진 입자 유체를 같이 돌려 보면서,
+
+    “수학적 모델과 실제(수치) 세계가 어디서 만나고 어디서 어긋나는지”
+
+    스스로 탐구해 보는 것이 이 교재의 목표입니다.
+
+  </footer>
+
+</main>
+
+
+
+<!-- ===== 자바스크립트: 이론 시뮬레이션 + Cannon.js 물리엔진 ===== -->
+
+<script>
+
+  // ==== DOM 요소 ====
+
+  const omegaSlider = document.getElementById('omegaSlider');
+
+  const omegaInput  = document.getElementById('omegaInput');
+
+  const HSlider     = document.getElementById('HSlider');
+
+  const HInput      = document.getElementById('HInput');
+
+  const LSlider     = document.getElementById('LSlider');
+
+  const LInput      = document.getElementById('LInput');
+
+  const gInput      = document.getElementById('gInput');
+
+  const calcInfo    = document.getElementById('calcInfo');
+
+  const profileCanvas = document.getElementById('profileCanvas');
+
+  const ctx = profileCanvas.getContext('2d');
+
+  const resetFluidBtn = document.getElementById('resetFluidBtn');
+
+
+
+  // ==== 전역 변수 ====
+
+  let scene, camera, renderer, controls, waterMesh;
+
+  let world, fluidBodies = [], fluidMeshes = [];
+
+  let currentOmega = 0;
+
+
+
+  // ==== 슬라이더/인풋 동기화 ====
+
+  function syncPair(slider, input, formatter = v => v) {
+
+    slider.addEventListener('input', () => {
+
+      input.value = formatter(slider.value);
+
+      updateAll();
+
+    });
+
+    input.addEventListener('change', () => {
+
+      slider.value = formatter(input.value);
+
+      updateAll();
+
+    });
+
+  }
+
+
+
+  syncPair(omegaSlider, omegaInput, v => Number(v));
+
+  syncPair(HSlider, HInput, v => Number(v));
+
+  syncPair(LSlider, LInput, v => Number(v));
+
+  gInput.addEventListener('change', updateAll);
+
+
+
+  // ==== 2D 포물선 단면 그리기 ====
+
+  function drawProfile(omega, H, L, g) {
+
+    const w = profileCanvas.width;
+
+    const h = profileCanvas.height;
+
+    ctx.clearRect(0, 0, w, h);
+
+
+
+    const margin = 40;
+
+    const rMin = -L / 2;
+
+    const rMax = L / 2;
+
+
+
+    const extra = (omega * omega * L * L) / (24 * g);
+
+    const zMin = Math.min(0, H - extra * 1.2);
+
+    const zMax = H + extra * 0.2;
+
+
+
+    function xPix(r) {
+
+      return margin + (r - rMin) * (w - 2 * margin) / (rMax - rMin);
+
+    }
+
+    function yPix(z) {
+
+      return h - margin - (z - zMin) * (h - 2 * margin) / (zMax - zMin);
+
+    }
+
+
+
+    // 바닥선 (z=0)
+
+    ctx.strokeStyle = '#ef4444';
+
+    ctx.setLineDash([4, 4]);
+
+    ctx.beginPath();
+
+    ctx.moveTo(xPix(rMin), yPix(0));
+
+    ctx.lineTo(xPix(rMax), yPix(0));
+
+    ctx.stroke();
+
+    ctx.setLineDash([]);
+
+
+
+    // 물통 경계
+
+    ctx.strokeStyle = '#9ca3af';
+
+    ctx.setLineDash([6, 4]);
+
+    ctx.beginPath();
+
+    ctx.rect(xPix(rMin), yPix(0), xPix(rMax) - xPix(rMin), yPix(zMax) - yPix(0));
+
+    ctx.stroke();
+
+    ctx.setLineDash([]);
+
+
+
+    // 자유수면 포물선
+
+    ctx.strokeStyle = '#2563eb';
+
+    ctx.lineWidth = 2;
+
+    ctx.beginPath();
+
+    const N = 200;
+
+    for (let i = 0; i <= N; i++) {
+
+      const r = rMin + (rMax - rMin) * i / N;
+
+      const z = H - (omega * omega / (2 * g)) * (L * L / 12 - r * r);
+
+      const x = xPix(r);
+
+      const y = yPix(z);
+
+      if (i === 0) ctx.moveTo(x, y);
+
+      else ctx.lineTo(x, y);
+
+    }
+
+    ctx.stroke();
+
+
+
+    // 축 라벨
+
+    ctx.fillStyle = '#4b5563';
+
+    ctx.font = '10px system-ui';
+
+    ctx.fillText('r (m)', w - margin + 5, yPix(0) + 4);
+
+    ctx.fillText('z (m)', xPix(0) - 10, margin - 10);
+
+  }
+
+
+
+  // ==== Three.js 3D 설정 ====
+
+  function initThree() {
+
+    const container = document.getElementById('threeContainer');
+
+    scene = new THREE.Scene();
+
+    scene.background = new THREE.Color(0x020617);
+
+
+
+    const width = container.clientWidth;
+
+    const height = container.clientHeight;
+
+
+
+    camera = new THREE.PerspectiveCamera(40, width / height, 0.01, 50);
+
+    camera.position.set(0.6, 0.5, 0.9);
+
+
+
+    renderer = new THREE.WebGLRenderer({ antialias: true });
+
+    renderer.setSize(width, height);
+
+    renderer.setPixelRatio(window.devicePixelRatio || 1);
+
+    container.appendChild(renderer.domElement);
+
+
+
+    controls = new THREE.OrbitControls(camera, renderer.domElement);
+
+    controls.enableDamping = true;
+
+
+
+    const light = new THREE.DirectionalLight(0xffffff, 1.2);
+
+    light.position.set(1, 2, 2);
+
+    scene.add(light);
+
+    scene.add(new THREE.AmbientLight(0xffffff, 0.3));
+
+
+
+    // 물통 박스 (와이어)
+
+    const boxGeom = new THREE.BoxGeometry(0.5, 0.25, 0.08);
+
+    const edges = new THREE.EdgesGeometry(boxGeom);
+
+    const box = new THREE.LineSegments(
+
+      edges,
+
+      new THREE.LineBasicMaterial({ color: 0x9ca3af })
+
+    );
+
+    scene.add(box);
+
+
+
+    // 물 표면 메쉬 (이론 포물면)
+
+    const resX = 60, resY = 8;
+
+    const planeGeom = new THREE.PlaneGeometry(0.5, 0.08, resX, resY);
+
+    const waterMat = new THREE.MeshPhongMaterial({
+
+      color: 0x3b82f6,
+
+      transparent: true,
+
+      opacity: 0.8,
+
+      side: THREE.DoubleSide,
+
+      shininess: 80
+
+    });
+
+    waterMesh = new THREE.Mesh(planeGeom, waterMat);
+
+    waterMesh.rotation.x = -Math.PI / 2;
+
+    scene.add(waterMesh);
+
+
+
+    window.addEventListener('resize', onWindowResize);
+
+    animate();
+
+  }
+
+
+
+  function onWindowResize() {
+
+    const container = document.getElementById('threeContainer');
+
+    const width = container.clientWidth;
+
+    const height = container.clientHeight;
+
+    camera.aspect = width / height;
+
+    camera.updateProjectionMatrix();
+
+    renderer.setSize(width, height);
+
+  }
+
+
+
+  function updateWaterSurface(omega, H, L, g) {
+
+    if (!waterMesh) return;
+
+    const geom = waterMesh.geometry;
+
+    geom.computeBoundingBox();
+
+    const pos = geom.attributes.position;
+
+    const bbox = geom.boundingBox;
+
+
+
+    const scaleX = L;
+
+    const Lhalf = L / 2;
+
+    const extra = (omega * omega * L * L) / (24 * g);
+
+    const zMin = Math.min(0, H - extra * 1.2);
+
+    const zMax = H + extra * 0.2;
+
+    const scaleZ = 0.22 / (zMax - zMin); // 박스 높이 내부에 맞추기
+
+
+
+    for (let i = 0; i < pos.count; i++) {
+
+      const xLocal = pos.getX(i);
+
+      const zLocal = pos.getY(i); // 회전 전 기준
+
+
+
+      const r = ((xLocal - bbox.min.x) / (bbox.max.x - bbox.min.x) - 0.5) * scaleX;
+
+      const zPhys = H - (omega * omega / (2 * g)) * (L * L / 12 - r * r);
+
+
+
+      const yMapped = (zPhys - zMin) * scaleZ - 0.11;
+
+      pos.setY(i, yMapped);
+
+    }
+
+
+
+    pos.needsUpdate = true;
+
+    geom.computeVertexNormals();
+
+  }
+
+
+
+  // ==== Cannon.js 물리엔진 설정 ====
+
+  function initPhysics() {
+
+    world = new CANNON.World();
+
+    world.gravity.set(0, -Number(gInput.value), 0);
+
+    world.broadphase = new CANNON.NaiveBroadphase();
+
+    world.solver.iterations = 10;
+
+
+
+    const halfW = 0.25;
+
+    const halfH = 0.12;
+
+    const halfD = 0.04;
+
+
+
+    function addStaticBox(size, pos) {
+
+      const shape = new CANNON.Box(new CANNON.Vec3(size.x / 2, size.y / 2, size.z / 2));
+
+      const body = new CANNON.Body({ mass: 0 });
+
+      body.addShape(shape);
+
+      body.position.set(pos.x, pos.y, pos.z);
+
+      world.addBody(body);
+
+    }
+
+
+
+    // 바닥
+
+    addStaticBox({ x: halfW * 2, y: 0.02, z: halfD * 2 }, { x: 0, y: -halfH, z: 0 });
+
+    // 좌우 벽
+
+    addStaticBox({ x: 0.02, y: halfH * 2, z: halfD * 2 }, { x: -halfW, y: 0, z: 0 });
+
+    addStaticBox({ x: 0.02, y: halfH * 2, z: halfD * 2 }, { x: halfW, y: 0, z: 0 });
+
+    // 앞뒤 벽
+
+    addStaticBox({ x: halfW * 2, y: halfH * 2, z: 0.02 }, { x: 0, y: 0, z: -halfD });
+
+    addStaticBox({ x: halfW * 2, y: halfH * 2, z: 0.02 }, { x: 0, y: 0, z: halfD });
+
+  }
+
+
+
+  function initFluid() {
+
+    // 기존 것 정리
+
+    resetFluid(true);
+
+
+
+    const N = 150;
+
+    const radius = 0.01;
+
+    const shape = new CANNON.Sphere(radius);
+
+
+
+    const sphereGeo = new THREE.SphereGeometry(radius, 12, 12);
+
+    const sphereMat = new THREE.MeshPhongMaterial({
+
+      color: 0xf97316,
+
+      transparent: true,
+
+      opacity: 0.9
+
+    });
+
+
+
+    for (let i = 0; i < N; i++) {
+
+      const body = new CANNON.Body({
+
+        mass: 0.02,
+
+        shape: shape,
+
+        linearDamping: 0.05,
+
+        angularDamping: 0.05
+
+      });
+
+
+
+      const x = (Math.random() - 0.5) * 0.4;
+
+      const y = -0.11 + Math.random() * 0.02;
+
+      const z = (Math.random() - 0.5) * 0.06;
+
+      body.position.set(x, y, z);
+
+      world.addBody(body);
+
+      fluidBodies.push(body);
+
+
+
+      const mesh = new THREE.Mesh(sphereGeo, sphereMat);
+
+      mesh.position.set(x, y, z);
+
+      scene.add(mesh);
+
+      fluidMeshes.push(mesh);
+
+    }
+
+  }
+
+
+
+  function resetFluid(skipInit) {
+
+    // 기존 입자 제거
+
+    fluidMeshes.forEach(m => scene.remove(m));
+
+    fluidMeshes = [];
+
+    if (world) {
+
+      fluidBodies.forEach(b => world.removeBody(b));
+
+    }
+
+    fluidBodies = [];
+
+    if (!skipInit) {
+
+      initFluid();
+
+    }
+
+  }
+
+
+
+  function applyCentrifugalForces(omega) {
+
+    if (!world) return;
+
+    const w2 = omega * omega;
+
+    for (let i = 0; i < fluidBodies.length; i++) {
+
+      const b = fluidBodies[i];
+
+      const r = b.position.x; // x 방향만 반지름으로 사용 (폭 방향)
+
+      if (Math.abs(r) < 1e-4) continue;
+
+      const dir = r > 0 ? 1 : -1;
+
+      const fmag = b.mass * w2 * Math.abs(r);
+
+      const fx = dir * fmag;
+
+      const force = new CANNON.Vec3(fx, 0, 0);
+
+      b.applyForce(force, b.position);
+
+    }
+
+  }
+
+
+
+  // ==== 계산 정보 텍스트 ====
+
+  function updateCalcInfo(omega, H, L, g) {
+
+    const omega_c = Math.sqrt(24 * g * H / (L * L));
+
+    const zv = H - (omega * omega * L * L) / (24 * g);
+
+    const ratio = omega_c > 0 ? (omega / omega_c) : 0;
+
+
+
+    calcInfo.innerHTML =
+
+      `<div style="line-height:1.4;">
+
+        <div>임계 각속도: <strong>ω_c ≈ ${omega_c.toFixed(2)} rad/s</strong></div>
+
+        <div>현재 꼭짓점 높이: <strong>z_v ≈ ${zv.toFixed(3)} m</strong></div>
+
+        <div>상대 회전 세기: <strong>ω / ω_c ≈ ${ratio.toFixed(2)}</strong></div>
+
+        <div style="font-size:0.78rem; color:#6b7280; margin-top:0.25rem;">
+
+          ω &lt; ω_c: 중심이 아직 바닥에 닿지 않음 (포물선 전체가 물 안에 있음)<br/>
+
+          ω ≈ ω_c: 꼭짓점이 바닥에 접촉 (마른 영역이 생기기 시작)<br/>
+
+          ω &gt; ω_c: 단순 포물선 모델만으론 부족해지고, 실제 유체에서는 토러스 형태 등 복잡한 형상이 등장.
+
+        </div>
+
+      </div>`;
+
+  }
+
+
+
+  // ==== 전체 업데이트 ====
+
+  function updateAll() {
+
+    const omega = Number(omegaInput.value);
+
+    const H = Number(HInput.value);
+
+    const L = Number(LInput.value);
+
+    const g = Number(gInput.value);
+
+
+
+    currentOmega = omega;
+
+
+
+    drawProfile(omega, H, L, g);
+
+    updateWaterSurface(omega, H, L, g);
+
+    updateCalcInfo(omega, H, L, g);
+
+
+
+    if (world) {
+
+      world.gravity.set(0, -g, 0);
+
+    }
+
+  }
+
+
+
+  // ==== 애니메이션 루프 ====
+
+  function animate() {
+
+    requestAnimationFrame(animate);
+
+    if (controls) controls.update();
+
+
+
+    if (world) {
+
+      const dt = 1 / 60;
+
+      applyCentrifugalForces(currentOmega);
+
+      world.step(dt);
+
+
+
+      for (let i = 0; i < fluidBodies.length; i++) {
+
+        const b = fluidBodies[i];
+
+        const m = fluidMeshes[i];
+
+        m.position.copy(b.position);
+
+      }
+
+    }
+
+
+
+    if (renderer && scene && camera) {
+
+      renderer.render(scene, camera);
+
+    }
+
+  }
+
+
+
+  // ==== 초기화 ====
+
+  initThree();
+
+  initPhysics();
+
+  initFluid();
+
+  updateAll();
+
+
+
+  resetFluidBtn.addEventListener('click', () => {
+
+    resetFluid(false);
+
+  });
+
+</script>
+
+
+
+</body>
+
+</html>
+
