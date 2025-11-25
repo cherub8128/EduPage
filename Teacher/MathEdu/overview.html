@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>회전하는 사각 물통의 포물선 - 수학/물리 교육 자료</title>
+  <link rel="stylesheet" href="shared.css" />
+  
+  <!-- MathJax (LaTeX 수식용) -->
+  <script id="MathJax-script" async
+          src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+
+<body>
+<header>
+  <div>
+    <h1>회전하는 사각 물통의 포물선 단면</h1>
+    <div class="tagline">논문 기반 수학·물리 탐구 교재</div>
+  </div>
+  <nav>
+    <a href="overview.html">📚 개요</a>
+    <a href="simulation.html">🎮 시뮬레이션</a>
+    <a href="theory.html">📐 수식·심화</a>
+  </nav>
+</header>
+
+<main>
+
+  <!-- 학습 목표 -->
+  <section>
+    <h2>
+      <span class="badge">학습 목표</span>
+      이 교재에서 배우는 것
+    </h2>
+    <p class="sub">
+      실생활 현상(회전하는 물통)을 관찰하고, 논문 기반 실험을 바탕으로 
+      수학적 모델링과 컴퓨터 시뮬레이션을 통해 이해하는 <strong>탐구 중심 학습</strong>입니다.
+    </p>
+    
+    <div class="card">
+      <div class="chip-row">
+        <span class="chip">수학·물리 통합</span>
+        <span class="chip">논문 기반 학습</span>
+        <span class="chip">컴퓨터 시뮬레이션</span>
+      </div>
+      <ul style="padding-left:1.1rem; margin:0;">
+        <li><strong>관찰:</strong> 회전하는 물통의 자유수면이 포물선이 되는 현상을 이해</li>
+        <li><strong>모델링:</strong> 힘의 평형, 압력, 부피 보존 등의 물리 법칙으로 수식화</li>
+        <li><strong>시뮬레이션:</strong> 이론 포물선 + 물리엔진 입자 유체를 동시에 비교</li>
+        <li><strong>심화:</strong> 무차원화, 다른 기하학적 형태(원통, 정육면체)로의 확장</li>
+        <li><strong>탐구:</strong> 실험 설계, 데이터 수집, 수학적 분석까지 직접 수행</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 1. 논문 기반 관찰 -->
+  <section id="paper">
+    <h2>
+      <span class="badge">STEP 1</span>
+      논문 기반 현상 관찰
+    </h2>
+    <p class="sub">
+      두 논문을 통해 "회전하는 용기의 자유수면은 포물선이 된다"는 현상을 탐구합니다.
+    </p>
+
+    <div class="reference">
+      <div class="reference-title">📄 참고 논문 1: Monteiro et al. (2019)</div>
+      <p>
+        <em>"The Parabola of Revolution: An Experimental Study Using a Rectangular Container"</em><br/>
+        직사각형 좁은 물통을 회전시키며, 스마트폰 자이로스코프와 비디오 분석을 활용해
+        자유수면이 이론 포물선과 일치함을 검증한 교육용 실험 논문입니다.
+      </p>
+    </div>
+
+    <div class="reference">
+      <div class="reference-title">📄 참고 논문 2: Menker & Herczyński (2022)</div>
+      <p>
+        <em>"Dry Patches and Rotating Containers"</em><br/>
+        다양한 기하학적 형태(원통, 정육면체 등)의 용기에서 임계 각속도 이상으로 회전할 때
+        중심에 "마른 영역(dry patch)"이 생기는 현상을 실험·이론적으로 분석한 논문입니다.
+      </p>
+    </div>
+
+    <div class="two-column">
+      <div>
+        <div class="card">
+          <div class="chip-row">
+            <span class="chip">핵심 관찰</span>
+          </div>
+          <ul style="padding-left:1.1rem; margin:0;">
+            <li>용기 모양(직사각형, 원통 등)과 상관없이 <span class="highlight">자유수면 단면이 포물선</span></li>
+            <li>각속도 \(\omega\) 가 커질수록 포물선이 가파르게 휘어짐</li>
+            <li>임계 각속도 이상에서는 중심이 바닥에 닿으며 "마른 영역" 형성</li>
+            <li>실험 데이터를 통해 중력가속도 \(g\) 를 역추정할 수 있음</li>
+          </ul>
+        </div>
+      </div>
+
+      <div>
+        <div class="math-box">
+<strong>[물리 법칙에서 수식 유도]</strong>
+
+회전 좌표계에서 유체 요소에 작용하는 힘:
+- 중력: \(\rho \mathbf{g} = -\rho g\,\hat{z}\)
+- 원심력: \(\rho \mathbf{a} = \rho \omega^2 r\,\hat{r}\)
+
+정수압 평형 (정상 상태):
+\[
+\nabla p = \rho(\mathbf{g} - \mathbf{a})
+\]
+
+이를 적분하면 자유수면에서:
+\[
+z_0(r) = \frac{\omega^2}{2g} r^2 + C
+\]
+
+→ <span class="highlight">포물선 형상을 수학적으로 확정</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. 모형화 -->
+  <section id="model">
+    <h2>
+      <span class="badge">STEP 2</span>
+      수학적 모델링
+    </h2>
+    <p class="sub">
+      복잡한 유체역학 방정식을 <strong>단순화된 가정</strong>으로 축약하여
+      시뮬레이션 가능한 모델을 만듭니다.
+    </p>
+
+    <div class="two-column">
+      <div>
+        <div class="math-box">
+<strong>[단순화 가정]</strong>
+
+(1) 정상 상태(steady):
+\[
+\frac{\partial}{\partial t} = 0
+\]
+
+(2) 강체 회전:
+\[
+\mathbf{u} = \omega r\,\hat{\theta}
+\]
+
+(3) 점성 무시:
+전단응력 무시, 압력장만 고려
+
+(4) 직사각형 용기의 1차원 근사:
+폭 \(L\), 깊이 \(d\), 한 방향으로만 변화
+
+<strong>[직사각형 용기 자유수면]</strong>
+
+부피 보존을 고려하면:
+\[
+z_0(r) = H - \frac{\omega^2}{2g}
+\left(\frac{L^2}{12} - r^2\right)
+\]
+
+여기서 \(-\frac{L}{2} \le r \le \frac{L}{2}\)
+
+<strong>[주요 물리량]</strong>
+
+꼭짓점(중심) 높이:
+\[
+z_v = H - \frac{\omega^2 L^2}{24 g}
+\]
+
+임계 각속도 (꼭짓점이 바닥에 닿을 때):
+\[
+\omega_c = \sqrt{\frac{24 g H}{L^2}}
+\]
+        </div>
+      </div>
+
+      <div>
+        <div class="card">
+          <div class="chip-row">
+            <span class="chip">모델 검증 전략</span>
+          </div>
+          <h4 style="margin-top:0;">변증법적 접근</h4>
+          <ul style="padding-left:1.1rem; margin:0.5rem 0;">
+            <li><strong>정(正)</strong>: 단순 포물선 이론식</li>
+            <li><strong>반(反)</strong>: 물리엔진 입자 시뮬레이션 (이론과 다른 부분, 노이즈, 경계 효과)</li>
+            <li><strong>합(合)</strong>: 두 결과를 비교하며 이론의 적용 범위 분석</li>
+          </ul>
+          
+          <h4>검증 항목</h4>
+          <ul style="padding-left:1.1rem; margin:0;">
+            <li>\(\omega < \omega_c\): 이론과 시뮬레이션이 잘 일치하는가?</li>
+            <li>\(\omega \approx \omega_c\): 마른 영역이 형성되는가?</li>
+            <li>\(\omega > \omega_c\): 모델이 벗어나는 지점은 어디인가?</li>
+          </ul>
+        </div>
+
+        <div class="card" style="margin-top:1rem;">
+          <div class="chip-row">
+            <span class="chip">실험 설계 예시</span>
+          </div>
+          <ul style="padding-left:1.1rem; margin:0;">
+            <li>회전대 + 직사각형 물통 + 스마트폰(자이로)</li>
+            <li>비디오 촬영 → Tracker 등으로 수면 높이 측정</li>
+            <li>여러 \(\omega\) 에서 측정 → 회귀분석으로 \(g\) 추정</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. 시뮬레이션 안내 -->
+  <section id="simulation-intro">
+    <h2>
+      <span class="badge">STEP 3</span>
+      인터랙티브 시뮬레이션
+    </h2>
+    <p class="sub">
+      이론 포물선과 물리엔진 입자 유체를 동시에 시각화하여 비교할 수 있습니다.
+    </p>
+
+    <div class="card">
+      <div class="chip-row">
+        <span class="chip">시뮬레이션 안내</span>
+      </div>
+      <p style="margin:0.5rem 0;">
+        <strong>시뮬레이션 페이지</strong>에서는 다음을 할 수 있습니다:
+      </p>
+      <ul style="padding-left:1.1rem; margin:0.5rem 0;">
+        <li>슬라이더로 \(\omega, H, L, g\) 조절</li>
+        <li>2D 포물선 단면 그래프 실시간 업데이트</li>
+        <li>3D 시각화: 이론 포물선 수면(파란색) + Cannon.js 입자 유체(주황색)</li>
+        <li>임계 각속도 \(\omega_c\) 계산 및 현재 상태 분석</li>
+      </ul>
+      
+      <div style="text-align:center; margin-top:1rem;">
+        <a href="simulation.html" 
+           style="display:inline-block; padding:0.75rem 1.5rem; background:#3b82f6; color:white; 
+                  text-decoration:none; border-radius:999px; font-weight:600;">
+          🎮 시뮬레이션 시작하기
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. 학습 로드맵 -->
+  <section>
+    <h2>
+      <span class="badge">학습 흐름</span>
+      이 교재의 구성
+    </h2>
+    
+    <div class="card">
+      <div class="chip-row">
+        <span class="chip">5단계 탐구 프로세스</span>
+      </div>
+      
+      <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:1rem; margin-top:1rem;">
+        <div style="border-left:3px solid #3b82f6; padding-left:0.75rem;">
+          <div style="font-weight:600; color:#1e40af;">1️⃣ 현상 관찰</div>
+          <div style="font-size:0.8rem; color:#6b7280;">논문을 통한 실험 관찰</div>
+        </div>
+        
+        <div style="border-left:3px solid #8b5cf6; padding-left:0.75rem;">
+          <div style="font-weight:600; color:#6b21a8;">2️⃣ 모델링</div>
+          <div style="font-size:0.8rem; color:#6b7280;">물리 법칙 → 수식화</div>
+        </div>
+        
+        <div style="border-left:3px solid #10b981; padding-left:0.75rem;">
+          <div style="font-weight:600; color:#065f46;">3️⃣ 시뮬레이션</div>
+          <div style="font-size:0.8rem; color:#6b7280;">이론 vs 물리엔진 비교</div>
+        </div>
+        
+        <div style="border-left:3px solid #f59e0b; padding-left:0.75rem;">
+          <div style="font-weight:600; color:#92400e;">4️⃣ 수식화</div>
+          <div style="font-size:0.8rem; color:#6b7280;">무차원화, 일반화</div>
+        </div>
+        
+        <div style="border-left:3px solid #ef4444; padding-left:0.75rem;">
+          <div style="font-weight:600; color:#991b1b;">5️⃣ 심화 탐구</div>
+          <div style="font-size:0.8rem; color:#6b7280;">자유 주제 연구 설계</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <p>
+      📚 이 교재는 실제 물리 현상 → 수학적 모델링 → 컴퓨터 시뮬레이션의 흐름으로<br/>
+      수학, 물리, 프로그래밍을 통합적으로 학습하는 STEAM 교육 자료입니다.
+    </p>
+    <p style="margin-top:0.5rem; font-size:0.75rem;">
+      참고 논문: Monteiro et al. (2019) arXiv:1908.04256 | Menker & Herczyński (2022) arXiv:2208.05059
+    </p>
+  </footer>
+
+</main>
+
+</body>
+</html>

@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>수식화 및 심화 탐구 - 회전 포물선</title>
+  <link rel="stylesheet" href="shared.css" />
+  
+  <!-- MathJax -->
+  <script id="MathJax-script" async
+          src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+
+<body>
+<header>
+  <div>
+    <h1>수식화 및 심화 탐구</h1>
+    <div class="tagline">무차원화, 일반화, 그리고 학생 연구 프로젝트</div>
+  </div>
+  <nav>
+    <a href="overview.html">📚 개요</a>
+    <a href="simulation.html">🎮 시뮬레이션</a>
+    <a href="theory.html">📐 수식·심화</a>
+  </nav>
+</header>
+
+<main>
+
+  <!-- 4. 수식화 정리 -->
+  <section id="formula">
+    <h2>
+      <span class="badge">STEP 4</span>
+      수식화: 일반식 · 무차원화 · 다른 기하로의 확장
+    </h2>
+    <p class="sub">
+      관찰과 시뮬레이션을 수식으로 정리하고,
+      무차원화와 다른 기하(원통, 정육면체)로의 확장 아이디어까지 연결합니다.
+    </p>
+
+    <div class="two-column">
+      <div>
+        <div class="math-box">
+<strong>[1D 포물선 모델 - 직사각형 수조]</strong>
+
+자유수면 높이:
+\[
+z(r) = H - \frac{\omega^2}{2g}\left(\frac{L^2}{12} - r^2\right)
+\]
+
+이를 정리하면:
+\[
+z(r) = \frac{\omega^2}{2g} r^2 + \left(H - \frac{\omega^2 L^2}{24 g}\right)
+\]
+
+→ 포물선의 계수는 \(A = \dfrac{\omega^2}{2g}\)
+
+꼭짓점 높이:
+\[
+z_v = H - \frac{\omega^2 L^2}{24 g}
+\]
+
+임계 각속도 (꼭짓점이 바닥에 닿을 때):
+\[
+z_v = 0 \quad \Rightarrow \quad
+\omega_c = \sqrt{\frac{24 g H}{L^2}}
+\]
+
+<strong>[무차원화]</strong>
+
+길이 스케일 \(R = L/2\) 로 정규화:
+\[
+X = \omega \sqrt{\frac{R}{g}}, \quad
+H^* = \frac{H}{R}, \quad
+Z = \frac{z}{R}, \quad
+R^* = \frac{r}{R}
+\]
+
+그러면 무차원 자유수면 방정식:
+\[
+Z(R^*) = H^* - \frac{X^2}{6}\left(1 - (R^*)^2\right)
+\]
+
+임계 조건 (무차원):
+\[
+X_c^2 = 6 H^*
+\]
+
+→ <span class="highlight">여러 크기의 물통을 하나의 무차원 곡선으로 통합 가능</span>
+        </div>
+
+        <div class="card" style="margin-top:1rem;">
+          <div class="chip-row">
+            <span class="chip">무차원화의 장점</span>
+          </div>
+          <ul style="padding-left:1.1rem; margin:0;">
+            <li><strong>일반성:</strong> 다양한 크기의 실험을 하나의 곡선으로 표현</li>
+            <li><strong>데이터 분석:</strong> \(X\) vs \(Z\) 그래프로 모든 데이터를 통합</li>
+            <li><strong>임계점 판단:</strong> \(X < \sqrt{6H^*}\) vs \(X > \sqrt{6H^*}\) 로 간단히 구분</li>
+          </ul>
+        </div>
+      </div>
+
+      <div>
+        <div class="card">
+          <div class="chip-row">
+            <span class="chip">다른 기하학적 형태로의 확장</span>
+          </div>
+          
+          <h4 style="margin-top:0;">🔵 원통 수조</h4>
+          <p style="margin:0.5rem 0; font-size:0.85rem;">
+            반지름 \(R\) 인 원통 수조에서는:
+          </p>
+          <div class="math-box" style="font-size:0.8rem; padding:0.75rem;">
+\[
+z(r) = \frac{\omega^2}{2g} r^2 + C, \quad 0 \le r \le R
+\]
+
+부피 보존 조건:
+\[
+\int_0^R z(r) \cdot 2\pi r\, dr = \pi R^2 H
+\]
+
+이를 풀면:
+\[
+C = H - \frac{\omega^2 R^2}{4g}
+\]
+
+임계 각속도:
+\[
+\omega_c = \sqrt{\frac{4gH}{R^2}}
+\]
+          </div>
+
+          <h4>🟩 정육면체 수조</h4>
+          <p style="margin:0.5rem 0; font-size:0.85rem;">
+            한 변의 길이가 \(a\) 인 정육면체 수조에서는 2차원 포물면:
+          </p>
+          <div class="math-box" style="font-size:0.8rem; padding:0.75rem;">
+\[
+z(x,y) = \frac{\omega^2}{2g}(x^2 + y^2) + C
+\]
+
+마른 영역이 생기면 자유수면이 벽에서 끊기고,  
+"마른 반지름"에 대해 3차 또는 4차 방정식을 풀어야 함.
+
+→ Menker & Herczyński (2022) 논문에서 자세히 다룸
+          </div>
+
+          <h4>🔍 비교 분석 프로젝트</h4>
+          <ul style="padding-left:1.1rem; margin:0.5rem 0; font-size:0.85rem;">
+            <li>직사각형 vs 원통 vs 정육면체에서 \(\omega_c\) 의 스케일링 비교</li>
+            <li>각 형태에서 마른 영역의 크기 비교</li>
+            <li>부피 보존 조건이 형상에 미치는 영향 분석</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5. 심화 탐구 -->
+  <section id="explore">
+    <h2>
+      <span class="badge">STEP 5</span>
+      심화 주제 탐구 - 학생 연구 메모 공간
+    </h2>
+    <p class="sub">
+      아래 칸들은 "질문 → 가설 → 실험/관찰 설계 → 시뮬레이션 → 수식화" 흐름을
+      학생이 직접 채워 넣도록 설계된 공간입니다.
+    </p>
+
+    <div class="two-column">
+      <div>
+        <div class="card">
+          <div class="chip-row">
+            <span class="chip">연구 질문 생성</span>
+          </div>
+          <textarea id="question" placeholder="여기에 스스로 만든 탐구 질문을 적어보세요.
+예) 입자 유체 시뮬레이션에서 측정한 자유수면의 곡률이 이론식 A = ω²/(2g)와 얼마나 일치하는가?
+예) 임계 각속도 이상에서 Cannon.js 입자들이 만드는 표면은 어떤 패턴을 보이는가?
+예) 직사각형 수조와 원통 수조에서 같은 ω로 회전할 때 포물선의 곡률 차이는?"></textarea>
+        </div>
+
+        <div class="card" style="margin-top:1rem;">
+          <div class="chip-row">
+            <span class="chip">가설 · 단순화 전략</span>
+          </div>
+          <textarea id="hypothesis" placeholder="어떤 가정을 추가/삭제하면 수식/시뮬레이션이 단순해질까요?
+예) z 방향으로는 균일하다고 가정 (1D 근사)
+예) 점성·난류 무시, 입자 반지름을 0으로 두는 연속체 근사
+예) 표면 장력 무시 (물통이 충분히 클 때)"></textarea>
+        </div>
+      </div>
+
+      <div>
+        <div class="card">
+          <div class="chip-row">
+            <span class="chip">실험/관찰 계획</span>
+          </div>
+          <textarea id="experiment" placeholder="직접 수행해보고 싶은 실험 또는 시뮬레이션 절차를 설계해보세요.
+
+• 실험 장비: 
+  - 회전대 (또는 전동 모터)
+  - 직사각형/원통 물통
+  - 스마트폰 (자이로스코프 앱)
+  - 카메라 (고속 촬영 가능하면 더 좋음)
+
+• 측정할 물리량:
+  - 각속도 ω (자이로스코프)
+  - 포물선 계수 A (비디오 분석)
+  - 꼭짓점 높이 z_v (카메라 측정)
+  - 마른 반지름 (임계점 이상)
+
+• 데이터 처리:
+  - Tracker, ImageJ 등으로 비디오 분석
+  - 스프레드시트에서 회귀분석
+  - ω² vs A 그래프 → 기울기에서 g 추정"></textarea>
+        </div>
+
+        <div class="card" style="margin-top:1rem;">
+          <div class="chip-row">
+            <span class="chip">시뮬레이션 · 수식화 메모</span>
+          </div>
+          <textarea id="simulation-notes" placeholder="시뮬레이션 페이지에서 바꿔본 값들(ω, H, L, g)을 정리하고,
+관찰한 패턴을 함수, 비례식, 무차원수 등의 형태로 정리해 보세요.
+
+예) z_v(ω) 그래프 → 2차 함수 관계 확인
+예) 곡률 A(ω) → 선형 비례 ω² ∝ A
+예) 무차원수 X = ω√(R/g) 도입 → 임계값 X_c
+예) 이론 포물선 vs 물리엔진 입자의 편차 분석"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:1.5rem;">
+      <div class="chip-row">
+        <span class="chip">추천 심화 연구 주제</span>
+      </div>
+      <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:1rem; margin-top:0.75rem;">
+        
+        <div style="border-left:3px solid #3b82f6; padding-left:0.75rem;">
+          <div style="font-weight:600; color:#1e40af; margin-bottom:0.25rem;">1. 중력가속도 측정</div>
+          <p style="font-size:0.8rem; color:#4b5563; margin:0;">
+            다양한 ω에서 포물선 곡률 A를 측정하고, ω² vs A 그래프의 기울기를 통해 g를 역추정.
+            실제 9.8 m/s²와의 오차 분석 및 오차 원인 토론.
+          </p>
+        </div>
+
+        <div style="border-left:3px solid #8b5cf6; padding-left:0.75rem;">
+          <div style="font-weight:600; color:#6b21a8; margin-bottom:0.25rem;">2. 점성 효과 연구</div>
+          <p style="font-size:0.8rem; color:#4b5563; margin:0;">
+            물 대신 꿀, 식용유 등 점성이 다른 유체를 사용하여
+            정상 상태 도달 시간(이완 시간) 측정. 점성 계수와의 관계 탐구.
+          </p>
+        </div>
+
+        <div style="border-left:3px solid #10b981; padding-left:0.75rem;">
+          <div style="font-weight:600; color:#065f46; margin-bottom:0.25rem;">3. 형상별 임계 각속도 비교</div>
+          <p style="font-size:0.8rem; color:#4b5563; margin:0;">
+            직사각형, 원통, 정육면체 수조에서 마른 영역이 생기는
+            임계 각속도 ω_c를 실험 또는 시뮬레이션으로 비교. 부피와 형상의 관계 분석.
+          </p>
+        </div>
+
+        <div style="border-left:3px solid #f59e0b; padding-left:0.75rem;">
+          <div style="font-weight:600; color:#92400e; margin-bottom:0.25rem;">4. 이론 vs 물리엔진 편차 분석</div>
+          <p style="font-size:0.8rem; color:#4b5563; margin:0;">
+            Cannon.js 입자 유체의 표면 높이를 샘플링하여
+            이론 포물선과의 잔차(residual)를 계산. 입자 수, 반지름 등의 영향 연구.
+          </p>
+        </div>
+
+        <div style="border-left:3px solid #ef4444; padding-left:0.75rem;">
+          <div style="font-weight:600; color:#991b1b; margin-bottom:0.25rem;">5. 표면 장력·접촉각 효과</div>
+          <p style="font-size:0.8rem; color:#4b5563; margin:0;">
+            소형 용기나 수은 등에서는 표면 장력이 무시할 수 없음.
+            이론 모델에 Young-Laplace 방정식 추가하여 보정.
+          </p>
+        </div>
+
+        <div style="border-left:3px solid #ec4899; padding-left:0.75rem;">
+          <div style="font-weight:600; color:#9f1239; margin-bottom:0.25rem;">6. 비균일 회전 (시간 변화)</div>
+          <p style="font-size:0.8rem; color:#4b5563; margin:0;">
+            ω가 시간에 따라 증가/감소하는 경우의 과도 상태(transient) 연구.
+            에너지 소산률, 진동 모드 관찰.
+          </p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- 참고 자료 -->
+  <section>
+    <h2>
+      <span class="badge">참고 자료</span>
+      더 깊이 공부하기
+    </h2>
+
+    <div class="reference">
+      <div class="reference-title">📄 Monteiro, M., Marti, A. C., & Vogt, P. (2019)</div>
+      <p>
+        <em>"The Parabola of Revolution: An Experimental Study Using a Rectangular Container"</em><br/>
+        arXiv:1908.04256 [physics.ed-ph]<br/>
+        <a href="https://arxiv.org/abs/1908.04256" target="_blank" style="color:#3b82f6;">https://arxiv.org/abs/1908.04256</a>
+      </p>
+      <p style="font-size:0.85rem; margin-top:0.5rem;">
+        <strong>핵심 내용:</strong> 직사각형 좁은 물통 실험, 스마트폰 자이로 활용, 부피 보존 조건, 
+        이론 vs 실험 비교, 교육용 실험 설계 방법
+      </p>
+    </div>
+
+    <div class="reference">
+      <div class="reference-title">📄 Menker, S. & Herczyński, A. (2022)</div>
+      <p>
+        <em>"Dry Patches and Rotating Containers"</em><br/>
+        arXiv:2208.05059 [physics.flu-dyn]<br/>
+        <a href="https://arxiv.org/abs/2208.05059" target="_blank" style="color:#3b82f6;">https://arxiv.org/abs/2208.05059</a>
+      </p>
+      <p style="font-size:0.85rem; margin-top:0.5rem;">
+        <strong>핵심 내용:</strong> 원통, 정육면체 등 다양한 기하, 임계 각속도 이상의 마른 영역, 
+        토러스 형상, 고차 방정식 풀이
+      </p>
+    </div>
+
+    <div class="card">
+      <div class="chip-row">
+        <span class="chip">추가 학습 리소스</span>
+      </div>
+      <ul style="padding-left:1.1rem; margin:0.5rem 0;">
+        <li><strong>유체역학 기초:</strong> 
+          Landau & Lifshitz "Fluid Mechanics" 또는 Kundu & Cohen "Fluid Mechanics"</li>
+        <li><strong>회전 유체:</strong> 
+          Greenspan "The Theory of Rotating Fluids" (Cambridge Monographs)</li>
+        <li><strong>실험 비디오 분석:</strong> 
+          Tracker (오픈소스, 무료) - <a href="https://physlets.org/tracker/" target="_blank">physlets.org/tracker/</a></li>
+        <li><strong>수치 시뮬레이션:</strong> 
+          Three.js 공식 문서, Cannon.js GitHub, WebGL 튜토리얼</li>
+      </ul>
+    </div>
+  </section>
+
+  <footer>
+    <p>
+      이 교재를 통해 "관찰 → 모델링 → 시뮬레이션 → 수식화 → 심화 탐구"의<br/>
+      전체 과학 연구 프로세스를 경험해 보세요.
+    </p>
+    <p style="margin-top:0.5rem;">
+      <strong>💡 팁:</strong> 메모 공간은 스크린샷이나 인쇄하여 보관하거나, 
+      브라우저 개발자 도구(F12)의 Console에서 값을 복사할 수 있습니다.
+    </p>
+  </footer>
+
+</main>
+
+<!-- 메모 저장 기능 (localStorage) -->
+<script>
+// 간단한 localStorage 기반 메모 저장
+const textareas = ['question', 'hypothesis', 'experiment', 'simulation-notes'];
+
+textareas.forEach(id => {
+  const el = document.getElementById(id);
+  if (!el) return;
+  
+  // 로드
+  const saved = localStorage.getItem(`rotateParabola_${id}`);
+  if (saved) el.value = saved;
+  
+  // 저장 (자동 저장)
+  el.addEventListener('blur', () => {
+    localStorage.setItem(`rotateParabola_${id}`, el.value);
+  });
+});
+
+// 초기화 버튼 추가 (선택적)
+const clearBtn = document.createElement('button');
+clearBtn.textContent = '🗑️ 모든 메모 초기화';
+clearBtn.style.cssText = 'position:fixed; bottom:1rem; right:1rem; z-index:100; padding:0.5rem 1rem; background:#ef4444; color:white; border:none;';
+clearBtn.onclick = () => {
+  if (confirm('모든 메모를 초기화하시겠습니까?')) {
+    textareas.forEach(id => {
+      localStorage.removeItem(`rotateParabola_${id}`);
+      const el = document.getElementById(id);
+      if (el) el.value = '';
+    });
+    alert('메모가 초기화되었습니다.');
+  }
+};
+document.body.appendChild(clearBtn);
+</script>
+
+</body>
+</html>

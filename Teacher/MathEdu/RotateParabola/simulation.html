@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>회전 포물선 시뮬레이션 - 인터랙티브 3D</title>
+  <link rel="stylesheet" href="shared.css" />
+  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.8/dist/web/static/pretendard.css" />
+  
+  <!-- MathJax -->
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+
+<body>
+
+<header>
+  <div class="header-brand">
+    <h1>MathEdu Project</h1>
+    <span class="tagline">회전 유체 역학의 수학적 모델링</span>
+  </div>
+  <nav>
+    <a href="overview.html">개요</a>
+    <a href="simulation.html" class="active">시뮬레이션</a>
+    <a href="theory.html">수식·심화</a>
+  </nav>
+</header>
+
+<main>
+
+  <section id="sim">
+    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 1.5rem;">
+      <div>
+        <h2>
+          <span class="badge">STEP 3</span>
+          인터랙티브 시뮬레이션
+        </h2>
+        <p class="sub-desc" style="margin-bottom: 0;">
+          이론 포물선(파란 면)을 실시간으로 확인하고 회전 효과를 관찰해보세요.
+        </p>
+      </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="controls-grid">
+      <div class="control-item">
+        <div class="control-label">
+          <span>각속도 \(\omega\)</span>
+          <span style="color:var(--primary);">rad/s</span>
+        </div>
+        <input id="omegaSlider" type="range" min="0" max="10" step="0.1" value="3" />
+        <input id="omegaInput" type="number" step="0.1" value="3" />
+      </div>
+
+      <div class="control-item">
+        <div class="control-label">
+          <span>초기 물높이 \(H\)</span>
+          <span>m</span>
+        </div>
+        <input id="HSlider" type="range" min="0.02" max="0.15" step="0.005" value="0.08" />
+        <input id="HInput" type="number" step="0.005" value="0.08" />
+      </div>
+
+      <div class="control-item">
+        <div class="control-label">
+          <span>물통 폭 \(L\)</span>
+          <span>m</span>
+        </div>
+        <input id="LSlider" type="range" min="0.1" max="0.5" step="0.01" value="0.25" />
+        <input id="LInput" type="number" step="0.01" value="0.25" />
+      </div>
+
+      <div class="control-item">
+        <div class="control-label">
+          <span>중력가속도 \(g\)</span>
+          <span>m/s²</span>
+        </div>
+        <input id="gInput" type="number" step="0.1" value="9.8" />
+        <div class="control-desc" style="margin-top:0.5rem;">실험 데이터 비교용</div>
+      </div>
+      
+      <div class="control-item" style="grid-column: span 2; background-color: #f0f9ff; border-color: #bfdbfe;">
+        <div class="control-label" style="color: var(--primary-dark);">실시간 계산 결과</div>
+        <div id="calcInfo" style="font-size: 0.85rem; line-height: 1.5; color: var(--text-sub);"></div>
+      </div>
+    </div>
+
+    <!-- Visualization -->
+    <div class="two-column" style="margin-top: 2rem;">
+      <!-- 2D Profile -->
+      <div class="vis-container">
+        <div class="vis-header">
+          <span class="vis-title">2D Profile (r-z Plane)</span>
+          <span class="chip">Theoretical</span>
+        </div>
+        <canvas id="profileCanvas" width="600" height="320"></canvas>
+        <div style="padding: 0.75rem; font-size: 0.8rem; color: var(--text-muted); border-top: 1px solid var(--border);">
+          세로축: 높이 \(z\), 가로축: 반경 \(r\) (점선: 바닥, 회색: 벽)
+        </div>
+      </div>
+
+      <!-- 3D Simulation -->
+      <div class="vis-container">
+        <div class="vis-header">
+          <span class="vis-title">3D Visualization</span>
+          <span class="chip">Theoretical Surface</span>
+        </div>
+        <div id="threeContainer"></div>
+        <div style="padding: 0.75rem; font-size: 0.8rem; color: var(--text-muted); border-top: 1px solid var(--border); display: flex; justify-content: space-between;">
+          <span>드래그: 회전 · 휠: 줌</span>
+          <span>파란색: 이론 포물선 수면</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- Three.js (ES Modules) -->
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+// ==== DOM Elements ====
+const omegaSlider = document.getElementById('omegaSlider');
+const omegaInput  = document.getElementById('omegaInput');
+const HSlider     = document.getElementById('HSlider');
+const HInput      = document.getElementById('HInput');
+const LSlider     = document.getElementById('LSlider');
+const LInput      = document.getElementById('LInput');
+const gInput      = document.getElementById('gInput');
+const calcInfo    = document.getElementById('calcInfo');
+const profileCanvas = document.getElementById('profileCanvas');
+const ctx = profileCanvas.getContext('2d');
+
+// ==== Globals ====
+let scene, camera, renderer, controls, waterMesh, boxMesh, rotatingGroup;
+let currentOmega = 0;
+let currentH = 0.08, currentL = 0.25;
+
+// Container dimensions (fixed)
+const CONTAINER_HEIGHT = 0.25;
+const CONTAINER_DEPTH = 0.08;
+
+// ==== Sync Inputs ====
+function syncPair(slider, input, formatter = v => v) {
+  slider.addEventListener('input', () => {
+    input.value = formatter(slider.value);
+    updateAll();
+  });
+  input.addEventListener('change', () => {
+    slider.value = formatter(input.value);
+    updateAll();
+  });
+}
+
+syncPair(omegaSlider, omegaInput, v => Number(v));
+syncPair(HSlider, HInput, v => Number(v));
+syncPair(LSlider, LInput, v => Number(v));
+gInput.addEventListener('change', updateAll);
+
+// ==== 2D Profile Drawing ====
+function drawProfile(omega, H, L, g) {
+  const w = profileCanvas.width;
+  const h = profileCanvas.height;
+  ctx.clearRect(0, 0, w, h);
+
+  const margin = 40;
+  const rMin = -L / 2;
+  const rMax = L / 2;
+
+  // View range: show container height
+  const zMin = -0.05;
+  const zMax = CONTAINER_HEIGHT + 0.05;
+
+  function xPix(r) {
+    return margin + (r - rMin) * (w - 2 * margin) / (rMax - rMin);
+  }
+  function yPix(z) {
+    return h - margin - (z - zMin) * (h - 2 * margin) / (zMax - zMin);
+  }
+
+  // Ground (z=0)
+  ctx.strokeStyle = '#ef4444';
+  ctx.setLineDash([4, 4]);
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(xPix(rMin), yPix(0));
+  ctx.lineTo(xPix(rMax), yPix(0));
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Container Walls (fixed height)
+  ctx.strokeStyle = '#64748b';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(xPix(rMin), yPix(CONTAINER_HEIGHT));
+  ctx.lineTo(xPix(rMin), yPix(0));
+  ctx.moveTo(xPix(rMax), yPix(CONTAINER_HEIGHT));
+  ctx.lineTo(xPix(rMax), yPix(0));
+  ctx.stroke();
+
+  // Water Surface (parabola)
+  ctx.strokeStyle = '#0ea5e9';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  const N = 200;
+  for (let i = 0; i <= N; i++) {
+    const r = rMin + (rMax - rMin) * i / N;
+    const z = H - (omega * omega / (2 * g)) * (L * L / 12 - r * r);
+    const x = xPix(r);
+    const y = yPix(z);
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+  
+  // Fill Water area
+  ctx.fillStyle = 'rgba(14, 165, 233, 0.15)';
+  ctx.lineTo(xPix(rMax), yPix(0));
+  ctx.lineTo(xPix(rMin), yPix(0));
+  ctx.closePath();
+  ctx.fill();
+
+  // Axis Labels
+  ctx.fillStyle = '#475569';
+  ctx.font = '12px Pretendard';
+  ctx.fillText('r (m)', w - margin + 5, yPix(0) + 4);
+  ctx.fillText('z (m)', xPix(0) - 10, margin - 10);
+  
+  // Legend
+  ctx.font = '11px Pretendard';
+  ctx.fillStyle = '#64748b';
+  ctx.fillText('회색: 물통', margin, 20);
+  ctx.fillStyle = '#0ea5e9';
+  ctx.fillText('하늘색: 물 표면', margin, 35);
+}
+
+// ==== Three.js Setup ====
+function initThree() {
+  const container = document.getElementById('threeContainer');
+  scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x0f172a); // Dark Slate
+
+  const width = container.clientWidth;
+  const height = container.clientHeight;
+
+  camera = new THREE.PerspectiveCamera(40, width / height, 0.01, 50);
+  camera.position.set(0.6, 0.5, 0.9);
+
+  renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setSize(width, height);
+  renderer.setPixelRatio(window.devicePixelRatio || 1);
+  container.appendChild(renderer.domElement);
+
+  controls = new OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true;
+
+  const light = new THREE.DirectionalLight(0xffffff, 1.2);
+  light.position.set(1, 2, 2);
+  scene.add(light);
+  scene.add(new THREE.AmbientLight(0xffffff, 0.3));
+
+  // Rotating Group (contains box and water)
+  rotatingGroup = new THREE.Group();
+  scene.add(rotatingGroup);
+
+  createContainer(currentL, currentH);
+  createWaterSurface(currentL);
+
+  window.addEventListener('resize', onWindowResize);
+  animate();
+}
+
+function createContainer(L) {
+  if (boxMesh) rotatingGroup.remove(boxMesh);
+  
+  // BoxGeometry(width_X, height_Y, depth_Z) - container height is FIXED
+  const boxGeom = new THREE.BoxGeometry(L, CONTAINER_HEIGHT, CONTAINER_DEPTH);
+  const edges = new THREE.EdgesGeometry(boxGeom);
+  boxMesh = new THREE.LineSegments(
+    edges,
+    new THREE.LineBasicMaterial({ color: 0x64748b, linewidth: 2 })
+  );
+  rotatingGroup.add(boxMesh);
+}
+
+function createWaterSurface(L) {
+  if (waterMesh) rotatingGroup.remove(waterMesh);
+  
+  const resX = 60, resY = 8;
+  // PlaneGeometry(width_X, depth_Z)
+  const planeGeom = new THREE.PlaneGeometry(L, CONTAINER_DEPTH, resX, resY);
+  const waterMat = new THREE.MeshPhongMaterial({
+    color: 0x3b82f6,
+    transparent: true,
+    opacity: 0.6,
+    side: THREE.DoubleSide,
+    shininess: 90,
+    specular: 0x111111
+  });
+  waterMesh = new THREE.Mesh(planeGeom, waterMat);
+  // Rotate to make it horizontal (Y-up coordinate system)
+  waterMesh.rotation.x = -Math.PI / 2;
+  rotatingGroup.add(waterMesh);
+}
+
+function onWindowResize() {
+  const container = document.getElementById('threeContainer');
+  const width = container.clientWidth;
+  const height = container.clientHeight;
+  camera.aspect = width / height;
+  camera.updateProjectionMatrix();
+  renderer.setSize(width, height);
+}
+
+function updateWaterSurface(omega, H, L, g) {
+  if (!waterMesh) return;
+  const geom = waterMesh.geometry;
+  geom.computeBoundingBox();
+  const pos = geom.attributes.position;
+  const bbox = geom.boundingBox;
+
+  // Calculate parabolic shape
+  const extra = (omega * omega * L * L) / (24 * g);
+  const zMin = Math.min(0, H - extra * 1.2);
+  const zMax = H + extra * 0.2;
+  const heightRange = H * 2;
+  
+  for (let i = 0; i < pos.count; i++) {
+    const xLocal = pos.getX(i); // X position on the plane
+    const zLocal = pos.getY(i); // Z position on the plane (before rotation)
+    
+    // Map to physical coordinates
+    const r = ((xLocal - bbox.min.x) / (bbox.max.x - bbox.min.x) - 0.5) * L;
+    
+    // Calculate height at this radial position
+    const height = H - (omega * omega / (2 * g)) * (L * L / 12 - r * r);
+    
+    // Set Z position (which becomes Y after rotation)
+    pos.setZ(i, height - H);
+  }
+
+  pos.needsUpdate = true;
+  geom.computeVertexNormals();
+}
+
+// ==== Calculation Info Display ====
+function updateCalcInfo(omega, H, L, g) {
+  const omega_c = Math.sqrt(24 * g * H / (L * L));
+  const zv = H - (omega * omega * L * L) / (24 * g);
+  const ratio = omega_c > 0 ? (omega / omega_c) : 0;
+
+  let statusHtml = '';
+  if (ratio < 0.95) statusHtml = '<span style="color:#16a34a; font-weight:600;">안정 상태 (Stable)</span>';
+  else if (ratio < 1.05) statusHtml = '<span style="color:#d97706; font-weight:600;">임계 근접 (Critical)</span>';
+  else statusHtml = '<span style="color:#dc2626; font-weight:600;">마른 영역 발생 (Dry Patch)</span>';
+
+  calcInfo.innerHTML = `
+    <div style="display:flex; justify-content:space-between; margin-bottom:0.25rem;">
+      <span>임계 각속도 \(\omega_c\)</span>
+      <strong>${omega_c.toFixed(2)} rad/s</strong>
+    </div>
+    <div style="display:flex; justify-content:space-between; margin-bottom:0.25rem;">
+      <span>꼭짓점 높이 \(z_v\)</span>
+      <strong>${zv.toFixed(3)} m</strong>
+    </div>
+    <div style="display:flex; justify-content:space-between; margin-top:0.5rem; border-top:1px dashed #cbd5e1; padding-top:0.5rem;">
+      <span>상태</span>
+      ${statusHtml}
+    </div>
+  `;
+}
+
+function updateAll() {
+  const omega = Number(omegaInput.value);
+  const H = Number(HInput.value);
+  const L = Number(LInput.value);
+  const g = Number(gInput.value);
+  
+  currentOmega = omega;
+  
+  // Check if L changed (container width)
+  if (currentL !== L) {
+    currentL = L;
+    createContainer(L);
+    createWaterSurface(L);
+  }
+  
+  // Check if H changed (water height)
+  if (currentH !== H) {
+    currentH = H;
+  }
+  
+  drawProfile(omega, H, L, g);
+  updateWaterSurface(omega, H, L, g);
+  updateCalcInfo(omega, H, L, g);
+}
+
+function animate() {
+  requestAnimationFrame(animate);
+  if (controls) controls.update();
+  
+  // Rotate the container and water surface
+  if (rotatingGroup && currentOmega > 0) {
+    rotatingGroup.rotation.y += currentOmega * 0.016; // 60fps
+  }
+  
+  if (renderer && scene && camera) renderer.render(scene, camera);
+}
+
+initThree();
+updateAll();
+</script>
+
+</body>
+</html>

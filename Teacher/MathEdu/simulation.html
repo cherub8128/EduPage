@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>회전 포물선 시뮬레이션 - 인터랙티브 3D</title>
+  <link rel="stylesheet" href="shared.css" />
+  
+  <!-- MathJax -->
+  <script id="MathJax-script" async
+          src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  
+  <!-- Cannon.js (물리엔진) -->
+  <script src="https://cdn.jsdelivr.net/npm/cannon@0.6.2/build/cannon.min.js"></script>
+</head>
+
+<body>
+<header>
+  <div>
+    <h1>회전 포물선 시뮬레이션</h1>
+    <div class="tagline">이론 포물선 + 물리엔진 입자 유체 비교</div>
+  </div>
+  <nav>
+    <a href="overview.html">📚 개요</a>
+    <a href="simulation.html">🎮 시뮬레이션</a>
+    <a href="theory.html">📐 수식·심화</a>
+  </nav>
+</header>
+
+<main>
+
+  <section id="sim">
+    <h2>
+      <span class="badge">STEP 3</span>
+      시뮬레이션: 이론 포물선 + 물리엔진 입자 유체
+    </h2>
+    <p class="sub">
+      아래 슬라이더로 \(\omega, H, L, g\) 을 조절하면
+      왼쪽에는 <strong>이론 포물선 단면</strong>,
+      오른쪽에는 <strong>3D 이론 수면 + Cannon.js 입자 유체</strong>가 동시에 갱신됩니다.
+      <br/>
+      파란 면: 이론 수면, 주황 구슬: 물리엔진이 계산하는 입자 유체입니다.
+    </p>
+
+    <div class="controls">
+      <div class="control">
+        <label>
+          <span>\(\omega\) (rad/s)</span>
+          <small>회전 각속도</small>
+        </label>
+        <input id="omegaSlider" type="range" min="0" max="10" step="0.1" value="3" />
+        <input id="omegaInput" type="number" step="0.1" value="3" />
+      </div>
+
+      <div class="control">
+        <label>
+          <span>H (m)</span>
+          <small>정지 상태 물높이</small>
+        </label>
+        <input id="HSlider" type="range" min="0.02" max="0.15" step="0.005" value="0.08" />
+        <input id="HInput" type="number" step="0.005" value="0.08" />
+      </div>
+
+      <div class="control">
+        <label>
+          <span>L (m)</span>
+          <small>물통 길이 (단면 폭)</small>
+        </label>
+        <input id="LSlider" type="range" min="0.1" max="0.5" step="0.01" value="0.25" />
+        <input id="LInput" type="number" step="0.01" value="0.25" />
+      </div>
+
+      <div class="control">
+        <label>
+          <span>g (m/s²)</span>
+          <small>중력 가속도</small>
+        </label>
+        <input id="gInput" type="number" step="0.1" value="9.8" />
+        <div style="font-size:0.8rem; color:#6b7280;">
+          (실험 데이터와 비교해 \(g\) 를 역추정하는 프로젝트 가능)
+        </div>
+      </div>
+
+      <div class="control">
+        <label><span>계산 결과</span></label>
+        <div id="calcInfo" style="font-size:0.8rem; color:#111827;"></div>
+      </div>
+
+      <div class="control">
+        <label><span>입자 유체 제어</span></label>
+        <div style="display:flex; gap:0.25rem; align-items:center; flex-wrap:wrap;">
+          <button id="resetFluidBtn">입자 초기화</button>
+          <span style="font-size:0.78rem; color:#6b7280;">
+            초기 상태로 되돌린 뒤, 다른 \(\omega\) 에서 다시 진화 관찰
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="two-column">
+      <div>
+        <div class="pill">2D 단면 시뮬레이션 (r-z 평면)</div>
+        <canvas id="profileCanvas" width="600" height="320"></canvas>
+        <div class="note">
+          세로축: 높이 \(z\) (m), 가로축: 물통 길이 방향 좌표 \(r\) (m).<br/>
+          빨간 점선: 바닥, 파란 곡선: 이론 자유수면,
+          회색 사각형: 물통 경계입니다.
+        </div>
+      </div>
+
+      <div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.25rem;">
+          <div>
+            <div class="pill">3D 이론 수면 + Cannon.js 입자 유체</div>
+          </div>
+          <div style="font-size:0.75rem; color:#9ca3af;">
+            드래그: 회전 · 휠: 확대/축소
+          </div>
+        </div>
+        <div id="threeContainer"></div>
+        <div class="note">
+          파란 포물면은 이론식에서 나온 높이장,
+          주황색 구슬들은 Cannon.js 물리엔진이 계산하는 입자입니다.<br/>
+          \(\omega\) 를 바꿔가며 두 형태가 얼마나 일치하는지 비교해 볼 수 있습니다.
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- Three.js를 ES Modules 방식으로 로드 (r150+ 호환) -->
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+// ==== DOM 요소 ====
+const omegaSlider = document.getElementById('omegaSlider');
+const omegaInput  = document.getElementById('omegaInput');
+const HSlider     = document.getElementById('HSlider');
+const HInput      = document.getElementById('HInput');
+const LSlider     = document.getElementById('LSlider');
+const LInput      = document.getElementById('LInput');
+const gInput      = document.getElementById('gInput');
+const calcInfo    = document.getElementById('calcInfo');
+const profileCanvas = document.getElementById('profileCanvas');
+const ctx = profileCanvas.getContext('2d');
+const resetFluidBtn = document.getElementById('resetFluidBtn');
+
+// ==== 전역 변수 ====
+let scene, camera, renderer, controls, waterMesh;
+let world, fluidBodies = [], fluidMeshes = [];
+let currentOmega = 0;
+
+// ==== 슬라이더/인풋 동기화 ====
+function syncPair(slider, input, formatter = v => v) {
+  slider.addEventListener('input', () => {
+    input.value = formatter(slider.value);
+    updateAll();
+  });
+  input.addEventListener('change', () => {
+    slider.value = formatter(input.value);
+    updateAll();
+  });
+}
+
+syncPair(omegaSlider, omegaInput, v => Number(v));
+syncPair(HSlider, HInput, v => Number(v));
+syncPair(LSlider, LInput, v => Number(v));
+gInput.addEventListener('change', updateAll);
+
+// ==== 2D 포물선 단면 그리기 ====
+function drawProfile(omega, H, L, g) {
+  const w = profileCanvas.width;
+  const h = profileCanvas.height;
+  ctx.clearRect(0, 0, w, h);
+
+  const margin = 40;
+  const rMin = -L / 2;
+  const rMax = L / 2;
+
+  const extra = (omega * omega * L * L) / (24 * g);
+  const zMin = Math.min(0, H - extra * 1.2);
+  const zMax = H + extra * 0.2;
+
+  function xPix(r) {
+    return margin + (r - rMin) * (w - 2 * margin) / (rMax - rMin);
+  }
+  function yPix(z) {
+    return h - margin - (z - zMin) * (h - 2 * margin) / (zMax - zMin);
+  }
+
+  // 바닥선 (z=0)
+  ctx.strokeStyle = '#ef4444';
+  ctx.setLineDash([4, 4]);
+  ctx.beginPath();
+  ctx.moveTo(xPix(rMin), yPix(0));
+  ctx.lineTo(xPix(rMax), yPix(0));
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // 물통 경계
+  ctx.strokeStyle = '#9ca3af';
+  ctx.setLineDash([6, 4]);
+  ctx.beginPath();
+  ctx.rect(xPix(rMin), yPix(0), xPix(rMax) - xPix(rMin), yPix(zMax) - yPix(0));
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // 자유수면 포물선
+  ctx.strokeStyle = '#2563eb';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  const N = 200;
+  for (let i = 0; i <= N; i++) {
+    const r = rMin + (rMax - rMin) * i / N;
+    const z = H - (omega * omega / (2 * g)) * (L * L / 12 - r * r);
+    const x = xPix(r);
+    const y = yPix(z);
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+
+  // 축 라벨
+  ctx.fillStyle = '#4b5563';
+  ctx.font = '10px system-ui';
+  ctx.fillText('r (m)', w - margin + 5, yPix(0) + 4);
+  ctx.fillText('z (m)', xPix(0) - 10, margin - 10);
+}
+
+// ==== Three.js 3D 설정 ====
+function initThree() {
+  const container = document.getElementById('threeContainer');
+  scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x020617);
+
+  const width = container.clientWidth;
+  const height = container.clientHeight;
+
+  camera = new THREE.PerspectiveCamera(40, width / height, 0.01, 50);
+  camera.position.set(0.6, 0.5, 0.9);
+
+  renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setSize(width, height);
+  renderer.setPixelRatio(window.devicePixelRatio || 1);
+  container.appendChild(renderer.domElement);
+
+  controls = new OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true;
+
+  const light = new THREE.DirectionalLight(0xffffff, 1.2);
+  light.position.set(1, 2, 2);
+  scene.add(light);
+  scene.add(new THREE.AmbientLight(0xffffff, 0.3));
+
+  // 물통 박스 (와이어)
+  const boxGeom = new THREE.BoxGeometry(0.5, 0.25, 0.08);
+  const edges = new THREE.EdgesGeometry(boxGeom);
+  const box = new THREE.LineSegments(
+    edges,
+    new THREE.LineBasicMaterial({ color: 0x9ca3af })
+  );
+  scene.add(box);
+
+  // 물 표면 메쉬 (이론 포물면)
+  const resX = 60, resY = 8;
+  const planeGeom = new THREE.PlaneGeometry(0.5, 0.08, resX, resY);
+  const waterMat = new THREE.MeshPhongMaterial({
+    color: 0x3b82f6,
+    transparent: true,
+    opacity: 0.8,
+    side: THREE.DoubleSide,
+    shininess: 80
+  });
+  waterMesh = new THREE.Mesh(planeGeom, waterMat);
+  waterMesh.rotation.x = -Math.PI / 2;
+  scene.add(waterMesh);
+
+  window.addEventListener('resize', onWindowResize);
+  animate();
+}
+
+function onWindowResize() {
+  const container = document.getElementById('threeContainer');
+  const width = container.clientWidth;
+  const height = container.clientHeight;
+  camera.aspect = width / height;
+  camera.updateProjectionMatrix();
+  renderer.setSize(width, height);
+}
+
+function updateWaterSurface(omega, H, L, g) {
+  if (!waterMesh) return;
+  const geom = waterMesh.geometry;
+  geom.computeBoundingBox();
+  const pos = geom.attributes.position;
+  const bbox = geom.boundingBox;
+
+  const scaleX = L;
+  const Lhalf = L / 2;
+  const extra = (omega * omega * L * L) / (24 * g);
+  const zMin = Math.min(0, H - extra * 1.2);
+  const zMax = H + extra * 0.2;
+  const scaleZ = 0.22 / (zMax - zMin); // 박스 높이 내부에 맞추기
+
+  for (let i = 0; i < pos.count; i++) {
+    const xLocal = pos.getX(i);
+    const zLocal = pos.getY(i); // 회전 전 기준
+
+    const r = ((xLocal - bbox.min.x) / (bbox.max.x - bbox.min.x) - 0.5) * scaleX;
+    const zPhys = H - (omega * omega / (2 * g)) * (L * L / 12 - r * r);
+
+    const yMapped = (zPhys - zMin) * scaleZ - 0.11;
+    pos.setY(i, yMapped);
+  }
+
+  pos.needsUpdate = true;
+  geom.computeVertexNormals();
+}
+
+// ==== Cannon.js 물리엔진 설정 ====
+function initPhysics() {
+  world = new CANNON.World();
+  world.gravity.set(0, -Number(gInput.value), 0);
+  world.broadphase = new CANNON.NaiveBroadphase();
+  world.solver.iterations = 10;
+
+  const halfW = 0.25;
+  const halfH = 0.12;
+  const halfD = 0.04;
+
+  function addStaticBox(size, pos) {
+    const shape = new CANNON.Box(new CANNON.Vec3(size.x / 2, size.y / 2, size.z / 2));
+    const body = new CANNON.Body({ mass: 0 });
+    body.addShape(shape);
+    body.position.set(pos.x, pos.y, pos.z);
+    world.addBody(body);
+  }
+
+  // 바닥
+  addStaticBox({ x: halfW * 2, y: 0.02, z: halfD * 2 }, { x: 0, y: -halfH, z: 0 });
+  // 좌우 벽
+  addStaticBox({ x: 0.02, y: halfH * 2, z: halfD * 2 }, { x: -halfW, y: 0, z: 0 });
+  addStaticBox({ x: 0.02, y: halfH * 2, z: halfD * 2 }, { x: halfW, y: 0, z: 0 });
+  // 앞뒤 벽
+  addStaticBox({ x: halfW * 2, y: halfH * 2, z: 0.02 }, { x: 0, y: 0, z: -halfD });
+  addStaticBox({ x: halfW * 2, y: halfH * 2, z: 0.02 }, { x: 0, y: 0, z: halfD });
+}
+
+function initFluid() {
+  // 기존 것 정리
+  resetFluid(true);
+
+  const N = 150;
+  const radius = 0.01;
+  const shape = new CANNON.Sphere(radius);
+
+  const sphereGeo = new THREE.SphereGeometry(radius, 12, 12);
+  const sphereMat = new THREE.MeshPhongMaterial({
+    color: 0xf97316,
+    transparent: true,
+    opacity: 0.9
+  });
+
+  for (let i = 0; i < N; i++) {
+    const body = new CANNON.Body({
+      mass: 0.02,
+      shape: shape,
+      linearDamping: 0.05,
+      angularDamping: 0.05
+    });
+
+    const x = (Math.random() - 0.5) * 0.4;
+    const y = -0.11 + Math.random() * 0.02;
+    const z = (Math.random() - 0.5) * 0.06;
+    body.position.set(x, y, z);
+    world.addBody(body);
+    fluidBodies.push(body);
+
+    const mesh = new THREE.Mesh(sphereGeo, sphereMat);
+    mesh.position.set(x, y, z);
+    scene.add(mesh);
+    fluidMeshes.push(mesh);
+  }
+}
+
+function resetFluid(skipInit) {
+  // 기존 입자 제거
+  fluidMeshes.forEach(m => scene.remove(m));
+  fluidMeshes = [];
+  if (world) {
+    fluidBodies.forEach(b => world.removeBody(b));
+  }
+  fluidBodies = [];
+  if (!skipInit) {
+    initFluid();
+  }
+}
+
+function applyCentrifugalForces(omega) {
+  if (!world) return;
+  const w2 = omega * omega;
+  for (let i = 0; i < fluidBodies.length; i++) {
+    const b = fluidBodies[i];
+    const r = b.position.x; // x 방향만 반지름으로 사용 (폭 방향)
+    if (Math.abs(r) < 1e-4) continue;
+    const dir = r > 0 ? 1 : -1;
+    const fmag = b.mass * w2 * Math.abs(r);
+    const fx = dir * fmag;
+    const force = new CANNON.Vec3(fx, 0, 0);
+    b.applyForce(force, b.position);
+  }
+}
+
+// ==== 계산 정보 텍스트 ====
+function updateCalcInfo(omega, H, L, g) {
+  const omega_c = Math.sqrt(24 * g * H / (L * L));
+  const zv = H - (omega * omega * L * L) / (24 * g);
+  const ratio = omega_c > 0 ? (omega / omega_c) : 0;
+
+  calcInfo.innerHTML =
+    `<div style="line-height:1.4;">
+      <div>임계 각속도: <strong>ω_c ≈ ${omega_c.toFixed(2)} rad/s</strong></div>
+      <div>현재 꼭짓점 높이: <strong>z_v ≈ ${zv.toFixed(3)} m</strong></div>
+      <div>상대 회전 세기: <strong>ω / ω_c ≈ ${ratio.toFixed(2)}</strong></div>
+      <div style="font-size:0.78rem; color:#6b7280; margin-top:0.25rem;">
+        ω &lt; ω_c: 중심이 아직 바닥에 닿지 않음 (포물선 전체가 물 안에 있음)<br/>
+        ω ≈ ω_c: 꼭짓점이 바닥에 접촉 (마른 영역이 생기기 시작)<br/>
+        ω &gt; ω_c: 단순 포물선 모델만으론 부족해지고, 실제 유체에서는 토러스 형태 등 복잡한 형상이 등장.
+      </div>
+    </div>`;
+}
+
+// ==== 전체 업데이트 ====
+function updateAll() {
+  const omega = Number(omegaInput.value);
+  const H = Number(HInput.value);
+  const L = Number(LInput.value);
+  const g = Number(gInput.value);
+
+  currentOmega = omega;
+
+  drawProfile(omega, H, L, g);
+  updateWaterSurface(omega, H, L, g);
+  updateCalcInfo(omega, H, L, g);
+
+  if (world) {
+    world.gravity.set(0, -g, 0);
+  }
+}
+
+// ==== 애니메이션 루프 ====
+function animate() {
+  requestAnimationFrame(animate);
+  if (controls) controls.update();
+
+  if (world) {
+    const dt = 1 / 60;
+    applyCentrifugalForces(currentOmega);
+    world.step(dt);
+
+    for (let i = 0; i < fluidBodies.length; i++) {
+      const b = fluidBodies[i];
+      const m = fluidMeshes[i];
+      m.position.copy(b.position);
+    }
+  }
+
+  if (renderer && scene && camera) {
+    renderer.render(scene, camera);
+  }
+}
+
+// ==== 초기화 ====
+initThree();
+initPhysics();
+initFluid();
+updateAll();
+
+resetFluidBtn.addEventListener('click', () => {
+  resetFluid(false);
+});
+</script>
+
+</body>
+</html>
