@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>마그누스 효과 실험 시각화</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.min.js"></script>
+    <style>
+        body { margin: 0; overflow: hidden; font-family: 'Noto Sans KR', sans-serif; background-color: #1a1a1a; color: #eee; }
+        #container { width: 100vw; height: 100vh; }
+        #ui {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 20px;
+            border-radius: 10px;
+            width: 320px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+        .control-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px; }
+        input[type=range] { width: 100%; cursor: pointer; }
+        .value-display { float: right; color: #4fd1c5; }
+        h2 { margin-top: 0; color: #f6e05e; text-align: center; font-size: 20px; }
+        .data-display {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid #555;
+            font-size: 13px;
+        }
+        .data-row { display: flex; justify-content: space-between; margin-bottom: 5px; }
+        .note { font-size: 11px; color: #aaa; margin-top: 15px; line-height: 1.4; }
+        #legend {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0,0,0,0.6);
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 12px;
+        }
+        .legend-item { display: flex; align-items: center; margin-bottom: 5px; }
+        .color-box { width: 20px; height: 3px; margin-right: 8px; }
+    </style>
+</head>
+<body>
+    <div id="container"></div>
+    <div id="ui">
+        <h2>마그누스 효과 실험 제어판</h2>
+        
+        <div class="control-group">
+            <label>구속 (Velocity): <span id="val-v" class="value-display">90</span> mph</label>
+            <input type="range" id="in-v" min="50" max="120" step="1" value="90">
+        </div>
+        <div class="control-group">
+            <label>백스핀/탑스핀 (RPM): <span id="val-backspin" class="value-display">2500</span></label>
+            <input type="range" id="in-backspin" min="-4000" max="4000" step="100" value="2500">
+            <div style="font-size: 11px; color: #aaa;">(+) 백스핀(직구), (-) 탑스핀(커브)</div>
+        </div>
+        <div class="control-group">
+            <label>사이드스핀 (RPM): <span id="val-sidespin" class="value-display">0</span></label>
+            <input type="range" id="in-sidespin" min="-3000" max="3000" step="100" value="0">
+            <div style="font-size: 11px; color: #aaa;">(+) 우측 휨(슬라이더), (-) 좌측 휨(싱커)</div>
+        </div>
+
+        <div class="data-display">
+            <div class="data-row"><span>스핀 팩터 (S):</span> <span id="data-s" style="color: #f6ad55">0.00</span></div>
+            <div class="data-row"><span>양력 계수 (C<sub>L</sub>):</span> <span id="data-cl" style="color: #68d391">0.00</span></div>
+            <div class="data-row"><span>마그누스 힘 (F<sub>M</sub>):</span> <span id="data-fm">0.00</span> N</div>
+        </div>
+
+        <div class="note">
+            * 보고서 기반: 양력 계수 C<sub>L</sub>은 스핀 팩터 S에 비례하여 증가하도록 설정되었습니다 (C<sub>L</sub> ≈ 0.5S + 0.1).<br>
+            * 마우스 드래그로 시점을 변경하여 궤적을 다양한 각도에서 확인해보세요.
+        </div>
+    </div>
+
+    <div id="legend">
+        <div class="legend-item"><div class="color-box" style="background: red;"></div> 실제 궤적 (마그누스 힘 포함)</div>
+        <div class="legend-item"><div class="color-box" style="background: gray; border: 1px dashed #555;"></div> 기준 궤적 (회전 없음)</div>
+    </div>
+
+    <script>
+        // Avoid global scope pollution by wrapping in a block
+        {
+            // --- Physics Constants based on typical baseball values ---
+            // Renamed variables to avoid potential global conflicts (e.g., 'R' is very common)
+            const BALL_RADIUS = 0.037; // Ball radius (m)
+            const BALL_MASS = 0.145; // Ball mass (kg)
+            const AIR_DENSITY = 1.225; // Air density (kg/m^3)
+            const CROSS_SECTION_AREA = Math.PI * BALL_RADIUS * BALL_RADIUS; // Cross-sectional area (m^2)
+            const GRAVITY = 9.81; // Gravity (m/s^2)
+            const DRAG_COEFFICIENT = 0.35; // Drag coefficient (approximated constant for demo)
+            const DISTANCE_TO_PLATE = 18.44; // Distance from mound to home plate (m)
+
+            // --- Three.js Setup ---
+            const scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x222222);
+            // Fog to give depth perception
+            scene.fog = new THREE.Fog(0x222222, 20, 100);
+
+            const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
+            // Initial camera position: behind the pitcher, slightly above and to the side
+            camera.position.set(-2, 2.5, 25);
+
+            const renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.shadowMap.enabled = true;
+            // Clear any previous canvas if it exists (avoids duplicates on re-run without full reload)
+            const container = document.getElementById('container');
+            while (container.firstChild) {
+                container.removeChild(container.firstChild);
+            }
+            container.appendChild(renderer.domElement);
+
+            const controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.target.set(0, 1, 10); // Look towards the middle of the flight path initially
+            controls.update();
+
+            // --- Scene Elements ---
+            // Ground
+            const groundGeo = new THREE.PlaneGeometry(100, 100);
+            const groundMat = new THREE.MeshStandardMaterial({ 
+                color: 0x334433, 
+                roughness: 0.8, 
+                metalness: 0.2,
+                side: THREE.DoubleSide
+            });
+            const ground = new THREE.Mesh(groundGeo, groundMat);
+            ground.rotation.x = Math.PI / 2;
+            ground.receiveShadow = true;
+            scene.add(ground);
+
+            // Grid helper for better perspective
+            const gridHelper = new THREE.GridHelper(100, 50, 0x555555, 0x444444);
+            scene.add(gridHelper);
+
+            // Pitcher's Mound Area (Visual cue)
+            const moundGeo = new THREE.CircleGeometry(3, 32);
+            const moundMat = new THREE.MeshBasicMaterial({ color: 0x654321 });
+            const mound = new THREE.Mesh(moundGeo, moundMat);
+            mound.rotation.x = -Math.PI / 2;
+            mound.position.set(0, 0.01, 18.44);
+            scene.add(mound);
+
+            // Home Plate Area (Visual cue)
+            const plateGeo = new THREE.PlaneGeometry(1, 1);
+            const plateMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+            const plate = new THREE.Mesh(plateGeo, plateMat);
+            plate.rotation.x = -Math.PI / 2;
+            plate.position.set(0, 0.01, 0);
+            scene.add(plate);
+
+            // Lighting
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            scene.add(ambientLight);
+            const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            dirLight.position.set(-10, 20, 10);
+            dirLight.castShadow = true;
+            scene.add(dirLight);
+
+            // Trajectory Lines
+            let spinPathLine, noSpinPathLine;
+            const MAX_POINTS = 500;
+
+            function createPathLine(color, isDashed) {
+                const geometry = new THREE.BufferGeometry();
+                const positions = new Float32Array(MAX_POINTS * 3);
+                geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+                geometry.setDrawRange(0, 0);
+
+                let material;
+                if (isDashed) {
+                        material = new THREE.LineDashedMaterial({
+                        color: color,
+                        dashSize: 0.5,
+                        gapSize: 0.3,
+                        opacity: 0.5,
+                        transparent: true
+                    });
+                } else {
+                    material = new THREE.LineBasicMaterial({ color: color, linewidth: 3 });
+                }
+
+                const line = new THREE.Line(geometry, material);
+                if (isDashed) line.computeLineDistances();
+                scene.add(line);
+                return line;
+            }
+
+            spinPathLine = createPathLine(0xff0000, false);
+            noSpinPathLine = createPathLine(0xaaaaaa, true);
+
+            // Ball Mesh (for animation)
+            const ballGeo = new THREE.SphereGeometry(BALL_RADIUS * 5, 32, 32); // Exaggerated size for visibility
+            const ballMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.4 });
+            const ball = new THREE.Mesh(ballGeo, ballMat);
+            ball.castShadow = true;
+            scene.add(ball);
+            // Add stitches visual cue (rough)
+            const stitchGeo = new THREE.TorusGeometry(BALL_RADIUS*5, BALL_RADIUS*0.5, 16, 100);
+            const stitchMat = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+            const stitch1 = new THREE.Mesh(stitchGeo, stitchMat);
+            stitch1.rotation.x = Math.PI / 2;
+            ball.add(stitch1);
+
+
+            // --- Simulation Core ---
+            function simulateTrajectory(v_mph, backspin_rpm, sidespin_rpm, isNoSpin) {
+                const points = [];
+                let t = 0;
+                const dt = 0.005; // Simulation time step (s)
+
+                // Initial Conditions
+                // Position: Start at mound (0, 1.8m high, 18.44m z-distance)
+                let pos = new THREE.Vector3(0, 1.8, DISTANCE_TO_PLATE);
+                // Velocity: Throwing towards -Z direction (towards home plate)
+                let v_ms = v_mph * 0.44704;
+                let vel = new THREE.Vector3(0, 0, -v_ms);
+
+                let omega_back = backspin_rpm * (2 * Math.PI / 60);
+                let omega_side = sidespin_rpm * (2 * Math.PI / 60);
+                // We want (+) sidespin input to mean force towards +X.
+                // omega_y needs to be negative for +X force based on cross product (omega x v)
+                let omega = new THREE.Vector3(omega_back, -omega_side, 0);
+
+                if (isNoSpin) omega.set(0, 0, 0);
+
+                points.push(pos.clone());
+
+                let loopSanity = 0;
+                // Simulate until it hits home plate (z=0) or ground (y=0) or flies too far
+                while (pos.z > -2 && pos.y > 0 && loopSanity < 2000) {
+                    loopSanity++;
+
+                    let v_mag = vel.length();
+                    if (v_mag === 0) break;
+
+                    // 1. Gravity
+                    let Fg = new THREE.Vector3(0, -BALL_MASS * GRAVITY, 0);
+
+                    // 2. Drag Force: Fd = -0.5 * Cd * rho * A * v^2 * (v_hat)
+                    let dragMagnitude = 0.5 * DRAG_COEFFICIENT * AIR_DENSITY * CROSS_SECTION_AREA * v_mag * v_mag;
+                    let Fd = vel.clone().normalize().multiplyScalar(-dragMagnitude);
+
+                    // 3. Magnus Force
+                    let Fm = new THREE.Vector3(0, 0, 0);
+                    if (!isNoSpin) {
+                        // Spin factor S = R * omega / v
+                        let S = (BALL_RADIUS * omega.length()) / v_mag;
+                        // Lift coefficient CL based on paper's finding (linear relationship)
+                        // Approx fit: CL = 0.5 * S + 0.1 (min 0 for S=0)
+                        let CL = (S > 0.05) ? (0.5 * S + 0.1) : 0;
+                        
+                        // Update data display if it's the main simulation run (first step is enough for display)
+                        if (loopSanity === 1 && !isNoSpin) {
+                            document.getElementById('data-s').innerText = S.toFixed(3);
+                            document.getElementById('data-cl').innerText = CL.toFixed(3);
+                            let Fm_mag_initial = 0.5 * CL * AIR_DENSITY * CROSS_SECTION_AREA * v_mag * v_mag;
+                            document.getElementById('data-fm').innerText = Fm_mag_initial.toFixed(2);
+                        }
+
+                        let magnusMagnitude = 0.5 * CL * AIR_DENSITY * CROSS_SECTION_AREA * v_mag * v_mag;
+                        // Direction: normalized(omega x v)
+                        let magnusDir = new THREE.Vector3().crossVectors(omega, vel).normalize();
+                        Fm = magnusDir.multiplyScalar(magnusMagnitude);
+                    }
+
+                    // Total Force & Acceleration
+                    let totalForce = new THREE.Vector3().addVectors(Fg, Fd).add(Fm);
+                    let acc = totalForce.divideScalar(BALL_MASS);
+
+                    // Euler integration
+                    vel.add(acc.multiplyScalar(dt));
+                    pos.add(vel.clone().multiplyScalar(dt));
+
+                    points.push(pos.clone());
+                }
+                return points;
+            }
+
+            function updatePaths() {
+                const v = parseFloat(document.getElementById('in-v').value);
+                const backspin = parseFloat(document.getElementById('in-backspin').value);
+                const sidespin = parseFloat(document.getElementById('in-sidespin').value);
+
+                document.getElementById('val-v').innerText = v;
+                document.getElementById('val-backspin').innerText = backspin;
+                document.getElementById('val-sidespin').innerText = sidespin;
+
+                // 1. Main spin path
+                const spinPoints = simulateTrajectory(v, backspin, sidespin, false);
+                updateLineMesh(spinPathLine, spinPoints);
+
+                // 2. No spin reference path
+                const noSpinPoints = simulateTrajectory(v, 0, 0, true);
+                updateLineMesh(noSpinPathLine, noSpinPoints);
+                noSpinPathLine.computeLineDistances(); // Needed for dashed line
+
+                // Animate ball along the latest spin path
+                animateBall(spinPoints);
+            }
+
+            function updateLineMesh(line, points) {
+                const positions = line.geometry.attributes.position.array;
+                let idx = 0;
+                for (let i = 0; i < points.length && i < MAX_POINTS; i++) {
+                    positions[idx++] = points[i].x;
+                    positions[idx++] = points[i].y;
+                    positions[idx++] = points[i].z;
+                }
+                line.geometry.setDrawRange(0, points.length);
+                line.geometry.attributes.position.needsUpdate = true;
+            }
+
+            let animationFrameId = null;
+            let animationTimeoutId = null;
+
+            function animateBall(points) {
+                if (animationFrameId) cancelAnimationFrame(animationFrameId);
+                if (animationTimeoutId) clearTimeout(animationTimeoutId);
+                
+                let pointIndex = 0;
+                
+                function loop() {
+                    if (pointIndex < points.length) {
+                        ball.position.copy(points[pointIndex]);
+                        // Rotate ball visually based on spin (approximate visual only)
+                        const backspin = parseFloat(document.getElementById('in-backspin').value);
+                        const sidespin = parseFloat(document.getElementById('in-sidespin').value);
+                        ball.rotateX(backspin * 0.0001);
+                        ball.rotateY(sidespin * 0.0001);
+                        
+                        pointIndex += 2; // speed up animation slightly
+                        animationFrameId = requestAnimationFrame(loop);
+                    } else {
+                        // Restart animation loop after a short pause
+                        animationTimeoutId = setTimeout(() => {
+                             pointIndex = 0;
+                             animateBall(points);
+                         }, 1000);
+                    }
+                    renderer.render(scene, camera);
+                }
+                loop();
+            }
+
+            // --- Event Listeners ---
+            // Remove previous listeners to prevent duplication on re-run if elements aren't recreated
+            const inV = document.getElementById('in-v');
+            const inBackspin = document.getElementById('in-backspin');
+            const inSidespin = document.getElementById('in-sidespin');
+            
+            // Cloning nodes to easily remove all previous event listeners if re-run
+            // (A bit aggressive but safe for this environment)
+            // Actually, since we clear the container, the canvas is new, but UI inputs remain.
+            // Let's just use 'oninput' property instead of addEventListener to avoid stacking them.
+            inV.oninput = updatePaths;
+            inBackspin.oninput = updatePaths;
+            inSidespin.oninput = updatePaths;
+
+            window.onresize = () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            };
+
+            // Initial run
+            updatePaths();
+
+            // --- Main Render Loop (for camera controls primarily) ---
+            function mainLoop() {
+                requestAnimationFrame(mainLoop);
+                controls.update();
+                // We render in animateBall to sync with physics step, 
+                // but also need to render here if animation is paused or finished.
+                // For simplicity in this demo, double rendering when animating is acceptable,
+                // or we can rely purely on this loop if we update ball position here.
+                // Let's keep it simple and just render here too to ensure controls always work smoothly.
+                renderer.render(scene, camera);
+            }
+            mainLoop();
+        } 
+    </script>
+</body>
+</html>

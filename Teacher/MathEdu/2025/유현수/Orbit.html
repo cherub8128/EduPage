@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>케플러 법칙 - 행성 궤도 시뮬레이션</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: #0a0e27;
+        color: #fff;
+        padding: 20px;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+
+      h1 {
+        text-align: center;
+        margin-bottom: 10px;
+        color: #ffd700;
+      }
+
+      .info {
+        text-align: center;
+        margin-bottom: 20px;
+        color: #aaa;
+        font-size: 14px;
+      }
+
+      canvas {
+        display: block;
+        margin: 0 auto;
+        background: #000;
+        border: 2px solid #333;
+        border-radius: 8px;
+      }
+
+      .controls {
+        background: #1a1f3a;
+        padding: 20px;
+        border-radius: 8px;
+        margin-top: 20px;
+      }
+
+      .control-group {
+        margin-bottom: 15px;
+      }
+
+      label {
+        display: inline-block;
+        width: 180px;
+        color: #ffd700;
+      }
+
+      input[type="range"] {
+        width: 250px;
+        vertical-align: middle;
+      }
+
+      .value-display {
+        display: inline-block;
+        width: 80px;
+        text-align: right;
+        color: #fff;
+      }
+
+      button {
+        background: #4a5fc1;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 14px;
+        margin-right: 10px;
+        margin-bottom: 10px;
+      }
+
+      button:hover {
+        background: #5a6fd1;
+      }
+
+      button:active {
+        transform: scale(0.98);
+      }
+
+      .celestial-section {
+        background: #0f1425;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        border: 2px solid #2a3f5f;
+      }
+
+      .celestial-section h3 {
+        color: #ffd700;
+        margin-bottom: 10px;
+        font-size: 16px;
+      }
+
+      .section-subtitle {
+        color: #888;
+        font-size: 12px;
+        margin-bottom: 10px;
+      }
+
+      .celestial-buttons {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 10px;
+        margin-bottom: 15px;
+      }
+
+      .celestial-btn {
+        background: linear-gradient(135deg, #2a3f5f 0%, #1a2f4f 100%);
+        padding: 12px;
+        border: 2px solid #3a4f6f;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .celestial-btn:hover {
+        background: linear-gradient(135deg, #3a5f7f 0%, #2a4f6f 100%);
+        border-color: #4a6f8f;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(74, 158, 255, 0.3);
+      }
+
+      .celestial-btn.active {
+        background: linear-gradient(135deg, #4a5fc1 0%, #3a4fb1 100%);
+        border-color: #5a6fd1;
+      }
+
+      .celestial-icon {
+        font-size: 24px;
+      }
+
+      .celestial-info {
+        flex: 1;
+        text-align: left;
+      }
+
+      .celestial-name {
+        font-weight: bold;
+        font-size: 14px;
+        display: block;
+      }
+
+      .celestial-ecc {
+        font-size: 11px;
+        color: #aaa;
+      }
+
+      .elliptical-tag {
+        display: inline-block;
+        background: #ff6b4a;
+        color: white;
+        font-size: 9px;
+        padding: 2px 6px;
+        border-radius: 3px;
+        margin-left: 4px;
+      }
+
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 10px;
+        margin-top: 20px;
+      }
+
+      .stat-item {
+        background: #0f1425;
+        padding: 10px;
+        border-radius: 5px;
+        border-left: 3px solid #ffd700;
+      }
+
+      .stat-label {
+        font-size: 12px;
+        color: #888;
+      }
+
+      .stat-value {
+        font-size: 18px;
+        color: #fff;
+        font-weight: bold;
+      }
+
+      .current-celestial {
+        text-align: center;
+        font-size: 18px;
+        color: #4a9eff;
+        margin-bottom: 15px;
+        font-weight: bold;
+      }
+
+      .exaggerate-control {
+        background: #2a1f3a;
+        padding: 12px;
+        border-radius: 5px;
+        margin-bottom: 15px;
+        border: 1px solid #4a3f5f;
+      }
+
+      .exaggerate-control label {
+        color: #ff9eff;
+      }
+
+      input[type="checkbox"] {
+        width: 20px;
+        height: 20px;
+        vertical-align: middle;
+        margin-right: 10px;
+        cursor: pointer;
+      }
+    </style>
+    <link rel="canonical" href="https://edgar0401.github.io/Math/Orbit.html" />
+  </head>
+  <body>
+    <div class="container">
+      <h1>🌍 케플러 법칙 - 행성 궤도 시뮬레이션</h1>
+      <div class="info">
+        케플러 제1법칙: 타원 궤도 | 제2법칙: 면적 속도 일정 | 제3법칙: 조화의
+        법칙
+      </div>
+
+      <canvas id="canvas" width="900" height="600"></canvas>
+
+      <div class="controls">
+        <div class="celestial-section">
+          <h3>🪐 천체 예시 선택</h3>
+          <div class="current-celestial" id="currentCelestial">사용자 설정</div>
+
+          <div class="exaggerate-control">
+            <input type="checkbox" id="exaggerate" />
+            <label for="exaggerate"
+              >📢 이심률 5배 과장하기 (타원을 더 명확하게 보기)</label
+            >
+          </div>
+
+          <div class="section-subtitle">
+            🌎 태양계 행성 (이심률 작음 - 거의 원형)
+          </div>
+          <div class="celestial-buttons">
+            <div class="celestial-btn" data-body="mercury">
+              <span class="celestial-icon">☿️</span>
+              <div class="celestial-info">
+                <span class="celestial-name">수성</span>
+                <span class="celestial-ecc">e = 0.206</span>
+              </div>
+            </div>
+            <div class="celestial-btn" data-body="venus">
+              <span class="celestial-icon">♀️</span>
+              <div class="celestial-info">
+                <span class="celestial-name">금성</span>
+                <span class="celestial-ecc">e = 0.007</span>
+              </div>
+            </div>
+            <div class="celestial-btn" data-body="earth">
+              <span class="celestial-icon">🌍</span>
+              <div class="celestial-info">
+                <span class="celestial-name">지구</span>
+                <span class="celestial-ecc">e = 0.017</span>
+              </div>
+            </div>
+            <div class="celestial-btn" data-body="mars">
+              <span class="celestial-icon">♂️</span>
+              <div class="celestial-info">
+                <span class="celestial-name">화성</span>
+                <span class="celestial-ecc">e = 0.093</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="section-subtitle">
+            🌌 왜소행성 & 혜성 (이심률 큼 - 타원 명확!)
+          </div>
+          <div class="celestial-buttons">
+            <div class="celestial-btn" data-body="pluto">
+              <span class="celestial-icon">🔴</span>
+              <div class="celestial-info">
+                <span class="celestial-name"
+                  >명왕성 <span class="elliptical-tag">타원</span></span
+                >
+                <span class="celestial-ecc">e = 0.248</span>
+              </div>
+            </div>
+            <div class="celestial-btn" data-body="eris">
+              <span class="celestial-icon">⚫</span>
+              <div class="celestial-info">
+                <span class="celestial-name"
+                  >에리스 <span class="elliptical-tag">타원</span></span
+                >
+                <span class="celestial-ecc">e = 0.442</span>
+              </div>
+            </div>
+            <div class="celestial-btn" data-body="halley">
+              <span class="celestial-icon">☄️</span>
+              <div class="celestial-info">
+                <span class="celestial-name"
+                  >핼리혜성 <span class="elliptical-tag">타원</span></span
+                >
+                <span class="celestial-ecc">e = 0.967</span>
+              </div>
+            </div>
+            <div class="celestial-btn" data-body="hale">
+              <span class="celestial-icon">💫</span>
+              <div class="celestial-info">
+                <span class="celestial-name"
+                  >헤일-밥 <span class="elliptical-tag">타원</span></span
+                >
+                <span class="celestial-ecc">e = 0.995</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label>이심률 (Eccentricity):</label>
+          <input
+            type="range"
+            id="eccentricity"
+            min="0"
+            max="0.95"
+            step="0.01"
+            value="0.6"
+          />
+          <span class="value-display" id="eccValue">0.60</span>
+        </div>
+
+        <div class="control-group">
+          <label>장반경 (Semi-major axis):</label>
+          <input
+            type="range"
+            id="semiMajor"
+            min="100"
+            max="250"
+            step="10"
+            value="180"
+          />
+          <span class="value-display" id="smaValue">180</span>
+        </div>
+
+        <div class="control-group">
+          <label>시뮬레이션 속도:</label>
+          <input
+            type="range"
+            id="speed"
+            min="0.1"
+            max="5"
+            step="0.1"
+            value="1"
+          />
+          <span class="value-display" id="speedValue">1.0x</span>
+        </div>
+
+        <div class="control-group">
+          <button id="playPause">⏸️ 일시정지</button>
+          <button id="reset">🔄 리셋</button>
+          <button id="toggleArea">📐 면적 표시: ON</button>
+        </div>
+
+        <div class="stats">
+          <div class="stat-item">
+            <div class="stat-label">태양으로부터 거리</div>
+            <div class="stat-value" id="distance">0</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-label">현재 속도</div>
+            <div class="stat-value" id="velocity">0</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-label">궤도 주기</div>
+            <div class="stat-value" id="period">0</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-label">진근점각 (°)</div>
+            <div class="stat-value" id="angle">0</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const canvas = document.getElementById("canvas");
+      const ctx = canvas.getContext("2d");
+
+      const centerX = canvas.width / 2;
+      const centerY = canvas.height / 2;
+
+      // 천체 데이터
+      const celestialBodies = {
+        // 행성 (이심률 작음)
+        mercury: {
+          name: "수성 (Mercury)",
+          eccentricity: 0.206,
+          semiMajor: 120,
+          color: "#8c7853",
+        },
+        venus: {
+          name: "금성 (Venus)",
+          eccentricity: 0.007,
+          semiMajor: 150,
+          color: "#ffc649",
+        },
+        earth: {
+          name: "지구 (Earth)",
+          eccentricity: 0.017,
+          semiMajor: 170,
+          color: "#4a9eff",
+        },
+        mars: {
+          name: "화성 (Mars)",
+          eccentricity: 0.093,
+          semiMajor: 190,
+          color: "#ff6b4a",
+        },
+        // 왜소행성 & 혜성 (이심률 큼!)
+        pluto: {
+          name: "명왕성 (Pluto)",
+          eccentricity: 0.248,
+          semiMajor: 200,
+          color: "#d4a574",
+        },
+        eris: {
+          name: "에리스 (Eris)",
+          eccentricity: 0.442,
+          semiMajor: 210,
+          color: "#bbb",
+        },
+        halley: {
+          name: "핼리 혜성 (Halley's Comet)",
+          eccentricity: 0.967,
+          semiMajor: 180,
+          color: "#80d0ff",
+        },
+        hale: {
+          name: "헤일-밥 혜성 (Hale-Bopp)",
+          eccentricity: 0.995,
+          semiMajor: 160,
+          color: "#a0e0ff",
+        },
+      };
+
+      // 시뮬레이션 변수
+      let baseEccentricity = 0.6;
+      let semiMajorAxis = 180;
+      let speed = 1.0;
+      let angle = 0;
+      let isPlaying = true;
+      let showArea = true;
+      let areaPoints = [];
+      let lastAreaClearAngle = 0;
+      let currentColor = "#4a9eff";
+      let currentName = "사용자 설정";
+      let exaggerate = false;
+
+      // UI 요소
+      const eccInput = document.getElementById("eccentricity");
+      const smaInput = document.getElementById("semiMajor");
+      const speedInput = document.getElementById("speed");
+      const playPauseBtn = document.getElementById("playPause");
+      const resetBtn = document.getElementById("reset");
+      const toggleAreaBtn = document.getElementById("toggleArea");
+      const currentDisplay = document.getElementById("currentCelestial");
+      const exaggerateCheckbox = document.getElementById("exaggerate");
+
+      // 실제 사용할 이심률 계산
+      function getEffectiveEccentricity() {
+        if (exaggerate) {
+          return Math.min(0.95, baseEccentricity * 5);
+        }
+        return baseEccentricity;
+      }
+
+      // 과장 체크박스
+      exaggerateCheckbox.addEventListener("change", (e) => {
+        exaggerate = e.target.checked;
+        const effective = getEffectiveEccentricity();
+        document.getElementById("eccValue").textContent = exaggerate
+          ? `${baseEccentricity.toFixed(3)} → ${effective.toFixed(3)}`
+          : baseEccentricity.toFixed(3);
+      });
+
+      // 천체 버튼 클릭
+      document.querySelectorAll(".celestial-btn").forEach((btn) => {
+        btn.addEventListener("click", function () {
+          const bodyKey = this.dataset.body;
+          const body = celestialBodies[bodyKey];
+
+          document
+            .querySelectorAll(".celestial-btn")
+            .forEach((b) => b.classList.remove("active"));
+          this.classList.add("active");
+
+          baseEccentricity = body.eccentricity;
+          semiMajorAxis = body.semiMajor;
+          currentColor = body.color;
+          currentName = body.name;
+
+          eccInput.value = baseEccentricity;
+          smaInput.value = semiMajorAxis;
+
+          const effective = getEffectiveEccentricity();
+          document.getElementById("eccValue").textContent = exaggerate
+            ? `${baseEccentricity.toFixed(3)} → ${effective.toFixed(3)}`
+            : baseEccentricity.toFixed(3);
+          document.getElementById("smaValue").textContent = semiMajorAxis;
+          currentDisplay.textContent = currentName;
+
+          angle = 0;
+          areaPoints = [];
+          lastAreaClearAngle = 0;
+        });
+      });
+
+      function onManualChange() {
+        document
+          .querySelectorAll(".celestial-btn")
+          .forEach((b) => b.classList.remove("active"));
+        currentName = "사용자 설정";
+        currentColor = "#4a9eff";
+        currentDisplay.textContent = currentName;
+      }
+
+      eccInput.addEventListener("input", (e) => {
+        baseEccentricity = parseFloat(e.target.value);
+        const effective = getEffectiveEccentricity();
+        document.getElementById("eccValue").textContent = exaggerate
+          ? `${baseEccentricity.toFixed(2)} → ${effective.toFixed(2)}`
+          : baseEccentricity.toFixed(2);
+        onManualChange();
+      });
+
+      smaInput.addEventListener("input", (e) => {
+        semiMajorAxis = parseFloat(e.target.value);
+        document.getElementById("smaValue").textContent = semiMajorAxis;
+        onManualChange();
+      });
+
+      speedInput.addEventListener("input", (e) => {
+        speed = parseFloat(e.target.value);
+        document.getElementById("speedValue").textContent =
+          speed.toFixed(1) + "x";
+      });
+
+      playPauseBtn.addEventListener("click", () => {
+        isPlaying = !isPlaying;
+        playPauseBtn.textContent = isPlaying ? "⏸️ 일시정지" : "▶️ 재생";
+      });
+
+      resetBtn.addEventListener("click", () => {
+        angle = 0;
+        areaPoints = [];
+        lastAreaClearAngle = 0;
+      });
+
+      toggleAreaBtn.addEventListener("click", () => {
+        showArea = !showArea;
+        toggleAreaBtn.textContent = `📐 면적 표시: ${showArea ? "ON" : "OFF"}`;
+        if (!showArea) areaPoints = [];
+      });
+
+      function getPosition(angle, e, a) {
+        const r = (a * (1 - e * e)) / (1 + e * Math.cos(angle));
+        const x = r * Math.cos(angle);
+        const y = r * Math.sin(angle);
+        return { x, y, r };
+      }
+
+      function drawEllipse(e, a) {
+        const b = a * Math.sqrt(1 - e * e);
+        const c = a * e;
+
+        ctx.beginPath();
+        ctx.ellipse(centerX - c, centerY, a, b, 0, 0, Math.PI * 2);
+        ctx.strokeStyle = "#444";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        ctx.strokeStyle = "#333";
+        ctx.lineWidth = 1;
+        ctx.setLineDash([5, 5]);
+
+        ctx.beginPath();
+        ctx.moveTo(centerX - c - a, centerY);
+        ctx.lineTo(centerX - c + a, centerY);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(centerX - c, centerY - b);
+        ctx.lineTo(centerX - c, centerY + b);
+        ctx.stroke();
+
+        ctx.setLineDash([]);
+
+        return { b, c };
+      }
+
+      function drawSun() {
+        const gradient = ctx.createRadialGradient(
+          centerX,
+          centerY,
+          5,
+          centerX,
+          centerY,
+          25
+        );
+        gradient.addColorStop(0, "#ffff00");
+        gradient.addColorStop(0.4, "#ffaa00");
+        gradient.addColorStop(1, "rgba(255, 170, 0, 0)");
+
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, 25, 0, Math.PI * 2);
+        ctx.fillStyle = gradient;
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, 12, 0, Math.PI * 2);
+        ctx.fillStyle = "#ffff00";
+        ctx.fill();
+      }
+
+      function drawPlanet(x, y) {
+        const screenX = centerX + x;
+        const screenY = centerY + y;
+
+        ctx.beginPath();
+        ctx.arc(screenX, screenY, 8, 0, Math.PI * 2);
+        ctx.fillStyle = currentColor;
+        ctx.fill();
+        ctx.strokeStyle = "#fff";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        return { screenX, screenY };
+      }
+
+      function drawArea(planetX, planetY) {
+        if (!showArea) return;
+
+        areaPoints.push({ x: planetX, y: planetY });
+
+        if (angle - lastAreaClearAngle > Math.PI / 4) {
+          areaPoints = [{ x: planetX, y: planetY }];
+          lastAreaClearAngle = angle;
+        }
+
+        if (areaPoints.length > 1) {
+          ctx.beginPath();
+          ctx.moveTo(centerX, centerY);
+
+          areaPoints.forEach((point) => {
+            ctx.lineTo(centerX + point.x, centerY + point.y);
+          });
+
+          ctx.closePath();
+          ctx.fillStyle = "rgba(255, 215, 0, 0.2)";
+          ctx.fill();
+          ctx.strokeStyle = "rgba(255, 215, 0, 0.5)";
+          ctx.lineWidth = 1;
+          ctx.stroke();
+        }
+      }
+
+      function drawDistanceLine(planetX, planetY) {
+        ctx.beginPath();
+        ctx.moveTo(centerX, centerY);
+        ctx.lineTo(centerX + planetX, centerY + planetY);
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.3)";
+        ctx.lineWidth = 1;
+        ctx.setLineDash([3, 3]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+
+      function updateStats(r, velocity, period) {
+        document.getElementById("distance").textContent = r.toFixed(1);
+        document.getElementById("velocity").textContent = velocity.toFixed(2);
+        document.getElementById("period").textContent = period.toFixed(1);
+        document.getElementById("angle").textContent = (
+          ((angle * 180) / Math.PI) %
+          360
+        ).toFixed(1);
+      }
+
+      function animate() {
+        ctx.fillStyle = "#000";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        const effectiveEcc = getEffectiveEccentricity();
+        const { b, c } = drawEllipse(effectiveEcc, semiMajorAxis);
+        const pos = getPosition(angle, effectiveEcc, semiMajorAxis);
+
+        drawArea(pos.x, pos.y);
+        drawDistanceLine(pos.x, pos.y);
+        drawSun();
+        drawPlanet(pos.x, pos.y);
+
+        const angularVelocity =
+          0.02 * speed * Math.pow(semiMajorAxis / pos.r, 2);
+
+        if (isPlaying) {
+          angle += angularVelocity;
+          if (angle > Math.PI * 2) {
+            angle -= Math.PI * 2;
+            areaPoints = [];
+            lastAreaClearAngle = 0;
+          }
+        }
+
+        const period =
+          2 * Math.PI * Math.sqrt(Math.pow(semiMajorAxis, 3) / 1000);
+        const velocity =
+          ((2 * Math.PI * semiMajorAxis) / period) * (semiMajorAxis / pos.r);
+
+        updateStats(pos.r, velocity, period);
+
+        requestAnimationFrame(animate);
+      }
+
+      animate();
+    </script>
+  </body>
+</html>

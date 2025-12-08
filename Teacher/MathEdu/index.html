@@ -1,138 +1,310 @@
 <!DOCTYPE html>
 <html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>수학 교과 프로젝트</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
     <style>
-        :root {
-            --bg-primary: #f1f5f9;
-            --bg-secondary: #ffffff;
-            --text-primary: #1e293b;
-            --text-secondary: #475569;
-        }
-        body {
-            font-family: 'Inter', 'Noto Sans KR', sans-serif;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-            background-color: var(--bg-primary);
-            color: var(--text-secondary);
-        }
-        .card-button {
-            transition: all 0.3s ease;
-        }
-        .btn-purple { background-color: #8b5cf6; }
-        .btn-purple:hover { background-color: #7c3aed; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3); }
+      :root {
+        --bg-primary: #f1f5f9;
+        --bg-secondary: #ffffff;
+        --text-primary: #1e293b;
+        --text-secondary: #475569;
+      }
+      body {
+        font-family: "Inter", "Noto Sans KR", sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        background-color: var(--bg-primary);
+        color: var(--text-secondary);
+      }
+      .card-button {
+        transition: all 0.3s ease;
+      }
+      .btn-purple {
+        background-color: #8b5cf6;
+      }
+      .btn-purple:hover {
+        background-color: #7c3aed;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+      }
 
-        .btn-amber { background-color: #f59e0b; }
-        .btn-amber:hover { background-color: #d97706; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3); }
+      .btn-amber {
+        background-color: #f59e0b;
+      }
+      .btn-amber:hover {
+        background-color: #d97706;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+      }
 
-        .btn-emerald { background-color: #10b981; }
-        .btn-emerald:hover { background-color: #059669; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); }
+      .btn-emerald {
+        background-color: #10b981;
+      }
+      .btn-emerald:hover {
+        background-color: #059669;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+      }
 
-        .btn-blue { background-color: #3b82f6; }
-        .btn-blue:hover { background-color: #2563eb; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); }
+      .btn-blue {
+        background-color: #3b82f6;
+      }
+      .btn-blue:hover {
+        background-color: #2563eb;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+      }
 
-        .btn-rose { background-color: #f43f5e; }
-        .btn-rose:hover { background-color: #e11d48; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(244, 63, 94, 0.3); }
+      .btn-rose {
+        background-color: #f43f5e;
+      }
+      .btn-rose:hover {
+        background-color: #e11d48;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(244, 63, 94, 0.3);
+      }
 
-        .btn-cyan { background-color: #06b6d4; }
-        .btn-cyan:hover { background-color: #0891b2; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(6, 182, 212, 0.3); }
+      .btn-cyan {
+        background-color: #06b6d4;
+      }
+      .btn-cyan:hover {
+        background-color: #0891b2;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(6, 182, 212, 0.3);
+      }
     </style>
-</head>
-<body>
-    <a href="../../index.html#/Teacher/index.html" class="absolute top-4 left-4 text-slate-600 hover:text-slate-900 transition-colors">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-        </svg>
+  </head>
+  <body>
+    <a
+      href="../../index.html#/Teacher/index.html"
+      class="absolute top-4 left-4 text-slate-600 hover:text-slate-900 transition-colors"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        class="h-6 w-6"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M10 19l-7-7m0 0l7-7m-7 7h18"
+        />
+      </svg>
     </a>
     <div class="container mx-auto max-w-5xl px-4 py-16 sm:py-24">
-        <header class="text-center mb-12">
-            <h1 class="text-4xl sm:text-5xl font-bold tracking-tight text-slate-900">수학 교과 프로젝트</h1>
-            <p class="mt-4 text-lg text-slate-600">수학 교과 관련 프로젝트 및 탐구 활동지</p>
-        </header>
+      <header class="text-center mb-12">
+        <h1
+          class="text-4xl sm:text-5xl font-bold tracking-tight text-slate-900"
+        >
+          수학 교과 프로젝트
+        </h1>
+        <p class="mt-4 text-lg text-slate-600">
+          수학 교과 관련 프로젝트 및 탐구 활동지
+        </p>
+      </header>
 
-        <main class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <!-- Caustic Curve Project -->
-            <div class="bg-white rounded-xl shadow-lg overflow-hidden transform hover:-translate-y-1 transition-transform duration-300">
-                <div class="p-8">
-                    <h2 class="text-2xl font-bold text-slate-900 mb-3">✨커피잔이 그리는 빛 무늬</h2>
-                    <p class="text-slate-600 mb-6">컵 속의 빛이 만들어내는 아름다운 곡선, 빛반사 곡선(Caustic)을 탐구하는 프로젝트입니다.</p>
-                    <a href="CausticCurvePresentation.html" class="card-button btn-purple text-white font-semibold py-2 px-5 rounded-lg inline-block">살펴보기</a>
-                </div>
-            </div>
+      <main class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <!-- Caustic Curve Project -->
+        <div
+          class="bg-white rounded-xl shadow-lg overflow-hidden transform hover:-translate-y-1 transition-transform duration-300"
+        >
+          <div class="p-8">
+            <h2 class="text-2xl font-bold text-slate-900 mb-3">
+              ✨커피잔이 그리는 빛 무늬
+            </h2>
+            <p class="text-slate-600 mb-6">
+              컵 속의 빛이 만들어내는 아름다운 곡선, 빛반사 곡선(Caustic)을
+              탐구하는 프로젝트입니다.
+            </p>
+            <a
+              href="CausticCurvePresentation.html"
+              class="card-button btn-purple text-white font-semibold py-2 px-5 rounded-lg inline-block"
+              >살펴보기</a
+            >
+          </div>
+        </div>
 
-            <div class="bg-white rounded-xl shadow-lg overflow-hidden transform hover:-translate-y-1 transition-transform duration-300">
-                <div class="p-8">
-                    <h2 class="text-2xl font-bold text-slate-900 mb-3">✨커피잔이 그리는 빛 무늬 보고서</h2>
-                    <p class="text-slate-600 mb-6">컵 속의 빛이 만들어내는 아름다운 곡선, 빛반사 곡선(Caustic)의 탐구 보고서</p>
-                    <a href="CausticCurve.html" class="card-button btn-amber text-white font-semibold py-2 px-5 rounded-lg inline-block">살펴보기</a>
-                </div>
-            </div>
+        <div
+          class="bg-white rounded-xl shadow-lg overflow-hidden transform hover:-translate-y-1 transition-transform duration-300"
+        >
+          <div class="p-8">
+            <h2 class="text-2xl font-bold text-slate-900 mb-3">
+              ✨커피잔이 그리는 빛 무늬 보고서
+            </h2>
+            <p class="text-slate-600 mb-6">
+              컵 속의 빛이 만들어내는 아름다운 곡선, 빛반사 곡선(Caustic)의 탐구
+              보고서
+            </p>
+            <a
+              href="CausticCurve.html"
+              class="card-button btn-amber text-white font-semibold py-2 px-5 rounded-lg inline-block"
+              >살펴보기</a
+            >
+          </div>
+        </div>
 
-            <div class="bg-white rounded-xl shadow-lg overflow-hidden transform hover:-translate-y-1 transition-transform duration-300">
-                <div class="p-8">
-                    <h2 class="text-2xl font-bold text-slate-900 mb-3">📐 2D 외적(perp·dot) 탐구</h2>
-                    <p class="text-slate-600 mb-6">2차원 평면에서 외적 개념을 탐구하고 토크, 면적, 회전 방향을 분석하는 인터랙티브 프로젝트입니다.</p>
-                    <a href="CrossProduct2D.html" class="card-button btn-emerald text-white font-semibold py-2 px-5 rounded-lg inline-block">살펴보기</a>
-                </div>
-            </div>
+        <div
+          class="bg-white rounded-xl shadow-lg overflow-hidden transform hover:-translate-y-1 transition-transform duration-300"
+        >
+          <div class="p-8">
+            <h2 class="text-2xl font-bold text-slate-900 mb-3">
+              📐 2D 외적(perp·dot) 탐구
+            </h2>
+            <p class="text-slate-600 mb-6">
+              2차원 평면에서 외적 개념을 탐구하고 토크, 면적, 회전 방향을
+              분석하는 인터랙티브 프로젝트입니다.
+            </p>
+            <a
+              href="CrossProduct2D.html"
+              class="card-button btn-emerald text-white font-semibold py-2 px-5 rounded-lg inline-block"
+              >살펴보기</a
+            >
+          </div>
+        </div>
 
-            <div class="bg-white rounded-xl shadow-lg overflow-hidden transform hover:-translate-y-1 transition-transform duration-300">
-                <div class="p-8">
-                    <h2 class="text-2xl font-bold text-slate-900 mb-3">📚 심화수학Ⅱ 주제 추천</h2>
-                    <p class="text-slate-600 mb-6">이차곡선, 적분, 공간좌표, 확률·통계 영역의 실생활 연계 탐구 주제 80개를 제공합니다.</p>
-                    <a href="AdvancedMathProject.html" class="card-button btn-blue text-white font-semibold py-2 px-5 rounded-lg inline-block">주제 탐색</a>
-                </div>
-            </div>
+        <div
+          class="bg-white rounded-xl shadow-lg overflow-hidden transform hover:-translate-y-1 transition-transform duration-300"
+        >
+          <div class="p-8">
+            <h2 class="text-2xl font-bold text-slate-900 mb-3">
+              📚 심화수학Ⅱ 주제 추천
+            </h2>
+            <p class="text-slate-600 mb-6">
+              이차곡선, 적분, 공간좌표, 확률·통계 영역의 실생활 연계 탐구 주제
+              80개를 제공합니다.
+            </p>
+            <a
+              href="AdvancedMathProject.html"
+              class="card-button btn-blue text-white font-semibold py-2 px-5 rounded-lg inline-block"
+              >주제 탐색</a
+            >
+          </div>
+        </div>
 
-            <div class="bg-white rounded-xl shadow-lg overflow-hidden transform hover:-translate-y-1 transition-transform duration-300">
-                <div class="p-8">
-                    <h2 class="text-2xl font-bold text-slate-900 mb-3">🎯 고급 수학Ⅰ 주제 추천</h2>
-                    <p class="text-slate-600 mb-6">벡터, 행렬, 복소수와 극형식, 그래프 이론 영역의 실생활 연계 탐구 주제 100개를 제공합니다.</p>
-                    <a href="HighlevelMathProject.html" class="card-button btn-rose text-white font-semibold py-2 px-5 rounded-lg inline-block">주제 탐색</a>
-                </div>
-            </div>
+        <div
+          class="bg-white rounded-xl shadow-lg overflow-hidden transform hover:-translate-y-1 transition-transform duration-300"
+        >
+          <div class="p-8">
+            <h2 class="text-2xl font-bold text-slate-900 mb-3">
+              🎯 고급 수학Ⅰ 주제 추천
+            </h2>
+            <p class="text-slate-600 mb-6">
+              벡터, 행렬, 복소수와 극형식, 그래프 이론 영역의 실생활 연계 탐구
+              주제 100개를 제공합니다.
+            </p>
+            <a
+              href="HighlevelMathProject.html"
+              class="card-button btn-rose text-white font-semibold py-2 px-5 rounded-lg inline-block"
+              >주제 탐색</a
+            >
+          </div>
+        </div>
 
-            <div class="bg-white rounded-xl shadow-lg overflow-hidden transform hover:-translate-y-1 transition-transform duration-300">
-                <div class="p-8">
-                    <h2 class="text-2xl font-bold text-slate-900 mb-3">📝 수학 탐구 보고서 양식</h2>
-                    <p class="text-slate-600 mb-6">고급수학·심화수학 주제로 보고서를 작성할 수 있는 표준 웹 양식입니다. 마크다운, KaTeX, 코드 블록 지원.</p>
-                    <a href="MathReportTemplate.html" class="card-button btn-amber text-white font-semibold py-2 px-5 rounded-lg inline-block">작성하기</a>
-                </div>
-            </div>
+        <div
+          class="bg-white rounded-xl shadow-lg overflow-hidden transform hover:-translate-y-1 transition-transform duration-300"
+        >
+          <div class="p-8">
+            <h2 class="text-2xl font-bold text-slate-900 mb-3">
+              📝 수학 탐구 보고서 양식
+            </h2>
+            <p class="text-slate-600 mb-6">
+              고급수학·심화수학 주제로 보고서를 작성할 수 있는 표준 웹
+              양식입니다. 마크다운, KaTeX, 코드 블록 지원.
+            </p>
+            <a
+              href="MathReportTemplate.html"
+              class="card-button btn-amber text-white font-semibold py-2 px-5 rounded-lg inline-block"
+              >작성하기</a
+            >
+          </div>
+        </div>
 
-            <div class="bg-white rounded-xl shadow-lg overflow-hidden transform hover:-translate-y-1 transition-transform duration-300">
-                <div class="p-8">
-                    <h2 class="text-2xl font-bold text-slate-900 mb-3">🧵 Tractrix Curve 탐구</h2>
-                    <p class="text-slate-600 mb-6">지우개에 줄을 묶고 당길 때 그려지는 추적선(Tractrix) 곡선을 탐구하는 인터랙티브 보고서입니다.</p>
-                    <a href="Tractrix.html" class="card-button btn-emerald text-white font-semibold py-2 px-5 rounded-lg inline-block">탐구하기</a>
-                </div>
-            </div>
+        <div
+          class="bg-white rounded-xl shadow-lg overflow-hidden transform hover:-translate-y-1 transition-transform duration-300"
+        >
+          <div class="p-8">
+            <h2 class="text-2xl font-bold text-slate-900 mb-3">
+              🧵 Tractrix Curve 탐구
+            </h2>
+            <p class="text-slate-600 mb-6">
+              지우개에 줄을 묶고 당길 때 그려지는 추적선(Tractrix) 곡선을
+              탐구하는 인터랙티브 보고서입니다.
+            </p>
+            <a
+              href="Tractrix.html"
+              class="card-button btn-emerald text-white font-semibold py-2 px-5 rounded-lg inline-block"
+              >탐구하기</a
+            >
+          </div>
+        </div>
 
-            <div class="bg-white rounded-xl shadow-lg overflow-hidden transform hover:-translate-y-1 transition-transform duration-300">
-                <div class="p-8">
-                    <h2 class="text-2xl font-bold text-slate-900 mb-3">📊 Tractrix Curve 발표자료</h2>
-                    <p class="text-slate-600 mb-6">추적선(Tractrix) 곡선 탐구 내용을 정리한 프레젠테이션 자료입니다.</p>
-                    <a href="TractrixPresentation.html" class="card-button btn-rose text-white font-semibold py-2 px-5 rounded-lg inline-block">발표자료 보기</a>
-                </div>
-            </div>
+        <div
+          class="bg-white rounded-xl shadow-lg overflow-hidden transform hover:-translate-y-1 transition-transform duration-300"
+        >
+          <div class="p-8">
+            <h2 class="text-2xl font-bold text-slate-900 mb-3">
+              📊 Tractrix Curve 발표자료
+            </h2>
+            <p class="text-slate-600 mb-6">
+              추적선(Tractrix) 곡선 탐구 내용을 정리한 프레젠테이션 자료입니다.
+            </p>
+            <a
+              href="TractrixPresentation.html"
+              class="card-button btn-rose text-white font-semibold py-2 px-5 rounded-lg inline-block"
+              >발표자료 보기</a
+            >
+          </div>
+        </div>
 
-            <div class="bg-white rounded-xl shadow-lg overflow-hidden transform hover:-translate-y-1 transition-transform duration-300">
-                <div class="p-8">
-                    <h2 class="text-2xl font-bold text-slate-900 mb-3">∑ KaTeX Cheatsheet</h2>
-                    <p class="text-slate-600 mb-6">웹 페이지에 수식을 깔끔하게 렌더링하는 KaTeX 라이브러리 사용법 안내입니다.</p>
-                    <a href="../../LaTeX/katex_usage.html" class="card-button btn-cyan text-white font-semibold py-2 px-5 rounded-lg inline-block">사용법 보기</a>
-                </div>
-            </div>
+        <div
+          class="bg-white rounded-xl shadow-lg overflow-hidden transform hover:-translate-y-1 transition-transform duration-300"
+        >
+          <div class="p-8">
+            <h2 class="text-2xl font-bold text-slate-900 mb-3">
+              ∑ KaTeX Cheatsheet
+            </h2>
+            <p class="text-slate-600 mb-6">
+              웹 페이지에 수식을 깔끔하게 렌더링하는 KaTeX 라이브러리 사용법
+              안내입니다.
+            </p>
+            <a
+              href="../../LaTeX/katex_usage.html"
+              class="card-button btn-cyan text-white font-semibold py-2 px-5 rounded-lg inline-block"
+              >사용법 보기</a
+            >
+          </div>
+        </div>
 
-
-
-        </main>
+        <div
+          class="bg-white rounded-xl shadow-lg overflow-hidden transform hover:-translate-y-1 transition-transform duration-300"
+        >
+          <div class="p-8">
+            <h2 class="text-2xl font-bold text-slate-900 mb-3">
+              📅 2025학년도 프로젝트
+            </h2>
+            <p class="text-slate-600 mb-6">
+              2025학년도 학생들의 수학 탐구 프로젝트 모음입니다.
+            </p>
+            <a
+              href="2025/index.html"
+              class="card-button btn-purple text-white font-semibold py-2 px-5 rounded-lg inline-block"
+              >보러가기</a
+            >
+          </div>
+        </div>
+      </main>
     </div>
-</body>
+  </body>
 </html>

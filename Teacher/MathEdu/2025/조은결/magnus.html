@@ -1,0 +1,955 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <title>3D 배구 스파이크 서브 시뮬레이션 (9인제 남자)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      body {
+        margin: 0;
+        overflow: hidden;
+        font-family: "Inter", sans-serif, "Noto Sans KR";
+      }
+      #gui-container .lil-gui {
+        --title-background-color: #333;
+        --title-text-color: #fff;
+      }
+    </style>
+    <link rel="canonical" href="https://ekc0517.github.io/math/magnus.html" />
+  </head>
+  <body class="bg-gray-800">
+    <div
+      id="info"
+      class="absolute top-4 left-4 bg-black bg-opacity-50 text-white p-4 rounded-lg shadow-lg z-10"
+    >
+      <h2 class="text-xl font-bold mb-2">
+        🏐 3D 배구 스파이크 서브 시뮬레이션
+      </h2>
+      <p class="text-sm font-semibold text-yellow-300">
+        9인제 남자 배구 규격 (21m x 10.5m)
+      </p>
+      <p class="text-sm">마우스 드래그: 카메라 회전 | 휠: 줌</p>
+      <p class="text-xs mt-2 text-gray-300">🎯 녹색 원: 예상 착지 지점</p>
+      <p class="text-xs text-green-300">
+        ⬇️ 탑스핀: 공을 아래로 빠르게 가라앉게 함
+      </p>
+    </div>
+    <div id="gui-container" class="absolute top-4 right-4 z-10"></div>
+    <div
+      id="message-box"
+      class="hidden absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 p-5 md:p-8 rounded-xl font-bold text-white shadow-2xl z-20 opacity-90 text-2xl md:text-4xl transition-opacity duration-500"
+    ></div>
+
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+          "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+        }
+      }
+    </script>
+
+    <script type="module">
+      import * as THREE from "three";
+      import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+      import { GUI } from "three/addons/libs/lil-gui.module.min.js";
+
+      // --- 1. 9인제 남자 배구 공식 규격 ---
+      const CONSTANTS = {
+        NET_HEIGHT: 2.43,
+        COURT_LENGTH: 21.0,
+        COURT_WIDTH: 10.5,
+        ATTACK_LINE_DISTANCE: 3.0,
+        SERVICE_ZONE_DEPTH: 3.0,
+        BALL: {
+          g: 9.81,
+          mass: 0.27,
+          radius: 0.105,
+          area: Math.PI * 0.105 ** 2,
+          rho: 1.225,
+          magnus_k: 1.2,
+        },
+      };
+
+      // --- 2. 전역 변수 ---
+      let scene, camera, renderer, controls;
+      let spikeBall, floatBall, spikeTrail, floatTrail;
+      let spikeLandingMarker, floatLandingMarker;
+      let spikePhysics, floatPhysics;
+      let animationFrameId = null;
+      let isSimulating = false;
+
+      const params = {
+        serveType: "Both",
+        startSimulation: () => startSimulation(),
+        resetSimulation: () => resetSimulation(),
+        spike: {
+          speed: 100,
+          verticalAngle: 2,
+          horizontalAngle: 0,
+          spin: 1500,
+          height: 3.0,
+        },
+        float: {
+          speed: 65,
+          verticalAngle: 8,
+          horizontalAngle: 0,
+          spin: 10,
+          height: 2.5,
+        },
+      };
+      const messageBox = document.getElementById("message-box");
+
+      // --- 3. 물리 엔진 ---
+      function getCoefficients(v, S, isFloatServe) {
+        const Re =
+          (CONSTANTS.BALL.rho * v * (2 * CONSTANTS.BALL.radius)) / 1.81e-5;
+        let cd, cl, cs;
+
+        if (isFloatServe) {
+          cd = 5e4 < Re && Re < 4e5 ? 0.15 + (Math.random() - 0.5) * 0.2 : 0.47;
+          cl = (Math.random() - 0.5) * 0.5;
+          cs = (Math.random() - 0.5) * 0.5;
+        } else {
+          cd = 0.47;
+          cl = CONSTANTS.BALL.magnus_k * S;
+          cs = 0;
+        }
+        return { cd, cl, cs };
+      }
+
+      function calculateForces(vel, omega, spinAxis, isFloatServe) {
+        const v = vel.length();
+        if (v < 0.1) return new THREE.Vector3();
+
+        const S = (CONSTANTS.BALL.radius * omega) / v;
+        const { cd, cl, cs } = getCoefficients(v, S, isFloatServe);
+
+        const F_gravity = new THREE.Vector3(
+          0,
+          -CONSTANTS.BALL.mass * CONSTANTS.BALL.g,
+          0
+        );
+        const F_drag = vel
+          .clone()
+          .normalize()
+          .multiplyScalar(
+            -0.5 * CONSTANTS.BALL.rho * CONSTANTS.BALL.area * cd * v ** 2
+          );
+
+        const velDir = vel.clone().normalize();
+
+        const liftDir = new THREE.Vector3()
+          .crossVectors(velDir, spinAxis)
+          .normalize();
+        const F_magnus = liftDir.multiplyScalar(
+          0.5 * CONSTANTS.BALL.rho * CONSTANTS.BALL.area * cl * v ** 2
+        );
+
+        const sideDir = new THREE.Vector3()
+          .crossVectors(velDir, spinAxis)
+          .normalize();
+        const sidePerp = new THREE.Vector3()
+          .crossVectors(sideDir, velDir)
+          .normalize();
+        const F_side = sidePerp.multiplyScalar(
+          0.5 * CONSTANTS.BALL.rho * CONSTANTS.BALL.area * cs * v ** 2
+        );
+
+        return new THREE.Vector3()
+          .add(F_gravity)
+          .add(F_drag)
+          .add(F_magnus)
+          .add(F_side);
+      }
+
+      function predictLandingPoint(
+        initialPos,
+        initialVel,
+        omega,
+        spinAxis,
+        isFloatServe
+      ) {
+        let pos = initialPos.clone();
+        let vel = initialVel.clone();
+        const dt = 0.01;
+        const maxIterations = 1000;
+
+        for (let i = 0; i < maxIterations; i++) {
+          if (pos.y <= CONSTANTS.BALL.radius) {
+            return pos;
+          }
+
+          const force = calculateForces(vel, omega, spinAxis, isFloatServe);
+          const accel = force.divideScalar(CONSTANTS.BALL.mass);
+          vel.add(accel.multiplyScalar(dt));
+          pos.add(vel.clone().multiplyScalar(dt));
+
+          if (
+            pos.x > CONSTANTS.COURT_LENGTH + 10 ||
+            pos.x < -10 ||
+            Math.abs(pos.z) > 20
+          ) {
+            return null;
+          }
+        }
+        return null;
+      }
+
+      // --- 4. 3D 렌더링 ---
+      function init() {
+        setupScene();
+        setupLights();
+        setupCourt();
+        setupGUI();
+        resetSimulation();
+      }
+
+      function setupScene() {
+        scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x87ceeb);
+        scene.fog = new THREE.Fog(0x87ceeb, 30, 60);
+
+        camera = new THREE.PerspectiveCamera(
+          60,
+          window.innerWidth / window.innerHeight,
+          0.1,
+          1000
+        );
+        camera.position.set(-5, 8, 18);
+
+        renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        document.body.appendChild(renderer.domElement);
+
+        controls = new OrbitControls(camera, renderer.domElement);
+        controls.target.set(CONSTANTS.COURT_LENGTH / 2, 1.5, 0);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+        controls.minDistance = 5;
+        controls.maxDistance = 50;
+
+        window.addEventListener("resize", () => {
+          camera.aspect = window.innerWidth / window.innerHeight;
+          camera.updateProjectionMatrix();
+          renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        function render() {
+          requestAnimationFrame(render);
+          controls.update();
+          renderer.render(scene, camera);
+        }
+        render();
+      }
+
+      function setupLights() {
+        scene.add(new THREE.AmbientLight(0xffffff, 0.7));
+        const dirLight = new THREE.DirectionalLight(0xffffff, 1.5);
+        dirLight.position.set(15, 25, 10);
+        dirLight.castShadow = true;
+        dirLight.shadow.camera.top = 15;
+        dirLight.shadow.camera.bottom = -15;
+        dirLight.shadow.camera.left = -18;
+        dirLight.shadow.camera.right = 18;
+        dirLight.shadow.mapSize.width = 2048;
+        dirLight.shadow.mapSize.height = 2048;
+        scene.add(dirLight);
+      }
+
+      function setupCourt() {
+        const halfCourt = CONSTANTS.COURT_LENGTH / 2;
+        const halfWidth = CONSTANTS.COURT_WIDTH / 2;
+
+        const courtMaterial = new THREE.MeshStandardMaterial({
+          color: 0xd4a574,
+          roughness: 0.8,
+        });
+        const court = new THREE.Mesh(
+          new THREE.PlaneGeometry(
+            CONSTANTS.COURT_LENGTH,
+            CONSTANTS.COURT_WIDTH
+          ),
+          courtMaterial
+        );
+        court.rotation.x = -Math.PI / 2;
+        court.position.set(halfCourt, 0, 0);
+        court.receiveShadow = true;
+        scene.add(court);
+
+        const freeZoneMaterial = new THREE.MeshStandardMaterial({
+          color: 0x8b7355,
+          roughness: 0.9,
+        });
+        const freeZone = new THREE.Mesh(
+          new THREE.PlaneGeometry(
+            CONSTANTS.COURT_LENGTH + 8,
+            CONSTANTS.COURT_WIDTH + 8
+          ),
+          freeZoneMaterial
+        );
+        freeZone.rotation.x = -Math.PI / 2;
+        freeZone.position.set(halfCourt, -0.01, 0);
+        freeZone.receiveShadow = true;
+        scene.add(freeZone);
+
+        // 🔴 코트 라인 (중앙선 제거)
+        const lineMaterial = new THREE.LineBasicMaterial({
+          color: 0xffffff,
+          linewidth: 2,
+        });
+        const linePoints = [];
+
+        // 외곽선 (Top, Right, Bottom, Left)
+        linePoints.push(new THREE.Vector3(0, 0.02, -halfWidth));
+        linePoints.push(
+          new THREE.Vector3(CONSTANTS.COURT_LENGTH, 0.02, -halfWidth)
+        );
+        linePoints.push(
+          new THREE.Vector3(CONSTANTS.COURT_LENGTH, 0.02, -halfWidth)
+        );
+        linePoints.push(
+          new THREE.Vector3(CONSTANTS.COURT_LENGTH, 0.02, halfWidth)
+        );
+        linePoints.push(
+          new THREE.Vector3(CONSTANTS.COURT_LENGTH, 0.02, halfWidth)
+        );
+        linePoints.push(new THREE.Vector3(0, 0.02, halfWidth));
+        linePoints.push(new THREE.Vector3(0, 0.02, halfWidth));
+        linePoints.push(new THREE.Vector3(0, 0.02, -halfWidth));
+
+        // 공격선 (수비 측)
+        linePoints.push(
+          new THREE.Vector3(
+            halfCourt - CONSTANTS.ATTACK_LINE_DISTANCE,
+            0.02,
+            -halfWidth
+          )
+        );
+        linePoints.push(
+          new THREE.Vector3(
+            halfCourt - CONSTANTS.ATTACK_LINE_DISTANCE,
+            0.02,
+            halfWidth
+          )
+        );
+
+        // 공격선 (공격 측)
+        linePoints.push(
+          new THREE.Vector3(
+            halfCourt + CONSTANTS.ATTACK_LINE_DISTANCE,
+            0.02,
+            -halfWidth
+          )
+        );
+        linePoints.push(
+          new THREE.Vector3(
+            halfCourt + CONSTANTS.ATTACK_LINE_DISTANCE,
+            0.02,
+            halfWidth
+          )
+        );
+
+        scene.add(
+          new THREE.LineSegments(
+            new THREE.BufferGeometry().setFromPoints(linePoints),
+            lineMaterial
+          )
+        );
+
+        // 네트 기둥
+        const poleMaterial = new THREE.MeshStandardMaterial({
+          color: 0x222222,
+          metalness: 0.6,
+          roughness: 0.3,
+        });
+        const poleGeometry = new THREE.CylinderGeometry(
+          0.06,
+          0.06,
+          CONSTANTS.NET_HEIGHT + 0.5,
+          16
+        );
+
+        const pole1 = new THREE.Mesh(poleGeometry, poleMaterial);
+        pole1.position.set(
+          halfCourt,
+          (CONSTANTS.NET_HEIGHT + 0.5) / 2,
+          halfWidth + 0.5
+        );
+        pole1.castShadow = true;
+        scene.add(pole1);
+
+        const pole2 = pole1.clone();
+        pole2.position.set(
+          halfCourt,
+          (CONSTANTS.NET_HEIGHT + 0.5) / 2,
+          -halfWidth - 0.5
+        );
+        scene.add(pole2);
+
+        // 네트
+        const netMaterial = new THREE.MeshBasicMaterial({
+          color: 0x333333,
+          side: THREE.DoubleSide,
+          transparent: true,
+          opacity: 0.15,
+        });
+        const net = new THREE.Mesh(
+          new THREE.PlaneGeometry(
+            CONSTANTS.COURT_WIDTH + 1,
+            CONSTANTS.NET_HEIGHT
+          ),
+          netMaterial
+        );
+        net.rotation.y = Math.PI / 2;
+        net.position.set(halfCourt, CONSTANTS.NET_HEIGHT / 2, 0);
+        scene.add(net);
+
+        // 네트 상단 테이프
+        const tape = new THREE.Mesh(
+          new THREE.CylinderGeometry(
+            0.025,
+            0.025,
+            CONSTANTS.COURT_WIDTH + 1,
+            16
+          ),
+          new THREE.MeshStandardMaterial({ color: 0xffffff })
+        );
+        tape.rotation.z = Math.PI / 2;
+        tape.position.set(halfCourt, CONSTANTS.NET_HEIGHT, 0);
+        scene.add(tape);
+      }
+
+      function createBallMaterial(color, label) {
+        const canvas = document.createElement("canvas");
+        canvas.width = 256;
+        canvas.height = 128;
+        const ctx = canvas.getContext("2d");
+
+        const gradient = ctx.createLinearGradient(0, 0, 256, 128);
+        gradient.addColorStop(0, color);
+        gradient.addColorStop(1, shadeColor(color, -30));
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, 256, 128);
+
+        ctx.fillStyle = "rgba(255,255,255,0.9)";
+        ctx.font = "bold 24px Arial";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(label, 64, 64);
+        ctx.fillText(label, 192, 64);
+
+        const texture = new THREE.CanvasTexture(canvas);
+        return new THREE.MeshStandardMaterial({
+          map: texture,
+          metalness: 0.2,
+          roughness: 0.6,
+        });
+      }
+
+      function shadeColor(color, percent) {
+        const num = parseInt(color.replace("#", ""), 16);
+        const amt = Math.round(2.55 * percent);
+        const R = Math.max(0, Math.min(255, (num >> 16) + amt));
+        const G = Math.max(0, Math.min(255, ((num >> 8) & 0x00ff) + amt));
+        const B = Math.max(0, Math.min(255, (num & 0x0000ff) + amt));
+        return (
+          "#" + (0x1000000 + R * 0x10000 + G * 0x100 + B).toString(16).slice(1)
+        );
+      }
+
+      function createLandingMarker(color) {
+        const group = new THREE.Group();
+
+        const outerCircle = new THREE.Mesh(
+          new THREE.RingGeometry(0.3, 0.35, 32),
+          new THREE.MeshBasicMaterial({ color: color, side: THREE.DoubleSide })
+        );
+        outerCircle.rotation.x = -Math.PI / 2;
+        group.add(outerCircle);
+
+        const innerCircle = new THREE.Mesh(
+          new THREE.CircleGeometry(0.25, 32),
+          new THREE.MeshBasicMaterial({
+            color: color,
+            transparent: true,
+            opacity: 0.3,
+            side: THREE.DoubleSide,
+          })
+        );
+        innerCircle.rotation.x = -Math.PI / 2;
+        group.add(innerCircle);
+
+        const crossMaterial = new THREE.LineBasicMaterial({
+          color: color,
+          linewidth: 2,
+        });
+        const crossPoints = [
+          new THREE.Vector3(-0.3, 0.02, 0),
+          new THREE.Vector3(0.3, 0.02, 0),
+          new THREE.Vector3(0, 0.02, -0.3),
+          new THREE.Vector3(0, 0.02, 0.3),
+        ];
+        const crossLine = new THREE.LineSegments(
+          new THREE.BufferGeometry().setFromPoints(crossPoints),
+          crossMaterial
+        );
+        group.add(crossLine);
+
+        group.position.y = 0.03;
+        return group;
+      }
+
+      function setupGUI() {
+        const gui = new GUI({
+          container: document.getElementById("gui-container"),
+          title: "🏐 서브 컨트롤 (9인제)",
+        });
+
+        gui
+          .add(params, "serveType", ["Both", "Spike", "Float"])
+          .name("서브 종류")
+          .onChange(updateSceneObjects);
+
+        const spikeFolder = gui.addFolder("⚡ 스파이크 서브");
+        spikeFolder
+          .add(params.spike, "speed", 70, 130, 1)
+          .name("속도 (km/h)")
+          .onChange(updateLandingMarkers);
+        spikeFolder
+          .add(params.spike, "verticalAngle", -5, 15, 0.5)
+          .name("상하 각도 (°)")
+          .onChange(updateLandingMarkers);
+        spikeFolder
+          .add(params.spike, "horizontalAngle", -30, 30, 1)
+          .name("좌우 각도 (°)")
+          .onChange(updateLandingMarkers);
+        spikeFolder
+          .add(params.spike, "spin", 100, 2000, 100)
+          .name("탑스핀 (RPM)")
+          .onChange(updateLandingMarkers);
+        spikeFolder
+          .add(params.spike, "height", 2.5, 4.0, 0.1)
+          .name("점프 높이 (m)")
+          .onChange(updateLandingMarkers);
+        spikeFolder.open();
+
+        const floatFolder = gui.addFolder("🌊 플로트 서브");
+        floatFolder
+          .add(params.float, "speed", 40, 90, 1)
+          .name("속도 (km/h)")
+          .onChange(updateLandingMarkers);
+        floatFolder
+          .add(params.float, "verticalAngle", 0, 20, 0.5)
+          .name("상하 각도 (°)")
+          .onChange(updateLandingMarkers);
+        floatFolder
+          .add(params.float, "horizontalAngle", -30, 30, 1)
+          .name("좌우 각도 (°)")
+          .onChange(updateLandingMarkers);
+        floatFolder
+          .add(params.float, "height", 2.5, 4.0, 0.1)
+          .name("타점 높이 (m)")
+          .onChange(updateLandingMarkers);
+
+        gui.add(params, "startSimulation").name("▶ 시뮬레이션 시작");
+        gui.add(params, "resetSimulation").name("⟲ 리셋");
+      }
+
+      // --- 5. 시뮬레이션 로직 ---
+      function cleanupObjects() {
+        if (spikeBall) {
+          scene.remove(spikeBall);
+          if (spikeBall.material) spikeBall.material.dispose();
+          if (spikeBall.geometry) spikeBall.geometry.dispose();
+          spikeBall = null;
+        }
+        if (floatBall) {
+          scene.remove(floatBall);
+          if (floatBall.material) floatBall.material.dispose();
+          if (floatBall.geometry) floatBall.geometry.dispose();
+          floatBall = null;
+        }
+        if (spikeTrail) {
+          scene.remove(spikeTrail);
+          if (spikeTrail.geometry) spikeTrail.geometry.dispose();
+          spikeTrail = null;
+        }
+        if (floatTrail) {
+          scene.remove(floatTrail);
+          if (floatTrail.geometry) floatTrail.geometry.dispose();
+          floatTrail = null;
+        }
+        if (spikeLandingMarker) {
+          scene.remove(spikeLandingMarker);
+          spikeLandingMarker = null;
+        }
+        if (floatLandingMarker) {
+          scene.remove(floatLandingMarker);
+          floatLandingMarker = null;
+        }
+      }
+
+      function resetSimulation() {
+        if (animationFrameId) {
+          cancelAnimationFrame(animationFrameId);
+          animationFrameId = null;
+        }
+        isSimulating = false;
+
+        messageBox.style.display = "none";
+        messageBox.style.opacity = "0.9";
+
+        cleanupObjects();
+
+        const ballGeom = new THREE.SphereGeometry(
+          CONSTANTS.BALL.radius,
+          32,
+          16
+        );
+        spikeBall = new THREE.Mesh(
+          ballGeom,
+          createBallMaterial("#ff4136", "SPIKE")
+        );
+        floatBall = new THREE.Mesh(
+          ballGeom,
+          createBallMaterial("#0074d9", "FLOAT")
+        );
+        spikeBall.castShadow = true;
+        floatBall.castShadow = true;
+
+        const spikeSpeed = (params.spike.speed * 1000) / 3600;
+        const spikeVertAngle = (params.spike.verticalAngle * Math.PI) / 180;
+        const spikeHorizAngle = (params.spike.horizontalAngle * Math.PI) / 180;
+        const spikeSpin = (params.spike.spin * 2 * Math.PI) / 60;
+
+        spikePhysics = {
+          pos: new THREE.Vector3(
+            -CONSTANTS.SERVICE_ZONE_DEPTH,
+            params.spike.height,
+            0
+          ),
+          vel: new THREE.Vector3(
+            spikeSpeed * Math.cos(spikeVertAngle) * Math.cos(spikeHorizAngle),
+            spikeSpeed * Math.sin(spikeVertAngle),
+            spikeSpeed * Math.cos(spikeVertAngle) * Math.sin(spikeHorizAngle)
+          ),
+          omega: spikeSpin,
+          spinAxis: new THREE.Vector3(
+            -Math.sin(spikeHorizAngle),
+            0,
+            Math.cos(spikeHorizAngle)
+          ).normalize(),
+          isFloat: false,
+          status: "Ready",
+          trailPoints: [],
+        };
+
+        const floatSpeed = (params.float.speed * 1000) / 3600;
+        const floatVertAngle = (params.float.verticalAngle * Math.PI) / 180;
+        const floatHorizAngle = (params.float.horizontalAngle * Math.PI) / 180;
+        const floatSpin = (params.float.spin * 2 * Math.PI) / 60;
+
+        floatPhysics = {
+          pos: new THREE.Vector3(
+            -CONSTANTS.SERVICE_ZONE_DEPTH,
+            params.float.height,
+            0
+          ),
+          vel: new THREE.Vector3(
+            floatSpeed * Math.cos(floatVertAngle) * Math.cos(floatHorizAngle),
+            floatSpeed * Math.sin(floatVertAngle),
+            floatSpeed * Math.cos(floatVertAngle) * Math.sin(floatHorizAngle)
+          ),
+          omega: floatSpin,
+          spinAxis: new THREE.Vector3(0, 0, 1),
+          isFloat: true,
+          status: "Ready",
+          trailPoints: [],
+        };
+
+        spikeTrail = new THREE.Line(
+          new THREE.BufferGeometry(),
+          new THREE.LineBasicMaterial({ color: 0xff4136, linewidth: 3 })
+        );
+        floatTrail = new THREE.Line(
+          new THREE.BufferGeometry(),
+          new THREE.LineBasicMaterial({ color: 0x0074d9, linewidth: 3 })
+        );
+
+        spikeLandingMarker = createLandingMarker(0x00ff00);
+        floatLandingMarker = createLandingMarker(0x00ffff);
+
+        scene.add(spikeTrail);
+        scene.add(floatTrail);
+
+        updateLandingMarkers();
+        updateSceneObjects();
+      }
+
+      function updateLandingMarkers() {
+        if (!spikePhysics || !floatPhysics) return;
+
+        if (spikeLandingMarker) scene.remove(spikeLandingMarker);
+        if (floatLandingMarker) scene.remove(floatLandingMarker);
+
+        const spikeSpeed = (params.spike.speed * 1000) / 3600;
+        const spikeVertAngle = (params.spike.verticalAngle * Math.PI) / 180;
+        const spikeHorizAngle = (params.spike.horizontalAngle * Math.PI) / 180;
+        const spikeSpin = (params.spike.spin * 2 * Math.PI) / 60;
+
+        const spikeInitialPos = new THREE.Vector3(
+          -CONSTANTS.SERVICE_ZONE_DEPTH,
+          params.spike.height,
+          0
+        );
+        const spikeInitialVel = new THREE.Vector3(
+          spikeSpeed * Math.cos(spikeVertAngle) * Math.cos(spikeHorizAngle),
+          spikeSpeed * Math.sin(spikeVertAngle),
+          spikeSpeed * Math.cos(spikeVertAngle) * Math.sin(spikeHorizAngle)
+        );
+        const spikeSpinAxis = new THREE.Vector3(
+          -Math.sin(spikeHorizAngle),
+          0,
+          Math.cos(spikeHorizAngle)
+        ).normalize();
+
+        const spikeLanding = predictLandingPoint(
+          spikeInitialPos,
+          spikeInitialVel,
+          spikeSpin,
+          spikeSpinAxis,
+          false
+        );
+
+        if (spikeLanding && spikeLandingMarker && !isSimulating) {
+          spikeLandingMarker.position.copy(spikeLanding);
+          scene.add(spikeLandingMarker);
+        }
+
+        const floatSpeed = (params.float.speed * 1000) / 3600;
+        const floatVertAngle = (params.float.verticalAngle * Math.PI) / 180;
+        const floatHorizAngle = (params.float.horizontalAngle * Math.PI) / 180;
+        const floatSpin = (params.float.spin * 2 * Math.PI) / 60;
+
+        const floatInitialPos = new THREE.Vector3(
+          -CONSTANTS.SERVICE_ZONE_DEPTH,
+          params.float.height,
+          0
+        );
+        const floatInitialVel = new THREE.Vector3(
+          floatSpeed * Math.cos(floatVertAngle) * Math.cos(floatHorizAngle),
+          floatSpeed * Math.sin(floatVertAngle),
+          floatSpeed * Math.cos(floatVertAngle) * Math.sin(floatHorizAngle)
+        );
+        const floatSpinAxis = new THREE.Vector3(0, 0, 1);
+
+        const floatLanding = predictLandingPoint(
+          floatInitialPos,
+          floatInitialVel,
+          floatSpin,
+          floatSpinAxis,
+          true
+        );
+
+        if (floatLanding && floatLandingMarker && !isSimulating) {
+          floatLandingMarker.position.copy(floatLanding);
+          scene.add(floatLandingMarker);
+        }
+      }
+
+      function startSimulation() {
+        resetSimulation();
+
+        spikePhysics.status = "Flying";
+        floatPhysics.status = "Flying";
+        isSimulating = true;
+
+        if (spikeLandingMarker) scene.remove(spikeLandingMarker);
+        if (floatLandingMarker) scene.remove(floatLandingMarker);
+
+        animate();
+      }
+
+      function updateSceneObjects() {
+        if (!spikeBall || !floatBall) return;
+
+        spikeBall.position.copy(spikePhysics.pos);
+        floatBall.position.copy(floatPhysics.pos);
+
+        const showSpike =
+          params.serveType === "Spike" || params.serveType === "Both";
+        const showFloat =
+          params.serveType === "Float" || params.serveType === "Both";
+
+        if (showSpike) {
+          scene.add(spikeBall);
+        } else {
+          scene.remove(spikeBall);
+        }
+
+        if (showFloat) {
+          scene.add(floatBall);
+        } else {
+          scene.remove(floatBall);
+        }
+
+        spikeTrail.visible = showSpike;
+        floatTrail.visible = showFloat;
+
+        if (!isSimulating) {
+          if (spikeLandingMarker) {
+            if (showSpike) {
+              scene.add(spikeLandingMarker);
+            } else {
+              scene.remove(spikeLandingMarker);
+            }
+          }
+          if (floatLandingMarker) {
+            if (showFloat) {
+              scene.add(floatLandingMarker);
+            } else {
+              scene.remove(floatLandingMarker);
+            }
+          }
+        }
+      }
+
+      function animate() {
+        if (!isSimulating) return;
+
+        animationFrameId = requestAnimationFrame(animate);
+        const dt = 1 / 120;
+        let activeSims = 0;
+
+        const updateBall = (physics, ball, trail) => {
+          if (physics.status !== "Flying") return;
+          activeSims++;
+
+          const force = calculateForces(
+            physics.vel,
+            physics.omega,
+            physics.spinAxis,
+            physics.isFloat
+          );
+          const accel = force.divideScalar(CONSTANTS.BALL.mass);
+          physics.vel.add(accel.multiplyScalar(dt));
+          physics.pos.add(physics.vel.clone().multiplyScalar(dt));
+          ball.position.copy(physics.pos);
+
+          if (!physics.isFloat) {
+            const rotationAmount = physics.omega * dt;
+            ball.rotateOnWorldAxis(physics.spinAxis, rotationAmount);
+          } else {
+            ball.rotation.x += (Math.random() - 0.5) * 0.15;
+            ball.rotation.y += (Math.random() - 0.5) * 0.15;
+          }
+
+          physics.trailPoints.push(physics.pos.clone());
+          if (trail.geometry) {
+            trail.geometry.setFromPoints(physics.trailPoints);
+          }
+
+          const halfCourt = CONSTANTS.COURT_LENGTH / 2;
+          const halfWidth = CONSTANTS.COURT_WIDTH / 2;
+          const netCollisionZone = 0.3;
+
+          if (
+            physics.pos.x >= halfCourt - netCollisionZone &&
+            physics.pos.x <= halfCourt + netCollisionZone &&
+            physics.pos.y <= CONSTANTS.NET_HEIGHT + 0.1 &&
+            physics.pos.y >= 0
+          ) {
+            physics.status = "Finished";
+            handleServeResult(physics, true);
+            return;
+          }
+
+          if (physics.pos.y <= CONSTANTS.BALL.radius) {
+            physics.status = "Finished";
+            handleServeResult(physics, false);
+            return;
+          }
+        };
+
+        const showSpike =
+          params.serveType === "Spike" || params.serveType === "Both";
+        const showFloat =
+          params.serveType === "Float" || params.serveType === "Both";
+
+        if (showSpike && spikePhysics.status === "Flying") {
+          updateBall(spikePhysics, spikeBall, spikeTrail);
+        }
+        if (showFloat && floatPhysics.status === "Flying") {
+          updateBall(floatPhysics, floatBall, floatTrail);
+        }
+
+        if (activeSims === 0) {
+          isSimulating = false;
+          cancelAnimationFrame(animationFrameId);
+          animationFrameId = null;
+
+          setTimeout(() => {
+            updateLandingMarkers();
+          }, 100);
+        }
+      }
+
+      function handleServeResult(physics, hitNet) {
+        let result = "",
+          color = "";
+        const pos = physics.pos;
+        const halfCourt = CONSTANTS.COURT_LENGTH / 2;
+        const courtLength = CONSTANTS.COURT_LENGTH;
+        const halfWidth = CONSTANTS.COURT_WIDTH / 2;
+
+        if (hitNet) {
+          result = "네트 충돌! 💥";
+          color = "bg-red-600";
+        } else {
+          if (
+            pos.x >= halfCourt &&
+            pos.x <= courtLength &&
+            Math.abs(pos.z) <= halfWidth
+          ) {
+            result = "서브 성공! ✅";
+            color = "bg-green-500";
+          } else if (pos.x < halfCourt) {
+            result = "네트 못 넘김 ❌";
+            color = "bg-orange-500";
+          } else if (pos.x > courtLength) {
+            result = "엔드라인 아웃! ⚠️";
+            color = "bg-yellow-500";
+          } else {
+            result = "사이드라인 아웃! ⚠️";
+            color = "bg-yellow-500";
+          }
+        }
+
+        const serveType = physics.isFloat ? "플로트 서브" : "스파이크 서브";
+        const distance = pos.x.toFixed(2);
+        const lateralDist = pos.z.toFixed(2);
+        messageBox.innerHTML = `
+                <div>${serveType}: ${result}</div>
+                <div class="text-lg mt-2">거리: ${distance}m | 좌우: ${lateralDist}m</div>
+            `;
+        messageBox.className = `absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 p-5 md:p-8 rounded-xl font-bold text-white shadow-2xl z-20 opacity-90 text-2xl md:text-4xl transition-opacity duration-500 ${color}`;
+        messageBox.style.display = "block";
+
+        setTimeout(() => {
+          messageBox.style.opacity = "0";
+          setTimeout(() => {
+            messageBox.style.display = "none";
+            messageBox.style.opacity = "0.9";
+          }, 500);
+        }, 3000);
+      }
+
+      init();
+    </script>
+  </body>
+</html>

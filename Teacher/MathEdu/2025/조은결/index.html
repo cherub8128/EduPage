@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MAIN INDEX</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Arial Black", Arial, sans-serif;
+        background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+        position: relative;
+        overflow: hidden;
+      }
+
+      body::before {
+        content: "";
+        position: absolute;
+        width: 200%;
+        height: 200%;
+        background: repeating-linear-gradient(
+          45deg,
+          transparent,
+          transparent 10px,
+          rgba(255, 255, 255, 0.02) 10px,
+          rgba(255, 255, 255, 0.02) 20px
+        );
+        animation: slide 20s linear infinite;
+      }
+
+      @keyframes slide {
+        0% {
+          transform: translate(0, 0);
+        }
+        100% {
+          transform: translate(50px, 50px);
+        }
+      }
+
+      .container {
+        position: relative;
+        z-index: 1;
+        text-align: center;
+      }
+
+      h1 {
+        color: #ff3333;
+        font-size: 3.5em;
+        margin-bottom: 20px;
+        text-transform: uppercase;
+        letter-spacing: 5px;
+        text-shadow: 0 0 10px rgba(255, 51, 51, 0.5),
+          0 0 20px rgba(255, 51, 51, 0.3), 3px 3px 0 rgba(0, 0, 0, 0.8);
+        animation: pulse 2s ease-in-out infinite;
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          text-shadow: 0 0 10px rgba(255, 51, 51, 0.5),
+            0 0 20px rgba(255, 51, 51, 0.3), 3px 3px 0 rgba(0, 0, 0, 0.8);
+        }
+        50% {
+          text-shadow: 0 0 20px rgba(255, 51, 51, 0.8),
+            0 0 30px rgba(255, 51, 51, 0.5), 3px 3px 0 rgba(0, 0, 0, 0.8);
+        }
+      }
+
+      .subtitle {
+        color: #999;
+        font-size: 1.2em;
+        margin-bottom: 50px;
+        letter-spacing: 3px;
+        text-transform: uppercase;
+      }
+
+      .card-container {
+        display: flex;
+        gap: 40px;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+
+      .card {
+        width: 300px;
+        height: 200px;
+        background: linear-gradient(145deg, #2a2a2a, #1f1f1f);
+        border: 2px solid #333;
+        border-radius: 10px;
+        position: relative;
+        overflow: hidden;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8),
+          inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      }
+
+      .card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(255, 51, 51, 0.3),
+          transparent
+        );
+        transition: left 0.5s;
+      }
+
+      .card:hover::before {
+        left: 100%;
+      }
+
+      .card:hover {
+        transform: translateY(-10px) scale(1.05);
+        border-color: #ff3333;
+        box-shadow: 0 15px 50px rgba(255, 51, 51, 0.4),
+          0 0 30px rgba(255, 51, 51, 0.2),
+          inset 0 1px 0 rgba(255, 255, 255, 0.2);
+      }
+
+      .card a {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        height: 100%;
+        text-decoration: none;
+        color: #fff;
+        position: relative;
+        z-index: 2;
+      }
+
+      .card-icon {
+        font-size: 4em;
+        margin-bottom: 15px;
+        transition: all 0.3s ease;
+      }
+
+      .card:nth-child(1) .card-icon {
+        color: #ff3333;
+        text-shadow: 0 0 20px rgba(255, 51, 51, 0.5);
+      }
+
+      .card:nth-child(2) .card-icon {
+        color: #ffd700;
+        text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+      }
+
+      .card:hover .card-icon {
+        transform: scale(1.2) rotate(5deg);
+      }
+
+      .card-title {
+        font-size: 1.8em;
+        font-weight: bold;
+        text-transform: uppercase;
+        letter-spacing: 3px;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+      }
+
+      .card-subtitle {
+        font-size: 0.9em;
+        color: #999;
+        margin-top: 5px;
+        letter-spacing: 1px;
+      }
+
+      /* 배경 장식 요소 */
+      .bg-decoration {
+        position: absolute;
+        width: 300px;
+        height: 300px;
+        border: 2px solid rgba(255, 51, 51, 0.1);
+        border-radius: 50%;
+        z-index: 0;
+      }
+
+      .bg-decoration:nth-child(1) {
+        top: -150px;
+        left: -150px;
+        animation: rotate 20s linear infinite;
+      }
+
+      .bg-decoration:nth-child(2) {
+        bottom: -150px;
+        right: -150px;
+        animation: rotate 15s linear infinite reverse;
+      }
+
+      @keyframes rotate {
+        from {
+          transform: rotate(0deg);
+        }
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      @media (max-width: 768px) {
+        h1 {
+          font-size: 2em;
+        }
+        .card {
+          width: 100%;
+          max-width: 300px;
+        }
+      }
+    </style>
+    <link rel="canonical" href="https://ekc0517.github.io/math/" />
+  </head>
+  <body>
+    <div class="bg-decoration"></div>
+    <div class="bg-decoration"></div>
+
+    <div class="container">
+      <h1>⚡ MATH WEB ⚡</h1>
+      <div class="subtitle">Choose Your Destination</div>
+
+      <div class="card-container">
+        <div class="card">
+          <a href="magnus.html">
+            <div class="card-icon">♔</div>
+            <div class="card-title">MAGNUS</div>
+            <div class="card-subtitle">Enter Here</div>
+          </a>
+        </div>
+
+        <div class="card">
+          <a href="beziercurve.html">
+            <div class="card-icon">🪢</div>
+            <div class="card-title">BEZIER</div>
+            <div class="card-subtitle">Enter Here</div>
+          </a>
+        </div>
+        <div class="card">
+          <a href="svd.html">
+            <div class="card-icon">📊</div>
+            <div class="card-title">SVD</div>
+            <div class="card-subtitle">Enter Here</div>
+          </a>
+        </div>
+        <div class="card">
+          <a href="integral.html">
+            <div class="card-icon">📈</div>
+            <div class="card-title">INTEGRAL</div>
+            <div class="card-subtitle">Enter Here</div>
+          </a>
+        </div>
+        <div class="card">
+          <a href="complexnumber.html">
+            <div class="card-icon">📐</div>
+            <div class="card-title">COMPLEX NUMBER</div>
+            <div class="card-subtitle">Enter Here</div>
+          </a>
+        </div>
+        <div class="card">
+          <a href="graph.html">
+            <div class="card-icon">🌀</div>
+            <div class="card-title">GRAPH</div>
+            <div class="card-subtitle">Enter Here</div>
+          </a>
+        </div>
+        <div class="card">
+          <a href="coordinate.html">
+            <div class="card-icon">🫧</div>
+            <div class="card-title">COORDINATE</div>
+            <div class="card-subtitle">Enter Here</div>
+          </a>
+        </div>
+        <div class="card">
+          <a href="probability.html">
+            <div class="card-icon">🎊</div>
+            <div class="card-title">PROBABILITY</div>
+            <div class="card-subtitle">Enter Here</div>
+          </a>
+        </div>
+      </div>
+      <div style="margin-top: 30px; color: #666">
+        <p>
+          Original Source:
+          <a
+            href="https://ekc0517.github.io/math/"
+            target="_blank"
+            style="color: #ff3333; text-decoration: none"
+            >https://ekc0517.github.io/math/</a
+          >
+        </p>
+      </div>
+    </div>
+  </body>
+</html>

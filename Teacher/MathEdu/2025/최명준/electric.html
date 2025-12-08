@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>가우스 소거법과 회로 이론 등가성 시뮬레이션</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 20px;
+        min-height: 100vh;
+      }
+      .container {
+        max-width: 1400px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 20px;
+        padding: 30px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      }
+      h1 {
+        text-align: center;
+        color: #333;
+        margin-bottom: 10px;
+        font-size: 28px;
+      }
+      .subtitle {
+        text-align: center;
+        color: #666;
+        margin-bottom: 30px;
+        font-size: 14px;
+      }
+      .main-content {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 30px;
+        margin-bottom: 30px;
+      }
+      .panel {
+        background: #f8f9fa;
+        border-radius: 15px;
+        padding: 20px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+      .panel h2 {
+        color: #667eea;
+        margin-bottom: 15px;
+        font-size: 20px;
+        border-bottom: 3px solid #667eea;
+        padding-bottom: 10px;
+      }
+      canvas {
+        border: 2px solid #ddd;
+        border-radius: 10px;
+        background: white;
+        display: block;
+        margin: 0 auto;
+        cursor: crosshair;
+      }
+      .matrix-container {
+        overflow-x: auto;
+        margin: 15px 0;
+      }
+      table {
+        margin: 0 auto;
+        border-collapse: collapse;
+        background: white;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+      td,
+      th {
+        padding: 10px 15px;
+        text-align: center;
+        border: 1px solid #ddd;
+        min-width: 60px;
+        font-size: 14px;
+      }
+      th {
+        background: #667eea;
+        color: white;
+        font-weight: bold;
+      }
+      .eliminated {
+        background: #ffebee !important;
+        text-decoration: line-through;
+        opacity: 0.5;
+      }
+      .changed {
+        background: #fff3cd !important;
+        font-weight: bold;
+        animation: highlight 0.5s ease;
+      }
+      @keyframes highlight {
+        0%,
+        100% {
+          background: #fff3cd;
+        }
+        50% {
+          background: #ffc107;
+        }
+      }
+      .controls {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        justify-content: center;
+        margin-top: 20px;
+      }
+      button {
+        padding: 12px 24px;
+        font-size: 16px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-weight: bold;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+      button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+      }
+      button:active {
+        transform: translateY(0);
+      }
+      .btn-next {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+      }
+      .btn-reset {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        color: white;
+      }
+      .btn-auto {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        color: white;
+      }
+      .btn-preset {
+        background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+        color: white;
+        font-size: 14px;
+        padding: 10px 20px;
+      }
+      .explanation {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        margin-top: 15px;
+        border-left: 5px solid #667eea;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+      .explanation h3 {
+        color: #667eea;
+        margin-bottom: 10px;
+        font-size: 16px;
+      }
+      .explanation p {
+        color: #555;
+        line-height: 1.6;
+        font-size: 14px;
+      }
+      .step-info {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 15px;
+        border-radius: 10px;
+        text-align: center;
+        margin-bottom: 20px;
+        font-size: 18px;
+        font-weight: bold;
+      }
+      .legend {
+        display: flex;
+        gap: 20px;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin-top: 15px;
+        padding: 15px;
+        background: white;
+        border-radius: 10px;
+      }
+      .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+      }
+      .legend-color {
+        width: 30px;
+        height: 20px;
+        border-radius: 4px;
+        border: 1px solid #ddd;
+      }
+      .circuit-info {
+        background: white;
+        padding: 15px;
+        border-radius: 10px;
+        margin-top: 15px;
+      }
+      .circuit-info h4 {
+        color: #667eea;
+        margin-bottom: 10px;
+      }
+      .circuit-info ul {
+        list-style: none;
+        padding-left: 0;
+      }
+      .circuit-info li {
+        padding: 5px 0;
+        color: #555;
+        font-size: 14px;
+      }
+      .formula {
+        background: #f0f0f0;
+        padding: 10px;
+        border-radius: 5px;
+        font-family: "Courier New", monospace;
+        margin: 10px 0;
+        text-align: center;
+        font-size: 14px;
+      }
+      @media (max-width: 968px) {
+        .main-content {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>⚡ 가우스 소거법과 회로 이론 등가성 시뮬레이션</h1>
+      <p class="subtitle">
+        Numerical Analysis meets Circuit Theory: Gaussian Elimination as Circuit
+        Reduction
+      </p>
+      <div class="step-info" id="stepInfo">초기 상태: 4개 노드 회로망</div>
+      <div class="main-content">
+        <!-- 회로 시각화 -->
+        <div class="panel">
+          <h2>🔌 회로 네트워크 (Circuit Network)</h2>
+          <canvas id="circuitCanvas" width="600" height="500"></canvas>
+          <div class="legend">
+            <div class="legend-item">
+              <div class="legend-color" style="background: #4caf50"></div>
+              <span>활성 노드</span>
+            </div>
+            <div class="legend-item">
+              <div class="legend-color" style="background: #f44336"></div>
+              <span>소거된 노드</span>
+            </div>
+            <div class="legend-item">
+              <div class="legend-color" style="background: #ffc107"></div>
+              <span>등가 연결</span>
+            </div>
+          </div>
+          <div class="circuit-info" id="circuitInfo">
+            <h4>회로 정보</h4>
+            <ul id="circuitDetails"></ul>
+          </div>
+        </div>
+        <!-- 행렬 시각화 -->
+        <div class="panel">
+          <h2>📊 컨덕턴스 행렬 (Conductance Matrix G)</h2>
+          <div class="matrix-container" id="matrixG"></div>
+          <h2 style="margin-top: 20px">📐 전류 벡터 (Current Vector i)</h2>
+          <div class="matrix-container" id="vectorI"></div>
+          <div class="explanation">
+            <h3>📌 현재 단계 설명</h3>
+            <p id="explanationText">
+              초기 상태입니다. Gv = i 방정식을 설정했습니다. 각 노드를 소거하면
+              가우스 소거법의 전방 소거 과정이 회로의 등가 변환과 일치함을 볼 수
+              있습니다.
+            </p>
+          </div>
+        </div>
+      </div>
+      <div class="controls">
+        <button class="btn-preset" onclick="sim.loadPreset('simple')">
+          간단한 회로 (4노드)
+        </button>
+        <button class="btn-preset" onclick="sim.loadPreset('complex')">
+          복잡한 회로 (5노드)
+        </button>
+        <button class="btn-preset" onclick="sim.loadPreset('chain')">
+          체인 회로 (5노드)
+        </button>
+        <button class="btn-next" onclick="sim.nextStep()">▶ 다음 단계</button>
+        <button class="btn-auto" onclick="sim.autoPlay()">🔄 자동 실행</button>
+        <button class="btn-reset" onclick="sim.reset()">↺ 초기화</button>
+      </div>
+      <div class="panel" style="margin-top: 30px">
+        <h2>📚 이론적 배경</h2>
+        <div class="explanation">
+          <h3>가우스 소거법 ≡ 회로 축약</h3>
+          <p style="margin-bottom: 15px">
+            <strong>핵심 발견:</strong> 가우스 소거법의 전방 소거(Forward
+            Elimination) 과정은 회로 이론의 테브난/노턴 등가 변환과 수학적으로
+            동일합니다.
+          </p>
+          <div class="formula">ΔG = Diag(G1) - (G1 · G1T) / (G11 + ΣG1j)</div>
+
+          <p>
+            <strong>물리적 의미:</strong> 노드를 소거할 때, 그 노드와 연결된
+            다른 노드들 사이에 새로운 등가 컨덕턴스가 생성됩니다. 이는 저항의
+            직렬/병렬 연결 법칙의 직접적인 결과입니다.
+          </p>
+        </div>
+      </div>
+    </div>
+    <script>
+      class CircuitSimulator {
+        constructor() {
+          this.canvas = document.getElementById("circuitCanvas");
+          this.ctx = this.canvas.getContext("2d");
+          this.step = 0;
+          this.autoPlayInterval = null;
+          // 기본 회로 설정
+          this.loadPreset("simple");
+        }
+        loadPreset(type) {
+          this.reset();
+          if (type === "simple") {
+            // 4노드 간단한 회로
+            this.nodes = [
+              { id: 1, x: 150, y: 150, label: "N1", eliminated: false },
+              { id: 2, x: 450, y: 150, label: "N2", eliminated: false },
+              { id: 3, x: 450, y: 350, label: "N3", eliminated: false },
+              { id: 4, x: 150, y: 350, label: "N4", eliminated: false },
+            ];
+            this.edges = [
+              { from: 1, to: 2, G: 2, original: true },
+              { from: 2, to: 3, G: 3, original: true },
+              { from: 3, to: 4, G: 2, original: true },
+              { from: 4, to: 1, G: 3, original: true },
+              { from: 1, to: 3, G: 1, original: true },
+            ];
+            this.currents = [5, -2, 3, -6]; // 각 노드의 전류원
+          } else if (type === "complex") {
+            // 5노드 복잡한 회로
+            this.nodes = [
+              { id: 1, x: 300, y: 100, label: "N1", eliminated: false },
+              { id: 2, x: 500, y: 200, label: "N2", eliminated: false },
+              { id: 3, x: 400, y: 400, label: "N3", eliminated: false },
+              { id: 4, x: 200, y: 400, label: "N4", eliminated: false },
+              { id: 5, x: 100, y: 200, label: "N5", eliminated: false },
+            ];
+            this.edges = [
+              { from: 1, to: 2, G: 2, original: true },
+              { from: 1, to: 5, G: 3, original: true },
+              { from: 2, to: 3, G: 2, original: true },
+              { from: 3, to: 4, G: 3, original: true },
+              { from: 4, to: 5, G: 2, original: true },
+              { from: 1, to: 3, G: 1, original: true },
+              { from: 2, to: 4, G: 1, original: true },
+            ];
+            this.currents = [4, -3, 2, -2, -1];
+          } else if (type === "chain") {
+            // 5노드 체인 회로
+            this.nodes = [
+              { id: 1, x: 100, y: 250, label: "N1", eliminated: false },
+              { id: 2, x: 200, y: 250, label: "N2", eliminated: false },
+              { id: 3, x: 300, y: 250, label: "N3", eliminated: false },
+              { id: 4, x: 400, y: 250, label: "N4", eliminated: false },
+              { id: 5, x: 500, y: 250, label: "N5", eliminated: false },
+            ];
+            this.edges = [
+              { from: 1, to: 2, G: 4, original: true },
+              { from: 2, to: 3, G: 3, original: true },
+              { from: 3, to: 4, G: 3, original: true },
+              { from: 4, to: 5, G: 4, original: true },
+            ];
+            this.currents = [10, 0, 0, 0, -10];
+          }
+          this.originalEdges = JSON.parse(JSON.stringify(this.edges));
+          this.calculateMatrix();
+          this.draw();
+        }
+        calculateMatrix() {
+          const n = this.nodes.length;
+          this.G = Array(n)
+            .fill(0)
+            .map(() => Array(n).fill(0));
+          // 컨덕턴스 행렬 구성
+          this.edges.forEach((edge) => {
+            const i = edge.from - 1;
+            const j = edge.to - 1;
+            if (!this.nodes[i].eliminated && !this.nodes[j].eliminated) {
+              this.G[i][i] += edge.G;
+              this.G[j][j] += edge.G;
+              this.G[i][j] -= edge.G;
+              this.G[j][i] -= edge.G;
+            }
+          });
+          this.updateDisplay();
+        }
+        eliminateNode(nodeIndex) {
+          const node = this.nodes[nodeIndex];
+          if (node.eliminated) return;
+          node.eliminated = true;
+          // 소거되는 노드와 연결된 다른 노드들 찾기
+          const connectedNodes = [];
+          this.edges.forEach((edge) => {
+            if (edge.from === node.id) {
+              const targetNode = this.nodes.find((n) => n.id === edge.to);
+              if (!targetNode.eliminated) {
+                connectedNodes.push({ id: edge.to, G: edge.G });
+              }
+            } else if (edge.to === node.id) {
+              const targetNode = this.nodes.find((n) => n.id === edge.from);
+              if (!targetNode.eliminated) {
+                connectedNodes.push({ id: edge.from, G: edge.G });
+              }
+            }
+          });
+          // 연결된 노드들 사이에 등가 컨덕턴스 생성 (회로 이론)
+          for (let i = 0; i < connectedNodes.length; i++) {
+            for (let j = i + 1; j < connectedNodes.length; j++) {
+              const n1 = connectedNodes[i];
+              const n2 = connectedNodes[j];
+              // 등가 컨덕턴스 계산 (직렬 연결된 저항의 병렬 조합)
+              const G_total = connectedNodes.reduce((sum, n) => sum + n.G, 0);
+              const G_equiv = (n1.G * n2.G) / G_total;
+              // 새로운 등가 엣지 추가
+              const existingEdge = this.edges.find(
+                (e) =>
+                  (e.from === n1.id && e.to === n2.id) ||
+                  (e.from === n2.id && e.to === n1.id)
+              );
+              if (existingEdge) {
+                existingEdge.G += G_equiv;
+              } else {
+                this.edges.push({
+                  from: Math.min(n1.id, n2.id),
+                  to: Math.max(n1.id, n2.id),
+                  G: G_equiv,
+                  original: false,
+                  equivalent: true,
+                });
+              }
+            }
+          }
+          // 소거된 노드와 연결된 엣지 제거
+          this.edges = this.edges.filter(
+            (edge) => edge.from !== node.id && edge.to !== node.id
+          );
+          this.calculateMatrix();
+        }
+        nextStep() {
+          if (this.step >= this.nodes.length) {
+            alert("모든 노드가 소거되었습니다!");
+            return;
+          }
+          this.eliminateNode(this.step);
+          this.step++;
+          this.updateStepInfo();
+          this.draw();
+        }
+        autoPlay() {
+          if (this.autoPlayInterval) {
+            clearInterval(this.autoPlayInterval);
+            this.autoPlayInterval = null;
+            return;
+          }
+          this.autoPlayInterval = setInterval(() => {
+            if (this.step >= this.nodes.length) {
+              clearInterval(this.autoPlayInterval);
+              this.autoPlayInterval = null;
+              return;
+            }
+            this.nextStep();
+          }, 2000);
+        }
+        reset() {
+          if (this.autoPlayInterval) {
+            clearInterval(this.autoPlayInterval);
+            this.autoPlayInterval = null;
+          }
+          this.step = 0;
+          this.nodes = [];
+          this.edges = [];
+          this.currents = [];
+          this.G = [];
+          this.updateStepInfo();
+        }
+        updateStepInfo() {
+          const stepInfo = document.getElementById("stepInfo");
+          if (this.step === 0) {
+            stepInfo.textContent = `초기 상태: ${this.nodes.length}개 노드 회로망`;
+          } else if (this.step < this.nodes.length) {
+            stepInfo.textContent = `Step ${this.step}: Node ${
+              this.step
+            } 소거 완료 (${this.nodes.length - this.step}개 노
+드 남음)`;
+          } else {
+            stepInfo.textContent = `완료: 모든 노드 소거됨`;
+          }
+          // 설명 업데이트
+          const explanationText = document.getElementById("explanationText");
+          if (this.step === 0) {
+            explanationText.innerHTML = `
+<strong>초기 상태:</strong> Gv = i 방정식을 설정했습니다.
+각 노드를 소거하면 가우스 소거법의 전방 소거 과정이
+회로의 등가 변환과 일치함을 볼 수 있습니다.
+`;
+          } else if (this.step <= this.nodes.length) {
+            const eliminatedNode = this.nodes[this.step - 1];
+            explanationText.innerHTML = `
+<strong>Node ${this.step} 소거:</strong><br>
+• <strong>수학적:</strong> 행렬 G의 ${this.step}행을 소거하여 나머지 행들을 업데이트<br>
+• <strong>회로적:</strong> Node ${this.step}을 제거하고, 인접 노드들 사이에
+테브난/노턴 등가 회로 생성<br>
+• <strong>결과:</strong> 두 접근법의 수식이 정확히 일치 (Woodbury identity)
+`;
+          }
+        }
+        updateDisplay() {
+          // 행렬 G 표시
+          let html = "<table><tr><th></th>";
+          for (let i = 0; i < this.nodes.length; i++) {
+            html += `<th>N${i + 1}</th>`;
+          }
+          html += "</tr>";
+          for (let i = 0; i < this.nodes.length; i++) {
+            html += `<tr><th>N${i + 1}</th>`;
+            for (let j = 0; j < this.nodes.length; j++) {
+              const value = this.G[i][j].toFixed(2);
+              const isEliminated =
+                this.nodes[i].eliminated || this.nodes[j].eliminated;
+              const className = isEliminated ? "eliminated" : "";
+              html += `<td class="${className}">${value}</td>`;
+            }
+            html += "</tr>";
+          }
+          html += "</table>";
+          document.getElementById("matrixG").innerHTML = html;
+          // 전류 벡터 표시
+          html = "<table><tr><th></th><th>i</th></tr>";
+          for (let i = 0; i < this.nodes.length; i++) {
+            const className = this.nodes[i].eliminated ? "eliminated" : "";
+            html += `<tr><th>N${
+              i + 1
+            }</th><td class="${className}">${this.currents[i].toFixed(
+              1
+            )}</td></tr>`;
+          }
+          html += "</table>";
+          document.getElementById("vectorI").innerHTML = html;
+          // 회로 정보 표시
+          const activeNodes = this.nodes.filter((n) => !n.eliminated).length;
+          const activeEdges = this.edges.length;
+          const equivalentEdges = this.edges.filter((e) => e.equivalent).length;
+          document.getElementById("circuitDetails").innerHTML = `
+<li>✓ 활성 노드: ${activeNodes}개</li>
+<li>✓ 총 연결: ${activeEdges}개</li>
+<li>✓ 등가 연결: ${equivalentEdges}개</li>
+<li>✓ 소거된 노드: ${this.step}개</li>
+`;
+        }
+        draw() {
+          const ctx = this.ctx;
+          ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+          // 엣지 그리기
+          this.edges.forEach((edge) => {
+            const fromNode = this.nodes.find((n) => n.id === edge.from);
+            const toNode = this.nodes.find((n) => n.id === edge.to);
+            if (!fromNode || !toNode) return;
+            ctx.beginPath();
+            ctx.moveTo(fromNode.x, fromNode.y);
+            ctx.lineTo(toNode.x, toNode.y);
+            if (edge.equivalent) {
+              ctx.strokeStyle = "#FFC107";
+              ctx.lineWidth = 3;
+              ctx.setLineDash([5, 5]);
+            } else {
+              ctx.strokeStyle = "#2196F3";
+              ctx.lineWidth = 2;
+              ctx.setLineDash([]);
+            }
+            ctx.stroke();
+            // 컨덕턴스 값 표시
+            const midX = (fromNode.x + toNode.x) / 2;
+            const midY = (fromNode.y + toNode.y) / 2;
+            ctx.fillStyle = edge.equivalent ? "#F57C00" : "#1976D2";
+            ctx.font = "bold 12px Arial";
+            ctx.fillText(`G=${edge.G.toFixed(2)}`, midX + 5, midY - 5);
+          });
+          // 노드 그리기
+          this.nodes.forEach((node, index) => {
+            ctx.beginPath();
+            ctx.arc(node.x, node.y, 25, 0, Math.PI * 2);
+            if (node.eliminated) {
+              ctx.fillStyle = "#f44336";
+            } else {
+              ctx.fillStyle = "#4CAF50";
+            }
+            ctx.fill();
+            ctx.strokeStyle = "#333";
+            ctx.lineWidth = 3;
+            ctx.stroke();
+            // 노드 레이블
+            ctx.fillStyle = "white";
+            ctx.font = "bold 14px Arial";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText(node.label, node.x, node.y);
+            // 전류원 표시
+            if (this.currents[index] !== 0) {
+              ctx.fillStyle = node.eliminated ? "#999" : "#333";
+              ctx.font = "12px Arial";
+              ctx.fillText(`i=${this.currents[index]}A`, node.x, node.y + 45);
+            }
+          });
+          ctx.setLineDash([]);
+        }
+      }
+      // 시뮬레이터 초기화
+      const sim = new CircuitSimulator();
+    </script>
+  </body>
+</html>

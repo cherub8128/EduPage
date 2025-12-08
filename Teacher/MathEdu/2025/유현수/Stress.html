@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>응력 집중 시뮬레이션</title>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700&display=swap");
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Pretendard", -apple-system, BlinkMacSystemFont, sans-serif;
+        background: #0d1117;
+        color: #e6edf3;
+        overflow: hidden;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+      }
+
+      #app {
+        width: 100%;
+        max-width: 1600px;
+        height: 100vh;
+        display: flex;
+        gap: 40px;
+        padding: 40px;
+        align-items: center;
+      }
+
+      .canvas-section {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        align-items: center;
+      }
+
+      #canvas {
+        border-radius: 20px;
+        box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.05),
+          0 20px 40px rgba(0, 0, 0, 0.4);
+        background: #161b22;
+      }
+
+      .canvas-info {
+        color: #7d8590;
+        font-size: 13px;
+        text-align: center;
+      }
+
+      .control-panel {
+        width: 400px;
+        background: linear-gradient(145deg, #161b22 0%, #1c2128 100%);
+        border-radius: 24px;
+        padding: 36px;
+        box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.05),
+          0 20px 50px rgba(0, 0, 0, 0.5);
+      }
+
+      .panel-header {
+        margin-bottom: 32px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      }
+
+      .panel-title {
+        font-size: 26px;
+        font-weight: 700;
+        color: #e6edf3;
+        margin-bottom: 8px;
+        letter-spacing: -0.5px;
+      }
+
+      .panel-subtitle {
+        font-size: 14px;
+        color: #7d8590;
+        font-weight: 400;
+      }
+
+      .stats-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        margin-bottom: 32px;
+      }
+
+      .stat-card {
+        background: rgba(56, 139, 253, 0.08);
+        border: 1px solid rgba(56, 139, 253, 0.2);
+        border-radius: 12px;
+        padding: 16px;
+      }
+
+      .stat-label {
+        font-size: 11px;
+        color: #7d8590;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 6px;
+      }
+
+      .stat-value {
+        font-size: 24px;
+        font-weight: 700;
+        color: #58a6ff;
+      }
+
+      .stat-unit {
+        font-size: 13px;
+        color: #7d8590;
+        font-weight: 400;
+      }
+
+      .control-group {
+        margin-bottom: 28px;
+      }
+
+      .control-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+      }
+
+      .control-label {
+        font-size: 14px;
+        color: #c9d1d9;
+        font-weight: 500;
+      }
+
+      .control-value {
+        font-size: 15px;
+        font-weight: 600;
+        color: #58a6ff;
+        font-variant-numeric: tabular-nums;
+      }
+
+      input[type="range"] {
+        -webkit-appearance: none;
+        width: 100%;
+        height: 6px;
+        border-radius: 3px;
+        background: linear-gradient(
+          to right,
+          #388bfd 0%,
+          #388bfd var(--value),
+          #21262d var(--value),
+          #21262d 100%
+        );
+        outline: none;
+        transition: all 0.2s;
+      }
+
+      input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: linear-gradient(180deg, #58a6ff 0%, #388bfd 100%);
+        cursor: pointer;
+        box-shadow: 0 0 0 4px rgba(56, 139, 253, 0.15),
+          0 2px 8px rgba(0, 0, 0, 0.3);
+        transition: all 0.2s;
+      }
+
+      input[type="range"]::-webkit-slider-thumb:hover {
+        transform: scale(1.1);
+        box-shadow: 0 0 0 6px rgba(56, 139, 253, 0.2),
+          0 4px 12px rgba(0, 0, 0, 0.4);
+      }
+
+      input[type="range"]::-webkit-slider-thumb:active {
+        transform: scale(0.95);
+      }
+
+      .legend-section {
+        margin-top: 32px;
+        padding-top: 24px;
+        border-top: 1px solid rgba(255, 255, 255, 0.06);
+      }
+
+      .legend-title {
+        font-size: 13px;
+        color: #7d8590;
+        margin-bottom: 16px;
+        font-weight: 500;
+      }
+
+      .gradient-bar {
+        width: 100%;
+        height: 22px;
+        border-radius: 11px;
+        background: linear-gradient(
+          to right,
+          #1f6feb 0%,
+          #388bfd 15%,
+          #58a6ff 30%,
+          #79c0ff 45%,
+          #ffd33d 60%,
+          #ff9f0a 75%,
+          #ff6b6b 90%,
+          #ff4444 100%
+        );
+        margin-bottom: 12px;
+        box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1),
+          0 4px 16px rgba(56, 139, 253, 0.2);
+      }
+
+      .legend-labels {
+        display: flex;
+        justify-content: space-between;
+        font-size: 11px;
+        color: #7d8590;
+        padding: 0 4px;
+      }
+
+      .tip-box {
+        margin-top: 24px;
+        padding: 16px;
+        background: rgba(255, 212, 59, 0.08);
+        border: 1px solid rgba(255, 212, 59, 0.2);
+        border-radius: 12px;
+      }
+
+      .tip-title {
+        font-size: 12px;
+        color: #ffd33d;
+        font-weight: 600;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .tip-content {
+        font-size: 12px;
+        color: #c9d1d9;
+        line-height: 1.6;
+      }
+
+      @media (max-width: 1200px) {
+        #app {
+          flex-direction: column;
+          padding: 24px;
+          height: auto;
+        }
+        .control-panel {
+          width: 100%;
+          max-width: 600px;
+        }
+      }
+    </style>
+    <link rel="canonical" href="https://edgar0401.github.io/Math/Stress.html" />
+  </head>
+  <body>
+    <div id="app">
+      <div class="canvas-section">
+        <canvas id="canvas" width="900" height="700"></canvas>
+        <div class="canvas-info">
+          균열 주변의 응력 분포 - 색상이 밝을수록 응력이 높습니다
+        </div>
+      </div>
+
+      <div class="control-panel">
+        <div class="panel-header">
+          <div class="panel-title">응력 집중 분석</div>
+          <div class="panel-subtitle">Inglis 해석 솔루션</div>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-label">최대 응력</div>
+            <div class="stat-value">
+              <span id="max-stress">300</span>
+              <span class="stat-unit">MPa</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">집중 계수</div>
+            <div class="stat-value">
+              <span id="scf-value">3.00</span>
+              <span class="stat-unit">×</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <div class="control-header">
+            <span class="control-label">균열 길이 (2a)</span>
+            <span class="control-value"><span id="val-a">100</span> mm</span>
+          </div>
+          <input
+            type="range"
+            id="slider-a"
+            min="40"
+            max="250"
+            value="100"
+            style="--value: 24%"
+          />
+        </div>
+
+        <div class="control-group">
+          <div class="control-header">
+            <span class="control-label">균열 곡률 반경 (ρ)</span>
+            <span class="control-value"><span id="val-rho">8</span> mm</span>
+          </div>
+          <input
+            type="range"
+            id="slider-rho"
+            min="1"
+            max="40"
+            value="8"
+            style="--value: 17.9%"
+          />
+        </div>
+
+        <div class="control-group">
+          <div class="control-header">
+            <span class="control-label">균열 각도 (θ)</span>
+            <span class="control-value"><span id="val-angle">0</span>°</span>
+          </div>
+          <input
+            type="range"
+            id="slider-angle"
+            min="0"
+            max="90"
+            value="0"
+            style="--value: 0%"
+          />
+        </div>
+
+        <div class="control-group">
+          <div class="control-header">
+            <span class="control-label">외부 하중 (σ₀)</span>
+            <span class="control-value"
+              ><span id="val-stress">100</span> MPa</span
+            >
+          </div>
+          <input
+            type="range"
+            id="slider-stress"
+            min="20"
+            max="200"
+            value="100"
+            style="--value: 44.4%"
+          />
+        </div>
+
+        <div class="legend-section">
+          <div class="legend-title">응력 분포 색상 범례</div>
+          <div class="gradient-bar"></div>
+          <div class="legend-labels">
+            <span>낮음</span>
+            <span>보통</span>
+            <span>높음</span>
+            <span>위험</span>
+          </div>
+        </div>
+
+        <div class="tip-box">
+          <div class="tip-title">
+            <span>💡</span>
+            <span>사용 팁</span>
+          </div>
+          <div class="tip-content">
+            균열 곡률 반경(ρ)을 작게 하면 날카로워져 응력 집중이 급격히
+            증가합니다. 각도를 0°에서 90°로 바꾸면 응력 집중이 사라지는 것을
+            관찰할 수 있습니다.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const canvas = document.getElementById("canvas");
+      const ctx = canvas.getContext("2d");
+
+      let params = {
+        a: 50,
+        rho: 8,
+        stress: 100,
+        angle: 0,
+      };
+
+      const sliders = {
+        a: document.getElementById("slider-a"),
+        rho: document.getElementById("slider-rho"),
+        stress: document.getElementById("slider-stress"),
+        angle: document.getElementById("slider-angle"),
+      };
+
+      const values = {
+        a: document.getElementById("val-a"),
+        rho: document.getElementById("val-rho"),
+        stress: document.getElementById("val-stress"),
+        angle: document.getElementById("val-angle"),
+      };
+
+      function updateSliderProgress(slider, value, min, max) {
+        const percent = ((value - min) / (max - min)) * 100;
+        slider.style.setProperty("--value", percent + "%");
+      }
+
+      function calculateSCF() {
+        const angleRad = (params.angle * Math.PI) / 180;
+        const K =
+          1 + 2 * Math.sqrt(params.a / params.rho) * Math.cos(angleRad) ** 2;
+        return K;
+      }
+
+      function updateInfo() {
+        const K = calculateSCF();
+        const maxStress = params.stress * K;
+        document.getElementById("scf-value").textContent = K.toFixed(2);
+        document.getElementById("max-stress").textContent =
+          Math.round(maxStress);
+      }
+
+      sliders.a.addEventListener("input", (e) => {
+        params.a = parseInt(e.target.value) / 2;
+        values.a.textContent = parseInt(e.target.value);
+        updateSliderProgress(
+          e.target,
+          e.target.value,
+          e.target.min,
+          e.target.max
+        );
+        updateInfo();
+        render();
+      });
+
+      sliders.rho.addEventListener("input", (e) => {
+        params.rho = parseInt(e.target.value);
+        values.rho.textContent = params.rho;
+        updateSliderProgress(
+          e.target,
+          e.target.value,
+          e.target.min,
+          e.target.max
+        );
+        updateInfo();
+        render();
+      });
+
+      sliders.stress.addEventListener("input", (e) => {
+        params.stress = parseInt(e.target.value);
+        values.stress.textContent = params.stress;
+        updateSliderProgress(
+          e.target,
+          e.target.value,
+          e.target.min,
+          e.target.max
+        );
+        updateInfo();
+        render();
+      });
+
+      sliders.angle.addEventListener("input", (e) => {
+        params.angle = parseInt(e.target.value);
+        values.angle.textContent = params.angle;
+        updateSliderProgress(
+          e.target,
+          e.target.value,
+          e.target.min,
+          e.target.max
+        );
+        updateInfo();
+        render();
+      });
+
+      function rotatePoint(x, y, angle) {
+        const rad = (angle * Math.PI) / 180;
+        const cos = Math.cos(rad);
+        const sin = Math.sin(rad);
+        return {
+          x: x * cos - y * sin,
+          y: x * sin + y * cos,
+        };
+      }
+
+      function calculateStress(x, y) {
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+
+        let dx = (x - centerX) / 2.5;
+        let dy = (y - centerY) / 2.5;
+
+        const rotated = rotatePoint(dx, dy, -params.angle);
+        dx = rotated.x;
+        dy = rotated.y;
+
+        const a = params.a;
+        const b = params.rho;
+
+        const ellipse = (dx * dx) / (a * a) + (dy * dy) / (b * b);
+        if (ellipse < 1) {
+          return -1;
+        }
+
+        const tipDist1 = Math.sqrt((dx - a) ** 2 + dy ** 2);
+        const tipDist2 = Math.sqrt((dx + a) ** 2 + dy ** 2);
+        const r = Math.min(tipDist1, tipDist2);
+        const theta = Math.atan2(dy, Math.abs(dx) - a);
+
+        const K = calculateSCF();
+        const rNorm = Math.max(r, 0.5);
+        const distFactor = 1 / Math.sqrt(rNorm);
+        const angleFactor = Math.pow(Math.cos(theta / 2), 2);
+        const yFactor = Math.exp(-Math.abs(dx) / (a * 2.5));
+
+        const localStress =
+          params.stress *
+          (1 + (K - 1) * distFactor * angleFactor * 0.5) *
+          (0.25 + 0.75 * yFactor);
+
+        return localStress;
+      }
+
+      function getStressColor(stress) {
+        const maxDisplay = 500;
+        const t = Math.min(stress / maxDisplay, 1);
+
+        let r, g, b;
+
+        if (t < 0.15) {
+          const s = t / 0.15;
+          r = 31 + (56 - 31) * s;
+          g = 111 + (139 - 111) * s;
+          b = 251 + (253 - 251) * s;
+        } else if (t < 0.3) {
+          const s = (t - 0.15) / 0.15;
+          r = 56 + (88 - 56) * s;
+          g = 139 + (166 - 139) * s;
+          b = 253 + (255 - 253) * s;
+        } else if (t < 0.45) {
+          const s = (t - 0.3) / 0.15;
+          r = 88 + (121 - 88) * s;
+          g = 166 + (192 - 166) * s;
+          b = 255;
+        } else if (t < 0.6) {
+          const s = (t - 0.45) / 0.15;
+          r = 121 + (255 - 121) * s;
+          g = 192 + (211 - 192) * s;
+          b = 255 + (61 - 255) * s;
+        } else if (t < 0.75) {
+          const s = (t - 0.6) / 0.15;
+          r = 255;
+          g = 211 + (159 - 211) * s;
+          b = 61 + (10 - 61) * s;
+        } else if (t < 0.9) {
+          const s = (t - 0.75) / 0.15;
+          r = 255;
+          g = 159 + (107 - 159) * s;
+          b = 10 + (107 - 10) * s;
+        } else {
+          const s = (t - 0.9) / 0.1;
+          r = 255 + (68 - 255) * s;
+          g = 107 + (68 - 107) * s;
+          b = 107 + (68 - 107) * s;
+        }
+
+        return { r: Math.round(r), g: Math.round(g), b: Math.round(b) };
+      }
+
+      function render() {
+        ctx.fillStyle = "#161b22";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+
+        const imageData = ctx.createImageData(canvas.width, canvas.height);
+        const data = imageData.data;
+
+        const stressField = [];
+
+        for (let y = 0; y < canvas.height; y++) {
+          stressField[y] = [];
+          for (let x = 0; x < canvas.width; x++) {
+            const stress = calculateStress(x, y);
+            stressField[y][x] = stress;
+          }
+        }
+
+        for (let y = 0; y < canvas.height; y++) {
+          for (let x = 0; x < canvas.width; x++) {
+            const idx = (y * canvas.width + x) * 4;
+            const stress = stressField[y][x];
+
+            if (stress < 0) {
+              data[idx] = 22;
+              data[idx + 1] = 27;
+              data[idx + 2] = 34;
+              data[idx + 3] = 255;
+            } else {
+              const color = getStressColor(stress);
+              data[idx] = color.r;
+              data[idx + 1] = color.g;
+              data[idx + 2] = color.b;
+              data[idx + 3] = 255;
+            }
+          }
+        }
+
+        ctx.putImageData(imageData, 0, 0);
+
+        // 부드러운 등고선
+        ctx.globalAlpha = 0.15;
+        const contourLevels = [100, 200, 300, 400];
+        contourLevels.forEach((level) => {
+          for (let y = 1; y < canvas.height - 1; y += 2) {
+            for (let x = 1; x < canvas.width - 1; x += 2) {
+              const stress = stressField[y][x];
+              if (stress > 0 && Math.abs(stress - level) < 15) {
+                ctx.fillStyle = "#ffffff";
+                ctx.fillRect(x, y, 2, 2);
+              }
+            }
+          }
+        });
+        ctx.globalAlpha = 1.0;
+
+        // 균열 그리기
+        ctx.save();
+        ctx.translate(centerX, centerY);
+        ctx.rotate((params.angle * Math.PI) / 180);
+
+        const a_px = params.a * 2.5;
+        const b_px = params.rho * 2.5;
+
+        ctx.beginPath();
+        ctx.ellipse(0, 0, a_px, b_px, 0, 0, Math.PI * 2);
+        ctx.strokeStyle = "#58a6ff";
+        ctx.lineWidth = 3;
+        ctx.stroke();
+
+        ctx.fillStyle = "#0d1117";
+        ctx.fill();
+
+        // 균열 끝단
+        ctx.fillStyle = "#ff6b6b";
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = "#ff6b6b";
+        ctx.beginPath();
+        ctx.arc(a_px, 0, 5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(-a_px, 0, 5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+
+        ctx.restore();
+      }
+
+      updateInfo();
+      render();
+    </script>
+  </body>
+</html>

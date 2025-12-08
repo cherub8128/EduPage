@@ -1,0 +1,1372 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Whispering Gallery - 타원형/원형 음향 전달 시뮬레이션</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(
+          135deg,
+          #0d0d1a 0%,
+          #1a1a2e 50%,
+          #16213e 100%
+        );
+        min-height: 100vh;
+        color: #e0e0e0;
+        padding: 20px;
+      }
+
+      .container {
+        max-width: 1000px;
+        margin: 0 auto;
+      }
+
+      header {
+        text-align: center;
+        margin-bottom: 20px;
+      }
+
+      h1 {
+        font-size: 2.2rem;
+        background: linear-gradient(90deg, #00d4ff, #7b2cbf, #ff006e);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 8px;
+      }
+
+      .subtitle {
+        color: #888;
+        font-size: 1rem;
+      }
+
+      .canvas-container {
+        background: #0a0a14;
+        border-radius: 16px;
+        padding: 20px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5),
+          inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        margin-bottom: 20px;
+      }
+
+      canvas {
+        display: block;
+        width: 100%;
+        border-radius: 8px;
+        background: #050510;
+      }
+
+      .controls {
+        background: rgba(26, 26, 46, 0.8);
+        border-radius: 12px;
+        padding: 20px;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-bottom: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .control-group {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .control-group label {
+        font-size: 0.9rem;
+        color: #aaa;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .control-group label span {
+        color: #00d4ff;
+        font-weight: bold;
+      }
+
+      input[type="range"] {
+        -webkit-appearance: none;
+        width: 100%;
+        height: 6px;
+        border-radius: 3px;
+        background: linear-gradient(90deg, #2a2a4a, #3a3a5a);
+        outline: none;
+      }
+
+      input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #00d4ff, #7b2cbf);
+        cursor: pointer;
+        box-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+      }
+
+      button {
+        padding: 12px 24px;
+        font-size: 1rem;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: all 0.3s ease;
+      }
+
+      .btn-primary {
+        background: linear-gradient(135deg, #00d4ff, #0099cc);
+        color: #000;
+      }
+
+      .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 20px rgba(0, 212, 255, 0.4);
+      }
+
+      .btn-secondary {
+        background: linear-gradient(135deg, #7b2cbf, #5a1f8f);
+        color: #fff;
+      }
+
+      .btn-secondary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 20px rgba(123, 44, 191, 0.4);
+      }
+
+      .btn-wgm {
+        background: linear-gradient(135deg, #ff006e, #ff4d94);
+        color: #fff;
+      }
+
+      .btn-wgm:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 20px rgba(255, 0, 110, 0.4);
+      }
+
+      .btn-wgm.active {
+        background: linear-gradient(135deg, #00ff88, #00cc6a);
+        color: #000;
+        animation: pulse 1.5s infinite;
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          box-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+        }
+        50% {
+          box-shadow: 0 0 25px rgba(0, 255, 136, 0.8);
+        }
+      }
+
+      .info-panel {
+        display: flex;
+        gap: 15px;
+        flex-wrap: wrap;
+        justify-content: center;
+        margin-top: 15px;
+        padding: 15px;
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 8px;
+      }
+
+      .info-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 15px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 20px;
+        font-size: 0.85rem;
+      }
+
+      .info-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+      }
+
+      .dot-f1 {
+        background: #ff006e;
+        box-shadow: 0 0 8px #ff006e;
+      }
+      .dot-f2 {
+        background: #00ff88;
+        box-shadow: 0 0 8px #00ff88;
+      }
+      .dot-start {
+        background: #ffaa00;
+        box-shadow: 0 0 8px #ffaa00;
+      }
+      .dot-ray {
+        background: #ffcc00;
+        box-shadow: 0 0 8px #ffcc00;
+      }
+      .dot-wgm {
+        background: #00d4ff;
+        box-shadow: 0 0 8px #00d4ff;
+      }
+
+      .status-bar {
+        display: flex;
+        justify-content: center;
+        gap: 30px;
+        margin-top: 10px;
+        font-size: 0.9rem;
+        flex-wrap: wrap;
+      }
+
+      .status-item {
+        color: #00d4ff;
+      }
+
+      .wgm-info {
+        background: rgba(255, 0, 110, 0.1);
+        border: 1px solid rgba(255, 0, 110, 0.3);
+        border-radius: 8px;
+        padding: 15px;
+        margin-top: 15px;
+        display: none;
+      }
+
+      .wgm-info.visible {
+        display: block;
+      }
+
+      .wgm-info h3 {
+        color: #ff006e;
+        margin-bottom: 10px;
+        font-size: 1rem;
+      }
+
+      .wgm-formula {
+        font-family: "Times New Roman", serif;
+        font-size: 1.2rem;
+        color: #00d4ff;
+        text-align: center;
+        padding: 10px;
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 5px;
+        margin: 10px 0;
+      }
+
+      .wgm-details {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 10px;
+        margin-top: 10px;
+      }
+
+      .wgm-detail-item {
+        background: rgba(0, 0, 0, 0.2);
+        padding: 10px;
+        border-radius: 5px;
+        text-align: center;
+      }
+
+      .wgm-detail-item .value {
+        font-size: 1.3rem;
+        color: #00ff88;
+        font-weight: bold;
+      }
+
+      .wgm-detail-item .label {
+        font-size: 0.8rem;
+        color: #888;
+      }
+
+      @media (max-width: 600px) {
+        h1 {
+          font-size: 1.6rem;
+        }
+        .controls {
+          padding: 15px;
+          gap: 15px;
+        }
+      }
+    </style>
+    <link rel="canonical" href="https://ekc0517.github.io/math/physics1.html" />
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>🔊 Whispering Gallery</h1>
+        <p class="subtitle">
+          타원형/원형 공간에서의 음향 전달 및 회랑 모드 시뮬레이션
+        </p>
+      </header>
+
+      <div class="canvas-container">
+        <canvas id="canvas"></canvas>
+        <div class="info-panel">
+          <div class="info-item">
+            <div class="info-dot dot-f1"></div>
+            <span id="f1Label">발신 초점 (F₁)</span>
+          </div>
+          <div class="info-item" id="f2LabelContainer">
+            <div class="info-dot dot-f2"></div>
+            <span id="f2Label">수신 초점 (F₂)</span>
+          </div>
+          <div class="info-item" id="startLabelContainer" style="display: none">
+            <div class="info-dot dot-start"></div>
+            <span>시작점 (S)</span>
+          </div>
+          <div class="info-item">
+            <div class="info-dot dot-ray"></div>
+            음파 (광선)
+          </div>
+          <div class="info-item">
+            <div class="info-dot dot-wgm"></div>
+            회랑 모드 (WGM)
+          </div>
+        </div>
+        <div class="status-bar">
+          <span class="status-item"
+            >활성 광선: <span id="activeCount">0</span></span
+          >
+          <span class="status-item" id="passLabelContainer"
+            >F₂ 통과: <span id="f2Count">0</span></span
+          >
+          <span class="status-item" id="completeLabelContainer"
+            >F₁ 복귀 완료: <span id="f1Count">0</span></span
+          >
+          <span class="status-item" id="wgmStatus" style="display: none"
+            >WGM 모드: <span id="wgmMode">-</span></span
+          >
+        </div>
+
+        <div class="wgm-info" id="wgmInfo">
+          <h3>🌀 Whispering Gallery Mode (회랑 모드)</h3>
+          <div class="wgm-formula">2πR = mλ</div>
+          <p style="font-size: 0.85rem; color: #aaa; margin-bottom: 10px">
+            원의 둘레가 파장의 정수배일 때 공명 조건이 성립하여 정상파가
+            형성됩니다.
+          </p>
+          <div class="wgm-details">
+            <div class="wgm-detail-item">
+              <div class="value" id="wgmRadius">-</div>
+              <div class="label">반지름 R (px)</div>
+            </div>
+            <div class="wgm-detail-item">
+              <div class="value" id="wgmCircumference">-</div>
+              <div class="label">둘레 2πR (px)</div>
+            </div>
+            <div class="wgm-detail-item">
+              <div class="value" id="wgmModeNumber">-</div>
+              <div class="label">모드 번호 m</div>
+            </div>
+            <div class="wgm-detail-item">
+              <div class="value" id="wgmWavelength">-</div>
+              <div class="label">파장 λ (px)</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="controls">
+        <div class="control-group">
+          <label
+            >이심률 (Eccentricity):
+            <span id="eccentricityValue">0.60</span></label
+          >
+          <input
+            type="range"
+            id="eccentricity"
+            min="0"
+            max="0.95"
+            step="0.01"
+            value="0.6"
+          />
+        </div>
+        <div class="control-group">
+          <label>광선 수: <span id="rayCountValue">24</span></label>
+          <input
+            type="range"
+            id="rayCount"
+            min="8"
+            max="72"
+            step="4"
+            value="24"
+          />
+        </div>
+        <div class="control-group">
+          <label>속도: <span id="speedValue">1.0</span>x</label>
+          <input
+            type="range"
+            id="speed"
+            min="0.3"
+            max="3"
+            step="0.1"
+            value="1"
+          />
+        </div>
+        <div class="control-group">
+          <label>WGM 모드 번호 (m): <span id="wgmModeValue">8</span></label>
+          <input
+            type="range"
+            id="wgmModeSlider"
+            min="3"
+            max="30"
+            step="1"
+            value="8"
+          />
+        </div>
+        <div
+          class="control-group"
+          style="
+            flex-direction: row;
+            gap: 10px;
+            align-items: flex-end;
+            flex-wrap: wrap;
+          "
+        >
+          <button class="btn-primary" id="startBtn">▶ 광선 발사</button>
+          <button class="btn-wgm" id="wgmBtn">🌀 회랑 모드</button>
+          <button class="btn-secondary" id="clearBtn">↺ 초기화</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const canvas = document.getElementById("canvas");
+      const ctx = canvas.getContext("2d");
+
+      function resizeCanvas() {
+        const rect = canvas.parentElement.getBoundingClientRect();
+        const dpr = window.devicePixelRatio || 1;
+        canvas.width = (rect.width - 40) * dpr;
+        canvas.height = 500 * dpr;
+        canvas.style.height = "500px";
+        ctx.scale(dpr, dpr);
+      }
+      resizeCanvas();
+      window.addEventListener("resize", () => {
+        resizeCanvas();
+        init();
+      });
+
+      function getDisplaySize() {
+        return {
+          width: canvas.width / (window.devicePixelRatio || 1),
+          height: canvas.height / (window.devicePixelRatio || 1),
+        };
+      }
+
+      const eccentricitySlider = document.getElementById("eccentricity");
+      const rayCountSlider = document.getElementById("rayCount");
+      const speedSlider = document.getElementById("speed");
+      const wgmModeSlider = document.getElementById("wgmModeSlider");
+      const startBtn = document.getElementById("startBtn");
+      const clearBtn = document.getElementById("clearBtn");
+      const wgmBtn = document.getElementById("wgmBtn");
+
+      let rays = [];
+      let animationId = null;
+      let ellipseParams = {};
+      let completedCount = 0;
+      let firstPassCount = 0;
+      let isWGMMode = false;
+      let wgmTime = 0;
+      let wgmParticles = [];
+      let randomStartPoint = null; // 원형일 때 랜덤 시작점 저장
+
+      function calculateEllipse() {
+        const { width, height } = getDisplaySize();
+        const centerX = width / 2;
+        const centerY = height / 2;
+        const e = parseFloat(eccentricitySlider.value);
+
+        const a = Math.min(width, height) * 0.42;
+        let c, b;
+
+        if (e === 0) {
+          c = 0;
+          b = a;
+        } else {
+          c = a * e;
+          b = Math.sqrt(a * a - c * c);
+        }
+
+        ellipseParams = {
+          centerX,
+          centerY,
+          a,
+          b,
+          c,
+          f1: { x: centerX - c, y: centerY },
+          f2: { x: centerX + c, y: centerY },
+          isCircle: e === 0,
+        };
+
+        document.getElementById("eccentricityValue").textContent = e.toFixed(2);
+        updateLabels();
+      }
+
+      function updateLabels() {
+        const isCircle = ellipseParams.isCircle;
+
+        if (isCircle) {
+          document.getElementById("f1Label").textContent = "중심 (O)";
+          document.getElementById("f2LabelContainer").style.display = "none";
+          document.getElementById("startLabelContainer").style.display = "flex";
+          document.getElementById("passLabelContainer").style.display = "none";
+          document.getElementById("completeLabelContainer").innerHTML =
+            '중심 통과 완료: <span id="f1Count">0</span>';
+        } else {
+          document.getElementById("f1Label").textContent = "발신 초점 (F₁)";
+          document.getElementById("f2LabelContainer").style.display = "flex";
+          document.getElementById("f2Label").textContent = "수신 초점 (F₂)";
+          document.getElementById("startLabelContainer").style.display = "none";
+          document.getElementById("passLabelContainer").style.display =
+            "inline";
+          document.getElementById("passLabelContainer").innerHTML =
+            'F₂ 통과: <span id="f2Count">0</span>';
+          document.getElementById("completeLabelContainer").innerHTML =
+            'F₁ 복귀 완료: <span id="f1Count">0</span>';
+        }
+      }
+
+      class Ray {
+        constructor(x, y, angle, index, total) {
+          this.x = x;
+          this.y = y;
+          this.dx = Math.cos(angle);
+          this.dy = Math.sin(angle);
+          this.speed = 4;
+          this.bounces = 0;
+          this.active = true;
+          this.state = "toF2";
+
+          this.segments = [];
+          this.currentSegment = [{ x, y }];
+          this.currentColor = "yellow";
+
+          // 원형 모드를 위한 변수 - 시작점이 중심이 아니므로 처음부터 true
+          const { isCircle, centerX, centerY } = ellipseParams;
+          if (isCircle) {
+            const distToCenter = Math.hypot(centerX - x, centerY - y);
+            this.hasLeftCenter = distToCenter > 30;
+          } else {
+            this.hasLeftCenter = false;
+          }
+
+          this.colorYellow = `rgba(255, 200, 50, 0.85)`;
+          this.colorGreen = `rgba(0, 255, 136, 0.85)`;
+        }
+
+        update(speedMultiplier) {
+          if (!this.active) return;
+
+          const step = this.speed * speedMultiplier;
+          const { f1, f2, isCircle, centerX, centerY } = ellipseParams;
+
+          const intersection = this.findEllipseIntersection();
+
+          if (!intersection) {
+            this.active = false;
+            return;
+          }
+
+          const distToIntersect = Math.hypot(
+            intersection.x - this.x,
+            intersection.y - this.y
+          );
+
+          if (distToIntersect <= step) {
+            this.x = intersection.x;
+            this.y = intersection.y;
+            this.currentSegment.push({ x: this.x, y: this.y });
+
+            if (!isCircle && this.state === "toF2") {
+              const distToF2 = Math.hypot(f2.x - this.x, f2.y - this.y);
+              if (distToF2 < 50) {
+                this.segments.push({
+                  points: [...this.currentSegment],
+                  color: "yellow",
+                });
+                this.currentSegment = [{ x: this.x, y: this.y }];
+                this.currentColor = "green";
+                this.state = "toF1";
+              }
+            }
+
+            this.reflect(intersection.x, intersection.y);
+            this.bounces++;
+
+            if (this.bounces > 10) {
+              this.active = false;
+              this.segments.push({
+                points: [...this.currentSegment],
+                color: this.currentColor,
+              });
+            }
+          } else {
+            this.x += this.dx * step;
+            this.y += this.dy * step;
+
+            if (isCircle) {
+              // 원형일 때: 중심 1회 통과하면 종료
+              const distToCenter = Math.hypot(
+                centerX - this.x,
+                centerY - this.y
+              );
+
+              // 중심 통과 체크
+              if (this.hasLeftCenter && distToCenter < 15) {
+                this.currentSegment.push({ x: centerX, y: centerY });
+                this.segments.push({
+                  points: [...this.currentSegment],
+                  color: "yellow",
+                });
+                this.currentSegment = [];
+                this.state = "done";
+                this.active = false;
+                completedCount++;
+              }
+            } else {
+              // 타원형일 때: 기존 로직
+              if (this.state === "toF2") {
+                const distToF2 = Math.hypot(f2.x - this.x, f2.y - this.y);
+                if (distToF2 < 15) {
+                  this.currentSegment.push({ x: f2.x, y: f2.y });
+                  this.segments.push({
+                    points: [...this.currentSegment],
+                    color: "yellow",
+                  });
+                  this.currentSegment = [{ x: f2.x, y: f2.y }];
+                  this.currentColor = "green";
+                  this.state = "toF1";
+                  firstPassCount++;
+                }
+              }
+
+              if (this.state === "toF1") {
+                const distToF1 = Math.hypot(f1.x - this.x, f1.y - this.y);
+                if (distToF1 < 15) {
+                  this.currentSegment.push({ x: f1.x, y: f1.y });
+                  this.segments.push({
+                    points: [...this.currentSegment],
+                    color: "green",
+                  });
+                  this.currentSegment = [];
+                  this.state = "done";
+                  this.active = false;
+                  completedCount++;
+                }
+              }
+            }
+          }
+        }
+
+        findEllipseIntersection() {
+          const { centerX, centerY, a, b } = ellipseParams;
+
+          const rx = this.x - centerX;
+          const ry = this.y - centerY;
+
+          const A =
+            (this.dx * this.dx) / (a * a) + (this.dy * this.dy) / (b * b);
+          const B = 2 * ((rx * this.dx) / (a * a) + (ry * this.dy) / (b * b));
+          const C = (rx * rx) / (a * a) + (ry * ry) / (b * b) - 1;
+
+          const discriminant = B * B - 4 * A * C;
+
+          if (discriminant < 0) return null;
+
+          const sqrtDisc = Math.sqrt(discriminant);
+          const t1 = (-B + sqrtDisc) / (2 * A);
+          const t2 = (-B - sqrtDisc) / (2 * A);
+
+          let t = null;
+          const epsilon = 0.01;
+
+          if (t1 > epsilon && t2 > epsilon) {
+            t = Math.min(t1, t2);
+          } else if (t1 > epsilon) {
+            t = t1;
+          } else if (t2 > epsilon) {
+            t = t2;
+          }
+
+          if (t === null) return null;
+
+          return {
+            x: this.x + t * this.dx,
+            y: this.y + t * this.dy,
+          };
+        }
+
+        reflect(px, py) {
+          const { centerX, centerY, a, b } = ellipseParams;
+
+          const ex = px - centerX;
+          const ey = py - centerY;
+
+          let nx = ex / (a * a);
+          let ny = ey / (b * b);
+
+          const nLen = Math.hypot(nx, ny);
+          nx /= nLen;
+          ny /= nLen;
+
+          const dot = this.dx * nx + this.dy * ny;
+          if (dot > 0) {
+            nx = -nx;
+            ny = -ny;
+          }
+
+          const dotProduct = this.dx * nx + this.dy * ny;
+          this.dx = this.dx - 2 * dotProduct * nx;
+          this.dy = this.dy - 2 * dotProduct * ny;
+
+          const dLen = Math.hypot(this.dx, this.dy);
+          this.dx /= dLen;
+          this.dy /= dLen;
+        }
+
+        draw() {
+          const lineWidth = this.active ? 2.5 : 2;
+
+          for (const segment of this.segments) {
+            if (segment.points.length < 2) continue;
+
+            ctx.beginPath();
+            ctx.strokeStyle =
+              segment.color === "yellow" ? this.colorYellow : this.colorGreen;
+            ctx.lineWidth = lineWidth;
+            ctx.lineCap = "round";
+            ctx.lineJoin = "round";
+
+            ctx.moveTo(segment.points[0].x, segment.points[0].y);
+            for (let i = 1; i < segment.points.length; i++) {
+              ctx.lineTo(segment.points[i].x, segment.points[i].y);
+            }
+            ctx.stroke();
+          }
+
+          if (this.currentSegment.length > 0) {
+            ctx.beginPath();
+            ctx.strokeStyle =
+              this.currentColor === "yellow"
+                ? this.colorYellow
+                : this.colorGreen;
+            ctx.lineWidth = lineWidth;
+            ctx.lineCap = "round";
+            ctx.lineJoin = "round";
+
+            ctx.moveTo(this.currentSegment[0].x, this.currentSegment[0].y);
+            for (let i = 1; i < this.currentSegment.length; i++) {
+              ctx.lineTo(this.currentSegment[i].x, this.currentSegment[i].y);
+            }
+            if (this.active) {
+              ctx.lineTo(this.x, this.y);
+            }
+            ctx.stroke();
+          }
+
+          for (const segment of this.segments) {
+            for (let i = 1; i < segment.points.length - 1; i++) {
+              const point = segment.points[i];
+              ctx.beginPath();
+              ctx.fillStyle = "rgba(0, 212, 255, 0.7)";
+              ctx.arc(point.x, point.y, 3, 0, Math.PI * 2);
+              ctx.fill();
+            }
+          }
+
+          if (this.active) {
+            const currentColor =
+              this.currentColor === "yellow" ? "#ffcc00" : "#00ff88";
+
+            const gradient = ctx.createRadialGradient(
+              this.x,
+              this.y,
+              0,
+              this.x,
+              this.y,
+              12
+            );
+            gradient.addColorStop(0, currentColor);
+            gradient.addColorStop(0.4, currentColor);
+            gradient.addColorStop(1, "transparent");
+
+            ctx.beginPath();
+            ctx.fillStyle = gradient;
+            ctx.arc(this.x, this.y, 12, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.fillStyle = "#fff";
+            ctx.arc(this.x, this.y, 4, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
+      }
+
+      // WGM 파티클 클래스
+      class WGMParticle {
+        constructor(angle, radius, centerX, centerY, direction) {
+          this.angle = angle;
+          this.radius = radius;
+          this.centerX = centerX;
+          this.centerY = centerY;
+          this.direction = direction;
+          this.trail = [];
+          this.maxTrail = 30;
+        }
+
+        update(speed) {
+          this.angle += 0.02 * speed * this.direction;
+
+          const x = this.centerX + Math.cos(this.angle) * this.radius;
+          const y = this.centerY + Math.sin(this.angle) * this.radius;
+
+          this.trail.unshift({ x, y });
+          if (this.trail.length > this.maxTrail) {
+            this.trail.pop();
+          }
+        }
+
+        draw() {
+          if (this.trail.length < 2) return;
+
+          for (let i = 0; i < this.trail.length - 1; i++) {
+            const alpha = 1 - i / this.trail.length;
+            ctx.beginPath();
+            ctx.strokeStyle = `rgba(0, 212, 255, ${alpha * 0.8})`;
+            ctx.lineWidth = 3 * (1 - i / this.trail.length);
+            ctx.moveTo(this.trail[i].x, this.trail[i].y);
+            ctx.lineTo(this.trail[i + 1].x, this.trail[i + 1].y);
+            ctx.stroke();
+          }
+
+          const head = this.trail[0];
+          const gradient = ctx.createRadialGradient(
+            head.x,
+            head.y,
+            0,
+            head.x,
+            head.y,
+            10
+          );
+          gradient.addColorStop(0, "#fff");
+          gradient.addColorStop(0.3, "#00d4ff");
+          gradient.addColorStop(1, "transparent");
+          ctx.beginPath();
+          ctx.fillStyle = gradient;
+          ctx.arc(head.x, head.y, 10, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      function drawEllipse() {
+        const { centerX, centerY, a, b, f1, f2, isCircle } = ellipseParams;
+
+        ctx.beginPath();
+        ctx.strokeStyle = "rgba(0, 212, 255, 0.2)";
+        ctx.lineWidth = 12;
+        ctx.ellipse(centerX, centerY, a, b, 0, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.strokeStyle = "rgba(0, 212, 255, 0.4)";
+        ctx.lineWidth = 4;
+        ctx.ellipse(centerX, centerY, a, b, 0, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.strokeStyle = "rgba(0, 212, 255, 0.9)";
+        ctx.lineWidth = 2;
+        ctx.ellipse(centerX, centerY, a, b, 0, 0, Math.PI * 2);
+        ctx.stroke();
+
+        if (isCircle) {
+          // 원인 경우 중심점 표시
+          const centerGradient = ctx.createRadialGradient(
+            centerX,
+            centerY,
+            0,
+            centerX,
+            centerY,
+            25
+          );
+          centerGradient.addColorStop(0, "rgba(123, 44, 191, 1)");
+          centerGradient.addColorStop(0.3, "rgba(123, 44, 191, 0.6)");
+          centerGradient.addColorStop(0.6, "rgba(123, 44, 191, 0.2)");
+          centerGradient.addColorStop(1, "transparent");
+          ctx.beginPath();
+          ctx.fillStyle = centerGradient;
+          ctx.arc(centerX, centerY, 25, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.beginPath();
+          ctx.fillStyle = "#7b2cbf";
+          ctx.arc(centerX, centerY, 8, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.beginPath();
+          ctx.fillStyle = "#fff";
+          ctx.arc(centerX, centerY, 4, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.fillStyle = "#7b2cbf";
+          ctx.font = "bold 16px Arial";
+          ctx.textAlign = "center";
+          ctx.fillText("O", centerX, centerY - 35);
+
+          // 랜덤 시작점 표시 (광선이 발사된 경우)
+          if (randomStartPoint) {
+            const startGradient = ctx.createRadialGradient(
+              randomStartPoint.x,
+              randomStartPoint.y,
+              0,
+              randomStartPoint.x,
+              randomStartPoint.y,
+              20
+            );
+            startGradient.addColorStop(0, "rgba(255, 170, 0, 1)");
+            startGradient.addColorStop(0.3, "rgba(255, 170, 0, 0.6)");
+            startGradient.addColorStop(0.6, "rgba(255, 170, 0, 0.2)");
+            startGradient.addColorStop(1, "transparent");
+            ctx.beginPath();
+            ctx.fillStyle = startGradient;
+            ctx.arc(randomStartPoint.x, randomStartPoint.y, 20, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.fillStyle = "#ffaa00";
+            ctx.arc(randomStartPoint.x, randomStartPoint.y, 6, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.fillStyle = "#fff";
+            ctx.arc(randomStartPoint.x, randomStartPoint.y, 3, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.fillStyle = "#ffaa00";
+            ctx.font = "bold 14px Arial";
+            ctx.textAlign = "center";
+            ctx.fillText("S", randomStartPoint.x, randomStartPoint.y - 28);
+          }
+        } else {
+          // F1
+          const f1Gradient = ctx.createRadialGradient(
+            f1.x,
+            f1.y,
+            0,
+            f1.x,
+            f1.y,
+            25
+          );
+          f1Gradient.addColorStop(0, "rgba(255, 0, 110, 1)");
+          f1Gradient.addColorStop(0.3, "rgba(255, 0, 110, 0.6)");
+          f1Gradient.addColorStop(0.6, "rgba(255, 0, 110, 0.2)");
+          f1Gradient.addColorStop(1, "transparent");
+          ctx.beginPath();
+          ctx.fillStyle = f1Gradient;
+          ctx.arc(f1.x, f1.y, 25, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.beginPath();
+          ctx.fillStyle = "#ff006e";
+          ctx.arc(f1.x, f1.y, 8, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.beginPath();
+          ctx.fillStyle = "#fff";
+          ctx.arc(f1.x, f1.y, 4, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.fillStyle = "#ff006e";
+          ctx.font = "bold 16px Arial";
+          ctx.textAlign = "center";
+          ctx.fillText("F₁", f1.x, f1.y - 35);
+
+          // F2
+          const f2Gradient = ctx.createRadialGradient(
+            f2.x,
+            f2.y,
+            0,
+            f2.x,
+            f2.y,
+            25
+          );
+          f2Gradient.addColorStop(0, "rgba(0, 255, 136, 1)");
+          f2Gradient.addColorStop(0.3, "rgba(0, 255, 136, 0.6)");
+          f2Gradient.addColorStop(0.6, "rgba(0, 255, 136, 0.2)");
+          f2Gradient.addColorStop(1, "transparent");
+          ctx.beginPath();
+          ctx.fillStyle = f2Gradient;
+          ctx.arc(f2.x, f2.y, 25, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.beginPath();
+          ctx.fillStyle = "#00ff88";
+          ctx.arc(f2.x, f2.y, 8, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.beginPath();
+          ctx.fillStyle = "#fff";
+          ctx.arc(f2.x, f2.y, 4, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.fillStyle = "#00ff88";
+          ctx.font = "bold 16px Arial";
+          ctx.textAlign = "center";
+          ctx.fillText("F₂", f2.x, f2.y - 35);
+        }
+
+        ctx.beginPath();
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.08)";
+        ctx.lineWidth = 1;
+        ctx.setLineDash([5, 5]);
+        ctx.moveTo(centerX - a - 30, centerY);
+        ctx.lineTo(centerX + a + 30, centerY);
+        ctx.moveTo(centerX, centerY - b - 30);
+        ctx.lineTo(centerX, centerY + b + 30);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+
+      function drawWGMStandingWave() {
+        const { centerX, centerY, a } = ellipseParams;
+        const m = parseInt(wgmModeSlider.value);
+        const radius = a;
+        const wavelength = (2 * Math.PI * radius) / m;
+
+        const segments = 360;
+        const waveAmplitude = 20;
+
+        ctx.beginPath();
+        ctx.strokeStyle = "rgba(255, 0, 110, 0.6)";
+        ctx.lineWidth = 3;
+
+        for (let i = 0; i <= segments; i++) {
+          const theta = (i / segments) * Math.PI * 2;
+          const wavePhase = m * theta;
+          const amplitude =
+            Math.sin(wavePhase) * Math.cos(wgmTime * 3) * waveAmplitude;
+          const r = radius + amplitude;
+
+          const x = centerX + Math.cos(theta) * r;
+          const y = centerY + Math.sin(theta) * r;
+
+          if (i === 0) {
+            ctx.moveTo(x, y);
+          } else {
+            ctx.lineTo(x, y);
+          }
+        }
+        ctx.closePath();
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.strokeStyle = "rgba(0, 212, 255, 0.6)";
+        ctx.lineWidth = 3;
+
+        for (let i = 0; i <= segments; i++) {
+          const theta = (i / segments) * Math.PI * 2;
+          const wavePhase = m * theta;
+          const amplitude =
+            Math.sin(wavePhase) * Math.cos(wgmTime * 3) * waveAmplitude * 0.5;
+          const r = radius * 0.85 + amplitude;
+
+          const x = centerX + Math.cos(theta) * r;
+          const y = centerY + Math.sin(theta) * r;
+
+          if (i === 0) {
+            ctx.moveTo(x, y);
+          } else {
+            ctx.lineTo(x, y);
+          }
+        }
+        ctx.closePath();
+        ctx.stroke();
+
+        for (let i = 0; i < m * 2; i++) {
+          const theta = (i / (m * 2)) * Math.PI * 2;
+          const x = centerX + Math.cos(theta) * radius;
+          const y = centerY + Math.sin(theta) * radius;
+
+          ctx.beginPath();
+          ctx.fillStyle =
+            i % 2 === 0 ? "rgba(255, 255, 255, 0.9)" : "rgba(0, 255, 136, 0.9)";
+          ctx.arc(x, y, i % 2 === 0 ? 6 : 4, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        const intensityRadius = radius * 0.7;
+        for (let i = 0; i < segments; i++) {
+          const theta = (i / segments) * Math.PI * 2;
+          const nextTheta = ((i + 1) / segments) * Math.PI * 2;
+
+          const intensity = Math.pow(Math.sin(m * theta), 2);
+          const alpha = intensity * 0.4;
+
+          ctx.beginPath();
+          ctx.fillStyle = `rgba(0, 212, 255, ${alpha})`;
+          ctx.moveTo(centerX, centerY);
+          ctx.arc(centerX, centerY, intensityRadius, theta, nextTheta);
+          ctx.closePath();
+          ctx.fill();
+        }
+
+        document.getElementById("wgmRadius").textContent = Math.round(radius);
+        document.getElementById("wgmCircumference").textContent = Math.round(
+          2 * Math.PI * radius
+        );
+        document.getElementById("wgmModeNumber").textContent = m;
+        document.getElementById("wgmWavelength").textContent =
+          Math.round(wavelength);
+      }
+
+      function init() {
+        calculateEllipse();
+        rays = [];
+        completedCount = 0;
+        firstPassCount = 0;
+        randomStartPoint = null;
+        isWGMMode = false;
+        wgmParticles = [];
+        wgmBtn.classList.remove("active");
+        wgmBtn.textContent = "🌀 회랑 모드";
+        document.getElementById("wgmInfo").classList.remove("visible");
+        document.getElementById("wgmStatus").style.display = "none";
+        updateStatus();
+        draw();
+      }
+
+      function emitRays() {
+        const rayCount = parseInt(rayCountSlider.value);
+        document.getElementById("rayCountValue").textContent = rayCount;
+
+        rays = [];
+        completedCount = 0;
+        firstPassCount = 0;
+        const { f1, isCircle, centerX, centerY, a } = ellipseParams;
+
+        let startX, startY;
+
+        if (isCircle) {
+          // 원형일 때: 랜덤한 점에서 시작 (중심에서 반지름의 40~70% 거리)
+          const randomAngle = Math.random() * Math.PI * 2;
+          const randomRadius = a * (0.4 + Math.random() * 0.3);
+          startX = centerX + Math.cos(randomAngle) * randomRadius;
+          startY = centerY + Math.sin(randomAngle) * randomRadius;
+          randomStartPoint = { x: startX, y: startY };
+        } else {
+          startX = f1.x;
+          startY = f1.y;
+          randomStartPoint = null;
+        }
+
+        for (let i = 0; i < rayCount; i++) {
+          const angle = (Math.PI * 2 * i) / rayCount;
+          const ray = new Ray(startX, startY, angle, i, rayCount);
+          rays.push(ray);
+        }
+      }
+
+      function startWGMMode() {
+        if (animationId) {
+          cancelAnimationFrame(animationId);
+        }
+
+        eccentricitySlider.value = 0;
+        document.getElementById("eccentricityValue").textContent = "0.00";
+        calculateEllipse();
+
+        isWGMMode = true;
+        wgmTime = 0;
+        rays = [];
+        randomStartPoint = null;
+
+        const { centerX, centerY, a } = ellipseParams;
+        const m = parseInt(wgmModeSlider.value);
+        wgmParticles = [];
+
+        for (let i = 0; i < m; i++) {
+          const angle = (i / m) * Math.PI * 2;
+          wgmParticles.push(new WGMParticle(angle, a - 5, centerX, centerY, 1));
+          wgmParticles.push(
+            new WGMParticle(angle + Math.PI / m, a - 5, centerX, centerY, -1)
+          );
+        }
+
+        wgmBtn.classList.add("active");
+        wgmBtn.textContent = "⏹ 정지";
+        document.getElementById("wgmInfo").classList.add("visible");
+        document.getElementById("wgmStatus").style.display = "inline";
+        document.getElementById("wgmMode").textContent = m;
+
+        animateWGM();
+      }
+
+      function stopWGMMode() {
+        isWGMMode = false;
+        wgmBtn.classList.remove("active");
+        wgmBtn.textContent = "🌀 회랑 모드";
+        if (animationId) {
+          cancelAnimationFrame(animationId);
+          animationId = null;
+        }
+        draw();
+      }
+
+      function animateWGM() {
+        const { width, height } = getDisplaySize();
+        const speedMultiplier = parseFloat(speedSlider.value);
+
+        ctx.fillStyle = "#050510";
+        ctx.fillRect(0, 0, width, height);
+
+        drawEllipse();
+        drawWGMStandingWave();
+
+        for (const particle of wgmParticles) {
+          particle.update(speedMultiplier);
+          particle.draw();
+        }
+
+        wgmTime += 0.016 * speedMultiplier;
+
+        if (isWGMMode) {
+          animationId = requestAnimationFrame(animateWGM);
+        }
+      }
+
+      function updateStatus() {
+        const activeRays = rays.filter((r) => r.active).length;
+        const isCircle = ellipseParams.isCircle;
+
+        document.getElementById("activeCount").textContent = activeRays;
+
+        if (!isCircle) {
+          const f2CountEl = document.getElementById("f2Count");
+          if (f2CountEl) f2CountEl.textContent = firstPassCount;
+        }
+        document.getElementById("f1Count").textContent = completedCount;
+      }
+
+      function animate() {
+        const { width, height } = getDisplaySize();
+        const speedMultiplier = parseFloat(speedSlider.value);
+        document.getElementById("speedValue").textContent =
+          speedMultiplier.toFixed(1);
+
+        ctx.fillStyle = "#050510";
+        ctx.fillRect(0, 0, width, height);
+
+        drawEllipse();
+
+        for (const ray of rays) {
+          ray.update(speedMultiplier);
+          ray.draw();
+        }
+
+        updateStatus();
+
+        const hasActiveRays = rays.some((r) => r.active);
+        if (hasActiveRays) {
+          animationId = requestAnimationFrame(animate);
+        } else {
+          animationId = null;
+        }
+      }
+
+      function draw() {
+        const { width, height } = getDisplaySize();
+        ctx.fillStyle = "#050510";
+        ctx.fillRect(0, 0, width, height);
+        drawEllipse();
+
+        for (const ray of rays) {
+          ray.draw();
+        }
+      }
+
+      eccentricitySlider.addEventListener("input", () => {
+        if (animationId) {
+          cancelAnimationFrame(animationId);
+        }
+        isWGMMode = false;
+        wgmBtn.classList.remove("active");
+        wgmBtn.textContent = "🌀 회랑 모드";
+        document.getElementById("wgmInfo").classList.remove("visible");
+        document.getElementById("wgmStatus").style.display = "none";
+        init();
+      });
+
+      rayCountSlider.addEventListener("input", () => {
+        document.getElementById("rayCountValue").textContent =
+          rayCountSlider.value;
+      });
+
+      speedSlider.addEventListener("input", () => {
+        document.getElementById("speedValue").textContent = parseFloat(
+          speedSlider.value
+        ).toFixed(1);
+      });
+
+      wgmModeSlider.addEventListener("input", () => {
+        document.getElementById("wgmModeValue").textContent =
+          wgmModeSlider.value;
+        if (isWGMMode) {
+          const { centerX, centerY, a } = ellipseParams;
+          const m = parseInt(wgmModeSlider.value);
+          wgmParticles = [];
+
+          for (let i = 0; i < m; i++) {
+            const angle = (i / m) * Math.PI * 2;
+            wgmParticles.push(
+              new WGMParticle(angle, a - 5, centerX, centerY, 1)
+            );
+            wgmParticles.push(
+              new WGMParticle(angle + Math.PI / m, a - 5, centerX, centerY, -1)
+            );
+          }
+
+          document.getElementById("wgmMode").textContent = m;
+        }
+      });
+
+      startBtn.addEventListener("click", () => {
+        if (animationId) {
+          cancelAnimationFrame(animationId);
+        }
+        isWGMMode = false;
+        wgmBtn.classList.remove("active");
+        wgmBtn.textContent = "🌀 회랑 모드";
+        document.getElementById("wgmInfo").classList.remove("visible");
+        document.getElementById("wgmStatus").style.display = "none";
+        calculateEllipse();
+        emitRays();
+        animate();
+      });
+
+      wgmBtn.addEventListener("click", () => {
+        if (isWGMMode) {
+          stopWGMMode();
+        } else {
+          startWGMMode();
+        }
+      });
+
+      clearBtn.addEventListener("click", () => {
+        if (animationId) {
+          cancelAnimationFrame(animationId);
+          animationId = null;
+        }
+        init();
+      });
+
+      init();
+    </script>
+  </body>
+</html>

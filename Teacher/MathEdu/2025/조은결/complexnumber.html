@@ -1,0 +1,2161 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>에피사이클로이드 & 미분기하 시각화</title>
+
+    <!-- MathJax for equation rendering -->
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <!-- Three.js for 3D visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.150.0/build/three.min.js"></script>
+
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: #333;
+        min-height: 100vh;
+        padding: 20px;
+      }
+
+      .container {
+        max-width: 1600px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        overflow: hidden;
+      }
+
+      header {
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        color: white;
+        padding: 30px;
+        text-align: center;
+      }
+
+      h1 {
+        font-size: 2em;
+        margin-bottom: 10px;
+      }
+
+      .subtitle {
+        opacity: 0.9;
+        font-size: 0.95em;
+      }
+
+      .tabs {
+        display: flex;
+        background: #f0f0f0;
+        border-bottom: 2px solid #ddd;
+      }
+
+      .tab-button {
+        flex: 1;
+        padding: 18px;
+        background: #e0e0e0;
+        border: none;
+        cursor: pointer;
+        font-size: 0.95em;
+        font-weight: 600;
+        transition: all 0.3s;
+        border-right: 1px solid #ccc;
+      }
+
+      .tab-button:hover {
+        background: #d0d0d0;
+      }
+
+      .tab-button.active {
+        background: white;
+        color: #2a5298;
+        border-bottom: 3px solid #2a5298;
+      }
+
+      .tab-content {
+        display: none;
+        padding: 30px;
+      }
+
+      .tab-content.active {
+        display: block;
+      }
+
+      .workspace {
+        display: grid;
+        grid-template-columns: 350px 1fr;
+        gap: 30px;
+        margin-bottom: 30px;
+      }
+
+      .controls {
+        background: #f8f9fa;
+        padding: 25px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+
+      .control-group {
+        margin-bottom: 20px;
+      }
+
+      .control-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: #555;
+      }
+
+      .control-group input[type="range"] {
+        width: 100%;
+        margin-bottom: 5px;
+      }
+
+      .value-display {
+        font-size: 0.9em;
+        color: #2a5298;
+        font-weight: bold;
+      }
+
+      .checkbox-group {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .checkbox-group input {
+        width: 18px;
+        height: 18px;
+      }
+
+      .visualization {
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 600px;
+        position: relative;
+        overflow: hidden;
+      }
+
+      canvas {
+        border-radius: 10px;
+      }
+
+      .info-panel {
+        background: #fff9e6;
+        border-left: 4px solid #ffc107;
+        padding: 15px;
+        margin-top: 10px;
+        border-radius: 5px;
+        font-size: 0.95em;
+      }
+
+      .math-section {
+        background: #f0f7ff;
+        padding: 25px;
+        border-radius: 10px;
+        margin-top: 20px;
+        border: 1px solid #b3d9ff;
+      }
+
+      .math-section h3 {
+        color: #1e3c72;
+        margin-bottom: 15px;
+      }
+
+      .grid-2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+      }
+
+      .status-indicator {
+        display: inline-block;
+        padding: 5px 15px;
+        border-radius: 20px;
+        font-weight: bold;
+        font-size: 0.9em;
+      }
+
+      .elliptic {
+        background: #d4edda;
+        color: #155724;
+      }
+      .parabolic {
+        background: #fff3cd;
+        color: #856404;
+      }
+      .hyperbolic {
+        background: #f8d7da;
+        color: #721c24;
+      }
+      .ellipsoid-region {
+        background: #cfe2ff;
+        color: #084298;
+      }
+      .hyperboloid-region {
+        background: #f8d7da;
+        color: #842029;
+      }
+
+      /* Tab C specific styles */
+      .workspace-c {
+        display: flex;
+        flex-direction: column;
+        gap: 30px;
+      }
+
+      .top-section {
+        display: grid;
+        grid-template-columns: 350px 1fr;
+        gap: 30px;
+      }
+
+      .viz-3d {
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        height: 500px;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .viz-2d {
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .viz-2d h4 {
+        margin-bottom: 15px;
+        color: #1e3c72;
+      }
+
+      /* Tab D specific styles */
+      .dual-view {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 30px;
+      }
+
+      .view-panel {
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .view-panel h4 {
+        margin-bottom: 15px;
+        color: #1e3c72;
+        font-size: 1.1em;
+      }
+
+      .play-controls {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        margin-top: 10px;
+      }
+
+      .play-button {
+        background: #2a5298;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.3s;
+      }
+
+      .play-button:hover {
+        background: #1e3c72;
+      }
+
+      .play-button.playing {
+        background: #dc3545;
+      }
+    </style>
+    <link
+      rel="canonical"
+      href="https://ekc0517.github.io/math/complexnumber.html"
+    />
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>🌀 에피사이클로이드 & 미분기하</h1>
+        <p class="subtitle">세 편의 연구 논문에 대한 인터랙티브 시각화</p>
+      </header>
+
+      <div class="tabs">
+        <button class="tab-button active" onclick="switchTab(0)">
+          탭 A: 에피사이클로이드 & 블라슈케 곱
+        </button>
+        <button class="tab-button" onclick="switchTab(1)">
+          탭 B: 해밀턴 극소 호프 튜브
+        </button>
+        <button class="tab-button" onclick="switchTab(2)">
+          탭 C: 살코프스키 곡선 & 구면 에피사이클로이드
+        </button>
+        <button class="tab-button" onclick="switchTab(3)">
+          탭 D: 평면→구면 매개화 확장
+        </button>
+      </div>
+
+      <!-- TAB A -->
+      <div id="tab-0" class="tab-content active">
+        <div class="workspace">
+          <div class="controls">
+            <h3>매개변수</h3>
+
+            <div class="control-group">
+              <label
+                >차수 d: <span id="valueD" class="value-display">3</span></label
+              >
+              <input
+                type="range"
+                id="sliderD"
+                min="2"
+                max="8"
+                step="1"
+                value="3"
+              />
+            </div>
+
+            <div class="control-group">
+              <label
+                >w 반지름 r:
+                <span id="valueR" class="value-display">0.40</span></label
+              >
+              <input
+                type="range"
+                id="sliderR"
+                min="0"
+                max="0.99"
+                step="0.01"
+                value="0.4"
+              />
+            </div>
+
+            <div class="control-group">
+              <label
+                >w 각도 φ:
+                <span id="valuePhi" class="value-display">0.79</span></label
+              >
+              <input
+                type="range"
+                id="sliderPhi"
+                min="0"
+                max="6.28"
+                step="0.01"
+                value="0.785"
+              />
+            </div>
+
+            <div class="control-group">
+              <label
+                >위상 t:
+                <span id="valueT" class="value-display">0.00</span></label
+              >
+              <input
+                type="range"
+                id="sliderT"
+                min="0"
+                max="6.28"
+                step="0.01"
+                value="0"
+              />
+            </div>
+
+            <div class="control-group checkbox-group">
+              <input type="checkbox" id="checkOrbit" />
+              <label for="checkOrbit">궤도 반복 표시</label>
+            </div>
+
+            <div class="info-panel">
+              <strong>분류:</strong><br />
+              <span id="classification"></span>
+            </div>
+
+            <div class="info-panel" style="margin-top: 10px; font-size: 0.85em">
+              <strong>사용법:</strong><br />
+              • d를 조절하여 에피사이클로이드 모양 변경<br />
+              • w를 에피사이클로이드 안/위/밖으로 이동<br />
+              • 궤도 표시를 활성화하여 역학 확인<br />
+              • 캔버스 클릭으로 초기점 설정
+            </div>
+          </div>
+
+          <div class="visualization">
+            <canvas id="canvasA" width="700" height="700"></canvas>
+          </div>
+        </div>
+
+        <div class="math-section">
+          <h3>📐 수학적 정식화</h3>
+          <p><strong>에피사이클로이드 경계 (Cao, Fletcher, Ye):</strong></p>
+          <p>
+            \[ z(\theta) = \frac{e^{id\theta} - d e^{i\theta}}{d+1}, \quad
+            \theta \in [0, 2\pi] \]
+          </p>
+
+          <p style="margin-top: 15px">
+            <strong>단일 임계점을 갖는 블라슈케 곱:</strong>
+          </p>
+          <p>
+            \[ B_{d,w}(z) = e^{it} \left(\frac{z - w}{1 - \bar{w}z}\right)^d \]
+          </p>
+
+          <p style="margin-top: 15px">
+            <strong>분류:</strong> \(w\)가 \(\gamma_d\) <strong>내부</strong>에
+            있으면: <em>타원형(elliptic)</em>; \(\gamma_d\)
+            <strong>위</strong>에 있으면: <em>포물형(parabolic)</em>;
+            <strong>외부</strong>(\(\mathbb{D}\) 내)에 있으면:
+            <em>쌍곡형(hyperbolic)</em>.
+          </p>
+        </div>
+      </div>
+
+      <!-- TAB B -->
+      <div id="tab-1" class="tab-content">
+        <div class="workspace">
+          <div class="controls">
+            <h3>매개변수</h3>
+
+            <div class="control-group">
+              <label
+                >반지름 비 k:
+                <span id="valueK" class="value-display">3</span></label
+              >
+              <input
+                type="range"
+                id="sliderK"
+                min="2"
+                max="6"
+                step="1"
+                value="3"
+              />
+            </div>
+
+            <div class="control-group">
+              <label
+                >랑크레 기울기:
+                <span id="valueSlope" class="value-display">1.00</span></label
+              >
+              <input
+                type="range"
+                id="sliderSlope"
+                min="0.1"
+                max="3"
+                step="0.1"
+                value="1"
+              />
+            </div>
+
+            <div class="control-group">
+              <label
+                >튜브 반지름:
+                <span id="valueTubeR" class="value-display">0.30</span></label
+              >
+              <input
+                type="range"
+                id="sliderTubeR"
+                min="0.1"
+                max="0.8"
+                step="0.05"
+                value="0.3"
+              />
+            </div>
+
+            <div class="control-group">
+              <label
+                >샘플 점 개수:
+                <span id="valueNB" class="value-display">200</span></label
+              >
+              <input
+                type="range"
+                id="sliderNB"
+                min="50"
+                max="500"
+                step="50"
+                value="200"
+              />
+            </div>
+
+            <div class="info-panel">
+              <strong>렌더링:</strong><br />
+              • 파란색: 평면 에피사이클로이드<br />
+              • 빨간색: 랑크레 곡선<br />
+              • 초록색: 호프 튜브 곡면
+            </div>
+          </div>
+
+          <div class="visualization">
+            <div id="container3DB" style="width: 100%; height: 100%"></div>
+          </div>
+        </div>
+
+        <div class="math-section">
+          <h3>📐 수학적 정식화</h3>
+          <p><strong>평면 에피사이클로이드 (Barros, Ferrández):</strong></p>
+          <p>
+            \[ \beta_k(\theta) = \left((k+1)\cos\theta - \cos((k+1)\theta),\;
+            (k+1)\sin\theta - \sin((k+1)\theta)\right) \]
+          </p>
+
+          <p style="margin-top: 15px">
+            <strong>랑크레 곡선 (일정 기울기 나선):</strong>
+          </p>
+          <p>\[ \gamma(t) = \text{3차원 확장, } \tau/\kappa = \text{상수} \]</p>
+
+          <p style="margin-top: 15px"><strong>호프 튜브 매개변수화:</strong></p>
+          <p>
+            \[ X(t, u) = \gamma(t) + \rho\left(\cos u\, \mathbf{n}(t) + \sin u\,
+            \mathbf{b}(t)\right) \]
+          </p>
+
+          <p style="margin-top: 15px">
+            해밀턴 에너지는 \(C(\gamma) = \int \sqrt{\kappa^2 + 4}\, ds\)입니다.
+            임계 곡선은 복소 이차곡면에서 극소 호프 튜브를 생성합니다.
+          </p>
+        </div>
+      </div>
+
+      <!-- TAB C -->
+      <div id="tab-2" class="tab-content">
+        <div class="workspace-c">
+          <div class="top-section">
+            <div class="controls">
+              <h3>매개변수</h3>
+
+              <div class="control-group">
+                <label
+                  >파라미터 m:
+                  <span id="valueM" class="value-display">0.80</span></label
+                >
+                <input
+                  type="range"
+                  id="sliderM"
+                  min="-2"
+                  max="2"
+                  step="0.05"
+                  value="0.8"
+                />
+              </div>
+
+              <div class="control-group">
+                <label
+                  >t 범위:
+                  <span id="valueTmax" class="value-display">12.57</span></label
+                >
+                <input
+                  type="range"
+                  id="sliderTmax"
+                  min="3.14"
+                  max="25.13"
+                  step="0.1"
+                  value="12.57"
+                />
+              </div>
+
+              <div class="control-group">
+                <label
+                  >샘플 점 개수:
+                  <span id="valueNC" class="value-display">400</span></label
+                >
+                <input
+                  type="range"
+                  id="sliderNC"
+                  min="100"
+                  max="800"
+                  step="100"
+                  value="400"
+                />
+              </div>
+
+              <div class="info-panel">
+                <strong>곡면 유형:</strong><br />
+                <span id="surfaceType"></span>
+              </div>
+
+              <div class="info-panel" style="margin-top: 10px">
+                <strong>곡선:</strong><br />
+                • 빨간색: 살코프스키 곡선<br />
+                • 초록색: 구면 에피사이클로이드 (전단)
+              </div>
+            </div>
+
+            <div class="viz-3d">
+              <div id="container3DC" style="width: 100%; height: 100%"></div>
+            </div>
+          </div>
+
+          <div class="viz-2d">
+            <h4>XY-평면 사영 비교</h4>
+            <canvas id="canvasC" width="800" height="800"></canvas>
+          </div>
+        </div>
+
+        <div class="math-section">
+          <h3>📐 수학적 정식화</h3>
+          <p><strong>살코프스키 곡선 (Monterde):</strong></p>
+          <p>일정한 곡률 \(\kappa \equiv 1\), 비상수 비틀림 \(\tau(t)\).</p>
+          <p>
+            회전 곡면 위에 존재: \(|m| > 1/\sqrt{3}\)이면 타원체, \(|m| <
+            1/\sqrt{3}\)이면 쌍곡면.
+          </p>
+
+          <p style="margin-top: 15px">
+            <strong>구면 에피사이클로이드:</strong>
+          </p>
+          <p>
+            \[ \begin{aligned} x(t) &= a\big((q-\cos\omega)\cos t +
+            \cos\omega\cos(qt+t_0) + \sin t\sin(qt+t_0)\big)\\ y(t) &=
+            a\big((q-\cos\omega)\sin t + \cos\omega\sin(qt+t_0) - \cos
+            t\sin(qt+t_0)\big)\\ z(t) &= a\sin\omega(1 - \cos(qt)) \end{aligned}
+            \]
+          </p>
+
+          <p style="margin-top: 15px">
+            전단 변환 \((x,y,z) \mapsto (x, y, cz+d)\) 하에서, 구면(또는 복소
+            구면) 에피사이클로이드는 살코프스키 곡선으로 매핑됩니다. 두 곡선의
+            \(xy\)-사영은 일치합니다.
+          </p>
+        </div>
+      </div>
+
+      <!-- TAB D -->
+      <div id="tab-3" class="tab-content">
+        <div class="workspace">
+          <div class="controls">
+            <h3>매개변수</h3>
+
+            <div class="control-group">
+              <label
+                >반지름 비율 q:
+                <span id="valueQ" class="value-display">3.00</span></label
+              >
+              <input
+                type="range"
+                id="sliderQ"
+                min="1.5"
+                max="6"
+                step="0.1"
+                value="3"
+              />
+            </div>
+
+            <div class="control-group">
+              <label
+                >각도 ω (deg):
+                <span id="valueOmega" class="value-display">45</span></label
+              >
+              <input
+                type="range"
+                id="sliderOmega"
+                min="0"
+                max="90"
+                step="5"
+                value="45"
+              />
+            </div>
+
+            <div class="control-group">
+              <label
+                >초기 위상 t₀:
+                <span id="valueT0" class="value-display">0.00</span></label
+              >
+              <input
+                type="range"
+                id="sliderT0"
+                min="0"
+                max="6.28"
+                step="0.1"
+                value="0"
+              />
+            </div>
+
+            <div class="control-group">
+              <label
+                >구 반지름 a:
+                <span id="valueA" class="value-display">1.00</span></label
+              >
+              <input
+                type="range"
+                id="sliderA"
+                min="0.5"
+                max="2"
+                step="0.1"
+                value="1"
+              />
+            </div>
+
+            <div class="control-group">
+              <label
+                >애니메이션 t:
+                <span id="valueTanim" class="value-display">0.00</span></label
+              >
+              <input
+                type="range"
+                id="sliderTanim"
+                min="0"
+                max="12.56"
+                step="0.01"
+                value="0"
+              />
+            </div>
+
+            <div class="control-group">
+              <label
+                >애니메이션 속도:
+                <span id="valueSpeed" class="value-display">1.0x</span></label
+              >
+              <input
+                type="range"
+                id="sliderSpeed"
+                min="0.1"
+                max="3"
+                step="0.1"
+                value="1"
+              />
+            </div>
+
+            <div class="play-controls">
+              <button id="playButton" class="play-button">▶ 재생</button>
+            </div>
+
+            <div class="info-panel" style="margin-top: 15px">
+              <strong>시각화:</strong><br />
+              • 왼쪽: 평면 에피사이클로이드<br />
+              • 오른쪽: 구면 에피사이클로이드<br />
+              • 파란색 원: 고정원<br />
+              • 빨간색 원: 회전원<br />
+              • 초록색: 생성되는 궤적
+            </div>
+
+            <div class="info-panel" style="margin-top: 10px; font-size: 0.85em">
+              <strong>사용법:</strong><br />
+              • q: 큰 원/작은 원의 반지름 비<br />
+              • ω: 구면에서의 접촉 각도<br />
+              • 재생 버튼으로 애니메이션 시작
+            </div>
+          </div>
+
+          <div class="visualization">
+            <div class="dual-view">
+              <div class="view-panel">
+                <h4>평면 에피사이클로이드</h4>
+                <canvas id="canvasD2D" width="500" height="500"></canvas>
+              </div>
+              <div class="view-panel">
+                <h4>구면 에피사이클로이드</h4>
+                <div
+                  id="container3DD"
+                  style="width: 500px; height: 500px"
+                ></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="math-section">
+          <h3>📐 수학적 정식화: 평면에서 구면으로의 확장</h3>
+
+          <p><strong>1. 평면 에피사이클로이드 (고전):</strong></p>
+          <p>반지름 \(R\)인 고정원 위를 반지름 \(r\)인 원이 구를 때:</p>
+          <p>
+            \[ \begin{aligned} x(t) &= (R+r)\cos t -
+            r\cos\left(\frac{R+r}{r}t\right)\\ y(t) &= (R+r)\sin t -
+            r\sin\left(\frac{R+r}{r}t\right) \end{aligned} \]
+          </p>
+          <p>여기서 \(q = \frac{R+r}{r}\)은 반지름 비율입니다.</p>
+
+          <p style="margin-top: 20px">
+            <strong>2. 구면 에피사이클로이드 (Monterde 2024):</strong>
+          </p>
+          <p>반지름 \(a\)인 구 위에서 정의된 확장:</p>
+          <p>
+            \[ \begin{aligned} x(t) &= a\left[(q-\cos\omega)\cos t +
+            \cos\omega\cos(qt+t_0) + \sin t\sin(qt+t_0)\right]\\ y(t) &=
+            a\left[(q-\cos\omega)\sin t + \cos\omega\sin(qt+t_0) - \cos
+            t\sin(qt+t_0)\right]\\ z(t) &= a\sin\omega(1 - \cos(qt))
+            \end{aligned} \]
+          </p>
+
+          <p style="margin-top: 15px"><strong>매개변수:</strong></p>
+          <ul style="margin-left: 25px; margin-top: 10px">
+            <li>\(q\): 반지름 비율 (평면의 경우와 동일)</li>
+            <li>\(\omega\): 두 원 사이의 각도 (구면 고유의 매개변수)</li>
+            <li>\(t_0\): 초기 위상각</li>
+            <li>\(a\): 구의 반지름</li>
+          </ul>
+
+          <p style="margin-top: 15px"><strong>주요 성질:</strong></p>
+          <ul style="margin-left: 25px; margin-top: 10px">
+            <li>
+              \(\omega = 0\)일 때, 평면 에피사이클로이드로 퇴화 (\(z \equiv 0\))
+            </li>
+            <li>곡선은 항상 반지름 \(a\)인 구 위에 존재</li>
+            <li>Hopf fibration과 자연스럽게 연결됨</li>
+            <li>특정 조건에서 Salkowski 곡선과 관계</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // ========================================
+      // 전역 유틸리티
+      // ========================================
+
+      // 복소수 헬퍼 함수
+      const C = {
+        add: (a, b) => ({ re: a.re + b.re, im: a.im + b.im }),
+        sub: (a, b) => ({ re: a.re - b.re, im: a.im - b.im }),
+        mul: (a, b) => ({
+          re: a.re * b.re - a.im * b.im,
+          im: a.re * b.im + a.im * b.re,
+        }),
+        div: (a, b) => {
+          const d = b.re * b.re + b.im * b.im;
+          return {
+            re: (a.re * b.re + a.im * b.im) / d,
+            im: (a.im * b.re - a.re * b.im) / d,
+          };
+        },
+        conj: (a) => ({ re: a.re, im: -a.im }),
+        abs: (a) => Math.sqrt(a.re * a.re + a.im * a.im),
+        arg: (a) => Math.atan2(a.im, a.re),
+        exp: (a) => {
+          const e = Math.exp(a.re);
+          return { re: e * Math.cos(a.im), im: e * Math.sin(a.im) };
+        },
+        polar: (r, theta) => ({
+          re: r * Math.cos(theta),
+          im: r * Math.sin(theta),
+        }),
+        pow: (a, n) => {
+          if (n === 0) return { re: 1, im: 0 };
+          let result = a;
+          for (let i = 1; i < n; i++) {
+            result = C.mul(result, a);
+          }
+          return result;
+        },
+        scale: (a, s) => ({ re: a.re * s, im: a.im * s }),
+      };
+
+      // 3D 벡터 헬퍼 함수
+      const V3 = {
+        add: (a, b) => [a[0] + b[0], a[1] + b[1], a[2] + b[2]],
+        sub: (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]],
+        scale: (a, s) => [a[0] * s, a[1] * s, a[2] * s],
+        dot: (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2],
+        cross: (a, b) => [
+          a[1] * b[2] - a[2] * b[1],
+          a[2] * b[0] - a[0] * b[2],
+          a[0] * b[1] - a[1] * b[0],
+        ],
+        norm: (a) => Math.sqrt(a[0] * a[0] + a[1] * a[1] + a[2] * a[2]),
+        normalize: (a) => {
+          const n = V3.norm(a);
+          return n > 1e-10 ? [a[0] / n, a[1] / n, a[2] / n] : [0, 0, 0];
+        },
+      };
+
+      // 탭 전환
+      let currentTab = 0;
+      function switchTab(index) {
+        document.querySelectorAll(".tab-button").forEach((btn, i) => {
+          btn.classList.toggle("active", i === index);
+        });
+        document.querySelectorAll(".tab-content").forEach((content, i) => {
+          content.classList.toggle("active", i === index);
+        });
+        currentTab = index;
+
+        // 활성 탭 재렌더링
+        if (index === 0) updateTabA();
+        if (index === 1) {
+          setTimeout(() => {
+            updateTabB();
+          }, 100);
+        }
+        if (index === 2) {
+          setTimeout(() => {
+            updateTabC();
+          }, 100);
+        }
+        if (index === 3) {
+          setTimeout(() => {
+            updateTabD();
+          }, 100);
+        }
+      }
+
+      // ========================================
+      // 탭 A: 에피사이클로이드 & 블라슈케 곱
+      // ========================================
+
+      let tabA = {
+        canvas: null,
+        ctx: null,
+        d: 3,
+        r: 0.4,
+        phi: 0.785,
+        t: 0,
+        showOrbit: false,
+        clickPoint: null,
+      };
+
+      function initTabA() {
+        tabA.canvas = document.getElementById("canvasA");
+        tabA.ctx = tabA.canvas.getContext("2d");
+
+        document.getElementById("sliderD").oninput = (e) => {
+          tabA.d = parseInt(e.target.value);
+          document.getElementById("valueD").textContent = tabA.d;
+          updateTabA();
+        };
+
+        document.getElementById("sliderR").oninput = (e) => {
+          tabA.r = parseFloat(e.target.value);
+          document.getElementById("valueR").textContent = tabA.r.toFixed(2);
+          updateTabA();
+        };
+
+        document.getElementById("sliderPhi").oninput = (e) => {
+          tabA.phi = parseFloat(e.target.value);
+          document.getElementById("valuePhi").textContent = tabA.phi.toFixed(2);
+          updateTabA();
+        };
+
+        document.getElementById("sliderT").oninput = (e) => {
+          tabA.t = parseFloat(e.target.value);
+          document.getElementById("valueT").textContent = tabA.t.toFixed(2);
+          updateTabA();
+        };
+
+        document.getElementById("checkOrbit").onchange = (e) => {
+          tabA.showOrbit = e.target.checked;
+          updateTabA();
+        };
+
+        tabA.canvas.onclick = (e) => {
+          const rect = tabA.canvas.getBoundingClientRect();
+          const x = e.clientX - rect.left;
+          const y = e.clientY - rect.top;
+          const size = tabA.canvas.width;
+          const cx = size / 2,
+            cy = size / 2,
+            scale = size / 2.4;
+          const re = (x - cx) / scale;
+          const im = -(y - cy) / scale;
+          tabA.clickPoint = { re, im };
+          updateTabA();
+        };
+
+        updateTabA();
+      }
+
+      function epicycloidA(theta, d) {
+        // z(θ) = (e^(idθ) - d*e^(iθ)) / (d+1)
+        const eid = C.polar(1, d * theta);
+        const ei = C.polar(1, theta);
+        const num = C.sub(eid, C.scale(ei, d));
+        return C.scale(num, 1 / (d + 1));
+      }
+
+      function blaschkeProduct(z, w, d, t) {
+        // B_{d,w}(z) = e^(it) * ((z-w)/(1-conj(w)*z))^d
+        const num = C.sub(z, w);
+        const denom = C.sub({ re: 1, im: 0 }, C.mul(C.conj(w), z));
+        const frac = C.div(num, denom);
+        const powered = C.pow(frac, d);
+        const phase = C.polar(1, t);
+        return C.mul(phase, powered);
+      }
+
+      function isInsideEpicycloid(z, d, samples = 500) {
+        // 회전수(winding number) 사용
+        let angle = 0;
+        let prev = epicycloidA(0, d);
+        for (let i = 1; i <= samples; i++) {
+          const theta = (2 * Math.PI * i) / samples;
+          const curr = epicycloidA(theta, d);
+          const v1 = C.sub(prev, z);
+          const v2 = C.sub(curr, z);
+          const a1 = C.arg(v1);
+          const a2 = C.arg(v2);
+          let da = a2 - a1;
+          if (da > Math.PI) da -= 2 * Math.PI;
+          if (da < -Math.PI) da += 2 * Math.PI;
+          angle += da;
+          prev = curr;
+        }
+        const winding = Math.abs(angle) / (2 * Math.PI);
+        return winding > 0.5;
+      }
+
+      function isOnEpicycloid(z, d, samples = 500, tol = 0.02) {
+        for (let i = 0; i < samples; i++) {
+          const theta = (2 * Math.PI * i) / samples;
+          const p = epicycloidA(theta, d);
+          if (C.abs(C.sub(p, z)) < tol) return true;
+        }
+        return false;
+      }
+
+      function updateTabA() {
+        const { ctx, canvas, d, r, phi, t, showOrbit, clickPoint } = tabA;
+        const size = canvas.width;
+        const cx = size / 2,
+          cy = size / 2;
+        const scale = size / 2.4;
+
+        ctx.clearRect(0, 0, size, size);
+
+        // 좌표 변환
+        const toCanvas = (z) => ({
+          x: cx + z.re * scale,
+          y: cy - z.im * scale,
+        });
+
+        // 단위원 그리기
+        ctx.strokeStyle = "#ccc";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(cx, cy, scale, 0, 2 * Math.PI);
+        ctx.stroke();
+
+        // 에피사이클로이드 그리기
+        ctx.strokeStyle = "#2a5298";
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        for (let i = 0; i <= 400; i++) {
+          const theta = (2 * Math.PI * i) / 400;
+          const z = epicycloidA(theta, d);
+          const p = toCanvas(z);
+          if (i === 0) ctx.moveTo(p.x, p.y);
+          else ctx.lineTo(p.x, p.y);
+        }
+        ctx.closePath();
+        ctx.stroke();
+
+        // w 점 그리기
+        const w = C.polar(r, phi);
+        const wp = toCanvas(w);
+
+        // 분류
+        let classification = "";
+        if (isOnEpicycloid(w, d)) {
+          classification =
+            '<span class="status-indicator parabolic">포물형</span>';
+          ctx.fillStyle = "#ffc107";
+        } else if (isInsideEpicycloid(w, d)) {
+          classification =
+            '<span class="status-indicator elliptic">타원형</span>';
+          ctx.fillStyle = "#28a745";
+        } else {
+          classification =
+            '<span class="status-indicator hyperbolic">쌍곡형</span>';
+          ctx.fillStyle = "#dc3545";
+        }
+
+        document.getElementById("classification").innerHTML = classification;
+
+        ctx.beginPath();
+        ctx.arc(wp.x, wp.y, 8, 0, 2 * Math.PI);
+        ctx.fill();
+
+        // w 레이블
+        ctx.fillStyle = "#000";
+        ctx.font = "14px sans-serif";
+        ctx.fillText("w", wp.x + 12, wp.y - 12);
+
+        // 궤도 그리기 (활성화된 경우)
+        if (showOrbit && clickPoint) {
+          let z = clickPoint;
+          ctx.fillStyle = "rgba(255, 100, 100, 0.6)";
+
+          for (let i = 0; i < 100; i++) {
+            const p = toCanvas(z);
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, 2, 0, 2 * Math.PI);
+            ctx.fill();
+
+            z = blaschkeProduct(z, w, d, t);
+            if (C.abs(z) > 1.5) break;
+          }
+        }
+
+        // 축 그리기
+        ctx.strokeStyle = "#e0e0e0";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(0, cy);
+        ctx.lineTo(size, cy);
+        ctx.moveTo(cx, 0);
+        ctx.lineTo(cx, size);
+        ctx.stroke();
+      }
+
+      // ========================================
+      // 탭 B: 해밀턴 극소 호프 튜브
+      // ========================================
+
+      let tabB = {
+        scene: null,
+        camera: null,
+        renderer: null,
+        controls: null,
+        k: 3,
+        slope: 1.0,
+        tubeRadius: 0.3,
+        numPoints: 200,
+        mouseDown: false,
+        mouseX: 0,
+        mouseY: 0,
+        initialized: false,
+      };
+
+      function initTabB() {
+        const container = document.getElementById("container3DB");
+        if (!container) return;
+
+        // 컨테이너 크기 확인
+        const width = container.clientWidth || 800;
+        const height = container.clientHeight || 600;
+
+        // Three.js 설정
+        tabB.scene = new THREE.Scene();
+        tabB.scene.background = new THREE.Color(0xf5f5f5);
+
+        tabB.camera = new THREE.PerspectiveCamera(
+          50,
+          width / height,
+          0.1,
+          1000
+        );
+        tabB.camera.position.set(15, 12, 15);
+        tabB.camera.lookAt(0, 0, 0);
+
+        tabB.renderer = new THREE.WebGLRenderer({ antialias: true });
+        tabB.renderer.setSize(width, height);
+        container.innerHTML = "";
+        container.appendChild(tabB.renderer.domElement);
+
+        // 조명
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+        tabB.scene.add(ambientLight);
+
+        const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        dirLight.position.set(10, 10, 10);
+        tabB.scene.add(dirLight);
+
+        const dirLight2 = new THREE.DirectionalLight(0xffffff, 0.4);
+        dirLight2.position.set(-10, -10, -10);
+        tabB.scene.add(dirLight2);
+
+        // 컨트롤
+        document.getElementById("sliderK").oninput = (e) => {
+          tabB.k = parseInt(e.target.value);
+          document.getElementById("valueK").textContent = tabB.k;
+          updateTabB();
+        };
+
+        document.getElementById("sliderSlope").oninput = (e) => {
+          tabB.slope = parseFloat(e.target.value);
+          document.getElementById("valueSlope").textContent =
+            tabB.slope.toFixed(2);
+          updateTabB();
+        };
+
+        document.getElementById("sliderTubeR").oninput = (e) => {
+          tabB.tubeRadius = parseFloat(e.target.value);
+          document.getElementById("valueTubeR").textContent =
+            tabB.tubeRadius.toFixed(2);
+          updateTabB();
+        };
+
+        document.getElementById("sliderNB").oninput = (e) => {
+          tabB.numPoints = parseInt(e.target.value);
+          document.getElementById("valueNB").textContent = tabB.numPoints;
+          updateTabB();
+        };
+
+        // 마우스 인터랙션
+        tabB.renderer.domElement.addEventListener("mousedown", (e) => {
+          tabB.mouseDown = true;
+          tabB.mouseX = e.clientX;
+          tabB.mouseY = e.clientY;
+        });
+
+        window.addEventListener("mouseup", () => {
+          tabB.mouseDown = false;
+        });
+
+        window.addEventListener("mousemove", (e) => {
+          if (tabB.mouseDown) {
+            const dx = e.clientX - tabB.mouseX;
+            const dy = e.clientY - tabB.mouseY;
+
+            const angle = Math.sqrt(dx * dx + dy * dy) * 0.01;
+            const axis = new THREE.Vector3(-dy, dx, 0).normalize();
+
+            tabB.camera.position.sub(new THREE.Vector3(0, 0, 0));
+            tabB.camera.position.applyAxisAngle(axis, angle);
+            tabB.camera.position.add(new THREE.Vector3(0, 0, 0));
+            tabB.camera.lookAt(0, 0, 0);
+
+            tabB.mouseX = e.clientX;
+            tabB.mouseY = e.clientY;
+
+            tabB.renderer.render(tabB.scene, tabB.camera);
+          }
+        });
+
+        tabB.renderer.domElement.addEventListener("wheel", (e) => {
+          e.preventDefault();
+          const factor = e.deltaY > 0 ? 1.1 : 0.9;
+          tabB.camera.position.multiplyScalar(factor);
+          tabB.renderer.render(tabB.scene, tabB.camera);
+        });
+
+        tabB.initialized = true;
+        updateTabB();
+        animateTabB();
+      }
+
+      function planarEpicycloid(theta, k) {
+        // β_k(θ) = ((k+1)cosθ - cos((k+1)θ), (k+1)sinθ - sin((k+1)θ))
+        const x = (k + 1) * Math.cos(theta) - Math.cos((k + 1) * theta);
+        const y = (k + 1) * Math.sin(theta) - Math.sin((k + 1) * theta);
+        return [x, y];
+      }
+
+      function lancretCurve(t, slope, k) {
+        // 일정 기울기를 가진 3D 곡선 생성 (랑크레 곡선)
+        const [x, y] = planarEpicycloid(t, k);
+        const scale = 1.5;
+        const z = slope * t;
+        return [x * scale, y * scale, z];
+      }
+
+      function frenetFrame(gamma, t, dt = 0.01) {
+        // 수치적 프레네 프레임
+        const p = gamma(t);
+        const p1 = gamma(t + dt);
+        const p2 = gamma(t - dt);
+
+        const T = V3.normalize(V3.sub(p1, p2));
+
+        const p_next = gamma(t + 2 * dt);
+        const p_prev = gamma(t - 2 * dt);
+        const T_next = V3.normalize(V3.sub(p_next, p));
+        const T_prev = V3.normalize(V3.sub(p, p_prev));
+
+        const dT = V3.sub(T_next, T_prev);
+        let N = V3.normalize(dT);
+
+        // N이 0벡터면 기본값 사용
+        if (V3.norm(N) < 0.001) {
+          N = [0, 0, 1];
+        }
+
+        const B = V3.normalize(V3.cross(T, N));
+
+        return { T, N, B };
+      }
+
+      function updateTabB() {
+        if (!tabB.initialized || !tabB.scene) return;
+
+        const { scene, k, slope, tubeRadius, numPoints } = tabB;
+
+        // 이전 객체 제거 (조명 제외)
+        const objectsToRemove = [];
+        scene.children.forEach((child) => {
+          if (
+            child.type !== "AmbientLight" &&
+            child.type !== "DirectionalLight"
+          ) {
+            objectsToRemove.push(child);
+          }
+        });
+        objectsToRemove.forEach((obj) => scene.remove(obj));
+
+        // 축 추가
+        const axesHelper = new THREE.AxesHelper(10);
+        scene.add(axesHelper);
+
+        // 1. 평면 에피사이클로이드
+        const epicycloidPoints = [];
+        for (let i = 0; i <= numPoints; i++) {
+          const theta = (2 * Math.PI * i) / numPoints;
+          const [x, y] = planarEpicycloid(theta, k);
+          epicycloidPoints.push(new THREE.Vector3(x * 1.5, y * 1.5, -2));
+        }
+        const epicycloidGeom = new THREE.BufferGeometry().setFromPoints(
+          epicycloidPoints
+        );
+        const epicycloidLine = new THREE.Line(
+          epicycloidGeom,
+          new THREE.LineBasicMaterial({ color: 0x0066cc, linewidth: 2 })
+        );
+        scene.add(epicycloidLine);
+
+        // 2. 랑크레 곡선
+        const lancretPoints = [];
+        const tMax = 2 * Math.PI;
+        for (let i = 0; i <= numPoints; i++) {
+          const t = (tMax * i) / numPoints;
+          const p = lancretCurve(t, slope, k);
+          lancretPoints.push(new THREE.Vector3(p[0], p[1], p[2]));
+        }
+        const lancretGeom = new THREE.BufferGeometry().setFromPoints(
+          lancretPoints
+        );
+        const lancretLine = new THREE.Line(
+          lancretGeom,
+          new THREE.LineBasicMaterial({ color: 0xcc0000, linewidth: 3 })
+        );
+        scene.add(lancretLine);
+
+        // 3. 호프 튜브
+        const gamma = (t) => lancretCurve(t, slope, k);
+
+        const tubeSegments = Math.floor(numPoints / 2);
+        const radialSegments = 20;
+
+        const positions = [];
+        const indices = [];
+
+        for (let i = 0; i <= tubeSegments; i++) {
+          const t = (tMax * i) / tubeSegments;
+          const p = gamma(t);
+          const { N, B } = frenetFrame(gamma, t);
+
+          for (let j = 0; j <= radialSegments; j++) {
+            const u = (2 * Math.PI * j) / radialSegments;
+            const offset = V3.add(
+              V3.scale(N, tubeRadius * Math.cos(u)),
+              V3.scale(B, tubeRadius * Math.sin(u))
+            );
+            const vertex = V3.add(p, offset);
+            positions.push(vertex[0], vertex[1], vertex[2]);
+          }
+        }
+
+        for (let i = 0; i < tubeSegments; i++) {
+          for (let j = 0; j < radialSegments; j++) {
+            const a = i * (radialSegments + 1) + j;
+            const b = a + radialSegments + 1;
+            const c = a + 1;
+            const d = b + 1;
+
+            indices.push(a, b, c);
+            indices.push(b, d, c);
+          }
+        }
+
+        const tubeGeom = new THREE.BufferGeometry();
+        tubeGeom.setAttribute(
+          "position",
+          new THREE.Float32BufferAttribute(positions, 3)
+        );
+        tubeGeom.setIndex(indices);
+        tubeGeom.computeVertexNormals();
+
+        const tubeMesh = new THREE.Mesh(
+          tubeGeom,
+          new THREE.MeshPhongMaterial({
+            color: 0x00cc66,
+            side: THREE.DoubleSide,
+            transparent: true,
+            opacity: 0.7,
+            shininess: 30,
+          })
+        );
+        scene.add(tubeMesh);
+
+        tabB.renderer.render(scene, tabB.camera);
+      }
+
+      function animateTabB() {
+        requestAnimationFrame(animateTabB);
+        if (currentTab === 1 && tabB.initialized) {
+          tabB.renderer.render(tabB.scene, tabB.camera);
+        }
+      }
+
+      // ========================================
+      // 탭 C: 살코프스키 & 구면 에피사이클로이드
+      // ========================================
+
+      let tabC = {
+        scene: null,
+        camera: null,
+        renderer: null,
+        canvas: null,
+        ctx: null,
+        m: 0.8,
+        tMax: 4 * Math.PI,
+        numPoints: 400,
+        mouseDown: false,
+        mouseX: 0,
+        mouseY: 0,
+        initialized: false,
+      };
+
+      function initTabC() {
+        const container = document.getElementById("container3DC");
+        if (!container) return;
+
+        // 컨테이너 크기 확인
+        const width = container.clientWidth || 800;
+        const height = container.clientHeight || 500;
+
+        // Three.js 설정
+        tabC.scene = new THREE.Scene();
+        tabC.scene.background = new THREE.Color(0xf5f5f5);
+
+        tabC.camera = new THREE.PerspectiveCamera(
+          50,
+          width / height,
+          0.1,
+          1000
+        );
+        tabC.camera.position.set(8, 6, 8);
+        tabC.camera.lookAt(0, 0, 0);
+
+        tabC.renderer = new THREE.WebGLRenderer({ antialias: true });
+        tabC.renderer.setSize(width, height);
+        container.innerHTML = "";
+        container.appendChild(tabC.renderer.domElement);
+
+        // 조명
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+        tabC.scene.add(ambientLight);
+
+        const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        dirLight.position.set(10, 10, 10);
+        tabC.scene.add(dirLight);
+
+        const dirLight2 = new THREE.DirectionalLight(0xffffff, 0.4);
+        dirLight2.position.set(-10, -10, -10);
+        tabC.scene.add(dirLight2);
+
+        // 캔버스 설정
+        tabC.canvas = document.getElementById("canvasC");
+        tabC.ctx = tabC.canvas.getContext("2d");
+
+        // 컨트롤
+        document.getElementById("sliderM").oninput = (e) => {
+          tabC.m = parseFloat(e.target.value);
+          if (Math.abs(tabC.m) < 0.05) tabC.m = 0.05 * Math.sign(tabC.m);
+          document.getElementById("valueM").textContent = tabC.m.toFixed(2);
+          updateTabC();
+        };
+
+        document.getElementById("sliderTmax").oninput = (e) => {
+          tabC.tMax = parseFloat(e.target.value);
+          document.getElementById("valueTmax").textContent =
+            tabC.tMax.toFixed(2);
+          updateTabC();
+        };
+
+        document.getElementById("sliderNC").oninput = (e) => {
+          tabC.numPoints = parseInt(e.target.value);
+          document.getElementById("valueNC").textContent = tabC.numPoints;
+          updateTabC();
+        };
+
+        // 마우스 인터랙션
+        tabC.renderer.domElement.addEventListener("mousedown", (e) => {
+          tabC.mouseDown = true;
+          tabC.mouseX = e.clientX;
+          tabC.mouseY = e.clientY;
+        });
+
+        window.addEventListener("mouseup", () => {
+          tabC.mouseDown = false;
+        });
+
+        window.addEventListener("mousemove", (e) => {
+          if (tabC.mouseDown && currentTab === 2) {
+            const dx = e.clientX - tabC.mouseX;
+            const dy = e.clientY - tabC.mouseY;
+
+            const angle = Math.sqrt(dx * dx + dy * dy) * 0.01;
+            const axis = new THREE.Vector3(-dy, dx, 0).normalize();
+
+            tabC.camera.position.sub(new THREE.Vector3(0, 0, 0));
+            tabC.camera.position.applyAxisAngle(axis, angle);
+            tabC.camera.position.add(new THREE.Vector3(0, 0, 0));
+            tabC.camera.lookAt(0, 0, 0);
+
+            tabC.mouseX = e.clientX;
+            tabC.mouseY = e.clientY;
+
+            tabC.renderer.render(tabC.scene, tabC.camera);
+          }
+        });
+
+        tabC.renderer.domElement.addEventListener("wheel", (e) => {
+          e.preventDefault();
+          const factor = e.deltaY > 0 ? 1.1 : 0.9;
+          tabC.camera.position.multiplyScalar(factor);
+          tabC.renderer.render(tabC.scene, tabC.camera);
+        });
+
+        tabC.initialized = true;
+        updateTabC();
+        animateTabC();
+      }
+
+      function salkowskiCurve(t, m) {
+        // 일정 곡률 κ=1을 가진 살코프스키 곡선
+        const a = Math.sqrt(Math.abs(1 - 9 * m * m));
+
+        // 표준 형식
+        const x = t + m * Math.sin(t) * Math.cos(t);
+        const y = m * Math.sin(t) * Math.sin(t);
+        const z = Math.cos(t);
+
+        return [x * 2, y * 2, z * 2];
+      }
+
+      function sphericalEpicycloid(t, m) {
+        // m에 기반한 파라미터 계산
+        const threshold = 1 / Math.sqrt(3);
+
+        let a, q, omega, t0, c, d;
+
+        if (Math.abs(m) > threshold) {
+          // 타원체 경우
+          a = 1.5;
+          q = 2 + Math.abs(m);
+          omega = Math.PI / 4 + m * 0.3;
+          t0 = 0;
+          c = 1.2;
+          d = 0;
+        } else {
+          // 쌍곡면 경우 (복소 ω)
+          a = 1.5;
+          q = 2 + Math.abs(m) * 2;
+          omega = Math.PI / 6 + m * 0.5;
+          t0 = 0;
+          c = 0.8;
+          d = 0;
+        }
+
+        // 구면 에피사이클로이드 공식
+        const x =
+          a *
+          ((q - Math.cos(omega)) * Math.cos(t) +
+            Math.cos(omega) * Math.cos(q * t + t0) +
+            Math.sin(t) * Math.sin(q * t + t0));
+
+        const y =
+          a *
+          ((q - Math.cos(omega)) * Math.sin(t) +
+            Math.cos(omega) * Math.sin(q * t + t0) -
+            Math.cos(t) * Math.sin(q * t + t0));
+
+        const z = a * Math.sin(omega) * (1 - Math.cos(q * t));
+
+        // 전단 변환 적용
+        return [x, y, c * z + d];
+      }
+
+      function updateTabC() {
+        if (!tabC.initialized || !tabC.scene) return;
+
+        const { scene, ctx, canvas, m, tMax, numPoints } = tabC;
+
+        // 곡면 유형 표시 업데이트
+        const threshold = 1 / Math.sqrt(3);
+        let surfaceType = "";
+        if (Math.abs(m) > threshold) {
+          surfaceType =
+            '<span class="status-indicator ellipsoid-region">타원체 (|m| > 1/√3)</span>';
+        } else {
+          surfaceType =
+            '<span class="status-indicator hyperboloid-region">쌍곡면 (|m| < 1/√3)</span>';
+        }
+        document.getElementById("surfaceType").innerHTML = surfaceType;
+
+        // 3D 씬 초기화
+        const objectsToRemove = [];
+        scene.children.forEach((child) => {
+          if (
+            child.type !== "AmbientLight" &&
+            child.type !== "DirectionalLight"
+          ) {
+            objectsToRemove.push(child);
+          }
+        });
+        objectsToRemove.forEach((obj) => scene.remove(obj));
+
+        // 축 추가
+        const axesHelper = new THREE.AxesHelper(5);
+        scene.add(axesHelper);
+
+        // 살코프스키 곡선
+        const salkowskiPoints = [];
+        const salkowskiProjection = [];
+
+        for (let i = 0; i <= numPoints; i++) {
+          const t = (tMax * i) / numPoints;
+          const p = salkowskiCurve(t, m);
+          salkowskiPoints.push(new THREE.Vector3(p[0], p[1], p[2]));
+          salkowskiProjection.push([p[0], p[1]]);
+        }
+
+        const salkowskiGeom = new THREE.BufferGeometry().setFromPoints(
+          salkowskiPoints
+        );
+        const salkowskiLine = new THREE.Line(
+          salkowskiGeom,
+          new THREE.LineBasicMaterial({ color: 0xcc0000, linewidth: 3 })
+        );
+        scene.add(salkowskiLine);
+
+        // 구면 에피사이클로이드
+        const epicycloidPoints = [];
+        const epicycloidProjection = [];
+
+        for (let i = 0; i <= numPoints; i++) {
+          const t = (tMax * i) / numPoints;
+          const p = sphericalEpicycloid(t, m);
+          epicycloidPoints.push(new THREE.Vector3(p[0], p[1], p[2]));
+          epicycloidProjection.push([p[0], p[1]]);
+        }
+
+        const epicycloidGeom = new THREE.BufferGeometry().setFromPoints(
+          epicycloidPoints
+        );
+        const epicycloidLine = new THREE.Line(
+          epicycloidGeom,
+          new THREE.LineBasicMaterial({ color: 0x00cc66, linewidth: 3 })
+        );
+        scene.add(epicycloidLine);
+
+        // XY 평면 참조
+        const planeGeom = new THREE.PlaneGeometry(15, 15);
+        const planeMat = new THREE.MeshBasicMaterial({
+          color: 0xe0e0e0,
+          side: THREE.DoubleSide,
+          transparent: true,
+          opacity: 0.2,
+        });
+        const plane = new THREE.Mesh(planeGeom, planeMat);
+        plane.rotation.x = Math.PI / 2;
+        scene.add(plane);
+
+        tabC.renderer.render(scene, tabC.camera);
+
+        // 2D 사영 그리기
+        const size = canvas.width;
+        const cx = size / 2,
+          cy = size / 2;
+        const scale = size / 18;
+
+        ctx.clearRect(0, 0, size, size);
+
+        // 배경
+        ctx.fillStyle = "#f9f9f9";
+        ctx.fillRect(0, 0, size, size);
+
+        // 축
+        ctx.strokeStyle = "#ccc";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(0, cy);
+        ctx.lineTo(size, cy);
+        ctx.moveTo(cx, 0);
+        ctx.lineTo(cx, size);
+        ctx.stroke();
+
+        // 살코프스키 사영
+        ctx.strokeStyle = "#cc0000";
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        for (let i = 0; i < salkowskiProjection.length; i++) {
+          const x = cx + salkowskiProjection[i][0] * scale;
+          const y = cy - salkowskiProjection[i][1] * scale;
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+
+        // 에피사이클로이드 사영 (겹침)
+        ctx.strokeStyle = "#00cc66";
+        ctx.lineWidth = 2.5;
+        ctx.globalAlpha = 0.6;
+        ctx.beginPath();
+        for (let i = 0; i < epicycloidProjection.length; i++) {
+          const x = cx + epicycloidProjection[i][0] * scale;
+          const y = cy - epicycloidProjection[i][1] * scale;
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+        ctx.globalAlpha = 1.0;
+
+        // 범례
+        ctx.font = "bold 16px sans-serif";
+        ctx.fillStyle = "#cc0000";
+        ctx.fillText("● 살코프스키 곡선", 30, 40);
+        ctx.fillStyle = "#00cc66";
+        ctx.fillText("● 구면 에피사이클로이드", 30, 70);
+      }
+
+      function animateTabC() {
+        requestAnimationFrame(animateTabC);
+        if (currentTab === 2 && tabC.initialized) {
+          tabC.renderer.render(tabC.scene, tabC.camera);
+        }
+      }
+
+      // ========================================
+      // 탭 D: 평면→구면 매개화 확장
+      // ========================================
+
+      let tabD = {
+        canvas2D: null,
+        ctx2D: null,
+        scene: null,
+        camera: null,
+        renderer: null,
+        q: 3.0,
+        omega: Math.PI / 4,
+        t0: 0,
+        a: 1.0,
+        tAnim: 0,
+        speed: 1.0,
+        isPlaying: false,
+        mouseDown: false,
+        mouseX: 0,
+        mouseY: 0,
+        initialized: false,
+        animationId: null,
+      };
+
+      function initTabD() {
+        // 2D 캔버스 설정
+        tabD.canvas2D = document.getElementById("canvasD2D");
+        tabD.ctx2D = tabD.canvas2D.getContext("2d");
+
+        // 3D 설정
+        const container = document.getElementById("container3DD");
+        if (!container) return;
+
+        const width = 500;
+        const height = 500;
+
+        tabD.scene = new THREE.Scene();
+        tabD.scene.background = new THREE.Color(0xf5f5f5);
+
+        tabD.camera = new THREE.PerspectiveCamera(50, 1, 0.1, 1000);
+        tabD.camera.position.set(3, 2, 3);
+        tabD.camera.lookAt(0, 0, 0);
+
+        tabD.renderer = new THREE.WebGLRenderer({ antialias: true });
+        tabD.renderer.setSize(width, height);
+        container.innerHTML = "";
+        container.appendChild(tabD.renderer.domElement);
+
+        // 조명
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+        tabD.scene.add(ambientLight);
+
+        const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        dirLight.position.set(5, 5, 5);
+        tabD.scene.add(dirLight);
+
+        // 컨트롤
+        document.getElementById("sliderQ").oninput = (e) => {
+          tabD.q = parseFloat(e.target.value);
+          document.getElementById("valueQ").textContent = tabD.q.toFixed(2);
+          updateTabD();
+        };
+
+        document.getElementById("sliderOmega").oninput = (e) => {
+          const deg = parseFloat(e.target.value);
+          tabD.omega = (deg * Math.PI) / 180;
+          document.getElementById("valueOmega").textContent = deg;
+          updateTabD();
+        };
+
+        document.getElementById("sliderT0").oninput = (e) => {
+          tabD.t0 = parseFloat(e.target.value);
+          document.getElementById("valueT0").textContent = tabD.t0.toFixed(2);
+          updateTabD();
+        };
+
+        document.getElementById("sliderA").oninput = (e) => {
+          tabD.a = parseFloat(e.target.value);
+          document.getElementById("valueA").textContent = tabD.a.toFixed(2);
+          updateTabD();
+        };
+
+        document.getElementById("sliderTanim").oninput = (e) => {
+          tabD.tAnim = parseFloat(e.target.value);
+          document.getElementById("valueTanim").textContent =
+            tabD.tAnim.toFixed(2);
+          updateTabD();
+        };
+
+        document.getElementById("sliderSpeed").oninput = (e) => {
+          tabD.speed = parseFloat(e.target.value);
+          document.getElementById("valueSpeed").textContent =
+            tabD.speed.toFixed(1) + "x";
+        };
+
+        // 재생 버튼
+        document.getElementById("playButton").onclick = () => {
+          tabD.isPlaying = !tabD.isPlaying;
+          const btn = document.getElementById("playButton");
+          if (tabD.isPlaying) {
+            btn.textContent = "⏸ 정지";
+            btn.classList.add("playing");
+          } else {
+            btn.textContent = "▶ 재생";
+            btn.classList.remove("playing");
+          }
+        };
+
+        // 마우스 인터랙션 (3D)
+        tabD.renderer.domElement.addEventListener("mousedown", (e) => {
+          tabD.mouseDown = true;
+          tabD.mouseX = e.clientX;
+          tabD.mouseY = e.clientY;
+        });
+
+        window.addEventListener("mouseup", () => {
+          tabD.mouseDown = false;
+        });
+
+        window.addEventListener("mousemove", (e) => {
+          if (tabD.mouseDown && currentTab === 3) {
+            const dx = e.clientX - tabD.mouseX;
+            const dy = e.clientY - tabD.mouseY;
+
+            const angle = Math.sqrt(dx * dx + dy * dy) * 0.01;
+            const axis = new THREE.Vector3(-dy, dx, 0).normalize();
+
+            tabD.camera.position.applyAxisAngle(axis, angle);
+            tabD.camera.lookAt(0, 0, 0);
+
+            tabD.mouseX = e.clientX;
+            tabD.mouseY = e.clientY;
+
+            tabD.renderer.render(tabD.scene, tabD.camera);
+          }
+        });
+
+        tabD.renderer.domElement.addEventListener("wheel", (e) => {
+          e.preventDefault();
+          const factor = e.deltaY > 0 ? 1.1 : 0.9;
+          tabD.camera.position.multiplyScalar(factor);
+          tabD.renderer.render(tabD.scene, tabD.camera);
+        });
+
+        tabD.initialized = true;
+        updateTabD();
+        animateTabD();
+      }
+
+      // 평면 에피사이클로이드
+      function planarEpicycloidD(t, q) {
+        // q = (R+r)/r
+        // x = (R+r)cos(t) - r*cos((R+r)/r * t)
+        // y = (R+r)sin(t) - r*sin((R+r)/r * t)
+        // 정규화: R+r = 1로 두면 r = 1/(q)
+        const R_plus_r = 1;
+        const r = R_plus_r / q;
+        const R = R_plus_r - r;
+
+        const x = R_plus_r * Math.cos(t) - r * Math.cos(q * t);
+        const y = R_plus_r * Math.sin(t) - r * Math.sin(q * t);
+
+        return [x, y];
+      }
+
+      // 구면 에피사이클로이드 (Monterde 2024)
+      function sphericalEpicycloidD(t, q, omega, t0, a) {
+        const x =
+          a *
+          ((q - Math.cos(omega)) * Math.cos(t) +
+            Math.cos(omega) * Math.cos(q * t + t0) +
+            Math.sin(t) * Math.sin(q * t + t0));
+
+        const y =
+          a *
+          ((q - Math.cos(omega)) * Math.sin(t) +
+            Math.cos(omega) * Math.sin(q * t + t0) -
+            Math.cos(t) * Math.sin(q * t + t0));
+
+        const z = a * Math.sin(omega) * (1 - Math.cos(q * t));
+
+        return [x, y, z];
+      }
+
+      function updateTabD() {
+        if (!tabD.initialized) return;
+
+        draw2DEpicycloid();
+        draw3DEpicycloid();
+      }
+
+      function draw2DEpicycloid() {
+        const { ctx2D, canvas2D, q, tAnim } = tabD;
+        const size = canvas2D.width;
+        const cx = size / 2,
+          cy = size / 2;
+        const scale = size / 3;
+
+        ctx2D.clearRect(0, 0, size, size);
+
+        // 배경
+        ctx2D.fillStyle = "#fafafa";
+        ctx2D.fillRect(0, 0, size, size);
+
+        // 축
+        ctx2D.strokeStyle = "#ddd";
+        ctx2D.lineWidth = 1;
+        ctx2D.beginPath();
+        ctx2D.moveTo(0, cy);
+        ctx2D.lineTo(size, cy);
+        ctx2D.moveTo(cx, 0);
+        ctx2D.lineTo(cx, size);
+        ctx2D.stroke();
+
+        // 고정원 (R)
+        const R_plus_r = 1;
+        const r = R_plus_r / q;
+        const R = R_plus_r - r;
+
+        ctx2D.strokeStyle = "#0066cc";
+        ctx2D.lineWidth = 2;
+        ctx2D.beginPath();
+        ctx2D.arc(cx, cy, R * scale, 0, 2 * Math.PI);
+        ctx2D.stroke();
+
+        // 회전원의 중심
+        const angle = tAnim;
+        const centerX = cx + R_plus_r * Math.cos(angle) * scale;
+        const centerY = cy - R_plus_r * Math.sin(angle) * scale;
+
+        // 회전원 (r)
+        ctx2D.strokeStyle = "#cc0000";
+        ctx2D.lineWidth = 2;
+        ctx2D.beginPath();
+        ctx2D.arc(centerX, centerY, r * scale, 0, 2 * Math.PI);
+        ctx2D.stroke();
+
+        // 전체 궤적
+        ctx2D.strokeStyle = "#00cc66";
+        ctx2D.lineWidth = 2.5;
+        ctx2D.beginPath();
+        for (let i = 0; i <= 500; i++) {
+          const t = (2 * Math.PI * i) / 500;
+          const [x, y] = planarEpicycloidD(t, q);
+          const px = cx + x * scale;
+          const py = cy - y * scale;
+          if (i === 0) ctx2D.moveTo(px, py);
+          else ctx2D.lineTo(px, py);
+        }
+        ctx2D.stroke();
+
+        // 현재 점
+        const [currX, currY] = planarEpicycloidD(tAnim, q);
+        ctx2D.fillStyle = "#ff6600";
+        ctx2D.beginPath();
+        ctx2D.arc(cx + currX * scale, cy - currY * scale, 5, 0, 2 * Math.PI);
+        ctx2D.fill();
+
+        // 연결선
+        ctx2D.strokeStyle = "#999";
+        ctx2D.lineWidth = 1;
+        ctx2D.setLineDash([5, 5]);
+        ctx2D.beginPath();
+        ctx2D.moveTo(centerX, centerY);
+        ctx2D.lineTo(cx + currX * scale, cy - currY * scale);
+        ctx2D.stroke();
+        ctx2D.setLineDash([]);
+      }
+
+      function draw3DEpicycloid() {
+        if (!tabD.scene) return;
+
+        const { scene, q, omega, t0, a, tAnim } = tabD;
+
+        // 씬 초기화
+        const objectsToRemove = [];
+        scene.children.forEach((child) => {
+          if (
+            child.type !== "AmbientLight" &&
+            child.type !== "DirectionalLight"
+          ) {
+            objectsToRemove.push(child);
+          }
+        });
+        objectsToRemove.forEach((obj) => scene.remove(obj));
+
+        // 축
+        const axesHelper = new THREE.AxesHelper(2);
+        scene.add(axesHelper);
+
+        // 구 (와이어프레임)
+        const sphereGeom = new THREE.SphereGeometry(a, 32, 32);
+        const sphereMat = new THREE.MeshBasicMaterial({
+          color: 0xcccccc,
+          wireframe: true,
+          transparent: true,
+          opacity: 0.3,
+        });
+        const sphere = new THREE.Mesh(sphereGeom, sphereMat);
+        scene.add(sphere);
+
+        // 고정 원 (구면 위의 큰 원)
+        // 위도 omega에 해당하는 원
+        const fixedCirclePoints = [];
+        const fixedRadius = a * Math.sin(omega);
+        const fixedZ = a * (1 - Math.cos(omega));
+
+        for (let i = 0; i <= 100; i++) {
+          const angle = (2 * Math.PI * i) / 100;
+          fixedCirclePoints.push(
+            new THREE.Vector3(
+              fixedRadius * Math.cos(angle),
+              fixedRadius * Math.sin(angle),
+              fixedZ
+            )
+          );
+        }
+        const fixedCircleGeom = new THREE.BufferGeometry().setFromPoints(
+          fixedCirclePoints
+        );
+        const fixedCircleLine = new THREE.Line(
+          fixedCircleGeom,
+          new THREE.LineBasicMaterial({ color: 0x0066cc, linewidth: 2 })
+        );
+        scene.add(fixedCircleLine);
+
+        // 전체 궤적
+        const trajectoryPoints = [];
+        for (let i = 0; i <= 500; i++) {
+          const t = (2 * Math.PI * i) / 500;
+          const [x, y, z] = sphericalEpicycloidD(t, q, omega, t0, a);
+          trajectoryPoints.push(new THREE.Vector3(x, y, z));
+        }
+        const trajectoryGeom = new THREE.BufferGeometry().setFromPoints(
+          trajectoryPoints
+        );
+        const trajectoryLine = new THREE.Line(
+          trajectoryGeom,
+          new THREE.LineBasicMaterial({ color: 0x00cc66, linewidth: 3 })
+        );
+        scene.add(trajectoryLine);
+
+        // 현재 점
+        const [currX, currY, currZ] = sphericalEpicycloidD(
+          tAnim,
+          q,
+          omega,
+          t0,
+          a
+        );
+        const pointGeom = new THREE.SphereGeometry(0.05, 16, 16);
+        const pointMat = new THREE.MeshBasicMaterial({ color: 0xff6600 });
+        const point = new THREE.Mesh(pointGeom, pointMat);
+        point.position.set(currX, currY, currZ);
+        scene.add(point);
+
+        // 회전원 (근사적으로 표시)
+        // 현재 위치에서 접평면 상의 원
+        const rollingCirclePoints = [];
+        const rollingRadius = 0.2; // 시각화를 위한 근사값
+
+        for (let i = 0; i <= 50; i++) {
+          const angle = (2 * Math.PI * i) / 50;
+          // 간단한 근사: 현재점 주변에 원 그리기
+          const dx = rollingRadius * Math.cos(angle);
+          const dy = rollingRadius * Math.sin(angle);
+          rollingCirclePoints.push(
+            new THREE.Vector3(currX + dx, currY + dy, currZ)
+          );
+        }
+        const rollingCircleGeom = new THREE.BufferGeometry().setFromPoints(
+          rollingCirclePoints
+        );
+        const rollingCircleLine = new THREE.Line(
+          rollingCircleGeom,
+          new THREE.LineBasicMaterial({ color: 0xcc0000, linewidth: 2 })
+        );
+        scene.add(rollingCircleLine);
+
+        tabD.renderer.render(scene, tabD.camera);
+      }
+
+      function animateTabD() {
+        requestAnimationFrame(animateTabD);
+
+        if (currentTab === 3 && tabD.initialized) {
+          if (tabD.isPlaying) {
+            tabD.tAnim += 0.01 * tabD.speed;
+            if (tabD.tAnim > 4 * Math.PI) {
+              tabD.tAnim = 0;
+            }
+
+            document.getElementById("sliderTanim").value = tabD.tAnim;
+            document.getElementById("valueTanim").textContent =
+              tabD.tAnim.toFixed(2);
+
+            updateTabD();
+          }
+
+          tabD.renderer.render(tabD.scene, tabD.camera);
+        }
+      }
+
+      // ========================================
+      // 초기화
+      // ========================================
+
+      window.onload = () => {
+        initTabA();
+
+        // 3D 초기화는 약간 지연
+        setTimeout(() => {
+          initTabB();
+          initTabC();
+          initTabD();
+        }, 200);
+      };
+    </script>
+  </body>
+</html>

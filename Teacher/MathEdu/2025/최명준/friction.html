@@ -1,0 +1,1234 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>차량 제동 역학 시뮬레이션 - 수학적 분석</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        color: #fff;
+        min-height: 100vh;
+      }
+      header {
+        text-align: center;
+        padding: 20px;
+        background: rgba(0, 0, 0, 0.3);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      }
+      h1 {
+        font-size: 1.6rem;
+        background: linear-gradient(90deg, #00d4ff, #00ff88);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+      .subtitle {
+        color: #888;
+        font-size: 0.85rem;
+        margin-top: 5px;
+      }
+      .main-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 15px;
+      }
+      .top-section {
+        display: grid;
+        grid-template-columns: 1fr 300px;
+        gap: 15px;
+        margin-bottom: 15px;
+      }
+      @media (max-width: 1000px) {
+        .top-section {
+          grid-template-columns: 1fr;
+        }
+      }
+      .canvas-section {
+        background: rgba(0, 0, 0, 0.4);
+        border-radius: 12px;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+      canvas {
+        display: block;
+        width: 100%;
+      }
+      .canvas-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 15px;
+        background: rgba(0, 0, 0, 0.3);
+        font-size: 0.85rem;
+      }
+      .lane-labels {
+        display: flex;
+        gap: 20px;
+      }
+      .lane-label {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .lane-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+      }
+      .controls-panel {
+        background: rgba(0, 0, 0, 0.4);
+        border-radius: 12px;
+        padding: 15px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+      .panel-title {
+        font-size: 0.95rem;
+        color: #00d4ff;
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .control-group {
+        margin-bottom: 15px;
+      }
+      .control-label {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 6px;
+        font-size: 0.85rem;
+        color: #aaa;
+      }
+      .control-value {
+        color: #00d4ff;
+        font-weight: bold;
+      }
+      input[type="range"] {
+        width: 100%;
+        height: 6px;
+        -webkit-appearance: none;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 3px;
+      }
+      input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 16px;
+        height: 16px;
+        background: linear-gradient(135deg, #00d4ff, #00ff88);
+        border-radius: 50%;
+        cursor: pointer;
+      }
+      .road-buttons {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 5px;
+      }
+      .road-btn {
+        padding: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        background: rgba(255, 255, 255, 0.05);
+        color: #aaa;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 0.75rem;
+        transition: all 0.3s;
+      }
+      .road-btn.active {
+        background: rgba(0, 212, 255, 0.2);
+        border-color: #00d4ff;
+        color: #fff;
+      }
+      .friction-display {
+        display: flex;
+        justify-content: space-around;
+        margin-top: 8px;
+        padding: 8px;
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 6px;
+        font-size: 0.8rem;
+      }
+      .friction-item {
+        text-align: center;
+      }
+      .friction-item .label {
+        color: #666;
+        font-size: 0.7rem;
+      }
+      .friction-item .value {
+        color: #fff;
+        font-weight: bold;
+      }
+      .action-buttons {
+        display: flex;
+        gap: 8px;
+        margin-top: 15px;
+      }
+      .btn {
+        flex: 1;
+        padding: 12px;
+        border: none;
+        border-radius: 8px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s;
+      }
+      .btn-start {
+        background: linear-gradient(135deg, #00d4ff, #00ff88);
+        color: #000;
+      }
+      .btn-reset {
+        background: rgba(255, 255, 255, 0.1);
+        color: #fff;
+      }
+      .stats-mini {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin-top: 15px;
+      }
+      .stat-mini {
+        background: rgba(0, 0, 0, 0.3);
+        padding: 10px;
+        border-radius: 6px;
+        text-align: center;
+      }
+      .stat-mini.abs {
+        border-left: 3px solid #00ff88;
+      }
+      .stat-mini.normal {
+        border-left: 3px solid #ff6b6b;
+      }
+      .stat-mini .label {
+        font-size: 0.7rem;
+        color: #888;
+      }
+      .stat-mini .value {
+        font-size: 1rem;
+        font-weight: bold;
+      }
+      /* ===== 수학 시각화 섹션 ===== */
+      .math-section {
+        background: rgba(0, 0, 0, 0.4);
+        border-radius: 12px;
+        padding: 15px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        margin-top: 15px;
+      }
+      .math-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+      }
+      .math-title {
+        font-size: 1rem;
+        color: #00d4ff;
+      }
+      .formula-badge {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 5px 12px;
+        border-radius: 15px;
+        font-family: "Times New Roman", serif;
+        font-size: 0.9rem;
+        color: #ffd700;
+      }
+      .graphs-container {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 15px;
+      }
+      @media (max-width: 900px) {
+        .graphs-container {
+          grid-template-columns: 1fr;
+        }
+      }
+      .graph-panel {
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 10px;
+        overflow: hidden;
+      }
+      .graph-header {
+        padding: 10px 12px;
+        background: rgba(0, 0, 0, 0.3);
+        font-size: 0.85rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .graph-formula {
+        font-family: "Times New Roman", serif;
+        color: #ffd700;
+        font-size: 0.8rem;
+      }
+      .graph-canvas {
+        display: block;
+      }
+      .graph-legend {
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+        padding: 8px;
+        font-size: 0.75rem;
+        background: rgba(0, 0, 0, 0.2);
+      }
+      .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+      }
+      .legend-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+      }
+      /* 에너지 바 */
+      .energy-section {
+        margin-top: 15px;
+        padding: 15px;
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 10px;
+      }
+      .energy-title {
+        font-size: 0.85rem;
+        color: #aaa;
+        margin-bottom: 10px;
+        display: flex;
+        justify-content: space-between;
+      }
+      .energy-bars {
+        display: flex;
+        gap: 15px;
+      }
+      .energy-bar-container {
+        flex: 1;
+      }
+      .energy-bar-label {
+        font-size: 0.75rem;
+        color: #888;
+        margin-bottom: 5px;
+        display: flex;
+        justify-content: space-between;
+      }
+      .energy-bar-track {
+        height: 25px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 5px;
+        overflow: hidden;
+        display: flex;
+      }
+      .energy-bar-kinetic {
+        height: 100%;
+        background: linear-gradient(90deg, #ff6b6b, #ffd700);
+        transition: width 0.1s;
+      }
+      .energy-bar-heat {
+        height: 100%;
+        background: linear-gradient(90deg, #888, #444);
+        transition: width 0.1s;
+      }
+      .integral-display {
+        margin-top: 15px;
+        padding: 15px;
+        background: linear-gradient(
+          135deg,
+          rgba(0, 212, 255, 0.1),
+          rgba(0, 255, 136, 0.1)
+        );
+        border-radius: 10px;
+        border: 1px solid rgba(0, 212, 255, 0.3);
+      }
+      .integral-title {
+        font-size: 0.9rem;
+        color: #00d4ff;
+        margin-bottom: 10px;
+        text-align: center;
+      }
+      .integral-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+      }
+      .integral-item {
+        text-align: center;
+        padding: 10px;
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 8px;
+      }
+      .integral-item.abs {
+        border: 1px solid rgba(0, 255, 136, 0.3);
+      }
+      .integral-item.normal {
+        border: 1px solid rgba(255, 107, 107, 0.3);
+      }
+      .integral-formula {
+        font-family: "Times New Roman", serif;
+        font-size: 1.1rem;
+        color: #ffd700;
+        margin-bottom: 5px;
+      }
+      .integral-result {
+        font-size: 1.3rem;
+        font-weight: bold;
+      }
+      .integral-label {
+        font-size: 0.75rem;
+        color: #888;
+        margin-top: 3px;
+      }
+      footer {
+        text-align: center;
+        padding: 15px;
+        color: #555;
+        font-size: 0.75rem;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>🚗 차량 제동 역학 시뮬레이션</h1>
+      <p class="subtitle">
+        Coulomb Friction Model + 수학적 분석 (적분, 에너지 보존)
+      </p>
+    </header>
+    <div class="main-container">
+      <!-- 상단: 시뮬레이션 + 컨트롤 -->
+      <div class="top-section">
+        <div class="canvas-section">
+          <div class="canvas-header">
+            <div class="lane-labels">
+              <div class="lane-label">
+                <div class="lane-dot" style="background: #00ff88"></div>
+                <span>ABS 차량</span>
+              </div>
+              <div class="lane-label">
+                <div class="lane-dot" style="background: #ff6b6b"></div>
+                <span>일반 차량</span>
+              </div>
+            </div>
+            <div
+              id="timeDisplay"
+              style="font-family: monospace; color: #00d4ff"
+            >
+              t = 0.00 s
+            </div>
+          </div>
+          <canvas id="mainCanvas" width="900" height="300"></canvas>
+        </div>
+        <div class="controls-panel">
+          <div class="panel-title">⚙️ 시뮬레이션 설정</div>
+          <div class="control-group">
+            <div class="control-label">
+              <span>초기 속도 (v0)</span>
+              <span class="control-value" id="speedValue">80 km/h</span>
+            </div>
+            <input
+              type="range"
+              id="speedSlider"
+              min="30"
+              max="150"
+              value="80"
+            />
+          </div>
+          <div class="control-group">
+            <div class="control-label">
+              <span>제동 강도 (Γ/Γc)</span>
+              <span class="control-value" id="brakeValue">100%</span>
+            </div>
+            <input
+              type="range"
+              id="brakeSlider"
+              min="20"
+              max="150"
+              value="100"
+            />
+          </div>
+          <div class="control-group">
+            <div class="control-label"><span>노면 상태</span></div>
+            <div class="road-buttons">
+              <button class="road-btn active" data-road="dry">마른 도로</button>
+              <button class="road-btn" data-road="wet">젖은 도로</button>
+              <button class="road-btn" data-road="ice">빙판길</button>
+            </div>
+            <div class="friction-display">
+              <div class="friction-item">
+                <div class="label">μs</div>
+                <div class="value" id="muSValue">0.9</div>
+              </div>
+              <div class="friction-item">
+                <div class="label">μk</div>
+                <div class="value" id="muKValue">0.7</div>
+              </div>
+            </div>
+          </div>
+          <div class="action-buttons">
+            <button class="btn btn-start" id="startBtn">▶ 시작</button>
+            <button class="btn btn-reset" id="resetBtn">↺ 리셋</button>
+          </div>
+          <div class="stats-mini">
+            <div class="stat-mini abs">
+              <div class="label">ABS 제동거리</div>
+              <div class="value" id="absDistance">0.0 m</div>
+            </div>
+            <div class="stat-mini normal">
+              <div class="label">일반 제동거리</div>
+              <div class="value" id="normalDistance">0.0 m</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- 하단: 수학적 시각화 -->
+      <div class="math-section">
+        <div class="math-header">
+          <div class="math-title">📐 수학적 분석 (Mathematical Analysis)</div>
+          <div class="formula-badge">d = ∫v(t)dt = v02/2a</div>
+        </div>
+        <div class="graphs-container">
+          <!-- 속도-시간 그래프 -->
+          <div class="graph-panel">
+            <div class="graph-header">
+              <span>속도-시간 그래프</span>
+              <span class="graph-formula">v(t) = v0 - at</span>
+            </div>
+            <canvas
+              id="velocityGraph"
+              class="graph-canvas"
+              width="350"
+              height="200"
+            ></canvas>
+            <div class="graph-legend">
+              <div class="legend-item">
+                <div class="legend-dot" style="background: #00ff88"></div>
+                <span>ABS</span>
+              </div>
+              <div class="legend-item">
+                <div class="legend-dot" style="background: #ff6b6b"></div>
+                <span>일반</span>
+              </div>
+              <div class="legend-item">
+                <div
+                  class="legend-dot"
+                  style="background: rgba(255, 215, 0, 0.3)"
+                ></div>
+                <span>면적=거리</span>
+              </div>
+            </div>
+          </div>
+          <!-- 가속도-시간 그래프 -->
+          <div class="graph-panel">
+            <div class="graph-header">
+              <span>가속도-시간 그래프</span>
+              <span class="graph-formula">a = dv/dt</span>
+            </div>
+            <canvas
+              id="accelerationGraph"
+              class="graph-canvas"
+              width="350"
+              height="200"
+            ></canvas>
+            <div class="graph-legend">
+              <div class="legend-item">
+                <div class="legend-dot" style="background: #00ff88"></div>
+                <span>ABS (μsg)</span>
+              </div>
+              <div class="legend-item">
+                <div class="legend-dot" style="background: #ff6b6b"></div>
+                <span>일반 (μkg)</span>
+              </div>
+            </div>
+          </div>
+          <!-- 위치-시간 그래프 -->
+          <div class="graph-panel">
+            <div class="graph-header">
+              <span>위치-시간 그래프</span>
+              <span class="graph-formula">x(t) = ∫v dt</span>
+            </div>
+            <canvas
+              id="positionGraph"
+              class="graph-canvas"
+              width="350"
+              height="200"
+            ></canvas>
+            <div class="graph-legend">
+              <div class="legend-item">
+                <div class="legend-dot" style="background: #00ff88"></div>
+                <span>ABS</span>
+              </div>
+              <div class="legend-item">
+                <div class="legend-dot" style="background: #ff6b6b"></div>
+                <span>일반</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- 에너지 보존 시각화 -->
+        <div class="energy-section">
+          <div class="energy-title">
+            <span>⚡ 에너지 보존: KE → 열에너지 (마찰일)</span>
+            <span class="graph-formula">1⁄2mv02 = ∫F·dx = μmgd</span>
+          </div>
+          <div class="energy-bars">
+            <div class="energy-bar-container">
+              <div class="energy-bar-label">
+                <span>ABS 차량</span>
+                <span id="absEnergyText">KE: 100%</span>
+              </div>
+              <div class="energy-bar-track">
+                <div
+                  class="energy-bar-kinetic"
+                  id="absKE"
+                  style="width: 100%"
+                ></div>
+                <div
+                  class="energy-bar-heat"
+                  id="absHeat"
+                  style="width: 0%"
+                ></div>
+              </div>
+            </div>
+            <div class="energy-bar-container">
+              <div class="energy-bar-label">
+                <span>일반 차량</span>
+                <span id="normalEnergyText">KE: 100%</span>
+              </div>
+              <div class="energy-bar-track">
+                <div
+                  class="energy-bar-kinetic"
+                  id="normalKE"
+                  style="width: 100%"
+                ></div>
+                <div
+                  class="energy-bar-heat"
+                  id="normalHeat"
+                  style="width: 0%"
+                ></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- 적분 결과 표시 -->
+        <div class="integral-display">
+          <div class="integral-title">
+            📊 적분 계산 결과 (∫0t v(τ)dτ = 이동 거리)
+          </div>
+          <div class="integral-grid">
+            <div class="integral-item abs">
+              <div class="integral-formula">∫v<sub>ABS</sub>dt</div>
+              <div
+                class="integral-result"
+                id="absIntegral"
+                style="color: #00ff88"
+              >
+                0.0 m
+              </div>
+              <div class="integral-label">그래프 아래 면적 (녹색)</div>
+            </div>
+            <div class="integral-item normal">
+              <div class="integral-formula">∫v<sub>Normal</sub>dt</div>
+              <div
+                class="integral-result"
+                id="normalIntegral"
+                style="color: #ff6b6b"
+              >
+                0.0 m
+              </div>
+              <div class="integral-label">그래프 아래 면적 (빨강)</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <footer>
+      논문: "Dynamics of braking vehicles: from Coulomb friction to anti-lock
+      braking systems"
+    </footer>
+    <script>
+      // ===== 물리 상수 =====
+      const g = 9.8;
+      const nu = 0.05;
+      // ===== 노면 조건 =====
+      const roadConditions = {
+        dry: { mu_s: 0.9, mu_k: 0.7, color: "#555" },
+        wet: { mu_s: 0.6, mu_k: 0.4, color: "#3a5a7c" },
+        ice: { mu_s: 0.3, mu_k: 0.15, color: "#a8d8ea" },
+      };
+      // ===== 시뮬레이션 상태 =====
+      let sim = {
+        running: false,
+        time: 0,
+        road: "dry",
+        initialSpeed: 80,
+        brakeForce: 100,
+        abs: { x: 50, v: 0, a: 0, stopped: false, data: [] },
+        normal: {
+          x: 50,
+          v: 0,
+          a: 0,
+          stopped: false,
+          locked: false,
+          data: [],
+          skidMarks: [],
+        },
+      };
+      // ===== 캔버스 =====
+      const mainCanvas = document.getElementById("mainCanvas");
+      const mainCtx = mainCanvas.getContext("2d");
+      const velCanvas = document.getElementById("velocityGraph");
+      const velCtx = velCanvas.getContext("2d");
+      const accCanvas = document.getElementById("accelerationGraph");
+      const accCtx = accCanvas.getContext("2d");
+      const posCanvas = document.getElementById("positionGraph");
+      const posCtx = posCanvas.getContext("2d");
+      // ===== 이벤트 =====
+      document
+        .getElementById("speedSlider")
+        .addEventListener("input", function () {
+          sim.initialSpeed = parseInt(this.value);
+          document.getElementById("speedValue").textContent =
+            this.value + " km/h";
+          if (!sim.running) resetSim();
+        });
+      document
+        .getElementById("brakeSlider")
+        .addEventListener("input", function () {
+          sim.brakeForce = parseInt(this.value);
+          document.getElementById("brakeValue").textContent = this.value + "%";
+          if (!sim.running) resetSim();
+        });
+      document.querySelectorAll(".road-btn").forEach((btn) => {
+        btn.addEventListener("click", function () {
+          document
+            .querySelectorAll(".road-btn")
+            .forEach((b) => b.classList.remove("active"));
+          this.classList.add("active");
+          sim.road = this.dataset.road;
+          const road = roadConditions[sim.road];
+          document.getElementById("muSValue").textContent =
+            road.mu_s.toFixed(2);
+          document.getElementById("muKValue").textContent =
+            road.mu_k.toFixed(2);
+          if (!sim.running) resetSim();
+        });
+      });
+      document.getElementById("startBtn").addEventListener("click", startSim);
+      document.getElementById("resetBtn").addEventListener("click", resetSim);
+      // ===== 시뮬레이션 =====
+      function startSim() {
+        if (sim.running) return;
+        resetSim();
+        sim.running = true;
+        const v0 = sim.initialSpeed / 3.6;
+        sim.abs.v = v0;
+        sim.normal.v = v0;
+        document.getElementById("startBtn").textContent = "⏸ 진행 중";
+        lastTime = performance.now();
+        requestAnimationFrame(loop);
+      }
+      function resetSim() {
+        sim.running = false;
+        sim.time = 0;
+        const v0 = sim.initialSpeed / 3.6;
+        sim.abs = { x: 50, v: v0, a: 0, stopped: false, data: [] };
+        sim.normal = {
+          x: 50,
+          v: v0,
+          a: 0,
+          stopped: false,
+          locked: false,
+          data: [],
+          skidMarks: [],
+        };
+        document.getElementById("startBtn").textContent = "▶ 시작";
+        document.getElementById("timeDisplay").textContent = "t = 0.00 s";
+        document.getElementById("absDistance").textContent = "0.0 m";
+        document.getElementById("normalDistance").textContent = "0.0 m";
+        document.getElementById("absIntegral").textContent = "0.0 m";
+        document.getElementById("normalIntegral").textContent = "0.0 m";
+        draw();
+        drawGraphs();
+      }
+      function updatePhysics(dt) {
+        const road = roadConditions[sim.road];
+        const gamma_c = road.mu_s * (1 + nu);
+        const appliedGamma = (sim.brakeForce / 100) * gamma_c;
+        // ABS 차량
+        if (!sim.abs.stopped) {
+          sim.abs.a = road.mu_s * 0.95 * g;
+          sim.abs.v -= sim.abs.a * dt;
+          if (sim.abs.v <= 0) {
+            sim.abs.v = 0;
+            sim.abs.stopped = true;
+          }
+          sim.abs.x += sim.abs.v * dt;
+          sim.abs.data.push({
+            t: sim.time,
+            v: sim.abs.v,
+            x: sim.abs.x - 50,
+            a: sim.abs.a,
+          });
+        }
+        // 일반 차량
+        if (!sim.normal.stopped) {
+          if (appliedGamma <= gamma_c) {
+            sim.normal.a = (appliedGamma / (1 + nu)) * g;
+            sim.normal.locked = false;
+          } else {
+            sim.normal.a = road.mu_k * g;
+            sim.normal.locked = true;
+            if (
+              sim.normal.skidMarks.length === 0 ||
+              sim.normal.x -
+                sim.normal.skidMarks[sim.normal.skidMarks.length - 1] >
+                3
+            ) {
+              sim.normal.skidMarks.push(sim.normal.x);
+            }
+          }
+          sim.normal.v -= sim.normal.a * dt;
+          if (sim.normal.v <= 0) {
+            sim.normal.v = 0;
+            sim.normal.stopped = true;
+          }
+          sim.normal.x += sim.normal.v * dt;
+          sim.normal.data.push({
+            t: sim.time,
+            v: sim.normal.v,
+            x: sim.normal.x - 50,
+            a: sim.normal.a,
+          });
+        }
+        sim.time += dt;
+        if (sim.abs.stopped && sim.normal.stopped) {
+          sim.running = false;
+          document.getElementById("startBtn").textContent = "▶ 다시 시작";
+        }
+      }
+      // ===== 메인 렌더링 =====
+      function draw() {
+        const road = roadConditions[sim.road];
+        const scale = 3;
+        const maxX = Math.max(sim.abs.x, sim.normal.x);
+        const offset = maxX > 200 ? (maxX - 200) * scale : 0;
+        mainCtx.fillStyle = "#1a1a2e";
+        mainCtx.fillRect(0, 0, mainCanvas.width, mainCanvas.height);
+        // 도로
+        mainCtx.fillStyle = road.color;
+        mainCtx.fillRect(0, 50, mainCanvas.width, 80);
+        mainCtx.fillRect(0, 170, mainCanvas.width, 80);
+        // 차선
+        mainCtx.strokeStyle = "#fff";
+        mainCtx.setLineDash([15, 15]);
+        mainCtx.lineWidth = 2;
+        mainCtx.beginPath();
+        mainCtx.moveTo(0, 90);
+        mainCtx.lineTo(mainCanvas.width, 90);
+        mainCtx.moveTo(0, 210);
+        mainCtx.lineTo(mainCanvas.width, 210);
+        mainCtx.stroke();
+        mainCtx.setLineDash([]);
+        // 거리 마커
+        mainCtx.fillStyle = "rgba(255,255,255,0.4)";
+        mainCtx.font = "10px Arial";
+        for (let m = 0; m <= 400; m += 20) {
+          const screenX = (m + 50) * scale - offset;
+          if (screenX > 0 && screenX < mainCanvas.width) {
+            mainCtx.fillRect(screenX, 125, 1, 10);
+            mainCtx.fillText(m + "m", screenX - 8, 148);
+            mainCtx.fillRect(screenX, 245, 1, 10);
+            mainCtx.fillText(m + "m", screenX - 8, 268);
+          }
+        }
+        // 스키드 마크
+        mainCtx.fillStyle = "rgba(20,20,20,0.7)";
+        sim.normal.skidMarks.forEach((mx) => {
+          const sx = mx * scale - offset;
+          if (sx > -50 && sx < mainCanvas.width + 50) {
+            mainCtx.fillRect(sx - 20, 225, 6, 3);
+            mainCtx.fillRect(sx + 14, 225, 6, 3);
+          }
+        });
+        // 차량
+        drawCar(sim.abs.x * scale - offset, 90, "#00ff88", false);
+        drawCar(
+          sim.normal.x * scale - offset,
+          210,
+          "#ff6b6b",
+          sim.normal.locked
+        );
+        // UI 업데이트
+        updateUI();
+      }
+      function drawCar(x, y, color, locked) {
+        if (x < -80 || x > mainCanvas.width + 80) return;
+        mainCtx.save();
+        mainCtx.translate(x, y);
+        // 차체
+        const grad = mainCtx.createLinearGradient(0, -20, 0, 20);
+        grad.addColorStop(0, color);
+        grad.addColorStop(1, shadeColor(color, -40));
+        mainCtx.fillStyle = grad;
+        mainCtx.beginPath();
+        mainCtx.roundRect(-35, -8, 70, 35, 4);
+        mainCtx.fill();
+        // 지붕
+        mainCtx.fillStyle = shadeColor(color, -20);
+        mainCtx.beginPath();
+        mainCtx.moveTo(-15, -8);
+        mainCtx.lineTo(20, -8);
+        mainCtx.lineTo(12, -22);
+        mainCtx.lineTo(-8, -22);
+        mainCtx.fill();
+        // 바퀴
+        mainCtx.fillStyle = "#222";
+        mainCtx.beginPath();
+        mainCtx.arc(-20, 25, 10, 0, Math.PI * 2);
+        mainCtx.arc(20, 25, 10, 0, Math.PI * 2);
+        mainCtx.fill();
+        // 잠김 표시
+        if (locked && sim.running) {
+          mainCtx.strokeStyle = "#ff0000";
+          mainCtx.lineWidth = 2;
+          mainCtx.beginPath();
+          mainCtx.arc(-20, 25, 12, 0, Math.PI * 2);
+          mainCtx.arc(20, 25, 12, 0, Math.PI * 2);
+          mainCtx.stroke();
+          // 연기
+          mainCtx.fillStyle = "rgba(200,200,200,0.5)";
+          for (let i = 0; i < 5; i++) {
+            mainCtx.beginPath();
+            mainCtx.arc(
+              -30 - Math.random() * 20,
+              20 + Math.random() * 10,
+              4 + Math.random() * 6,
+              0,
+              Math.PI * 2
+            );
+            mainCtx.fill();
+          }
+        }
+        mainCtx.restore();
+      }
+      // ===== 그래프 렌더링 =====
+      function drawGraphs() {
+        drawVelocityGraph();
+        drawAccelerationGraph();
+        drawPositionGraph();
+        updateEnergyBars();
+      }
+      function drawVelocityGraph() {
+        const ctx = velCtx;
+        const w = velCanvas.width;
+        const h = velCanvas.height;
+        const padding = { left: 40, right: 10, top: 10, bottom: 25 };
+        const graphW = w - padding.left - padding.right;
+        const graphH = h - padding.top - padding.bottom;
+        ctx.fillStyle = "#0a0a15";
+        ctx.fillRect(0, 0, w, h);
+        // 그리드
+        ctx.strokeStyle = "rgba(255,255,255,0.1)";
+        ctx.lineWidth = 1;
+        for (let i = 0; i <= 5; i++) {
+          const y = padding.top + (graphH / 5) * i;
+          ctx.beginPath();
+          ctx.moveTo(padding.left, y);
+          ctx.lineTo(w - padding.right, y);
+          ctx.stroke();
+        }
+        // 축
+        ctx.strokeStyle = "rgba(255,255,255,0.5)";
+        ctx.beginPath();
+        ctx.moveTo(padding.left, padding.top);
+        ctx.lineTo(padding.left, h - padding.bottom);
+        ctx.lineTo(w - padding.right, h - padding.bottom);
+        ctx.stroke();
+        // 라벨
+        ctx.fillStyle = "#888";
+        ctx.font = "10px Arial";
+        ctx.fillText("v (m/s)", 5, padding.top + 10);
+        ctx.fillText("t (s)", w - 30, h - 5);
+        const v0 = sim.initialSpeed / 3.6;
+        const maxT = Math.max(3, sim.time + 0.5);
+        // Y축 눈금
+        for (let i = 0; i <= 5; i++) {
+          const val = ((v0 * (5 - i)) / 5).toFixed(0);
+          const y = padding.top + (graphH / 5) * i;
+          ctx.fillText(val, 5, y + 3);
+        }
+        // 적분 면적 (그래프 아래 영역)
+        if (sim.abs.data.length > 1) {
+          ctx.fillStyle = "rgba(0, 255, 136, 0.15)";
+          ctx.beginPath();
+          ctx.moveTo(padding.left, h - padding.bottom);
+          sim.abs.data.forEach((d) => {
+            const x = padding.left + (d.t / maxT) * graphW;
+            const y = padding.top + (1 - d.v / v0) * graphH;
+            ctx.lineTo(x, y);
+          });
+          ctx.lineTo(
+            padding.left +
+              (sim.abs.data[sim.abs.data.length - 1].t / maxT) * graphW,
+            h - padding.bottom
+          );
+          ctx.closePath();
+          ctx.fill();
+        }
+        if (sim.normal.data.length > 1) {
+          ctx.fillStyle = "rgba(255, 107, 107, 0.15)";
+          ctx.beginPath();
+          ctx.moveTo(padding.left, h - padding.bottom);
+          sim.normal.data.forEach((d) => {
+            const x = padding.left + (d.t / maxT) * graphW;
+            const y = padding.top + (1 - d.v / v0) * graphH;
+            ctx.lineTo(x, y);
+          });
+          ctx.lineTo(
+            padding.left +
+              (sim.normal.data[sim.normal.data.length - 1].t / maxT) * graphW,
+            h - padding.bottom
+          );
+          ctx.closePath();
+          ctx.fill();
+        }
+        // 속도 곡선
+        if (sim.abs.data.length > 1) {
+          ctx.strokeStyle = "#00ff88";
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          sim.abs.data.forEach((d, i) => {
+            const x = padding.left + (d.t / maxT) * graphW;
+            const y = padding.top + (1 - d.v / v0) * graphH;
+            if (i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+          });
+          ctx.stroke();
+        }
+        if (sim.normal.data.length > 1) {
+          ctx.strokeStyle = "#ff6b6b";
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          sim.normal.data.forEach((d, i) => {
+            const x = padding.left + (d.t / maxT) * graphW;
+            const y = padding.top + (1 - d.v / v0) * graphH;
+            if (i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+          });
+          ctx.stroke();
+        }
+      }
+      function drawAccelerationGraph() {
+        const ctx = accCtx;
+        const w = accCanvas.width;
+        const h = accCanvas.height;
+        const padding = { left: 40, right: 10, top: 10, bottom: 25 };
+        const graphW = w - padding.left - padding.right;
+        const graphH = h - padding.top - padding.bottom;
+        ctx.fillStyle = "#0a0a15";
+        ctx.fillRect(0, 0, w, h);
+        const road = roadConditions[sim.road];
+        const maxA = road.mu_s * g * 1.2;
+        const maxT = Math.max(3, sim.time + 0.5);
+        // 그리드
+        ctx.strokeStyle = "rgba(255,255,255,0.1)";
+        for (let i = 0; i <= 4; i++) {
+          const y = padding.top + (graphH / 4) * i;
+          ctx.beginPath();
+          ctx.moveTo(padding.left, y);
+          ctx.lineTo(w - padding.right, y);
+          ctx.stroke();
+        }
+        // 축
+        ctx.strokeStyle = "rgba(255,255,255,0.5)";
+        ctx.beginPath();
+        ctx.moveTo(padding.left, padding.top);
+        ctx.lineTo(padding.left, h - padding.bottom);
+        ctx.lineTo(w - padding.right, h - padding.bottom);
+        ctx.stroke();
+        // 라벨
+        ctx.fillStyle = "#888";
+        ctx.font = "10px Arial";
+        ctx.fillText("a (m/s2)", 2, padding.top + 10);
+        ctx.fillText("t (s)", w - 30, h - 5);
+        // Y축 눈금
+        for (let i = 0; i <= 4; i++) {
+          const val = ((maxA * (4 - i)) / 4).toFixed(1);
+          const y = padding.top + (graphH / 4) * i;
+          ctx.fillText(val, 5, y + 3);
+        }
+        // μsg, μkg 기준선
+        const y_mus = padding.top + (1 - (road.mu_s * g) / maxA) * graphH;
+        const y_muk = padding.top + (1 - (road.mu_k * g) / maxA) * graphH;
+        ctx.strokeStyle = "rgba(0, 255, 136, 0.3)";
+        ctx.setLineDash([5, 5]);
+        ctx.beginPath();
+        ctx.moveTo(padding.left, y_mus);
+        ctx.lineTo(w - padding.right, y_mus);
+        ctx.stroke();
+        ctx.fillStyle = "#00ff88";
+        ctx.fillText("μsg", w - 35, y_mus - 3);
+        ctx.strokeStyle = "rgba(255, 107, 107, 0.3)";
+        ctx.beginPath();
+        ctx.moveTo(padding.left, y_muk);
+        ctx.lineTo(w - padding.right, y_muk);
+        ctx.stroke();
+        ctx.fillStyle = "#ff6b6b";
+        ctx.fillText("μkg", w - 35, y_muk - 3);
+        ctx.setLineDash([]);
+        // 가속도 곡선
+        if (sim.abs.data.length > 1) {
+          ctx.strokeStyle = "#00ff88";
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          sim.abs.data.forEach((d, i) => {
+            const x = padding.left + (d.t / maxT) * graphW;
+            const y = padding.top + (1 - d.a / maxA) * graphH;
+            if (i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+          });
+          ctx.stroke();
+        }
+        if (sim.normal.data.length > 1) {
+          ctx.strokeStyle = "#ff6b6b";
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          sim.normal.data.forEach((d, i) => {
+            const x = padding.left + (d.t / maxT) * graphW;
+            const y = padding.top + (1 - d.a / maxA) * graphH;
+            if (i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+          });
+          ctx.stroke();
+        }
+      }
+      function drawPositionGraph() {
+        const ctx = posCtx;
+        const w = posCanvas.width;
+        const h = posCanvas.height;
+        const padding = { left: 40, right: 10, top: 10, bottom: 25 };
+        const graphW = w - padding.left - padding.right;
+        const graphH = h - padding.top - padding.bottom;
+        ctx.fillStyle = "#0a0a15";
+        ctx.fillRect(0, 0, w, h);
+        const maxX = Math.max(50, sim.abs.x - 50, sim.normal.x - 50) * 1.2;
+        const maxT = Math.max(3, sim.time + 0.5);
+        // 그리드
+        ctx.strokeStyle = "rgba(255,255,255,0.1)";
+        for (let i = 0; i <= 4; i++) {
+          const y = padding.top + (graphH / 4) * i;
+          ctx.beginPath();
+          ctx.moveTo(padding.left, y);
+          ctx.lineTo(w - padding.right, y);
+          ctx.stroke();
+        }
+        // 축
+        ctx.strokeStyle = "rgba(255,255,255,0.5)";
+        ctx.beginPath();
+        ctx.moveTo(padding.left, padding.top);
+        ctx.lineTo(padding.left, h - padding.bottom);
+        ctx.lineTo(w - padding.right, h - padding.bottom);
+        ctx.stroke();
+        // 라벨
+        ctx.fillStyle = "#888";
+        ctx.font = "10px Arial";
+        ctx.fillText("x (m)", 5, padding.top + 10);
+        ctx.fillText("t (s)", w - 30, h - 5);
+        // Y축 눈금
+        for (let i = 0; i <= 4; i++) {
+          const val = ((maxX * (4 - i)) / 4).toFixed(0);
+          const y = padding.top + (graphH / 4) * i;
+          ctx.fillText(val, 5, y + 3);
+        }
+        // 위치 곡선
+        if (sim.abs.data.length > 1) {
+          ctx.strokeStyle = "#00ff88";
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          sim.abs.data.forEach((d, i) => {
+            const x = padding.left + (d.t / maxT) * graphW;
+            const y = padding.top + (1 - d.x / maxX) * graphH;
+            if (i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+          });
+          ctx.stroke();
+        }
+        if (sim.normal.data.length > 1) {
+          ctx.strokeStyle = "#ff6b6b";
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          sim.normal.data.forEach((d, i) => {
+            const x = padding.left + (d.t / maxT) * graphW;
+            const y = padding.top + (1 - d.x / maxX) * graphH;
+            if (i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+          });
+          ctx.stroke();
+        }
+      }
+      function updateEnergyBars() {
+        const v0 = sim.initialSpeed / 3.6;
+        const KE0 = 0.5 * v0 * v0; // 질량 = 1 가정
+        const absKE = 0.5 * sim.abs.v * sim.abs.v;
+        const normalKE = 0.5 * sim.normal.v * sim.normal.v;
+        const absKEpercent = (absKE / KE0) * 100;
+        const normalKEpercent = (normalKE / KE0) * 100;
+        document.getElementById("absKE").style.width = absKEpercent + "%";
+        document.getElementById("absHeat").style.width =
+          100 - absKEpercent + "%";
+        document.getElementById(
+          "absEnergyText"
+        ).textContent = `KE: ${absKEpercent.toFixed(0)}%`;
+        document.getElementById("normalKE").style.width = normalKEpercent + "%";
+        document.getElementById("normalHeat").style.width =
+          100 - normalKEpercent + "%";
+        document.getElementById(
+          "normalEnergyText"
+        ).textContent = `KE: ${normalKEpercent.toFixed(0)}%`;
+      }
+      function updateUI() {
+        document.getElementById("timeDisplay").textContent =
+          "t = " + sim.time.toFixed(2) + " s";
+        document.getElementById("absDistance").textContent =
+          (sim.abs.x - 50).toFixed(1) + " m";
+        document.getElementById("normalDistance").textContent =
+          (sim.normal.x - 50).toFixed(1) + " m";
+        document.getElementById("absIntegral").textContent =
+          (sim.abs.x - 50).toFixed(1) + " m";
+        document.getElementById("normalIntegral").textContent =
+          (sim.normal.x - 50).toFixed(1) + " m";
+      }
+      // ===== 유틸리티 =====
+      function shadeColor(color, percent) {
+        const num = parseInt(color.replace("#", ""), 16);
+        const amt = Math.round(2.55 * percent);
+        const R = Math.min(255, Math.max(0, (num >> 16) + amt));
+        const G = Math.min(255, Math.max(0, ((num >> 8) & 0x00ff) + amt));
+        const B = Math.min(255, Math.max(0, (num & 0x0000ff) + amt));
+        return (
+          "#" + (0x1000000 + R * 0x10000 + G * 0x100 + B).toString(16).slice(1)
+        );
+      }
+      // ===== 메인 루프 =====
+      let lastTime = 0;
+      function loop(timestamp) {
+        if (!sim.running) {
+          draw();
+          drawGraphs();
+          return;
+        }
+        const dt = Math.min((timestamp - lastTime) / 1000, 0.05);
+        lastTime = timestamp;
+        updatePhysics(dt);
+        draw();
+        drawGraphs();
+        requestAnimationFrame(loop);
+      }
+      // 초기화
+      resetSim();
+    </script>
+  </body>
+</html>

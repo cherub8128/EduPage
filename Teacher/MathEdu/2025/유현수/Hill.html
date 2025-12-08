@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hill 암호 시뮬레이션</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px;
+      }
+
+      .container {
+        max-width: 800px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 20px;
+        padding: 40px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      }
+
+      h1 {
+        text-align: center;
+        color: #333;
+        margin-bottom: 30px;
+        font-size: 2.5em;
+      }
+
+      .section {
+        margin-bottom: 30px;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 10px;
+        color: #555;
+        font-weight: bold;
+        font-size: 1.1em;
+      }
+
+      select,
+      input[type="text"] {
+        width: 100%;
+        padding: 12px;
+        border: 2px solid #ddd;
+        border-radius: 8px;
+        font-size: 16px;
+        transition: border-color 0.3s;
+      }
+
+      select:focus,
+      input[type="text"]:focus {
+        outline: none;
+        border-color: #667eea;
+      }
+
+      .matrix-container {
+        display: inline-block;
+        margin: 20px 0;
+      }
+
+      .matrix-row {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 10px;
+      }
+
+      .matrix-input {
+        width: 80px;
+        padding: 10px;
+        text-align: center;
+        border: 2px solid #ddd;
+        border-radius: 8px;
+        font-size: 18px;
+        font-weight: bold;
+      }
+
+      .matrix-input:focus {
+        outline: none;
+        border-color: #667eea;
+      }
+
+      .button-group {
+        display: flex;
+        gap: 10px;
+        margin-top: 10px;
+      }
+
+      button {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 15px 40px;
+        font-size: 18px;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: transform 0.2s, box-shadow 0.2s;
+        font-weight: bold;
+        flex: 1;
+      }
+
+      button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+      }
+
+      button:active {
+        transform: translateY(0);
+      }
+
+      .btn-validate {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      }
+
+      .result {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 10px;
+        margin-top: 20px;
+        border-left: 5px solid #667eea;
+      }
+
+      .result h3 {
+        color: #333;
+        margin-bottom: 10px;
+      }
+
+      .result p {
+        font-size: 1.2em;
+        color: #555;
+        word-break: break-all;
+        margin-bottom: 8px;
+      }
+
+      .error {
+        background: #fee;
+        border-left-color: #f44;
+      }
+
+      .success {
+        background: #d4edda;
+        border-left-color: #28a745;
+      }
+
+      .warning {
+        background: #fff3cd;
+        padding: 15px;
+        border-radius: 8px;
+        margin-top: 10px;
+        color: #856404;
+        font-size: 0.9em;
+      }
+
+      .bracket {
+        font-size: 60px;
+        display: flex;
+        align-items: center;
+        color: #667eea;
+      }
+
+      .matrix-display {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+      }
+
+      .validation-detail {
+        background: white;
+        padding: 15px;
+        border-radius: 8px;
+        margin-top: 10px;
+      }
+
+      .validation-detail ul {
+        margin-left: 20px;
+        margin-top: 10px;
+      }
+
+      .validation-detail li {
+        margin: 5px 0;
+        color: #555;
+      }
+
+      .check-mark {
+        color: #28a745;
+        font-size: 1.2em;
+        margin-right: 5px;
+      }
+
+      .x-mark {
+        color: #dc3545;
+        font-size: 1.2em;
+        margin-right: 5px;
+      }
+    </style>
+    <link rel="canonical" href="https://edgar0401.github.io/Math/Hill.html" />
+  </head>
+  <body>
+    <div class="container">
+      <h1>🔐 Hill 암호 시뮬레이션</h1>
+
+      <div class="section">
+        <label for="matrixSize">행렬 크기 선택:</label>
+        <select id="matrixSize" onchange="generateMatrixInputs()">
+          <option value="2">2x2 행렬</option>
+          <option value="3">3x3 행렬</option>
+        </select>
+      </div>
+
+      <div class="section">
+        <label>키 행렬 입력:</label>
+        <div class="matrix-display">
+          <span class="bracket">[</span>
+          <div id="matrixInputs" class="matrix-container"></div>
+          <span class="bracket">]</span>
+        </div>
+        <div class="button-group">
+          <button class="btn-validate" onclick="validateMatrix()">
+            ✓ 행렬 유효성 검사
+          </button>
+        </div>
+        <div class="warning">
+          ⚠️ 행렬식이 26과 서로소인 행렬을 입력해야 복호화가 가능합니다.
+        </div>
+      </div>
+
+      <div id="validationResult"></div>
+
+      <div class="section">
+        <label for="plaintext">평문 입력 (대문자 영어만):</label>
+        <input
+          type="text"
+          id="plaintext"
+          placeholder="예: HELLO"
+          oninput="this.value = this.value.toUpperCase().replace(/[^A-Z]/g, '')"
+        />
+      </div>
+
+      <div class="section">
+        <button onclick="encrypt()">암호화 🔒</button>
+      </div>
+
+      <div id="result"></div>
+    </div>
+
+    <script>
+      // 페이지 로드 시 2x2 행렬 생성
+      window.onload = function () {
+        generateMatrixInputs();
+      };
+
+      // 행렬 입력 필드 생성
+      function generateMatrixInputs() {
+        const size = parseInt(document.getElementById("matrixSize").value);
+        const container = document.getElementById("matrixInputs");
+        container.innerHTML = "";
+
+        for (let i = 0; i < size; i++) {
+          const row = document.createElement("div");
+          row.className = "matrix-row";
+
+          for (let j = 0; j < size; j++) {
+            const input = document.createElement("input");
+            input.type = "number";
+            input.className = "matrix-input";
+            input.id = `m${i}${j}`;
+            input.placeholder = "0";
+            input.value = i === j ? "1" : "0"; // 기본값으로 단위행렬
+            row.appendChild(input);
+          }
+
+          container.appendChild(row);
+        }
+
+        // 행렬 변경 시 이전 검증 결과 초기화
+        document.getElementById("validationResult").innerHTML = "";
+      }
+
+      // 키 행렬 가져오기
+      function getKeyMatrix() {
+        const size = parseInt(document.getElementById("matrixSize").value);
+        const matrix = [];
+
+        for (let i = 0; i < size; i++) {
+          matrix[i] = [];
+          for (let j = 0; j < size; j++) {
+            const value =
+              parseInt(document.getElementById(`m${i}${j}`).value) || 0;
+            matrix[i][j] = value;
+          }
+        }
+
+        return matrix;
+      }
+
+      // 행렬식 계산
+      function determinant(matrix) {
+        const size = matrix.length;
+
+        if (size === 2) {
+          return matrix[0][0] * matrix[1][1] - matrix[0][1] * matrix[1][0];
+        } else if (size === 3) {
+          return (
+            matrix[0][0] *
+              (matrix[1][1] * matrix[2][2] - matrix[1][2] * matrix[2][1]) -
+            matrix[0][1] *
+              (matrix[1][0] * matrix[2][2] - matrix[1][2] * matrix[2][0]) +
+            matrix[0][2] *
+              (matrix[1][0] * matrix[2][1] - matrix[1][1] * matrix[2][0])
+          );
+        }
+        return 0;
+      }
+
+      // 최대공약수
+      function gcd(a, b) {
+        a = Math.abs(a);
+        b = Math.abs(b);
+        while (b !== 0) {
+          let temp = b;
+          b = a % b;
+          a = temp;
+        }
+        return a;
+      }
+
+      // 키 행렬 유효성 검사
+      function validateMatrix() {
+        const keyMatrix = getKeyMatrix();
+        const size = keyMatrix.length;
+        const validationDiv = document.getElementById("validationResult");
+
+        // 행렬 표시
+        let matrixDisplay = '<table style="margin: 10px 0;"><tr>';
+        for (let i = 0; i < size; i++) {
+          matrixDisplay += "<tr>";
+          for (let j = 0; j < size; j++) {
+            matrixDisplay += `<td style="padding: 5px 10px; text-align: center; font-weight: bold;">${keyMatrix[i][j]}</td>`;
+          }
+          matrixDisplay += "</tr>";
+        }
+        matrixDisplay += "</table>";
+
+        // 행렬식 계산
+        const det = determinant(keyMatrix);
+        const detMod26 = ((det % 26) + 26) % 26;
+        const isInvertible = gcd(detMod26, 26) === 1;
+
+        // 26과 서로소인 숫자들
+        const coprimes = [1, 3, 5, 7, 9, 11, 15, 17, 19, 21, 23, 25];
+
+        let resultHTML = "";
+
+        if (isInvertible) {
+          resultHTML = `
+                    <div class="result success">
+                        <h3><span class="check-mark">✓</span>유효한 키 행렬입니다!</h3>
+                        <div class="validation-detail">
+                            <p><strong>입력된 행렬:</strong></p>
+                            ${matrixDisplay}
+                            <p><strong>검증 결과:</strong></p>
+                            <ul>
+                                <li><span class="check-mark">✓</span>행렬식(det) = ${det}</li>
+                                <li><span class="check-mark">✓</span>행렬식 mod 26 = ${detMod26}</li>
+                                <li><span class="check-mark">✓</span>gcd(${detMod26}, 26) = 1 (서로소)</li>
+                                <li><span class="check-mark">✓</span>이 행렬은 Hill 암호의 키로 사용 가능합니다.</li>
+                            </ul>
+                            <p style="margin-top: 15px; color: #28a745; font-weight: bold;">
+                                → 암호화 및 복호화가 모두 가능합니다! 👍
+                            </p>
+                        </div>
+                    </div>
+                `;
+        } else {
+          let reason = "";
+          if (detMod26 === 0) {
+            reason = "행렬식이 26의 배수이므로 역행렬이 존재하지 않습니다.";
+          } else {
+            reason = `${detMod26}는 26과 서로소가 아닙니다. (gcd(${detMod26}, 26) = ${gcd(
+              detMod26,
+              26
+            )})`;
+          }
+
+          resultHTML = `
+                    <div class="result error">
+                        <h3><span class="x-mark">✗</span>유효하지 않은 키 행렬입니다!</h3>
+                        <div class="validation-detail">
+                            <p><strong>입력된 행렬:</strong></p>
+                            ${matrixDisplay}
+                            <p><strong>검증 결과:</strong></p>
+                            <ul>
+                                <li>행렬식(det) = ${det}</li>
+                                <li>행렬식 mod 26 = ${detMod26}</li>
+                                <li><span class="x-mark">✗</span>${reason}</li>
+                            </ul>
+                            <p style="margin-top: 15px; color: #dc3545; font-weight: bold;">
+                                → 이 행렬로는 복호화가 불가능합니다! ⚠️
+                            </p>
+                            <p style="margin-top: 10px; color: #856404;">
+                                <strong>💡 힌트:</strong> 행렬식을 26으로 나눈 나머지가 다음 중 하나가 되도록 행렬을 수정하세요:<br>
+                                ${coprimes.join(", ")}
+                            </p>
+                        </div>
+                    </div>
+                `;
+        }
+
+        validationDiv.innerHTML = resultHTML;
+      }
+
+      // 문자를 숫자로 변환 (A=0, B=1, ..., Z=25)
+      function charToNum(char) {
+        return char.charCodeAt(0) - 65;
+      }
+
+      // 숫자를 문자로 변환
+      function numToChar(num) {
+        return String.fromCharCode((((num % 26) + 26) % 26) + 65);
+      }
+
+      // 행렬 곱셈
+      function multiplyMatrixVector(matrix, vector) {
+        const result = [];
+        for (let i = 0; i < matrix.length; i++) {
+          let sum = 0;
+          for (let j = 0; j < vector.length; j++) {
+            sum += matrix[i][j] * vector[j];
+          }
+          result.push(sum % 26);
+        }
+        return result;
+      }
+
+      // Hill 암호화
+      function encrypt() {
+        const plaintext = document.getElementById("plaintext").value;
+        const keyMatrix = getKeyMatrix();
+        const size = keyMatrix.length;
+        const resultDiv = document.getElementById("result");
+
+        // 입력 검증
+        if (!plaintext) {
+          resultDiv.innerHTML =
+            '<div class="result error"><h3>❌ 오류</h3><p>평문을 입력해주세요.</p></div>';
+          return;
+        }
+
+        // 행렬식 검증
+        const det = determinant(keyMatrix);
+        const detMod26 = ((det % 26) + 26) % 26;
+
+        if (gcd(detMod26, 26) !== 1) {
+          resultDiv.innerHTML = `<div class="result error">
+                    <h3>❌ 오류</h3>
+                    <p>키 행렬의 행렬식(${det})이 26과 서로소가 아닙니다.</p>
+                    <p>행렬식을 26으로 나눈 나머지(${detMod26})가 1, 3, 5, 7, 9, 11, 15, 17, 19, 21, 23, 25 중 하나여야 합니다.</p>
+                    <p style="margin-top: 10px;">💡 <strong>행렬 유효성 검사</strong> 버튼을 눌러 자세한 정보를 확인하세요.</p>
+                </div>`;
+          return;
+        }
+
+        // 평문 길이를 행렬 크기의 배수로 맞추기
+        let paddedText = plaintext;
+        while (paddedText.length % size !== 0) {
+          paddedText += "X";
+        }
+
+        let ciphertext = "";
+        let process = '<div class="result"><h3>📊 암호화 과정</h3>';
+
+        // 블록 단위로 암호화
+        for (let i = 0; i < paddedText.length; i += size) {
+          const block = paddedText.substr(i, size);
+          const vector = [];
+
+          for (let j = 0; j < size; j++) {
+            vector.push(charToNum(block[j]));
+          }
+
+          const encrypted = multiplyMatrixVector(keyMatrix, vector);
+
+          let blockCipher = "";
+          for (let j = 0; j < size; j++) {
+            blockCipher += numToChar(encrypted[j]);
+          }
+
+          ciphertext += blockCipher;
+
+          // 과정 표시
+          process += `<p><strong>${block}</strong> → [${vector.join(
+            ", "
+          )}] → [${encrypted.join(
+            ", "
+          )}] → <strong>${blockCipher}</strong></p>`;
+        }
+
+        process += "</div>";
+
+        resultDiv.innerHTML = `
+                <div class="result success">
+                    <h3>🔒 암호문</h3>
+                    <p style="font-size: 1.5em; font-weight: bold; color: #667eea;">${ciphertext}</p>
+                </div>
+                ${process}
+                <div class="result">
+                    <h3>ℹ️ 정보</h3>
+                    <p>원본 평문: ${plaintext}</p>
+                    <p>패딩된 평문: ${paddedText}</p>
+                    <p>행렬 크기: ${size}x${size}</p>
+                    <p>행렬식 (mod 26): ${detMod26}</p>
+                </div>
+            `;
+      }
+    </script>
+  </body>
+</html>

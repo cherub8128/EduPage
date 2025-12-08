@@ -1,0 +1,1311 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>태양계 쌍곡선 혜성 탈출 시뮬레이션</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(
+          135deg,
+          #0a0a1a 0%,
+          #1a1a3a 50%,
+          #0a0a2a 100%
+        );
+        min-height: 100vh;
+        color: #fff;
+        overflow-x: hidden;
+      }
+      .container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+      header {
+        text-align: center;
+        padding: 20px 0;
+        background: rgba(0, 0, 0, 0.3);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        margin-bottom: 20px;
+      }
+      h1 {
+        font-size: 2rem;
+        background: linear-gradient(90deg, #00d4ff, #7b2fff, #ff6b6b);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 10px;
+      }
+      .subtitle {
+        color: #888;
+        font-size: 0.95rem;
+      }
+      .main-content {
+        display: grid;
+        grid-template-columns: 1fr 350px;
+        gap: 20px;
+      }
+      @media (max-width: 1100px) {
+        .main-content {
+          grid-template-columns: 1fr;
+        }
+      }
+      .simulation-area {
+        background: rgba(0, 0, 0, 0.5);
+        border-radius: 15px;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+      #canvas {
+        display: block;
+        width: 100%;
+        cursor: grab;
+      }
+      #canvas:active {
+        cursor: grabbing;
+      }
+      .controls {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        padding: 15px;
+        background: rgba(0, 0, 0, 0.3);
+        flex-wrap: wrap;
+      }
+      .btn {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 25px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+      }
+      .btn-primary {
+        background: linear-gradient(135deg, #00d4ff, #0066ff);
+        color: white;
+      }
+      .btn-secondary {
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+      }
+      .btn-danger {
+        background: linear-gradient(135deg, #ff6b6b, #ff3366);
+        color: white;
+      }
+      .btn-success {
+        background: linear-gradient(135deg, #00ff88, #00cc66);
+        color: #000;
+      }
+      .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+      }
+      .btn.active {
+        box-shadow: 0 0 20px currentColor;
+      }
+      .sidebar {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+      }
+      .panel {
+        background: rgba(0, 0, 0, 0.4);
+        border-radius: 15px;
+        padding: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+      .panel h3 {
+        font-size: 1rem;
+        margin-bottom: 15px;
+        color: #00d4ff;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .comet-info {
+        margin-bottom: 15px;
+        padding: 15px;
+        border-radius: 10px;
+        transition: all 0.3s;
+      }
+      .comet-info.bowell {
+        background: linear-gradient(
+          135deg,
+          rgba(255, 165, 0, 0.2),
+          rgba(255, 100, 0, 0.1)
+        );
+        border-left: 3px solid #ffa500;
+      }
+      .comet-info.atlas {
+        background: linear-gradient(
+          135deg,
+          rgba(0, 255, 200, 0.2),
+          rgba(0, 200, 150, 0.1)
+        );
+        border-left: 3px solid #00ffc8;
+      }
+      .comet-info.active {
+        transform: scale(1.02);
+        box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+      }
+      .comet-name {
+        font-weight: bold;
+        font-size: 0.95rem;
+        margin-bottom: 8px;
+      }
+      .comet-stats {
+        font-size: 0.8rem;
+        color: #aaa;
+        line-height: 1.6;
+      }
+      .comet-stats strong {
+        color: #fff;
+      }
+      .stat-row {
+        display: flex;
+        justify-content: space-between;
+        margin: 5px 0;
+      }
+      .legend {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 0.85rem;
+      }
+      .legend-color {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        flex-shrink: 0;
+      }
+      .timeline {
+        margin-top: 10px;
+      }
+      .timeline-bar {
+        height: 8px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 4px;
+        overflow: hidden;
+        margin-bottom: 10px;
+      }
+      .timeline-progress {
+        height: 100%;
+        background: linear-gradient(90deg, #00d4ff, #7b2fff);
+        border-radius: 4px;
+        transition: width 0.1s;
+      }
+      .timeline-labels {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.75rem;
+        color: #888;
+      }
+      .speed-control {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-top: 10px;
+      }
+      .speed-control input {
+        flex: 1;
+        -webkit-appearance: none;
+        height: 6px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 3px;
+        outline: none;
+      }
+      .speed-control input::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 18px;
+        height: 18px;
+        background: #00d4ff;
+        border-radius: 50%;
+        cursor: pointer;
+      }
+      .speed-value {
+        min-width: 50px;
+        text-align: right;
+        font-size: 0.85rem;
+        color: #00d4ff;
+      }
+      .event-log {
+        max-height: 150px;
+        overflow-y: auto;
+        font-size: 0.8rem;
+      }
+      .event-log::-webkit-scrollbar {
+        width: 5px;
+      }
+      .event-log::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 5px;
+      }
+      .event-log::-webkit-scrollbar-thumb {
+        background: #00d4ff;
+        border-radius: 5px;
+      }
+      .event-item {
+        padding: 8px 10px;
+        margin-bottom: 5px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 5px;
+        border-left: 2px solid #00d4ff;
+        animation: slideIn 0.3s ease;
+      }
+      @keyframes slideIn {
+        from {
+          opacity: 0;
+          transform: translateX(-10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateX(0);
+        }
+      }
+      .encounter-alert {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(0, 0, 0, 0.9);
+        padding: 30px 50px;
+        border-radius: 20px;
+        text-align: center;
+        z-index: 100;
+        border: 2px solid #ff6b6b;
+        animation: pulse 0.5s ease;
+        display: none;
+      }
+      @keyframes pulse {
+        0%,
+        100% {
+          transform: translate(-50%, -50%) scale(1);
+        }
+        50% {
+          transform: translate(-50%, -50%) scale(1.05);
+        }
+      }
+      .encounter-alert h2 {
+        color: #ff6b6b;
+        margin-bottom: 10px;
+      }
+      .encounter-alert p {
+        color: #aaa;
+      }
+      .zoom-controls {
+        position: absolute;
+        bottom: 70px;
+        right: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+      }
+      .zoom-btn {
+        width: 40px;
+        height: 40px;
+        border: none;
+        border-radius: 10px;
+        background: rgba(0, 0, 0, 0.5);
+        color: white;
+        font-size: 1.2rem;
+        cursor: pointer;
+        transition: all 0.3s;
+      }
+      .zoom-btn:hover {
+        background: rgba(0, 212, 255, 0.3);
+      }
+      .view-indicator {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        background: rgba(0, 0, 0, 0.7);
+        padding: 10px 15px;
+        border-radius: 10px;
+        font-size: 0.85rem;
+      }
+      .info-tooltip {
+        position: absolute;
+        background: rgba(0, 0, 0, 0.9);
+        padding: 15px;
+        border-radius: 10px;
+        font-size: 0.85rem;
+        max-width: 250px;
+        pointer-events: none;
+        z-index: 50;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        display: none;
+      }
+      .focus-buttons {
+        display: flex;
+        gap: 5px;
+        flex-wrap: wrap;
+        margin-top: 10px;
+      }
+      .focus-btn {
+        padding: 5px 10px;
+        font-size: 0.75rem;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        background: rgba(255, 255, 255, 0.05);
+        color: white;
+        border-radius: 15px;
+        cursor: pointer;
+        transition: all 0.3s;
+      }
+      .focus-btn:hover,
+      .focus-btn.active {
+        background: rgba(0, 212, 255, 0.2);
+        border-color: #00d4ff;
+      }
+      .distance-display {
+        font-size: 0.9rem;
+        padding: 10px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 8px;
+        margin-top: 10px;
+      }
+      footer {
+        text-align: center;
+        padding: 20px;
+        color: #666;
+        font-size: 0.8rem;
+        margin-top: 20px;
+      }
+      footer a {
+        color: #00d4ff;
+        text-decoration: none;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>🌌 태양계 쌍곡선 혜성 탈출 시뮬레이션</h1>
+      <p class="subtitle">
+        C/1980 E1 (Bowell) & C/2024 L5 (ATLAS) - 목성과 토성의 중력 슬링샷
+      </p>
+    </header>
+    <div class="container">
+      <div class="main-content">
+        <div class="simulation-area" style="position: relative">
+          <canvas id="canvas"></canvas>
+          <div class="view-indicator">
+            <span id="viewMode">전체 태양계</span> | 줌:
+            <span id="zoomLevel">1.0x</span>
+          </div>
+          <div class="zoom-controls">
+            <button class="zoom-btn" onclick="zoomIn()">+</button>
+            <button class="zoom-btn" onclick="zoomOut()">−</button>
+            <button class="zoom-btn" onclick="resetView()">⌂</button>
+          </div>
+          <div class="controls">
+            <button class="btn btn-primary" id="playBtn" onclick="togglePlay()">
+              <span id="playIcon">▶</span> 재생
+            </button>
+            <button class="btn btn-secondary" onclick="resetSimulation()">
+              ↺ 초기화
+            </button>
+            <button class="btn btn-danger" onclick="jumpToEncounter('bowell')">
+              🔴 목성 조우
+            </button>
+            <button class="btn btn-success" onclick="jumpToEncounter('atlas')">
+              🟢 토성 조우
+            </button>
+            <button class="btn btn-secondary" onclick="toggleTrails()">
+              궤적 표시
+            </button>
+          </div>
+          <div id="infoTooltip" class="info-tooltip"></div>
+        </div>
+        <div class="sidebar">
+          <div class="panel">
+            <h3>📊 시뮬레이션 상태</h3>
+            <div class="timeline">
+              <div class="timeline-bar">
+                <div
+                  class="timeline-progress"
+                  id="timelineProgress"
+                  style="width: 0%"
+                ></div>
+              </div>
+              <div class="timeline-labels">
+                <span>1978년</span>
+                <span id="currentYear">1978</span>
+                <span>2030년</span>
+              </div>
+            </div>
+            <div class="speed-control">
+              <span>속도:</span>
+              <input
+                type="range"
+                id="speedSlider"
+                min="0.1"
+                max="10"
+                step="0.1"
+                value="1"
+                onchange="updateSpe
+ed()"
+              />
+              <span class="speed-value" id="speedValue">1.0x</span>
+            </div>
+            <div class="focus-buttons">
+              <button class="focus-btn active" onclick="setFocus('sun')">
+                ☀️ 태양
+              </button>
+              <button class="focus-btn" onclick="setFocus('jupiter')">
+                🟠 목성
+              </button>
+              <button class="focus-btn" onclick="setFocus('saturn')">
+                🟡 토성
+              </button>
+              <button class="focus-btn" onclick="setFocus('bowell')">
+                🔴 C/1980 E1
+              </button>
+              <button class="focus-btn" onclick="setFocus('atlas')">
+                🟢 C/2024 L5
+              </button>
+            </div>
+          </div>
+          <div class="panel">
+            <h3>☄️ 혜성 정보</h3>
+            <div class="comet-info bowell" id="bowellInfo">
+              <div class="comet-name">🔴 C/1980 E1 (Bowell)</div>
+              <div class="comet-stats">
+                <div class="stat-row">
+                  <span>기원:</span>
+                  <strong>내부 오르트 구름</strong>
+                </div>
+                <div class="stat-row">
+                  <span>조우 행성:</span>
+                  <strong>목성 (0.23 AU)</strong>
+                </div>
+                <div class="stat-row">
+                  <span>조우 날짜:</span>
+                  <strong>1980년 12월 9일</strong>
+                </div>
+                <div class="stat-row">
+                  <span>탈출 속도:</span>
+                  <strong>3.8 km/s</strong>
+                </div>
+                <div class="stat-row">
+                  <span>목적지:</span>
+                  <strong>양자리 (Aries)</strong>
+                </div>
+              </div>
+            </div>
+            <div class="comet-info atlas" id="atlasInfo">
+              <div class="comet-name">🟢 C/2024 L5 (ATLAS)</div>
+              <div class="comet-stats">
+                <div class="stat-row">
+                  <span>기원:</span>
+                  <strong>역행 센타우루스</strong>
+                </div>
+                <div class="stat-row">
+                  <span>조우 행성:</span>
+                  <strong>토성 (0.003 AU)</strong>
+                </div>
+                <div class="stat-row">
+                  <span>조우 날짜:</span>
+                  <strong>2022년 1월 24일</strong>
+                </div>
+                <div class="stat-row">
+                  <span>탈출 속도:</span>
+                  <strong>2.8 km/s</strong>
+                </div>
+                <div class="stat-row">
+                  <span>목적지:</span>
+                  <strong>삼각형자리 (Triangulum)</strong>
+                </div>
+              </div>
+            </div>
+            <div class="distance-display">
+              <div id="distanceInfo">
+                C/1980 E1 ↔ 목성: <strong>--</strong> AU<br />
+                C/2024 L5 ↔ 토성: <strong>--</strong> AU
+              </div>
+            </div>
+          </div>
+          <div class="panel">
+            <h3>🪐 행성 범례</h3>
+            <div class="legend">
+              <div class="legend-item">
+                <div
+                  class="legend-color"
+                  style="
+                    background: radial-gradient(
+                      circle at 30% 30%,
+                      #fff5c0,
+                      #ffcc00
+                    );
+                  "
+                ></div>
+                <span>태양</span>
+              </div>
+              <div class="legend-item">
+                <div
+                  class="legend-color"
+                  style="
+                    background: radial-gradient(
+                      circle at 30% 30%,
+                      #a0c4ff,
+                      #4a90d9
+                    );
+                  "
+                ></div>
+                <span>지구 (1 AU)</span>
+              </div>
+              <div class="legend-item">
+                <div
+                  class="legend-color"
+                  style="
+                    background: radial-gradient(
+                      circle at 30% 30%,
+                      #ffd89b,
+                      #ff9a56
+                    );
+                  "
+                ></div>
+                <span>목성 (5.2 AU)</span>
+              </div>
+              <div class="legend-item">
+                <div
+                  class="legend-color"
+                  style="
+                    background: radial-gradient(
+                      circle at 30% 30%,
+                      #f5e6a3,
+                      #d4a574
+                    );
+                  "
+                ></div>
+                <span>토성 (9.5 AU)</span>
+              </div>
+              <div class="legend-item">
+                <div
+                  class="legend-color"
+                  style="
+                    background: radial-gradient(
+                      circle at 30% 30%,
+                      #a8e6cf,
+                      #56c596
+                    );
+                  "
+                ></div>
+                <span>천왕성 (19.2 AU)</span>
+              </div>
+              <div class="legend-item">
+                <div
+                  class="legend-color"
+                  style="
+                    background: radial-gradient(
+                      circle at 30% 30%,
+                      #74b9ff,
+                      #0984e3
+                    );
+                  "
+                ></div>
+                <span>해왕성 (30 AU)</span>
+              </div>
+            </div>
+          </div>
+          <div class="panel">
+            <h3>📝 이벤트 로그</h3>
+            <div class="event-log" id="eventLog">
+              <div class="event-item">시뮬레이션 준비 완료</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="encounter-alert" id="encounterAlert">
+      <h2 id="alertTitle">⚠️ 근접 조우!</h2>
+      <p id="alertText">혜성이 행성에 접근 중입니다.</p>
+    </div>
+    <footer>
+      <p>
+        논문 기반: "Ejection of Solar System hyperbolic comets" - Astronomy &
+        Astrophysics (2024)
+      </p>
+      <p>de la Fuente Marcos & de la Fuente Marcos</p>
+    </footer>
+    <script>
+      // Canvas 설정
+      const canvas = document.getElementById("canvas");
+      const ctx = canvas.getContext("2d");
+      function resizeCanvas() {
+        const container = canvas.parentElement;
+        canvas.width = container.clientWidth;
+        canvas.height = Math.max(600, window.innerHeight - 300);
+      }
+      resizeCanvas();
+      window.addEventListener("resize", resizeCanvas);
+      // 시뮬레이션 상수
+      const AU = 50; // 1 AU = 50 pixels at zoom 1
+      const startYear = 1978;
+      const endYear = 2030;
+      const totalYears = endYear - startYear;
+      // 행성 데이터 (궤도 반경 AU, 공전 주기 년)
+      const planets = {
+        mercury: {
+          a: 0.387,
+          period: 0.24,
+          color: "#b0b0b0",
+          size: 2,
+          name: "수성",
+        },
+        venus: {
+          a: 0.723,
+          period: 0.62,
+          color: "#e6c229",
+          size: 3,
+          name: "금성",
+        },
+        earth: { a: 1.0, period: 1.0, color: "#4a90d9", size: 3, name: "지구" },
+        mars: {
+          a: 1.524,
+          period: 1.88,
+          color: "#d14524",
+          size: 2.5,
+          name: "화성",
+        },
+        jupiter: {
+          a: 5.203,
+          period: 11.86,
+          color: "#ff9a56",
+          size: 12,
+          name: "목성",
+        },
+        saturn: {
+          a: 9.537,
+          period: 29.46,
+          color: "#d4a574",
+          size: 10,
+          name: "토성",
+        },
+        uranus: {
+          a: 19.19,
+          period: 84.01,
+          color: "#56c596",
+          size: 6,
+          name: "천왕성",
+        },
+        neptune: {
+          a: 30.07,
+          period: 164.8,
+          color: "#0984e3",
+          size: 6,
+          name: "해왕성",
+        },
+      };
+      // 혜성 데이터 (단순화된 궤도)
+      const comets = {
+        bowell: {
+          name: "C/1980 E1 (Bowell)",
+          color: "#ff6b6b",
+          glowColor: "rgba(255, 107, 107, 0.5)",
+          encounterYear: 1980.94, // 1980년 12월 9일
+          encounterPlanet: "jupiter",
+          encounterDistance: 0.23,
+          preEncounterE: 0.9999611,
+          postEncounterE: 1.0577,
+          escapeVelocity: 3.8,
+          destination: "양자리 (Aries)",
+          // 궤도 파라미터 (단순화)
+          prePerihelion: 3.36,
+          preAphelion: 80000, // Inner Oort Cloud
+          postDirection: Math.PI * 0.15, // 탈출 방향
+        },
+        atlas: {
+          name: "C/2024 L5 (ATLAS)",
+          color: "#00ffc8",
+          glowColor: "rgba(0, 255, 200, 0.5)",
+          encounterYear: 2022.065, // 2022년 1월 24일
+          encounterPlanet: "saturn",
+          encounterDistance: 0.003,
+          preEncounterE: 0.7,
+          postEncounterE: 1.0375,
+          escapeVelocity: 2.8,
+          destination: "삼각형자리 (Triangulum)",
+          // 궤도 파라미터 (단순화)
+          prePerihelion: 7.87,
+          preAphelion: 36, // Centaur region
+          postDirection: Math.PI * 0.3, // 탈출 방향
+        },
+      };
+      // 시뮬레이션 상태
+      let state = {
+        playing: false,
+        currentYear: startYear,
+        speed: 1,
+        zoom: 1,
+        centerX: 0,
+        centerY: 0,
+        focus: "sun",
+        showTrails: true,
+        trails: {
+          bowell: [],
+          atlas: [],
+        },
+        encounteredBowell: false,
+        encounteredAtlas: false,
+      };
+      // 마우스 드래그
+      let isDragging = false;
+      let lastMouseX, lastMouseY;
+      canvas.addEventListener("mousedown", (e) => {
+        isDragging = true;
+        lastMouseX = e.clientX;
+        lastMouseY = e.clientY;
+      });
+      canvas.addEventListener("mousemove", (e) => {
+        if (isDragging) {
+          const dx = e.clientX - lastMouseX;
+          const dy = e.clientY - lastMouseY;
+          state.centerX += dx;
+          state.centerY += dy;
+          lastMouseX = e.clientX;
+          lastMouseY = e.clientY;
+        }
+        // 툴팁
+        updateTooltip(e);
+      });
+      canvas.addEventListener("mouseup", () => (isDragging = false));
+      canvas.addEventListener("mouseleave", () => {
+        isDragging = false;
+        document.getElementById("infoTooltip").style.display = "none";
+      });
+      // 줌 컨트롤
+      function zoomIn() {
+        state.zoom = Math.min(5, state.zoom * 1.2);
+        updateZoomDisplay();
+      }
+      function zoomOut() {
+        state.zoom = Math.max(0.2, state.zoom / 1.2);
+        updateZoomDisplay();
+      }
+      function resetView() {
+        state.zoom = 1;
+        state.centerX = 0;
+        state.centerY = 0;
+        state.focus = "sun";
+        updateZoomDisplay();
+        updateFocusButtons();
+      }
+      function updateZoomDisplay() {
+        document.getElementById("zoomLevel").textContent =
+          state.zoom.toFixed(1) + "x";
+      }
+      // 재생 컨트롤
+      function togglePlay() {
+        state.playing = !state.playing;
+        const btn = document.getElementById("playBtn");
+        const icon = document.getElementById("playIcon");
+        if (state.playing) {
+          btn.innerHTML = "<span>⏸</span> 일시정지";
+          btn.classList.remove("btn-primary");
+          btn.classList.add("btn-secondary");
+        } else {
+          btn.innerHTML = "<span>▶</span> 재생";
+          btn.classList.add("btn-primary");
+          btn.classList.remove("btn-secondary");
+        }
+      }
+      function resetSimulation() {
+        state.currentYear = startYear;
+        state.trails.bowell = [];
+        state.trails.atlas = [];
+        state.encounteredBowell = false;
+        state.encounteredAtlas = false;
+        addEventLog("시뮬레이션 초기화");
+      }
+      function updateSpeed() {
+        state.speed = parseFloat(document.getElementById("speedSlider").value);
+        document.getElementById("speedValue").textContent =
+          state.speed.toFixed(1) + "x";
+      }
+      function toggleTrails() {
+        state.showTrails = !state.showTrails;
+      }
+      function setFocus(target) {
+        state.focus = target;
+        updateFocusButtons();
+        const modeNames = {
+          sun: "전체 태양계",
+          jupiter: "목성 중심",
+          saturn: "토성 중심",
+          bowell: "C/1980 E1 추적",
+          atlas: "C/2024 L5 추적",
+        };
+        document.getElementById("viewMode").textContent = modeNames[target];
+      }
+      function updateFocusButtons() {
+        document.querySelectorAll(".focus-btn").forEach((btn) => {
+          btn.classList.remove("active");
+        });
+        event?.target?.classList.add("active");
+      }
+      function jumpToEncounter(comet) {
+        if (comet === "bowell") {
+          state.currentYear = comets.bowell.encounterYear - 0.5;
+          state.zoom = 2;
+          state.focus = "jupiter";
+          addEventLog("목성 근접 조우로 이동 (1980.12)");
+        } else {
+          state.currentYear = comets.atlas.encounterYear - 0.5;
+          state.zoom = 3;
+          state.focus = "saturn";
+          addEventLog("토성 근접 조우로 이동 (2022.01)");
+        }
+        updateZoomDisplay();
+      }
+      function addEventLog(message) {
+        const log = document.getElementById("eventLog");
+        const item = document.createElement("div");
+        item.className = "event-item";
+        item.textContent = `[${state.currentYear.toFixed(1)}] ${message}`;
+        log.insertBefore(item, log.firstChild);
+        if (log.children.length > 20) {
+          log.removeChild(log.lastChild);
+        }
+      }
+      function showEncounterAlert(comet, planet) {
+        const alert = document.getElementById("encounterAlert");
+        const title = document.getElementById("alertTitle");
+        const text = document.getElementById("alertText");
+        if (comet === "bowell") {
+          title.textContent = "⚠️ 목성 근접 조우!";
+          title.style.color = "#ff6b6b";
+          text.textContent =
+            "C/1980 E1이 목성에 0.23 AU까지 접근! 궤도가 쌍곡선으로 변환됩니다.";
+        } else {
+          title.textContent = "⚠️ 토성 초근접 조우!";
+          title.style.color = "#00ffc8";
+          text.textContent =
+            "C/2024 L5가 토성에 0.003 AU까지 접근! 궤도가 쌍곡선으로 변환됩니다.";
+        }
+        alert.style.display = "block";
+        setTimeout(() => {
+          alert.style.display = "none";
+        }, 3000);
+      }
+      // 행성 위치 계산
+      function getPlanetPosition(planet, year) {
+        const angle = (2 * Math.PI * (year - 2000)) / planet.period;
+        return {
+          x: planet.a * Math.cos(angle),
+          y: planet.a * Math.sin(angle),
+        };
+      }
+      // 혜성 위치 계산 (단순화된 모델)
+      function getCometPosition(cometKey, year) {
+        const comet = comets[cometKey];
+        const encounterYear = comet.encounterYear;
+        if (year < encounterYear) {
+          // 조우 전: 타원 궤도로 접근
+          const t = (year - startYear) / (encounterYear - startYear);
+          const angle = Math.PI + t * Math.PI * 0.8;
+          // 타원 궤도 근사
+          const a = comet.prePerihelion * 3;
+          const e = comet.preEncounterE;
+          const r = (a * (1 - e * e)) / (1 + e * Math.cos(angle - Math.PI));
+          return {
+            x: r * Math.cos(angle) * 0.8,
+            y: r * Math.sin(angle) * 0.8,
+            phase: "approaching",
+          };
+        } else {
+          // 조우 후: 쌍곡선 궤도로 탈출
+          const t = (year - encounterYear) / (endYear - encounterYear);
+          const angle = comet.postDirection;
+          const r = 5 + t * 40; // 점점 멀어짐
+          return {
+            x: r * Math.cos(angle),
+            y: r * Math.sin(angle),
+            phase: "escaping",
+          };
+        }
+      }
+      // 화면 좌표 변환
+      function toScreen(x, y) {
+        const cx = canvas.width / 2 + state.centerX;
+        const cy = canvas.height / 2 + state.centerY;
+        return {
+          x: cx + x * AU * state.zoom,
+          y: cy + y * AU * state.zoom,
+        };
+      }
+      // 별 배경
+      let stars = [];
+      function initStars() {
+        stars = [];
+        for (let i = 0; i < 300; i++) {
+          stars.push({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height,
+            size: Math.random() * 1.5,
+            brightness: Math.random(),
+          });
+        }
+      }
+      initStars();
+      function drawStars() {
+        stars.forEach((star) => {
+          const brightness =
+            0.3 +
+            0.7 *
+              star.brightness *
+              (0.8 + 0.2 * Math.sin(Date.now() / 1000 + star.x));
+          ctx.fillStyle = `rgba(255, 255, 255, ${brightness})`;
+          ctx.beginPath();
+          ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+          ctx.fill();
+        });
+      }
+      // 궤도 그리기
+      function drawOrbit(a, color, dashed = false) {
+        const pos = toScreen(0, 0);
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 1;
+        if (dashed) ctx.setLineDash([5, 5]);
+        else ctx.setLineDash([]);
+        ctx.beginPath();
+        ctx.arc(pos.x, pos.y, a * AU * state.zoom, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+      // 태양 그리기
+      function drawSun() {
+        const pos = toScreen(0, 0);
+        // 글로우
+        const gradient = ctx.createRadialGradient(
+          pos.x,
+          pos.y,
+          0,
+          pos.x,
+          pos.y,
+          30 * state.zoom
+        );
+        gradient.addColorStop(0, "rgba(255, 255, 200, 1)");
+        gradient.addColorStop(0.3, "rgba(255, 200, 50, 0.8)");
+        gradient.addColorStop(0.7, "rgba(255, 150, 0, 0.3)");
+        gradient.addColorStop(1, "rgba(255, 100, 0, 0)");
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.arc(pos.x, pos.y, 30 * state.zoom, 0, Math.PI * 2);
+        ctx.fill();
+        // 코어
+        ctx.fillStyle = "#fff5c0";
+        ctx.beginPath();
+        ctx.arc(pos.x, pos.y, 8 * state.zoom, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      // 행성 그리기
+      function drawPlanet(key, planet, year) {
+        const planetPos = getPlanetPosition(planet, year);
+        const pos = toScreen(planetPos.x, planetPos.y);
+        const size = planet.size * state.zoom;
+        // 글로우
+        const gradient = ctx.createRadialGradient(
+          pos.x,
+          pos.y,
+          0,
+          pos.x,
+          pos.y,
+          size * 2
+        );
+        gradient.addColorStop(0, planet.color);
+        gradient.addColorStop(1, "transparent");
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.arc(pos.x, pos.y, size * 2, 0, Math.PI * 2);
+        ctx.fill();
+        // 행성
+        ctx.fillStyle = planet.color;
+        ctx.beginPath();
+        ctx.arc(pos.x, pos.y, size, 0, Math.PI * 2);
+        ctx.fill();
+        // 토성 고리
+        if (key === "saturn") {
+          ctx.strokeStyle = "rgba(210, 180, 140, 0.6)";
+          ctx.lineWidth = 2 * state.zoom;
+          ctx.beginPath();
+          ctx.ellipse(
+            pos.x,
+            pos.y,
+            size * 1.8,
+            size * 0.5,
+            Math.PI * 0.1,
+            0,
+            Math.PI * 2
+          );
+          ctx.stroke();
+        }
+        // 힐 구 표시 (목성, 토성만)
+        if ((key === "jupiter" || key === "saturn") && state.zoom > 1.5) {
+          const hillRadius = key === "jupiter" ? 0.338 : 0.412;
+          ctx.strokeStyle = "rgba(255, 255, 255, 0.2)";
+          ctx.setLineDash([3, 3]);
+          ctx.beginPath();
+          ctx.arc(pos.x, pos.y, hillRadius * AU * state.zoom, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.setLineDash([]);
+        }
+        return { x: planetPos.x, y: planetPos.y };
+      }
+      // 혜성 그리기
+      function drawComet(key, year) {
+        const comet = comets[key];
+        const cometPos = getCometPosition(key, year);
+        const pos = toScreen(cometPos.x, cometPos.y);
+        // 궤적 저장
+        if (state.showTrails) {
+          state.trails[key].push({ x: pos.x, y: pos.y, year: year });
+          if (state.trails[key].length > 500) {
+            state.trails[key].shift();
+          }
+        }
+        // 궤적 그리기
+        if (state.showTrails && state.trails[key].length > 1) {
+          ctx.beginPath();
+          ctx.moveTo(state.trails[key][0].x, state.trails[key][0].y);
+          for (let i = 1; i < state.trails[key].length; i++) {
+            ctx.lineTo(state.trails[key][i].x, state.trails[key][i].y);
+          }
+          ctx.strokeStyle = comet.glowColor;
+          ctx.lineWidth = 2;
+          ctx.stroke();
+        }
+        // 혜성 꼬리 (조우 후 더 밝게)
+        const tailLength = cometPos.phase === "escaping" ? 40 : 20;
+        const tailAngle = Math.atan2(cometPos.y, cometPos.x) + Math.PI;
+        const tailGradient = ctx.createLinearGradient(
+          pos.x,
+          pos.y,
+          pos.x + Math.cos(tailAngle) * tailLength * state.zoom,
+          pos.y + Math.sin(tailAngle) * tailLength * state.zoom
+        );
+        tailGradient.addColorStop(0, comet.color);
+        tailGradient.addColorStop(1, "transparent");
+        ctx.beginPath();
+        ctx.moveTo(pos.x, pos.y);
+        ctx.lineTo(
+          pos.x + Math.cos(tailAngle - 0.2) * tailLength * state.zoom,
+          pos.y + Math.sin(tailAngle - 0.2) * tailLength * state.zoom
+        );
+        ctx.lineTo(
+          pos.x + Math.cos(tailAngle + 0.2) * tailLength * state.zoom,
+          pos.y + Math.sin(tailAngle + 0.2) * tailLength * state.zoom
+        );
+        ctx.fillStyle = tailGradient;
+        ctx.fill();
+        // 혜성 코마
+        const gradient = ctx.createRadialGradient(
+          pos.x,
+          pos.y,
+          0,
+          pos.x,
+          pos.y,
+          12 * state.zoom
+        );
+        gradient.addColorStop(0, comet.color);
+        gradient.addColorStop(0.5, comet.glowColor);
+        gradient.addColorStop(1, "transparent");
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.arc(pos.x, pos.y, 12 * state.zoom, 0, Math.PI * 2);
+        ctx.fill();
+        // 핵
+        ctx.fillStyle = "#fff";
+        ctx.beginPath();
+        ctx.arc(pos.x, pos.y, 3 * state.zoom, 0, Math.PI * 2);
+        ctx.fill();
+        // 라벨
+        if (state.zoom > 0.8) {
+          ctx.fillStyle = comet.color;
+          ctx.font = `${11 * state.zoom}px Arial`;
+          ctx.fillText(
+            comet.name,
+            pos.x + 15 * state.zoom,
+            pos.y - 10 * state.zoom
+          );
+        }
+        return { x: cometPos.x, y: cometPos.y };
+      }
+      // 조우 효과
+      function drawEncounterEffect(planet, comet, year) {
+        const cometData = comets[comet];
+        const encounterYear = cometData.encounterYear;
+        if (Math.abs(year - encounterYear) < 0.3) {
+          const intensity = 1 - Math.abs(year - encounterYear) / 0.3;
+          const planetData = planets[planet];
+          const planetPos = getPlanetPosition(planetData, year);
+          const pos = toScreen(planetPos.x, planetPos.y);
+          // 충격파 효과
+          const radius =
+            (0.3 - Math.abs(year - encounterYear)) * 200 * state.zoom;
+          const gradient = ctx.createRadialGradient(
+            pos.x,
+            pos.y,
+            0,
+            pos.x,
+            pos.y,
+            radius
+          );
+          gradient.addColorStop(0, "transparent");
+          gradient.addColorStop(0.7, `rgba(255, 255, 255, ${intensity * 0.1})`);
+          gradient.addColorStop(1, "transparent");
+          ctx.fillStyle = gradient;
+          ctx.beginPath();
+          ctx.arc(pos.x, pos.y, radius, 0, Math.PI * 2);
+          ctx.fill();
+          // 조우 이벤트
+          if (
+            !state[
+              `encountered${comet.charAt(0).toUpperCase() + comet.slice(1)}`
+            ] &&
+            year >= encounterYear
+          ) {
+            state[
+              `encountered${comet.charAt(0).toUpperCase() + comet.slice(1)}`
+            ] = true;
+            showEncounterAlert(comet, planet);
+            addEventLog(`${cometData.name}이(가) ${planetData.name}에 ${cometData.encounterDistance} AU로 근
+접!`);
+          }
+        }
+      }
+      // 거리 정보 업데이트
+      function updateDistanceInfo(bowellPos, atlasPos, jupiterPos, saturnPos) {
+        const bowellDist = Math.sqrt(
+          Math.pow(bowellPos.x - jupiterPos.x, 2) +
+            Math.pow(bowellPos.y - jupiterPos.y, 2)
+        );
+        const atlasDist = Math.sqrt(
+          Math.pow(atlasPos.x - saturnPos.x, 2) +
+            Math.pow(atlasPos.y - saturnPos.y, 2)
+        );
+        document.getElementById(
+          "distanceInfo"
+        ).innerHTML = `C/1980 E1 ↔ 목성: <strong>${bowellDist.toFixed(
+          2
+        )}</strong> AU<br>
+C/2024 L5 ↔ 토성: <strong>${atlasDist.toFixed(2)}</strong> AU`;
+        // 하이라이트
+        document
+          .getElementById("bowellInfo")
+          .classList.toggle(
+            "active",
+            state.currentYear > 1979 && state.currentYear < 1982
+          );
+        document
+          .getElementById("atlasInfo")
+          .classList.toggle(
+            "active",
+            state.currentYear > 2021 && state.currentYear < 2023
+          );
+      }
+      // 툴팁
+      function updateTooltip(e) {
+        const rect = canvas.getBoundingClientRect();
+        const mx = e.clientX - rect.left;
+        const my = e.clientY - rect.top;
+        const tooltip = document.getElementById("infoTooltip");
+        let showTooltip = false;
+        let tooltipContent = "";
+        // 행성 체크
+        Object.entries(planets).forEach(([key, planet]) => {
+          const pos = getPlanetPosition(planet, state.currentYear);
+          const screenPos = toScreen(pos.x, pos.y);
+          const dist = Math.sqrt(
+            Math.pow(mx - screenPos.x, 2) + Math.pow(my - screenPos.y, 2)
+          );
+          if (dist < planet.size * state.zoom + 10) {
+            showTooltip = true;
+            tooltipContent = `<strong>${planet.name}</strong><br>
+궤도 반경: ${planet.a} AU<br>
+공전 주기: ${planet.period.toFixed(2)} 년`;
+            if (key === "jupiter") {
+              tooltipContent +=
+                "<br><br>🔴 C/1980 E1 조우 행성<br>조우 거리: 0.23 AU";
+            }
+            if (key === "saturn") {
+              tooltipContent +=
+                "<br><br>🟢 C/2024 L5 조우 행성<br>조우 거리: 0.003 AU";
+            }
+          }
+        });
+        if (showTooltip) {
+          tooltip.innerHTML = tooltipContent;
+          tooltip.style.left = e.clientX - rect.left + 20 + "px";
+          tooltip.style.top = e.clientY - rect.top - 10 + "px";
+          tooltip.style.display = "block";
+        } else {
+          tooltip.style.display = "none";
+        }
+      }
+      // 메인 렌더링 루프
+      function render() {
+        ctx.fillStyle = "#0a0a1a";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        drawStars();
+        // 궤도 그리기
+        Object.entries(planets).forEach(([key, planet]) => {
+          const opacity = key === "jupiter" || key === "saturn" ? 0.4 : 0.2;
+          drawOrbit(planet.a, `rgba(255, 255, 255, ${opacity})`);
+        });
+        drawSun();
+        // 행성 위치 저장
+        let jupiterPos, saturnPos;
+        // 행성 그리기
+        Object.entries(planets).forEach(([key, planet]) => {
+          const pos = drawPlanet(key, planet, state.currentYear);
+          if (key === "jupiter") jupiterPos = pos;
+          if (key === "saturn") saturnPos = pos;
+        });
+        // 혜성 그리기
+        const bowellPos = drawComet("bowell", state.currentYear);
+        const atlasPos = drawComet("atlas", state.currentYear);
+        // 조우 효과
+        drawEncounterEffect("jupiter", "bowell", state.currentYear);
+        drawEncounterEffect("saturn", "atlas", state.currentYear);
+        // 거리 정보 업데이트
+        updateDistanceInfo(bowellPos, atlasPos, jupiterPos, saturnPos);
+        // UI 업데이트
+        const progress = ((state.currentYear - startYear) / totalYears) * 100;
+        document.getElementById(
+          "timelineProgress"
+        ).style.width = `${progress}%`;
+        document.getElementById("currentYear").textContent =
+          state.currentYear.toFixed(1);
+        // 시간 진행
+        if (state.playing) {
+          state.currentYear += 0.02 * state.speed;
+          if (state.currentYear > endYear) {
+            state.currentYear = startYear;
+            state.trails.bowell = [];
+            state.trails.atlas = [];
+            state.encounteredBowell = false;
+            state.encounteredAtlas = false;
+          }
+        }
+        requestAnimationFrame(render);
+      }
+      // 시작
+      render();
+      addEventLog("시뮬레이션 시작 준비 완료");
+    </script>
+  </body>
+</html>

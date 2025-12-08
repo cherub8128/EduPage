@@ -1,0 +1,1296 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>계단 최적화 시뮬레이션</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap");
+
+      :root {
+        font-family: "Inter", sans-serif;
+        --primary: #6366f1;
+        --primary-dark: #4f46e5;
+        --success: #10b981;
+        --warning: #f59e0b;
+        --danger: #ef4444;
+      }
+
+      body {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+      }
+
+      /* 글래스모피즘 효과 */
+      .glass {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+      }
+
+      /* 계단 시각화 */
+      #stair-visualization {
+        width: 100%;
+        height: 450px;
+        position: relative;
+        background: linear-gradient(180deg, #f0f9ff 0%, #e0f2fe 100%);
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+
+      .stair-step {
+        position: absolute;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      /* 각도 표시선 */
+      .angle-indicator {
+        position: absolute;
+        bottom: 20px;
+        left: 20px;
+        width: 2px;
+        background: rgba(239, 68, 68, 0.5);
+        transform-origin: bottom left;
+        transition: all 0.3s ease;
+        z-index: 100;
+      }
+
+      .angle-arc {
+        position: absolute;
+        bottom: 20px;
+        left: 20px;
+        border: 2px solid rgba(239, 68, 68, 0.4);
+        border-radius: 50%;
+        border-right-color: transparent;
+        border-top-color: transparent;
+        transform: rotate(-90deg);
+        transition: all 0.3s ease;
+      }
+
+      .angle-label {
+        position: absolute;
+        background: rgba(239, 68, 68, 0.9);
+        color: white;
+        padding: 4px 8px;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: bold;
+        z-index: 101;
+        transition: all 0.3s ease;
+      }
+
+      /* 커스텀 슬라이더 */
+      input[type="range"] {
+        -webkit-appearance: none;
+        appearance: none;
+        background: transparent;
+      }
+
+      input[type="range"]::-webkit-slider-track {
+        background: linear-gradient(90deg, #e0e7ff 0%, #c7d2fe 100%);
+        height: 8px;
+        border-radius: 4px;
+      }
+
+      input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        cursor: pointer;
+        box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
+        transition: all 0.2s;
+      }
+
+      input[type="range"]::-webkit-slider-thumb:hover {
+        transform: scale(1.2);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.6);
+      }
+
+      input[type="range"]::-moz-range-track {
+        background: linear-gradient(90deg, #e0e7ff 0%, #c7d2fe 100%);
+        height: 8px;
+        border-radius: 4px;
+      }
+
+      input[type="range"]::-moz-range-thumb {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        cursor: pointer;
+        box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
+        border: none;
+      }
+
+      /* 결과 카드 애니메이션 */
+      .metric-card {
+        transition: all 0.3s ease;
+      }
+
+      .metric-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+      }
+
+      /* 수식 스타일 */
+      .formula {
+        font-family: "Courier New", monospace;
+        background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+        color: #e2e8f0;
+        padding: 16px;
+        border-radius: 8px;
+        font-size: 14px;
+        line-height: 1.8;
+        overflow-x: auto;
+        box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.3);
+      }
+
+      .formula-variable {
+        color: #60a5fa;
+        font-weight: 600;
+      }
+
+      .formula-operator {
+        color: #f472b6;
+        font-weight: 600;
+      }
+
+      .formula-number {
+        color: #34d399;
+      }
+
+      /* 펄스 애니메이션 */
+      @keyframes pulse-glow {
+        0%,
+        100% {
+          box-shadow: 0 0 20px rgba(102, 126, 234, 0.4);
+        }
+        50% {
+          box-shadow: 0 0 30px rgba(102, 126, 234, 0.8);
+        }
+      }
+
+      .pulse-glow {
+        animation: pulse-glow 2s infinite;
+      }
+
+      /* 모드 버튼 */
+      .mode-btn {
+        position: relative;
+        overflow: hidden;
+      }
+
+      .mode-btn::before {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.3);
+        transform: translate(-50%, -50%);
+        transition: width 0.6s, height 0.6s;
+      }
+
+      .mode-btn:hover::before {
+        width: 300px;
+        height: 300px;
+      }
+
+      /* 토글 스위치 */
+      .toggle-content {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      .toggle-content.active {
+        max-height: 2000px;
+      }
+
+      /* 그리드 배경 */
+      .grid-bg {
+        background-image: linear-gradient(
+            rgba(99, 102, 241, 0.1) 1px,
+            transparent 1px
+          ),
+          linear-gradient(90deg, rgba(99, 102, 241, 0.1) 1px, transparent 1px);
+        background-size: 20px 20px;
+      }
+
+      /* 스크롤바 스타일링 */
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+
+      ::-webkit-scrollbar-track {
+        background: #f1f5f9;
+        border-radius: 4px;
+      }
+
+      ::-webkit-scrollbar-thumb {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 4px;
+      }
+
+      /* 배지 스타일 */
+      .badge {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+      }
+
+      .badge-good {
+        background: #d1fae5;
+        color: #065f46;
+      }
+      .badge-warning {
+        background: #fef3c7;
+        color: #92400e;
+      }
+      .badge-danger {
+        background: #fee2e2;
+        color: #991b1b;
+      }
+
+      /* 숫자 입력 스타일 */
+      .value-input {
+        width: 80px;
+        padding: 6px 10px;
+        border: 2px solid #e0e7ff;
+        border-radius: 8px;
+        font-size: 18px;
+        font-weight: 700;
+        text-align: center;
+        transition: all 0.2s;
+      }
+
+      .value-input:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      }
+
+      /* 위험도 분해 표시 */
+      .risk-breakdown {
+        font-size: 11px;
+        color: #64748b;
+        margin-top: 8px;
+      }
+
+      .risk-component {
+        display: flex;
+        justify-content: space-between;
+        padding: 3px 0;
+        border-bottom: 1px solid #e2e8f0;
+      }
+
+      .risk-component:last-child {
+        border-bottom: none;
+      }
+    </style>
+    <link
+      rel="canonical"
+      href="https://ekc0517.github.io/math/2025steam.html"
+    />
+  </head>
+  <body class="p-4 md:p-8">
+    <!-- 메인 컨테이너 -->
+    <div class="max-w-7xl mx-auto">
+      <!-- 헤더 -->
+      <div class="glass rounded-2xl shadow-2xl p-8 mb-6 pulse-glow">
+        <div class="flex items-center justify-between flex-wrap gap-4">
+          <div>
+            <h1
+              class="text-4xl font-black bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-2"
+            >
+              <i class="fas fa-chart-line mr-3"></i>계단 효율성 & 안전성 분석
+              시뮬레이터
+            </h1>
+            <p class="text-gray-600 text-sm">
+              물리학 기반 계산으로 최적의 계단 설계를 찾아보세요
+            </p>
+          </div>
+          <div class="flex gap-3">
+            <div class="text-center">
+              <div class="text-3xl font-black text-indigo-600">
+                <span id="efficiency-score">0</span>
+              </div>
+              <div class="text-xs text-gray-500 font-semibold">효율 점수</div>
+            </div>
+            <div class="text-center">
+              <div class="text-3xl font-black text-green-600">
+                <span id="safety-score">0</span>
+              </div>
+              <div class="text-xs text-gray-500 font-semibold">안전 점수</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 모드 선택 -->
+      <div class="glass rounded-2xl shadow-xl p-6 mb-6">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-xl font-bold text-gray-800">
+            <i class="fas fa-walking mr-2 text-indigo-600"></i>오르기 모드
+          </h2>
+          <button
+            onclick="toggleFormulas()"
+            class="px-4 py-2 bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-lg text-sm font-semibold hover:shadow-lg transition-all"
+          >
+            <i class="fas fa-calculator mr-2"></i>수식 보기
+          </button>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <button
+            id="mode-1-btn"
+            class="mode-btn py-4 px-6 rounded-xl font-bold text-lg transition-all duration-300 relative z-10"
+            onclick="setMode(1)"
+          >
+            <i class="fas fa-shoe-prints mr-2"></i>모드 A: 1계단씩
+          </button>
+          <button
+            id="mode-2-btn"
+            class="mode-btn py-4 px-6 rounded-xl font-bold text-lg transition-all duration-300 relative z-10"
+            onclick="setMode(2)"
+          >
+            <i class="fas fa-running mr-2"></i>모드 B: 2계단씩
+          </button>
+        </div>
+      </div>
+
+      <!-- 수식 섹션 (토글) -->
+      <div
+        id="formula-section"
+        class="toggle-content glass rounded-2xl shadow-xl p-6 mb-6"
+      >
+        <h2 class="text-2xl font-bold text-gray-800 mb-4">
+          <i class="fas fa-function mr-2 text-purple-600"></i>계산 수식
+        </h2>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <!-- 시간 계산 -->
+          <div class="bg-white rounded-xl p-4 shadow-md">
+            <h3 class="font-bold text-indigo-700 mb-3 flex items-center">
+              <i class="fas fa-clock mr-2"></i>소요 시간 (Efficiency)
+            </h3>
+            <div class="formula mb-2">
+              <span class="formula-variable">T</span>
+              <span class="formula-operator">=</span>
+              <span class="formula-variable">D_total</span>
+              <span class="formula-operator">/</span>
+              <span class="formula-variable">V₀</span>
+              <span class="formula-operator">+</span>
+              <span class="formula-variable">N</span>
+              <span class="formula-operator">×</span>
+              <span class="formula-number">0.2</span>
+            </div>
+            <div class="text-xs text-gray-600 mt-2">
+              • D_total: 총 수평 이동 거리 (m)<br />
+              • V₀: 초기 속도 = 1.2 m/s<br />
+              • N: 총 걸음 수<br />
+              • 0.2: 걸음당 시간 패널티 (s)
+            </div>
+          </div>
+
+          <!-- 위험도 계산 (개선됨) -->
+          <div class="bg-white rounded-xl p-4 shadow-md">
+            <h3 class="font-bold text-red-700 mb-3 flex items-center">
+              <i class="fas fa-exclamation-triangle mr-2"></i>미끄러짐 위험도
+              (Safety) ⭐NEW
+            </h3>
+            <div class="formula mb-2" style="font-size: 12px">
+              <span class="formula-variable">Risk</span>
+              <span class="formula-operator">=</span>
+              <span class="formula-variable">R_angle</span>
+              <span class="formula-operator">+</span>
+              <span class="formula-variable">R_height</span>
+              <span class="formula-operator">+</span>
+              <span class="formula-variable">R_tread</span>
+              <span class="formula-operator">+</span>
+              <span class="formula-variable">R_ratio</span>
+            </div>
+            <div class="text-xs text-gray-600 mt-2">
+              • R_angle = μₛ × tan(θ) (각도 위험)<br />
+              • R_height = max(0, (H-18)/50) (높이 패널티)<br />
+              • R_tread = max(0, (26-T)/100) (좁은 보폭 패널티)<br />
+              • R_ratio = max(0, (H/T-0.55)×2) (가파름 비율)
+            </div>
+          </div>
+
+          <!-- 에너지 계산 -->
+          <div class="bg-white rounded-xl p-4 shadow-md">
+            <h3 class="font-bold text-green-700 mb-3 flex items-center">
+              <i class="fas fa-bolt mr-2"></i>위치 에너지
+            </h3>
+            <div class="formula mb-2">
+              <span class="formula-variable">E₁</span>
+              <span class="formula-operator">=</span>
+              <span class="formula-variable">m</span>
+              <span class="formula-operator">×</span>
+              <span class="formula-variable">g</span>
+              <span class="formula-operator">×</span>
+              <span class="formula-variable">H</span>
+            </div>
+            <div class="text-xs text-gray-600 mt-2">
+              • m: 질량 = 72.4 kg<br />
+              • g: 중력가속도 = 9.81 m/s²<br />
+              • H: 총 높이 = 5 m
+            </div>
+          </div>
+
+          <!-- 운동 에너지 -->
+          <div class="bg-white rounded-xl p-4 shadow-md">
+            <h3 class="font-bold text-blue-700 mb-3 flex items-center">
+              <i class="fas fa-fire mr-2"></i>운동 에너지 근사
+            </h3>
+            <div class="formula mb-2">
+              <span class="formula-variable">E₂</span>
+              <span class="formula-operator">=</span>
+              <span class="formula-number">0.5</span>
+              <span class="formula-operator">×</span>
+              <span class="formula-variable">m</span>
+              <span class="formula-operator">×</span>
+              <span class="formula-variable">V²ₐᵥ𝓰</span>
+              <span class="formula-operator">×</span>
+              <span class="formula-variable">N</span>
+              <span class="formula-operator">×</span>
+              <span class="formula-number">0.1</span>
+            </div>
+            <div class="text-xs text-gray-600 mt-2">
+              • V_avg: 평균 속도 (m/s)<br />
+              • N: 총 걸음 수<br />
+              • 총 에너지 = E₁ + E₂
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 메인 그리드 레이아웃 -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- 왼쪽: 제어판 -->
+        <div class="lg:col-span-1">
+          <div class="glass rounded-2xl shadow-xl p-6 sticky top-4">
+            <h2 class="text-xl font-bold text-gray-800 mb-6 flex items-center">
+              <i class="fas fa-sliders-h mr-2 text-indigo-600"></i>계단 파라미터
+            </h2>
+
+            <div class="space-y-6">
+              <!-- 각도 -->
+              <div
+                class="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-xl p-4"
+              >
+                <div class="flex justify-between items-center mb-3">
+                  <label
+                    class="text-sm font-bold text-gray-700 flex items-center"
+                  >
+                    <i class="fas fa-angle-double-up mr-2 text-purple-600"></i
+                    >계단 각도
+                  </label>
+                  <input
+                    type="number"
+                    id="angle-input"
+                    min="15"
+                    max="45"
+                    step="1"
+                    value="25"
+                    class="value-input text-purple-600"
+                    onchange="syncAngleInput()"
+                  />
+                </div>
+                <input
+                  type="range"
+                  id="angle"
+                  min="15"
+                  max="45"
+                  step="1"
+                  value="25"
+                  class="w-full"
+                />
+                <div class="flex justify-between text-xs text-gray-500 mt-2">
+                  <span>15°</span>
+                  <span>완만 ← → 가파름</span>
+                  <span>45°</span>
+                </div>
+              </div>
+
+              <!-- 높이 -->
+              <div
+                class="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl p-4"
+              >
+                <div class="flex justify-between items-center mb-3">
+                  <label
+                    class="text-sm font-bold text-gray-700 flex items-center"
+                  >
+                    <i class="fas fa-arrows-alt-v mr-2 text-blue-600"></i>계단
+                    높이
+                  </label>
+                  <input
+                    type="number"
+                    id="height-input"
+                    min="10"
+                    max="25"
+                    step="1"
+                    value="15"
+                    class="value-input text-blue-600"
+                    onchange="syncHeightInput()"
+                  />
+                </div>
+                <input
+                  type="range"
+                  id="height"
+                  min="10"
+                  max="25"
+                  step="1"
+                  value="15"
+                  class="w-full"
+                />
+                <div class="flex justify-between text-xs text-gray-500 mt-2">
+                  <span>10cm</span>
+                  <span>낮음 ← → 높음</span>
+                  <span>25cm</span>
+                </div>
+              </div>
+
+              <!-- 보폭 -->
+              <div
+                class="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-4"
+              >
+                <div class="flex justify-between items-center mb-3">
+                  <label
+                    class="text-sm font-bold text-gray-700 flex items-center"
+                  >
+                    <i class="fas fa-arrows-alt-h mr-2 text-green-600"></i
+                    >보폭/디딤판
+                  </label>
+                  <input
+                    type="number"
+                    id="tread-input"
+                    min="20"
+                    max="40"
+                    step="1"
+                    value="30"
+                    class="value-input text-green-600"
+                    onchange="syncTreadInput()"
+                  />
+                </div>
+                <input
+                  type="range"
+                  id="tread"
+                  min="20"
+                  max="40"
+                  step="1"
+                  value="30"
+                  class="w-full"
+                />
+                <div class="flex justify-between text-xs text-gray-500 mt-2">
+                  <span>20cm</span>
+                  <span>좁음 ← → 넓음</span>
+                  <span>40cm</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 상세 정보 -->
+            <div
+              class="mt-6 p-4 bg-gradient-to-br from-gray-50 to-slate-50 rounded-xl border border-gray-200"
+            >
+              <h3
+                class="font-bold text-gray-700 mb-3 text-sm flex items-center"
+              >
+                <i class="fas fa-info-circle mr-2 text-indigo-600"></i>계산 상세
+                정보
+              </h3>
+              <div class="space-y-2 text-sm">
+                <div class="flex justify-between">
+                  <span class="text-gray-600">수직 거리:</span>
+                  <span id="v-step-result" class="font-bold text-gray-800"
+                    >0cm</span
+                  >
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-gray-600">수평 거리:</span>
+                  <span id="h-step-result" class="font-bold text-gray-800"
+                    >0cm</span
+                  >
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-gray-600">총 걸음 수:</span>
+                  <span id="steps-result" class="font-bold text-gray-800"
+                    >0회</span
+                  >
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-gray-600">높이/보폭 비율:</span>
+                  <span id="ratio-result" class="font-bold text-gray-800"
+                    >0.00</span
+                  >
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-gray-600">실제 계산 각도:</span>
+                  <span id="actual-angle-result" class="font-bold text-gray-800"
+                    >0°</span
+                  >
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 중앙: 시각화 -->
+        <div class="lg:col-span-1">
+          <div class="glass rounded-2xl shadow-xl p-6">
+            <h2
+              class="text-xl font-bold text-gray-800 mb-4 flex items-center justify-between"
+            >
+              <span>
+                <i class="fas fa-cube mr-2 text-indigo-600"></i>3D 시각화
+              </span>
+              <span id="current-mode-badge" class="badge badge-good"
+                >모드 A</span
+              >
+            </h2>
+            <div id="stair-visualization" class="grid-bg shadow-lg">
+              <!-- 계단이 여기에 그려집니다 -->
+            </div>
+
+            <div
+              class="mt-4 p-4 bg-blue-50 rounded-xl border-l-4 border-blue-500"
+            >
+              <p class="text-sm text-blue-900 font-semibold mb-1">
+                <i class="fas fa-lightbulb mr-2"></i>시각화 안내
+              </p>
+              <p class="text-xs text-blue-700">
+                • 파란색: 밟는 계단 | 회색: 건너뛰는 계단<br />
+                • 빨간 선: 계단 각도 표시
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 오른쪽: 결과 -->
+        <div class="lg:col-span-1">
+          <div class="glass rounded-2xl shadow-xl p-6">
+            <h2 class="text-xl font-bold text-gray-800 mb-6 flex items-center">
+              <i class="fas fa-chart-bar mr-2 text-indigo-600"></i>분석 결과
+            </h2>
+
+            <div class="space-y-4">
+              <!-- 시간 -->
+              <div
+                id="time-result-card"
+                class="metric-card bg-white rounded-xl p-5 shadow-lg border-l-4"
+              >
+                <div class="flex items-center justify-between mb-2">
+                  <div class="flex items-center">
+                    <div
+                      class="w-10 h-10 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center mr-3"
+                    >
+                      <i class="fas fa-clock text-white"></i>
+                    </div>
+                    <span class="text-sm font-semibold text-gray-600"
+                      >소요 시간</span
+                    >
+                  </div>
+                  <span id="time-badge" class="badge badge-good">우수</span>
+                </div>
+                <div class="text-4xl font-black text-gray-800">
+                  <span id="time-result">0.00</span
+                  ><span class="text-2xl text-gray-500">s</span>
+                </div>
+                <div class="mt-2 h-2 bg-gray-200 rounded-full overflow-hidden">
+                  <div
+                    id="time-progress"
+                    class="h-full bg-gradient-to-r from-green-400 to-emerald-500 transition-all duration-500"
+                    style="width: 0%"
+                  ></div>
+                </div>
+              </div>
+
+              <!-- 위험도 -->
+              <div
+                id="risk-result-card"
+                class="metric-card bg-white rounded-xl p-5 shadow-lg border-l-4"
+              >
+                <div class="flex items-center justify-between mb-2">
+                  <div class="flex items-center">
+                    <div
+                      class="w-10 h-10 rounded-full bg-gradient-to-br from-red-400 to-rose-500 flex items-center justify-center mr-3"
+                    >
+                      <i class="fas fa-shield-alt text-white"></i>
+                    </div>
+                    <span class="text-sm font-semibold text-gray-600"
+                      >위험 지수</span
+                    >
+                  </div>
+                  <span id="risk-badge" class="badge badge-good">안전</span>
+                </div>
+                <div class="text-4xl font-black text-gray-800">
+                  <span id="risk-result">0.00</span>
+                </div>
+                <div class="mt-2 h-2 bg-gray-200 rounded-full overflow-hidden">
+                  <div
+                    id="risk-progress"
+                    class="h-full bg-gradient-to-r from-green-400 to-emerald-500 transition-all duration-500"
+                    style="width: 0%"
+                  ></div>
+                </div>
+                <!-- 위험도 구성 요소 분해 -->
+                <div class="risk-breakdown mt-3 p-2 bg-gray-50 rounded">
+                  <div class="font-semibold text-xs mb-2 text-gray-700">
+                    위험 구성 요소:
+                  </div>
+                  <div class="risk-component">
+                    <span>각도 위험 (R_angle):</span>
+                    <span id="risk-angle" class="font-semibold">0.000</span>
+                  </div>
+                  <div class="risk-component">
+                    <span>높이 패널티 (R_height):</span>
+                    <span id="risk-height" class="font-semibold">0.000</span>
+                  </div>
+                  <div class="risk-component">
+                    <span>보폭 패널티 (R_tread):</span>
+                    <span id="risk-tread" class="font-semibold">0.000</span>
+                  </div>
+                  <div class="risk-component">
+                    <span>비율 패널티 (R_ratio):</span>
+                    <span id="risk-ratio" class="font-semibold">0.000</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 운동 에너지 -->
+              <div
+                id="kinetic-energy-card"
+                class="metric-card bg-white rounded-xl p-5 shadow-lg border-l-4"
+              >
+                <div class="flex items-center justify-between mb-2">
+                  <div class="flex items-center">
+                    <div
+                      class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-cyan-500 flex items-center justify-center mr-3"
+                    >
+                      <i class="fas fa-fire text-white"></i>
+                    </div>
+                    <span class="text-sm font-semibold text-gray-600"
+                      >운동 에너지</span
+                    >
+                  </div>
+                  <i class="fas fa-info-circle text-gray-400"></i>
+                </div>
+                <div class="text-4xl font-black text-gray-800">
+                  <span id="kinetic-energy-result">0</span
+                  ><span class="text-2xl text-gray-500">J</span>
+                </div>
+              </div>
+
+              <!-- 총 에너지 -->
+              <div
+                id="total-energy-card"
+                class="metric-card bg-white rounded-xl p-5 shadow-lg border-l-4"
+              >
+                <div class="flex items-center justify-between mb-2">
+                  <div class="flex items-center">
+                    <div
+                      class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-400 to-indigo-500 flex items-center justify-center mr-3"
+                    >
+                      <i class="fas fa-battery-three-quarters text-white"></i>
+                    </div>
+                    <span class="text-sm font-semibold text-gray-600"
+                      >총 에너지</span
+                    >
+                  </div>
+                  <span id="energy-badge" class="badge badge-good">효율적</span>
+                </div>
+                <div class="text-4xl font-black text-gray-800">
+                  <span id="total-energy-result">0</span
+                  ><span class="text-2xl text-gray-500">J</span>
+                </div>
+                <div class="mt-2 h-2 bg-gray-200 rounded-full overflow-hidden">
+                  <div
+                    id="energy-progress"
+                    class="h-full bg-gradient-to-r from-green-400 to-emerald-500 transition-all duration-500"
+                    style="width: 0%"
+                  ></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 푸터 -->
+      <div class="glass rounded-2xl shadow-xl p-4 mt-6 text-center">
+        <p class="text-sm text-gray-600">
+          <i class="fas fa-flask mr-2"></i>
+          물리학 기반 시뮬레이션 | 상수: m=72.4kg, g=9.81m/s², μₛ=0.6,
+          V₀=1.2m/s, H_total=5m
+        </p>
+      </div>
+    </div>
+
+    <script>
+      (function () {
+        // 상수
+        const M = 72.4;
+        const G = 9.81;
+        const MU_S = 0.6;
+        const H_TOTAL = 500;
+        const V_0 = 1.2;
+
+        let currentMode = 1;
+
+        // 입력 동기화 함수들
+        window.syncAngleInput = function () {
+          const value = document.getElementById("angle-input").value;
+          document.getElementById("angle").value = value;
+          updateResults();
+        };
+
+        window.syncHeightInput = function () {
+          const value = document.getElementById("height-input").value;
+          document.getElementById("height").value = value;
+          updateResults();
+        };
+
+        window.syncTreadInput = function () {
+          const value = document.getElementById("tread-input").value;
+          document.getElementById("tread").value = value;
+          updateResults();
+        };
+
+        // 슬라이더와 입력 필드 동기화
+        document.getElementById("angle").addEventListener("input", function () {
+          document.getElementById("angle-input").value = this.value;
+        });
+
+        document
+          .getElementById("height")
+          .addEventListener("input", function () {
+            document.getElementById("height-input").value = this.value;
+          });
+
+        document.getElementById("tread").addEventListener("input", function () {
+          document.getElementById("tread-input").value = this.value;
+        });
+
+        // 수식 섹션 토글
+        window.toggleFormulas = function () {
+          const section = document.getElementById("formula-section");
+          section.classList.toggle("active");
+        };
+
+        // 개선된 위험도 계산 함수
+        function calculateRiskIndex(angle_deg, height_cm, tread_cm) {
+          const theta_rad = angle_deg * (Math.PI / 180);
+
+          // 1. 각도 기반 위험도 (기본)
+          const risk_angle = MU_S * Math.tan(theta_rad);
+
+          // 2. 높이 기반 위험도 (18cm 이상일 때 증가)
+          const risk_height = Math.max(0, (height_cm - 18) / 50);
+
+          // 3. 보폭 기반 위험도 (26cm 미만일 때 증가)
+          const risk_tread = Math.max(0, (26 - tread_cm) / 100);
+
+          // 4. 높이/보폭 비율 위험도 (가파름의 정도)
+          const ratio = height_cm / tread_cm;
+          const risk_ratio = Math.max(0, (ratio - 0.55) * 2);
+
+          // 총 위험도
+          const total_risk = risk_angle + risk_height + risk_tread + risk_ratio;
+
+          return {
+            total: total_risk,
+            angle: risk_angle,
+            height: risk_height,
+            tread: risk_tread,
+            ratio: risk_ratio,
+          };
+        }
+
+        // 계산 함수
+        function calculateMetrics(angle_deg, height_cm, tread_cm, mode) {
+          const H_step_cm = height_cm * mode;
+          const D_step_cm = tread_cm * mode;
+          const N_steps = H_TOTAL / H_step_cm;
+
+          if (N_steps <= 0 || !isFinite(N_steps)) {
+            return {
+              T_approx: NaN,
+              Risk_Index: NaN,
+              Risk_Components: {
+                total: NaN,
+                angle: NaN,
+                height: NaN,
+                tread: NaN,
+                ratio: NaN,
+              },
+              N_steps: 0,
+              H_step_cm: 0,
+              D_step_cm: 0,
+              E_kinetic: NaN,
+              E_total: NaN,
+              H_T_Ratio: NaN,
+              Actual_Angle: NaN,
+            };
+          }
+
+          const H_TOTAL_M = H_TOTAL / 100.0;
+          const D_horizontal_total = (N_steps * D_step_cm) / 100.0;
+          const T_approx = D_horizontal_total / V_0 + N_steps * 0.2;
+          const V_avg = H_TOTAL_M / T_approx;
+          const E_1 = M * G * H_TOTAL_M;
+          const E_2_sim = 0.5 * M * Math.pow(V_avg, 2) * N_steps * 0.1;
+          const E_total = E_1 + E_2_sim;
+
+          // 개선된 위험도 계산
+          const risk = calculateRiskIndex(angle_deg, height_cm, tread_cm);
+
+          // 높이/보폭 비율
+          const h_t_ratio = height_cm / tread_cm;
+
+          // 실제 계산되는 각도 (높이와 보폭으로부터)
+          const actual_angle =
+            Math.atan(height_cm / tread_cm) * (180 / Math.PI);
+
+          return {
+            T_approx: T_approx,
+            Risk_Index: risk.total,
+            Risk_Components: risk,
+            N_steps: N_steps,
+            H_step_cm: H_step_cm,
+            D_step_cm: D_step_cm,
+            E_kinetic: E_2_sim,
+            E_total: E_total,
+            H_T_Ratio: h_t_ratio,
+            Actual_Angle: actual_angle,
+          };
+        }
+
+        // 개선된 시각화 함수 - 각도 반영
+        function updateStairVisualization(angle_deg, h_step, d_step, mode) {
+          const visContainer = document.getElementById("stair-visualization");
+          visContainer.innerHTML = "";
+
+          const actualHeight = h_step / mode;
+          const actualTread = d_step / mode;
+
+          const containerWidth = visContainer.clientWidth;
+          const containerHeight = visContainer.clientHeight;
+
+          const margin = 40;
+          const usableWidth = containerWidth - margin * 2;
+          const usableHeight = containerHeight - margin * 2;
+
+          // 각도에 따른 수평 압축 계산 (15도=1.0, 45도=0.5)
+          const angle_normalized = (angle_deg - 15) / 30; // 0~1
+          const horizontal_factor = 1 - angle_normalized * 0.5; // 1.0~0.5
+
+          // 계단 수 결정
+          let stepsToDrawH = Math.floor(usableHeight / (actualHeight * 2)) + 2;
+          let stepsToDrawW =
+            Math.floor(usableWidth / (actualTread * horizontal_factor * 2)) + 2;
+          const STEPS_TO_DRAW = Math.min(stepsToDrawH, stepsToDrawW, 10);
+
+          // 스케일 계산
+          const totalActualHeight = actualHeight * STEPS_TO_DRAW;
+          const totalActualWidth =
+            actualTread * STEPS_TO_DRAW * horizontal_factor;
+
+          const scaleH = usableHeight / totalActualHeight;
+          const scaleW = usableWidth / totalActualWidth;
+          const scale = Math.min(scaleH, scaleW) * 0.85;
+
+          const vis_h = actualHeight * scale;
+          const vis_d = actualTread * scale * horizontal_factor;
+
+          let total_height = margin;
+          let total_width = margin;
+
+          // 계단 그리기
+          for (let i = 0; i < STEPS_TO_DRAW; i++) {
+            const step = document.createElement("div");
+            step.className = "stair-step";
+
+            step.style.width = `${vis_d}px`;
+            step.style.height = `${vis_h}px`;
+            step.style.bottom = `${total_height}px`;
+            step.style.left = `${total_width}px`;
+
+            // 각도에 따른 기울기 효과 (약간)
+            const skew = (angle_deg - 25) * 0.3;
+            step.style.transform = `skewY(${-skew}deg)`;
+
+            total_height += vis_h;
+            total_width += vis_d;
+
+            if (mode === 2 && i % 2 === 0) {
+              step.style.background =
+                "linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%)";
+              step.style.border = "2px solid #2563eb";
+            } else if (mode === 2) {
+              step.style.background =
+                "linear-gradient(135deg, #9ca3af 0%, #6b7280 100%)";
+              step.style.border = "1px solid #4b5563";
+              step.style.opacity = "0.5";
+            } else {
+              step.style.background =
+                "linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%)";
+              step.style.border = "2px solid #2563eb";
+            }
+
+            visContainer.appendChild(step);
+          }
+
+          // 각도 표시선 추가
+          const angleIndicator = document.createElement("div");
+          angleIndicator.className = "angle-indicator";
+          const lineLength = Math.min(total_width - margin, 150);
+          angleIndicator.style.height = `${lineLength}px`;
+          angleIndicator.style.transform = `rotate(${angle_deg}deg)`;
+          visContainer.appendChild(angleIndicator);
+
+          // 각도 호 추가
+          const angleArc = document.createElement("div");
+          angleArc.className = "angle-arc";
+          const arcSize = Math.min(lineLength * 0.4, 60);
+          angleArc.style.width = `${arcSize}px`;
+          angleArc.style.height = `${arcSize}px`;
+          angleArc.style.transform = `rotate(${-90 + angle_deg}deg)`;
+          visContainer.appendChild(angleArc);
+
+          // 각도 레이블 추가
+          const angleLabel = document.createElement("div");
+          angleLabel.className = "angle-label";
+          angleLabel.textContent = `${angle_deg}°`;
+          const labelX =
+            margin + arcSize * 0.7 * Math.cos((angle_deg * Math.PI) / 180);
+          const labelY =
+            containerHeight -
+            margin -
+            arcSize * 0.7 * Math.sin((angle_deg * Math.PI) / 180);
+          angleLabel.style.left = `${labelX}px`;
+          angleLabel.style.bottom = `${labelY - 10}px`;
+          visContainer.appendChild(angleLabel);
+        }
+
+        // 결과 업데이트
+        function updateResults() {
+          const angle = parseFloat(document.getElementById("angle").value);
+          const height = parseFloat(document.getElementById("height").value);
+          const tread = parseFloat(document.getElementById("tread").value);
+
+          const metrics = calculateMetrics(angle, height, tread, currentMode);
+
+          if (isNaN(metrics.T_approx)) {
+            document.getElementById("time-result").textContent = "오류";
+            document.getElementById("risk-result").textContent = "오류";
+            document.getElementById("kinetic-energy-result").textContent =
+              "오류";
+            document.getElementById("total-energy-result").textContent = "오류";
+            return;
+          }
+
+          // 값 업데이트
+          document.getElementById("time-result").textContent =
+            metrics.T_approx.toFixed(2);
+          document.getElementById("risk-result").textContent =
+            metrics.Risk_Index.toFixed(4);
+          document.getElementById("kinetic-energy-result").textContent =
+            metrics.E_kinetic.toFixed(0);
+          document.getElementById("total-energy-result").textContent =
+            metrics.E_total.toFixed(0);
+
+          // 위험도 구성 요소 표시
+          document.getElementById("risk-angle").textContent =
+            metrics.Risk_Components.angle.toFixed(4);
+          document.getElementById("risk-height").textContent =
+            metrics.Risk_Components.height.toFixed(4);
+          document.getElementById("risk-tread").textContent =
+            metrics.Risk_Components.tread.toFixed(4);
+          document.getElementById("risk-ratio").textContent =
+            metrics.Risk_Components.ratio.toFixed(4);
+
+          // 상세 정보
+          document.getElementById(
+            "v-step-result"
+          ).textContent = `${metrics.H_step_cm}cm`;
+          document.getElementById(
+            "h-step-result"
+          ).textContent = `${metrics.D_step_cm}cm`;
+          document.getElementById("steps-result").textContent =
+            metrics.N_steps.toFixed(1);
+          document.getElementById("ratio-result").textContent =
+            metrics.H_T_Ratio.toFixed(3);
+          document.getElementById(
+            "actual-angle-result"
+          ).textContent = `${metrics.Actual_Angle.toFixed(1)}°`;
+
+          // 점수 계산
+          const efficiencyScore = Math.max(
+            0,
+            Math.min(100, 100 - (metrics.T_approx - 5) * 5)
+          ).toFixed(0);
+          const safetyScore = Math.max(
+            0,
+            Math.min(100, 100 - metrics.Risk_Index * 80)
+          ).toFixed(0);
+          document.getElementById("efficiency-score").textContent =
+            efficiencyScore;
+          document.getElementById("safety-score").textContent = safetyScore;
+
+          // 시간 카드 스타일링
+          const timeCard = document.getElementById("time-result-card");
+          const timeBadge = document.getElementById("time-badge");
+          const timeProgress = document.getElementById("time-progress");
+
+          if (metrics.T_approx < 7.0) {
+            timeCard.style.borderColor = "#10b981";
+            timeBadge.className = "badge badge-good";
+            timeBadge.textContent = "우수";
+            timeProgress.style.width = "90%";
+            timeProgress.style.background =
+              "linear-gradient(90deg, #10b981, #059669)";
+          } else if (metrics.T_approx > 15.0) {
+            timeCard.style.borderColor = "#ef4444";
+            timeBadge.className = "badge badge-danger";
+            timeBadge.textContent = "느림";
+            timeProgress.style.width = "30%";
+            timeProgress.style.background =
+              "linear-gradient(90deg, #ef4444, #dc2626)";
+          } else {
+            timeCard.style.borderColor = "#f59e0b";
+            timeBadge.className = "badge badge-warning";
+            timeBadge.textContent = "보통";
+            timeProgress.style.width = "60%";
+            timeProgress.style.background =
+              "linear-gradient(90deg, #f59e0b, #d97706)";
+          }
+
+          // 위험도 카드 스타일링
+          const riskCard = document.getElementById("risk-result-card");
+          const riskBadge = document.getElementById("risk-badge");
+          const riskProgress = document.getElementById("risk-progress");
+
+          if (metrics.Risk_Index < 0.4) {
+            riskCard.style.borderColor = "#10b981";
+            riskBadge.className = "badge badge-good";
+            riskBadge.textContent = "안전";
+            const progressPercent = (metrics.Risk_Index / 0.4) * 30;
+            riskProgress.style.width = `${progressPercent}%`;
+            riskProgress.style.background =
+              "linear-gradient(90deg, #10b981, #059669)";
+          } else if (metrics.Risk_Index > 1.0) {
+            riskCard.style.borderColor = "#ef4444";
+            riskBadge.className = "badge badge-danger";
+            riskBadge.textContent = "위험";
+            riskProgress.style.width = "90%";
+            riskProgress.style.background =
+              "linear-gradient(90deg, #ef4444, #dc2626)";
+          } else {
+            riskCard.style.borderColor = "#f59e0b";
+            riskBadge.className = "badge badge-warning";
+            riskBadge.textContent = "주의";
+            const progressPercent =
+              30 + ((metrics.Risk_Index - 0.4) / 0.6) * 40;
+            riskProgress.style.width = `${progressPercent}%`;
+            riskProgress.style.background =
+              "linear-gradient(90deg, #f59e0b, #d97706)";
+          }
+
+          // 에너지 카드 스타일링
+          const kineticCard = document.getElementById("kinetic-energy-card");
+          kineticCard.style.borderColor = "#3b82f6";
+
+          const totalCard = document.getElementById("total-energy-card");
+          const energyBadge = document.getElementById("energy-badge");
+          const energyProgress = document.getElementById("energy-progress");
+
+          if (metrics.E_total < 8000) {
+            totalCard.style.borderColor = "#10b981";
+            energyBadge.className = "badge badge-good";
+            energyBadge.textContent = "효율적";
+            energyProgress.style.width = "30%";
+            energyProgress.style.background =
+              "linear-gradient(90deg, #10b981, #059669)";
+          } else if (metrics.E_total > 10000) {
+            totalCard.style.borderColor = "#ef4444";
+            energyBadge.className = "badge badge-danger";
+            energyBadge.textContent = "비효율";
+            energyProgress.style.width = "90%";
+            energyProgress.style.background =
+              "linear-gradient(90deg, #ef4444, #dc2626)";
+          } else {
+            totalCard.style.borderColor = "#f59e0b";
+            energyBadge.className = "badge badge-warning";
+            energyBadge.textContent = "보통";
+            energyProgress.style.width = "60%";
+            energyProgress.style.background =
+              "linear-gradient(90deg, #f59e0b, #d97706)";
+          }
+
+          updateStairVisualization(
+            angle,
+            metrics.H_step_cm,
+            metrics.D_step_cm,
+            currentMode
+          );
+        }
+
+        // 모드 변경
+        window.setMode = function (mode) {
+          currentMode = mode;
+          const btn1 = document.getElementById("mode-1-btn");
+          const btn2 = document.getElementById("mode-2-btn");
+          const badge = document.getElementById("current-mode-badge");
+
+          if (mode === 1) {
+            btn1.className =
+              "mode-btn py-4 px-6 rounded-xl font-bold text-lg transition-all duration-300 relative z-10 bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg";
+            btn2.className =
+              "mode-btn py-4 px-6 rounded-xl font-bold text-lg transition-all duration-300 relative z-10 bg-gray-200 text-gray-700";
+            badge.textContent = "모드 A";
+            badge.className = "badge badge-good";
+          } else {
+            btn2.className =
+              "mode-btn py-4 px-6 rounded-xl font-bold text-lg transition-all duration-300 relative z-10 bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg";
+            btn1.className =
+              "mode-btn py-4 px-6 rounded-xl font-bold text-lg transition-all duration-300 relative z-10 bg-gray-200 text-gray-700";
+            badge.textContent = "모드 B";
+            badge.className = "badge badge-warning";
+          }
+          updateResults();
+        };
+
+        // 이벤트 리스너
+        document.querySelectorAll('input[type="range"]').forEach((input) => {
+          input.addEventListener("input", updateResults);
+        });
+
+        // 윈도우 리사이즈 시 시각화 업데이트
+        window.addEventListener("resize", updateResults);
+
+        // 초기화
+        document.addEventListener("DOMContentLoaded", () => {
+          setMode(1);
+          updateResults();
+        });
+      })();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>인터랙티브 SVD 변환 시각화 도구</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/numeric/1.2.6/numeric.min.js"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 20px;
+        min-height: 100vh;
+      }
+
+      #main-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        overflow: hidden;
+      }
+
+      header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 30px;
+        text-align: center;
+      }
+
+      header h1 {
+        font-size: 2.5em;
+        margin-bottom: 10px;
+      }
+
+      header p {
+        font-size: 1.1em;
+        opacity: 0.95;
+      }
+
+      .content {
+        display: grid;
+        grid-template-columns: 350px 1fr;
+        gap: 30px;
+        padding: 30px;
+      }
+
+      #control-panel {
+        background: #f8f9fa;
+        padding: 25px;
+        border-radius: 15px;
+        height: fit-content;
+      }
+
+      #control-panel h2 {
+        color: #667eea;
+        margin-bottom: 20px;
+        font-size: 1.5em;
+      }
+
+      #control-panel h3 {
+        color: #764ba2;
+        margin: 20px 0 10px 0;
+        font-size: 1.2em;
+      }
+
+      .matrix-input {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin-bottom: 20px;
+        background: white;
+        padding: 12px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+
+      .matrix-input input {
+        padding: 8px;
+        font-size: 14px;
+        border: 2px solid #e0e0e0;
+        border-radius: 6px;
+        text-align: center;
+        transition: border-color 0.3s;
+        width: 100%;
+      }
+
+      .matrix-input input:focus {
+        outline: none;
+        border-color: #667eea;
+      }
+
+      button {
+        width: 100%;
+        padding: 12px;
+        margin: 5px 0;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 600;
+        transition: all 0.3s;
+      }
+
+      .preset-btn {
+        background: #e0e7ff;
+        color: #4c51bf;
+      }
+
+      .preset-btn:hover {
+        background: #c7d2fe;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(76, 81, 191, 0.3);
+      }
+
+      #btn-visualize {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        font-size: 16px;
+        padding: 15px;
+        margin-top: 20px;
+      }
+
+      #btn-visualize:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+      }
+
+      #visualization-area {
+        display: flex;
+        flex-direction: column;
+        gap: 30px;
+      }
+
+      .canvas-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 30px;
+      }
+
+      .canvas-wrapper {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 15px;
+        text-align: center;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      }
+
+      .canvas-wrapper h3 {
+        color: #667eea;
+        margin-bottom: 15px;
+        font-size: 1.3em;
+      }
+
+      canvas {
+        border: 2px solid #e0e0e0;
+        border-radius: 10px;
+        background: white;
+        display: block;
+        margin: 0 auto;
+      }
+
+      #step-description {
+        margin-top: 15px;
+        padding: 15px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 1.1em;
+        min-height: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      #matrix-display {
+        background: #f8f9fa;
+        padding: 25px;
+        border-radius: 15px;
+      }
+
+      #matrix-display h2 {
+        color: #667eea;
+        margin-bottom: 20px;
+        text-align: center;
+        font-size: 1.5em;
+      }
+
+      .matrix-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+      }
+
+      .matrix-box {
+        background: white;
+        padding: 15px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+
+      .matrix-box h4 {
+        color: #764ba2;
+        margin-bottom: 10px;
+        text-align: center;
+      }
+
+      pre {
+        background: #f1f3f5;
+        padding: 15px;
+        border-radius: 8px;
+        font-family: "Courier New", monospace;
+        font-size: 14px;
+        overflow-x: auto;
+        text-align: center;
+      }
+
+      @media (max-width: 1200px) {
+        .content {
+          grid-template-columns: 1fr;
+        }
+
+        .canvas-row {
+          grid-template-columns: 1fr;
+        }
+
+        .matrix-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+    <link rel="canonical" href="https://ekc0517.github.io/math/svd.html" />
+  </head>
+  <body>
+    <div id="main-container">
+      <header>
+        <h1>🔄 인터랙티브 SVD 변환 시각화 도구</h1>
+        <p>선형 변환을 회전과 신축의 조합으로 이해하기</p>
+      </header>
+
+      <div class="content">
+        <!-- 컨트롤 패널 -->
+        <div id="control-panel">
+          <h2>📊 행렬 A 입력</h2>
+          <div class="matrix-input">
+            <input type="number" id="a11" value="2" step="0.1" />
+            <input type="number" id="a12" value="1" step="0.1" />
+            <input type="number" id="a21" value="1" step="0.1" />
+            <input type="number" id="a22" value="2" step="0.1" />
+          </div>
+
+          <h3>🎯 사전 설정</h3>
+          <button class="preset-btn" id="btn-shear">층밀리기 (Shear)</button>
+          <button class="preset-btn" id="btn-rotate">
+            회전 45° (Rotation)
+          </button>
+          <button class="preset-btn" id="btn-scale">비균등 신축 (Scale)</button>
+          <button class="preset-btn" id="btn-reflection">
+            반사 (Reflection)
+          </button>
+          <button class="preset-btn" id="btn-custom1">복합 변환 1</button>
+
+          <button id="btn-visualize">🚀 변환 시각화 시작!</button>
+        </div>
+
+        <!-- 시각화 영역 -->
+        <div id="visualization-area">
+          <div class="canvas-row">
+            <div class="canvas-wrapper">
+              <h3>🎯 시작 (Original)</h3>
+              <canvas id="canvas-original" width="400" height="400"></canvas>
+            </div>
+            <div class="canvas-wrapper">
+              <h3>🔄 단계별 과정 (SVD Steps)</h3>
+              <canvas id="canvas-steps" width="400" height="400"></canvas>
+              <p id="step-description">변환 시작 버튼을 눌러주세요</p>
+            </div>
+          </div>
+
+          <!-- 행렬 표시 영역 -->
+          <div id="matrix-display">
+            <h2>🧮 SVD 결과: A = U · D · Vᵀ</h2>
+            <div class="matrix-grid">
+              <div class="matrix-box">
+                <h4>행렬 U (회전 2)</h4>
+                <pre id="matrix-u">-</pre>
+              </div>
+              <div class="matrix-box">
+                <h4>행렬 D (신축)</h4>
+                <pre id="matrix-d">-</pre>
+              </div>
+              <div class="matrix-box">
+                <h4>행렬 V (회전 1)</h4>
+                <pre id="matrix-v">-</pre>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // 전역 변수
+      let originalPoints = [];
+      let currentStep = 0;
+      let U, D, V, VT;
+
+      // 행렬 곱셈
+      function matrixMultiply(A, B) {
+        if (Array.isArray(B[0])) {
+          // 행렬 x 행렬
+          return numeric.dot(A, B);
+        } else {
+          // 행렬 x 벡터
+          return numeric.dot(A, B);
+        }
+      }
+
+      // 행렬 전치
+      function transpose(A) {
+        return numeric.transpose(A);
+      }
+
+      // 단위 행렬
+      function identity(n) {
+        return numeric.identity(n);
+      }
+
+      // 초기화
+      function init() {
+        // 단위원 생성 (100개의 점)
+        originalPoints = [];
+        for (let i = 0; i < 100; i++) {
+          const theta = (i / 100) * 2 * Math.PI;
+          originalPoints.push([Math.cos(theta), Math.sin(theta)]);
+        }
+
+        // 초기 캔버스 그리기
+        drawCanvas("canvas-original", identity(2));
+        drawCanvas("canvas-steps", identity(2));
+
+        // 이벤트 리스너 등록
+        document.getElementById("btn-shear").addEventListener("click", () => {
+          setMatrix(1, 1, 0, 1);
+        });
+
+        document.getElementById("btn-rotate").addEventListener("click", () => {
+          const angle = Math.PI / 4; // 45도
+          const cos = Math.cos(angle);
+          const sin = Math.sin(angle);
+          setMatrix(cos, -sin, sin, cos);
+        });
+
+        document.getElementById("btn-scale").addEventListener("click", () => {
+          setMatrix(2, 0, 0, 0.5);
+        });
+
+        document
+          .getElementById("btn-reflection")
+          .addEventListener("click", () => {
+            setMatrix(1, 0, 0, -1);
+          });
+
+        document.getElementById("btn-custom1").addEventListener("click", () => {
+          setMatrix(1.5, 1, -0.5, 2);
+        });
+
+        document
+          .getElementById("btn-visualize")
+          .addEventListener("click", visualize);
+      }
+
+      // 행렬 값 설정
+      function setMatrix(a11, a12, a21, a22) {
+        document.getElementById("a11").value = a11;
+        document.getElementById("a12").value = a12;
+        document.getElementById("a21").value = a21;
+        document.getElementById("a22").value = a22;
+      }
+
+      // 캔버스 그리기
+      function drawCanvas(canvasId, transformMatrix, showGrid = true) {
+        const canvas = document.getElementById(canvasId);
+        const ctx = canvas.getContext("2d");
+        const width = canvas.width;
+        const height = canvas.height;
+        const scale = 80; // 픽셀 스케일
+        const centerX = width / 2;
+        const centerY = height / 2;
+
+        // 캔버스 클리어
+        ctx.clearRect(0, 0, width, height);
+
+        // 배경
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, width, height);
+
+        // 그리드 (옵션)
+        if (showGrid) {
+          ctx.strokeStyle = "#f0f0f0";
+          ctx.lineWidth = 1;
+          for (let i = -5; i <= 5; i++) {
+            // 수직선
+            ctx.beginPath();
+            ctx.moveTo(centerX + i * scale, 0);
+            ctx.lineTo(centerX + i * scale, height);
+            ctx.stroke();
+            // 수평선
+            ctx.beginPath();
+            ctx.moveTo(0, centerY + i * scale);
+            ctx.lineTo(width, centerY + i * scale);
+            ctx.stroke();
+          }
+        }
+
+        // 좌표축
+        ctx.strokeStyle = "#cccccc";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(0, centerY);
+        ctx.lineTo(width, centerY);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(centerX, 0);
+        ctx.lineTo(centerX, height);
+        ctx.stroke();
+
+        // 변환된 기저 벡터 그리기
+        const e1 = matrixMultiply(transformMatrix, [1, 0]);
+        const e2 = matrixMultiply(transformMatrix, [0, 1]);
+
+        // x축 기저 벡터 (빨강)
+        drawArrow(
+          ctx,
+          centerX,
+          centerY,
+          centerX + e1[0] * scale,
+          centerY - e1[1] * scale,
+          "#ff4444",
+          3
+        );
+
+        // y축 기저 벡터 (파랑)
+        drawArrow(
+          ctx,
+          centerX,
+          centerY,
+          centerX + e2[0] * scale,
+          centerY - e2[1] * scale,
+          "#4444ff",
+          3
+        );
+
+        // 변환된 단위원 그리기
+        ctx.strokeStyle = "#764ba2";
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+
+        for (let i = 0; i < originalPoints.length; i++) {
+          const transformed = matrixMultiply(
+            transformMatrix,
+            originalPoints[i]
+          );
+          const x = centerX + transformed[0] * scale;
+          const y = centerY - transformed[1] * scale;
+
+          if (i === 0) {
+            ctx.moveTo(x, y);
+          } else {
+            ctx.lineTo(x, y);
+          }
+        }
+        ctx.closePath();
+        ctx.stroke();
+
+        // 변환된 도형 내부 채우기
+        ctx.fillStyle = "rgba(102, 126, 234, 0.15)";
+        ctx.fill();
+
+        // 점들 표시
+        ctx.fillStyle = "#667eea";
+        for (let i = 0; i < originalPoints.length; i += 5) {
+          const transformed = matrixMultiply(
+            transformMatrix,
+            originalPoints[i]
+          );
+          const x = centerX + transformed[0] * scale;
+          const y = centerY - transformed[1] * scale;
+
+          ctx.beginPath();
+          ctx.arc(x, y, 2, 0, 2 * Math.PI);
+          ctx.fill();
+        }
+      }
+
+      // 화살표 그리기
+      function drawArrow(ctx, fromX, fromY, toX, toY, color, width) {
+        const headLength = 15;
+        const angle = Math.atan2(toY - fromY, toX - fromX);
+
+        ctx.strokeStyle = color;
+        ctx.fillStyle = color;
+        ctx.lineWidth = width;
+
+        // 선
+        ctx.beginPath();
+        ctx.moveTo(fromX, fromY);
+        ctx.lineTo(toX, toY);
+        ctx.stroke();
+
+        // 화살표 머리
+        ctx.beginPath();
+        ctx.moveTo(toX, toY);
+        ctx.lineTo(
+          toX - headLength * Math.cos(angle - Math.PI / 6),
+          toY - headLength * Math.sin(angle - Math.PI / 6)
+        );
+        ctx.lineTo(
+          toX - headLength * Math.cos(angle + Math.PI / 6),
+          toY - headLength * Math.sin(angle + Math.PI / 6)
+        );
+        ctx.closePath();
+        ctx.fill();
+      }
+
+      // SVD 시각화 실행
+      function visualize() {
+        // 입력 행렬 가져오기
+        const a11 = parseFloat(document.getElementById("a11").value);
+        const a12 = parseFloat(document.getElementById("a12").value);
+        const a21 = parseFloat(document.getElementById("a21").value);
+        const a22 = parseFloat(document.getElementById("a22").value);
+
+        const A = [
+          [a11, a12],
+          [a21, a22],
+        ];
+
+        try {
+          // SVD 계산 (numeric.js 사용)
+          const svd = numeric.svd(A);
+          U = svd.U;
+          const S = svd.S; // 특이값 대각 행렬
+          V = svd.V;
+
+          // S가 배열로 오는 경우 대각 행렬로 변환
+          if (Array.isArray(S) && !Array.isArray(S[0])) {
+            D = [
+              [S[0], 0],
+              [0, S[1]],
+            ];
+          } else {
+            D = S;
+          }
+
+          // V 전치
+          VT = transpose(V);
+
+          // 행렬 표시
+          displayMatrix("matrix-u", U);
+          displayMatrix("matrix-d", D);
+          displayMatrix("matrix-v", V);
+
+          // 원본 캔버스 업데이트
+          drawCanvas("canvas-original", A);
+
+          // 애니메이션 시작
+          runAnimation();
+        } catch (error) {
+          alert("행렬 계산 오류: " + error.message);
+          console.error(error);
+        }
+      }
+
+      // 행렬 표시
+      function displayMatrix(elementId, matrix) {
+        const element = document.getElementById(elementId);
+        let html = "";
+
+        for (let i = 0; i < matrix.length; i++) {
+          html += "[";
+          for (let j = 0; j < matrix[i].length; j++) {
+            const value =
+              typeof matrix[i][j] === "number"
+                ? matrix[i][j].toFixed(3)
+                : matrix[i][j];
+            html += value;
+            if (j < matrix[i].length - 1) html += ", ";
+          }
+          html += "]";
+          if (i < matrix.length - 1) html += "\n";
+        }
+
+        element.textContent = html;
+      }
+
+      // 애니메이션 실행
+      function runAnimation() {
+        const stepDesc = document.getElementById("step-description");
+
+        // Step 0: 초기 상태
+        setTimeout(() => {
+          drawCanvas("canvas-steps", identity(2));
+          stepDesc.textContent = "초기 상태: 단위원과 표준 기저";
+          stepDesc.style.background =
+            "linear-gradient(135deg, #667eea 0%, #764ba2 100%)";
+        }, 0);
+
+        // Step 1: V^T 적용 (첫 번째 회전)
+        setTimeout(() => {
+          drawCanvas("canvas-steps", VT);
+          stepDesc.textContent = "1단계: Vᵀ 적용 - 첫 번째 회전";
+          stepDesc.style.background =
+            "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)";
+        }, 1500);
+
+        // Step 2: D 적용 (신축)
+        setTimeout(() => {
+          const DVT = matrixMultiply(D, VT);
+          drawCanvas("canvas-steps", DVT);
+          stepDesc.textContent = "2단계: D 적용 - 축 방향 신축 (스케일링)";
+          stepDesc.style.background =
+            "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)";
+        }, 3000);
+
+        // Step 3: U 적용 (두 번째 회전)
+        setTimeout(() => {
+          const UDVT = matrixMultiply(matrixMultiply(U, D), VT);
+          drawCanvas("canvas-steps", UDVT);
+          stepDesc.textContent = "3단계: U 적용 - 두 번째 회전 → 변환 완료! ✨";
+          stepDesc.style.background =
+            "linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)";
+        }, 4500);
+      }
+
+      // 페이지 로드 시 초기화
+      window.addEventListener("load", init);
+    </script>
+  </body>
+</html>

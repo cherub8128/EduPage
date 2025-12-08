@@ -1,0 +1,1025 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>장미 곡선 (Rose Curve) 시뮬레이션</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 20px;
+        min-height: 100vh;
+      }
+      .container {
+        max-width: 1600px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 20px;
+        padding: 30px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      }
+      h1 {
+        text-align: center;
+        color: #333;
+        margin-bottom: 10px;
+        font-size: 32px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+      .subtitle {
+        text-align: center;
+        color: #666;
+        margin-bottom: 30px;
+        font-size: 16px;
+      }
+      .main-layout {
+        display: grid;
+        grid-template-columns: 350px 1fr;
+        gap: 30px;
+        margin-bottom: 30px;
+      }
+      .control-panel {
+        background: #f8f9fa;
+        border-radius: 15px;
+        padding: 25px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        height: fit-content;
+      }
+      .canvas-panel {
+        background: #f8f9fa;
+        border-radius: 15px;
+        padding: 25px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+      canvas {
+        border: 2px solid #ddd;
+        border-radius: 10px;
+        background: white;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      }
+      .section {
+        margin-bottom: 25px;
+        padding-bottom: 20px;
+        border-bottom: 2px solid #e0e0e0;
+      }
+      .section:last-child {
+        border-bottom: none;
+      }
+      .section h3 {
+        color: #667eea;
+        margin-bottom: 15px;
+        font-size: 18px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .control-group {
+        margin-bottom: 20px;
+      }
+      .control-group label {
+        display: block;
+        margin-bottom: 8px;
+        color: #555;
+        font-weight: 600;
+        font-size: 14px;
+      }
+      .input-with-value {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      input[type="range"] {
+        flex: 1;
+        height: 6px;
+        border-radius: 5px;
+        background: #ddd;
+        outline: none;
+        -webkit-appearance: none;
+      }
+      input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        cursor: pointer;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      }
+      input[type="range"]::-moz-range-thumb {
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        cursor: pointer;
+        border: none;
+      }
+      .value-display {
+        min-width: 80px;
+        padding: 6px 12px;
+        background: white;
+        border: 2px solid #667eea;
+        border-radius: 6px;
+        text-align: center;
+        font-weight: bold;
+        color: #667eea;
+        font-size: 14px;
+      }
+      input[type="number"] {
+        width: 80px;
+        padding: 8px;
+        border: 2px solid #ddd;
+        border-radius: 6px;
+        font-size: 14px;
+        text-align: center;
+      }
+      input[type="number"]:focus {
+        outline: none;
+        border-color: #667eea;
+      }
+      .btn-group {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-bottom: 15px;
+      }
+      button {
+        padding: 12px 20px;
+        font-size: 14px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-weight: bold;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+      button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+      }
+      button:active {
+        transform: translateY(0);
+      }
+      .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+      }
+      .btn-secondary {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        color: white;
+      }
+      .btn-success {
+        background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+        color: white;
+      }
+      .btn-preset {
+        padding: 10px 15px;
+        font-size: 13px;
+        background: white;
+        color: #667eea;
+        border: 2px solid #667eea;
+        margin-bottom: 8px;
+        width: 100%;
+      }
+      .btn-preset:hover {
+        background: #667eea;
+        color: white;
+      }
+      .btn-preset.active {
+        background: #667eea;
+        color: white;
+      }
+      .info-box {
+        background: white;
+        padding: 15px;
+        border-radius: 10px;
+        margin-top: 15px;
+        border-left: 4px solid #667eea;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+      .info-box h4 {
+        color: #667eea;
+        margin-bottom: 10px;
+        font-size: 15px;
+      }
+      .info-box p {
+        color: #555;
+        line-height: 1.6;
+        font-size: 13px;
+        margin-bottom: 8px;
+      }
+      .info-box .highlight {
+        background: #fff3cd;
+        padding: 2px 6px;
+        border-radius: 3px;
+        font-weight: bold;
+      }
+      .stats {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-top: 15px;
+      }
+      .stat-item {
+        background: white;
+        padding: 12px;
+        border-radius: 8px;
+        text-align: center;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+      .stat-label {
+        font-size: 12px;
+        color: #666;
+        margin-bottom: 5px;
+      }
+      .stat-value {
+        font-size: 20px;
+        font-weight: bold;
+        color: #667eea;
+      }
+      .formula {
+        background: #f0f0f0;
+        padding: 12px;
+        border-radius: 8px;
+        font-family: "Courier New", monospace;
+        text-align: center;
+        font-size: 18px;
+        margin: 15px 0;
+        color: #333;
+      }
+      .radio-group {
+        display: flex;
+        gap: 15px;
+        margin-top: 10px;
+      }
+      .radio-group label {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        cursor: pointer;
+        font-weight: normal;
+      }
+      .radio-group input[type="radio"] {
+        cursor: pointer;
+      }
+      .theory-panel {
+        background: #f8f9fa;
+        border-radius: 15px;
+        padding: 25px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+      .theory-panel h2 {
+        color: #667eea;
+        margin-bottom: 20px;
+        font-size: 22px;
+        border-bottom: 3px solid #667eea;
+        padding-bottom: 10px;
+      }
+      .theory-content {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+      }
+      .theory-card {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        border-top: 4px solid #667eea;
+      }
+      .theory-card h3 {
+        color: #667eea;
+        margin-bottom: 12px;
+        font-size: 16px;
+      }
+      .theory-card ul {
+        list-style: none;
+        padding-left: 0;
+      }
+      .theory-card li {
+        padding: 6px 0;
+        color: #555;
+        font-size: 14px;
+        line-height: 1.5;
+      }
+      .theory-card li:before {
+        content: "• ";
+        color: #667eea;
+        font-weight: bold;
+        margin-right: 8px;
+      }
+      .k-type-indicator {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 15px;
+        font-size: 12px;
+        font-weight: bold;
+        margin-left: 10px;
+      }
+      .k-integer {
+        background: #43e97b;
+        color: white;
+      }
+      .k-rational {
+        background: #f093fb;
+        color: white;
+      }
+      .k-irrational {
+        background: #f5576c;
+        color: white;
+      }
+      @media (max-width: 1200px) {
+        .main-layout {
+          grid-template-columns: 1fr;
+        }
+        .theory-content {
+          grid-template-columns: 1fr;
+        }
+      }
+      .fraction-input {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+      }
+      .fraction-input input {
+        width: 60px;
+      }
+      .drawing-controls {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        margin-top: 15px;
+      }
+      .speed-control {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-top: 10px;
+      }
+      .canvas-info {
+        margin-top: 15px;
+        text-align: center;
+        color: #666;
+        font-size: 14px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>🌹 장미 곡선 (Rose Curve) 시뮬레이션</h1>
+      <p class="subtitle">
+        Polar Coordinates: r = a·cos(k·φ) | Discovered by Luigi Guido Grandi
+      </p>
+      <div class="main-layout">
+        <!-- 제어 패널 -->
+        <div class="control-panel">
+          <div class="section">
+            <h3>📐 방정식 설정</h3>
+            <div class="formula" id="formulaDisplay">r = 1·cos(3φ)</div>
+            <div class="control-group">
+              <label>함수 선택</label>
+              <div class="radio-group">
+                <label>
+                  <input type="radio" name="func" value="cos" checked />
+                  Cosine
+                </label>
+                <label>
+                  <input type="radio" name="func" value="sin" />
+                  Sine
+                </label>
+              </div>
+            </div>
+            <div class="control-group">
+              <label>진폭 (a)</label>
+              <div class="input-with-value">
+                <input
+                  type="range"
+                  id="amplitude"
+                  min="50"
+                  max="250"
+                  value="150"
+                  step="10"
+                />
+                <div class="value-display" id="amplitudeValue">150</div>
+              </div>
+            </div>
+            <div class="control-group">
+              <label
+                >각진동수 (k)
+                <span class="k-type-indicator k-integer" id="kTypeIndicator"
+                  >정수</span
+                ></label
+              >
+              <div class="input-with-value">
+                <input
+                  type="range"
+                  id="kValue"
+                  min="1"
+                  max="20"
+                  value="3"
+                  step="1"
+                />
+                <div class="value-display" id="kValueDisplay">3</div>
+              </div>
+            </div>
+            <div class="control-group">
+              <label>유리수 k 설정 (m/n)</label>
+              <div class="fraction-input">
+                <input
+                  type="number"
+                  id="numerator"
+                  value="3"
+                  min="1"
+                  max="20"
+                />
+                <span>/</span>
+                <input
+                  type="number"
+                  id="denominator"
+                  value="1"
+                  min="1"
+                  max="20"
+                />
+                <button
+                  class="btn-success"
+                  onclick="rose.setRationalK()"
+                  style="padding: 8px 15px"
+                >
+                  적용
+                </button>
+              </div>
+            </div>
+          </div>
+          <div class="section">
+            <h3>🎨 프리셋</h3>
+            <button class="btn-preset" onclick="rose.loadPreset('trifolium')">
+              Trifolium (k=3)
+            </button>
+            <button
+              class="btn-preset"
+              onclick="rose.loadPreset('quadrifolium')"
+            >
+              Quadrifolium (k=4)
+            </button>
+            <button class="btn-preset" onclick="rose.loadPreset('pentafolium')">
+              Pentafolium (k=5)
+            </button>
+            <button
+              class="btn-preset"
+              onclick="rose.loadPreset('rational_2_3')"
+            >
+              k=2/3 (유리수)
+            </button>
+            <button
+              class="btn-preset"
+              onclick="rose.loadPreset('rational_5_2')"
+            >
+              k=5/2 (유리수)
+            </button>
+            <button class="btn-preset" onclick="rose.loadPreset('pi')">
+              k=π (무리수)
+            </button>
+            <button class="btn-preset" onclick="rose.loadPreset('sqrt2')">
+              k=√2 (무리수)
+            </button>
+            <button class="btn-preset" onclick="rose.loadPreset('golden')">
+              k=φ (황금비)
+            </button>
+          </div>
+          <div class="section">
+            <h3>⚙️ 제어</h3>
+            <div class="btn-group">
+              <button class="btn-primary" onclick="rose.draw()">그리기</button>
+              <button class="btn-secondary" onclick="rose.clear()">
+                지우기
+              </button>
+            </div>
+            <button
+              class="btn-success"
+              onclick="rose.animate()"
+              style="width: 100%; margin-bottom: 10px"
+            >
+              애니메이션
+            </button>
+            <div class="control-group">
+              <label>그리기 속도</label>
+              <div class="input-with-value">
+                <input
+                  type="range"
+                  id="speed"
+                  min="1"
+                  max="10"
+                  value="5"
+                  step="1"
+                />
+                <div class="value-display" id="speedValue">5</div>
+              </div>
+            </div>
+            <div class="control-group">
+              <label>
+                <input
+                  type="checkbox"
+                  id="showGrid"
+                  checked
+                  onchange="rose.draw()"
+                />
+                극좌표 그리드 표시
+              </label>
+            </div>
+          </div>
+          <div class="stats">
+            <div class="stat-item">
+              <div class="stat-label">꽃잎 수</div>
+              <div class="stat-value" id="petalCount">3</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-label">주기</div>
+              <div class="stat-value" id="period">π</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-label">k 유형</div>
+              <div class="stat-value" id="kType" style="font-size: 14px">
+                정수
+              </div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-label">루프/꽃잎</div>
+              <div class="stat-value" id="loopsPerPetal">1</div>
+            </div>
+          </div>
+          <div class="info-box" id="infoBox">
+            <h4>📖 설명</h4>
+            <p>k가 <span class="highlight">홀수 정수</span>일 때: k개의 꽃잎</p>
+            <p>
+              현재 k=3이므로 <span class="highlight">3개</span>의 꽃잎이
+              형성됩니다.
+            </p>
+          </div>
+        </div>
+        <!-- 캔버스 패널 -->
+        <div class="canvas-panel">
+          <canvas id="roseCanvas" width="700" height="700"></canvas>
+          <div class="canvas-info">
+            <p>극좌표계: 원점에서의 거리 r이 각도 φ에 따라 변화합니다</p>
+          </div>
+        </div>
+      </div>
+      <!-- 이론 패널 -->
+      <div class="theory-panel">
+        <h2>📚 이론적 배경</h2>
+        <div class="theory-content">
+          <div class="theory-card">
+            <h3>정수 각진동수 (Integer k)</h3>
+            <ul>
+              <li><strong>k가 홀수:</strong> k개의 꽃잎 생성</li>
+              <li><strong>k가 짝수:</strong> 2k개의 꽃잎 생성</li>
+              <li><strong>주기:</strong> 홀수는 π, 짝수는 2π</li>
+              <li><strong>특징:</strong> 완전히 닫힌 곡선</li>
+              <li><strong>예:</strong> k=3 → 3개 꽃잎 (Trifolium)</li>
+              <li><strong>예:</strong> k=4 → 8개 꽃잎 (Octafolium)</li>
+            </ul>
+          </div>
+          <div class="theory-card">
+            <h3>유리수 각진동수 (Rational k=m/n)</h3>
+            <ul>
+              <li><strong>m, n 중 하나가 짝수:</strong> 2m개 꽃잎</li>
+              <li><strong>m, n 모두 홀수:</strong> m개 꽃잎</li>
+              <li><strong>주기:</strong> 경우에 따라 다름</li>
+              <li><strong>특징:</strong> 다중 루프 형성 가능</li>
+              <li><strong>예:</strong> k=5/2 → 5개 꽃잎, 2개 루프</li>
+              <li><strong>루프 수:</strong> 주기에 따라 결정</li>
+            </ul>
+          </div>
+          <div class="theory-card">
+            <h3>무리수 각진동수 (Irrational k)</h3>
+            <ul>
+              <li><strong>꽃잎 수:</strong> 무한대</li>
+              <li><strong>곡선:</strong> 결코 닫히지 않음</li>
+              <li><strong>특징:</strong> 원 내부를 빽빽하게 채움</li>
+              <li><strong>비주기적:</strong> 반복되지 않는 패턴</li>
+              <li><strong>예:</strong> k=π, k=√2, k=φ(황금비)</li>
+              <li><strong>응용:</strong> 동역학계, 카오스 이론</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script>
+      class RoseCurve {
+        constructor() {
+          this.canvas = document.getElementById("roseCanvas");
+          this.ctx = this.canvas.getContext("2d");
+          this.centerX = this.canvas.width / 2;
+          this.centerY = this.canvas.height / 2;
+          this.amplitude = 150;
+          this.k = 3;
+          this.func = "cos";
+          this.animating = false;
+          this.animationId = null;
+          this.setupEventListeners();
+          this.draw();
+        }
+        setupEventListeners() {
+          document
+            .getElementById("amplitude")
+            .addEventListener("input", (e) => {
+              this.amplitude = parseInt(e.target.value);
+              document.getElementById("amplitudeValue").textContent =
+                this.amplitude;
+              this.draw();
+            });
+          document.getElementById("kValue").addEventListener("input", (e) => {
+            this.k = parseFloat(e.target.value);
+            document.getElementById("kValueDisplay").textContent = this.k;
+            document.getElementById("numerator").value = this.k;
+            document.getElementById("denominator").value = 1;
+            this.draw();
+          });
+          document.querySelectorAll('input[name="func"]').forEach((radio) => {
+            radio.addEventListener("change", (e) => {
+              this.func = e.target.value;
+              this.draw();
+            });
+          });
+          document.getElementById("speed").addEventListener("input", (e) => {
+            document.getElementById("speedValue").textContent = e.target.value;
+          });
+        }
+        setRationalK() {
+          const m = parseInt(document.getElementById("numerator").value);
+          const n = parseInt(document.getElementById("denominator").value);
+          this.k = m / n;
+          document.getElementById("kValueDisplay").textContent = `${m}/${n}`;
+          this.draw();
+        }
+        gcd(a, b) {
+          return b === 0 ? a : this.gcd(b, a % b);
+        }
+        analyzeK() {
+          const tolerance = 1e-10;
+          let kType, petals, period, loopsPerPetal;
+          // k가 정수인지 확인
+          if (Math.abs(this.k - Math.round(this.k)) < tolerance) {
+            const kInt = Math.round(this.k);
+            kType = "정수 (Integer)";
+            if (kInt % 2 === 1) {
+              petals = kInt;
+              period = "π";
+            } else {
+              petals = 2 * kInt;
+              period = "2π";
+            }
+            loopsPerPetal = 1;
+            document.getElementById("kTypeIndicator").textContent = "정수";
+            document.getElementById("kTypeIndicator").className =
+              "k-type-indicator k-integer";
+          }
+          // k가 유리수인지 확인
+          else {
+            // 분수로 근사
+            const maxDenom = 100;
+            let bestNum = 1,
+              bestDenom = 1,
+              bestError = Math.abs(this.k - 1);
+            for (let denom = 1; denom <= maxDenom; denom++) {
+              const num = Math.round(this.k * denom);
+              const error = Math.abs(this.k - num / denom);
+              if (error < bestError) {
+                bestError = error;
+                bestNum = num;
+                bestDenom = denom;
+              }
+            }
+            if (bestError < tolerance) {
+              // 유리수
+              const g = this.gcd(bestNum, bestDenom);
+              const m = bestNum / g;
+              const n = bestDenom / g;
+              kType = `유리수 (${m}/${n})`;
+              if (m % 2 !== n % 2) {
+                // 하나는 홀수, 하나는 짝수
+                petals = 2 * m;
+                period = `${2 * n}π`;
+              } else {
+                // 둘 다 홀수
+                petals = m;
+                period = `${n}π`;
+              }
+              // 루프 수 계산
+              const periodValue =
+                m % 2 !== n % 2 ? 2 * n * Math.PI : n * Math.PI;
+              loopsPerPetal = Math.max(
+                1,
+                Math.floor(periodValue / (4 * Math.PI)) + 1
+              );
+              document.getElementById("kTypeIndicator").textContent = "유리수";
+              document.getElementById("kTypeIndicator").className =
+                "k-type-indicator k-rational";
+            } else {
+              // 무리수
+              kType = "무리수 (Irrational)";
+              petals = "∞";
+              period = "∞";
+              loopsPerPetal = "∞";
+              document.getElementById("kTypeIndicator").textContent = "무리수";
+              document.getElementById("kTypeIndicator").className =
+                "k-type-indicator k-irrational";
+            }
+          }
+          return { kType, petals, period, loopsPerPetal };
+        }
+        updateInfo() {
+          const analysis = this.analyzeK();
+          document.getElementById("petalCount").textContent = analysis.petals;
+          document.getElementById("period").textContent = analysis.period;
+          document.getElementById("kType").textContent = analysis.kType;
+          document.getElementById("loopsPerPetal").textContent =
+            analysis.loopsPerPetal;
+          // 방정식 업데이트
+          const kDisplay = document.getElementById("kValueDisplay").textContent;
+          document.getElementById("formulaDisplay").textContent = `r = ${
+            this.amplitude / 150
+          }·${this.func}(${kDisplay}φ)`;
+          // 설명 업데이트
+          const infoBox = document.getElementById("infoBox");
+          let explanation = "";
+          if (analysis.kType.includes("정수")) {
+            const kInt = Math.round(this.k);
+            if (kInt % 2 === 1) {
+              explanation = `
+<h4>📖 정수 각진동수 (홀수)</h4>
+<p>k가 <span class="highlight">홀수 정수 ${kInt}</span>일 때: ${kInt}개의 꽃잎</p>
+<p>주기는 <span class="highlight">π</span>이며, 완전히 닫힌 대칭 곡선입니다.</p>
+<p>양의 반주기와 음의 반주기가 겹쳐 그려집니다.</p>
+`;
+            } else {
+              explanation = `
+<h4>📖 정수 각진동수 (짝수)</h4>
+<p>k가 <span class="highlight">짝수 정수 ${kInt}</span>일 때: ${
+                2 * kInt
+              }개의 꽃잎</p>
+<p>주기는 <span class="highlight">2π</span>이며, 완전히 닫힌 대칭 곡선입니다.</p>
+<p>양의 반주기와 음의 반주기가 서로 다른 위치에 그려집니다.</p>
+`;
+            }
+          } else if (analysis.kType.includes("유리수")) {
+            explanation = `
+<h4>📖 유리수 각진동수</h4>
+<p>k가 <span class="highlight">${
+              analysis.kType.match(/\d+\/\d+/)[0]
+            }</span>일 때: ${analysis.petals}
+개의 꽃잎</p>
+<p>주기는 <span class="highlight">${analysis.period}</span>입니다.</p>
+<p>하나의 꽃잎이 <span class="highlight">${
+              analysis.loopsPerPetal
+            }개의 루프</span>를 형성할 수 있습니
+다.</p>
+<p>복잡한 겹침 패턴이 나타납니다.</p>
+`;
+          } else {
+            explanation = `
+<h4>📖 무리수 각진동수</h4>
+<p>k가 <span class="highlight">무리수</span>일 때: 무한개의 꽃잎</p>
+<p>곡선은 <span class="highlight">결코 닫히지 않으며</span> 비주기적입니다.</p>
+<p>계속 그리면 원 내부를 빽빽하게 채웁니다.</p>
+<p>카오스 이론과 동역학계의 예시입니다.</p>
+`;
+          }
+          infoBox.innerHTML = explanation;
+        }
+        drawGrid() {
+          const ctx = this.ctx;
+          ctx.strokeStyle = "#e0e0e0";
+          ctx.lineWidth = 1;
+          // 동심원
+          for (let r = 50; r <= 300; r += 50) {
+            ctx.beginPath();
+            ctx.arc(this.centerX, this.centerY, r, 0, Math.PI * 2);
+            ctx.stroke();
+          }
+          // 방사선
+          for (let angle = 0; angle < Math.PI * 2; angle += Math.PI / 12) {
+            ctx.beginPath();
+            ctx.moveTo(this.centerX, this.centerY);
+            ctx.lineTo(
+              this.centerX + Math.cos(angle) * 300,
+              this.centerY + Math.sin(angle) * 300
+            );
+            ctx.stroke();
+          }
+          // 축
+          ctx.strokeStyle = "#999";
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(this.centerX - 320, this.centerY);
+          ctx.lineTo(this.centerX + 320, this.centerY);
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.moveTo(this.centerX, this.centerY - 320);
+          ctx.lineTo(this.centerX, this.centerY + 320);
+          ctx.stroke();
+        }
+        clear() {
+          if (this.animationId) {
+            cancelAnimationFrame(this.animationId);
+            this.animationId = null;
+          }
+          this.animating = false;
+          this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+          if (document.getElementById("showGrid").checked) {
+            this.drawGrid();
+          }
+        }
+        draw() {
+          this.clear();
+          this.updateInfo();
+          const ctx = this.ctx;
+          const maxAngle =
+            this.k % 1 === 0
+              ? this.k % 2 === 0
+                ? Math.PI * 2
+                : Math.PI
+              : Math.PI * 20; // 유리수/무리수는 더 긴 범위
+          ctx.strokeStyle = "#e91e63";
+          ctx.lineWidth = 2.5;
+          ctx.beginPath();
+          let firstPoint = true;
+          const step = 0.01;
+          for (let phi = 0; phi <= maxAngle; phi += step) {
+            const r =
+              this.amplitude *
+              (this.func === "cos"
+                ? Math.cos(this.k * phi)
+                : Math.sin(this.k * phi));
+            const x = this.centerX + r * Math.cos(phi);
+            const y = this.centerY + r * Math.sin(phi);
+            if (firstPoint) {
+              ctx.moveTo(x, y);
+              firstPoint = false;
+            } else {
+              ctx.lineTo(x, y);
+            }
+          }
+          ctx.stroke();
+          // 중심점 표시
+          ctx.fillStyle = "#667eea";
+          ctx.beginPath();
+          ctx.arc(this.centerX, this.centerY, 5, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        animate() {
+          if (this.animating) {
+            this.animating = false;
+            if (this.animationId) {
+              cancelAnimationFrame(this.animationId);
+            }
+            return;
+          }
+          this.clear();
+          this.updateInfo();
+          this.animating = true;
+          const ctx = this.ctx;
+          const maxAngle =
+            this.k % 1 === 0
+              ? this.k % 2 === 0
+                ? Math.PI * 2
+                : Math.PI
+              : Math.PI * 10;
+          let phi = 0;
+          const speed = parseInt(document.getElementById("speed").value);
+          const step = 0.01 * speed;
+          const drawFrame = () => {
+            if (!this.animating) return;
+            const r =
+              this.amplitude *
+              (this.func === "cos"
+                ? Math.cos(this.k * phi)
+                : Math.sin(this.k * phi));
+            const x = this.centerX + r * Math.cos(phi);
+            const y = this.centerY + r * Math.sin(phi);
+            // 곡선 그리기
+            ctx.strokeStyle = "#e91e63";
+            ctx.lineWidth = 2.5;
+            if (phi === 0) {
+              ctx.beginPath();
+              ctx.moveTo(x, y);
+            } else {
+              ctx.lineTo(x, y);
+              ctx.stroke();
+            }
+            // 현재 점 표시
+            ctx.fillStyle = "#4CAF50";
+            ctx.beginPath();
+            ctx.arc(x, y, 4, 0, Math.PI * 2);
+            ctx.fill();
+            // 각도 표시
+            ctx.fillStyle = "#333";
+            ctx.font = "14px Arial";
+            ctx.fillText(`φ = ${(phi / Math.PI).toFixed(2)}π`, 10, 30);
+            ctx.fillText(`r = ${r.toFixed(1)}`, 10, 50);
+            phi += step;
+            if (phi <= maxAngle) {
+              this.animationId = requestAnimationFrame(drawFrame);
+            } else {
+              this.animating = false;
+              // 중심점 표시
+              ctx.fillStyle = "#667eea";
+              ctx.beginPath();
+              ctx.arc(this.centerX, this.centerY, 5, 0, Math.PI * 2);
+              ctx.fill();
+            }
+          };
+          drawFrame();
+        }
+        loadPreset(preset) {
+          // 모든 프리셋 버튼의 active 클래스 제거
+          document.querySelectorAll(".btn-preset").forEach((btn) => {
+            btn.classList.remove("active");
+          });
+          switch (preset) {
+            case "trifolium":
+              this.k = 3;
+              this.func = "cos";
+              document.getElementById("numerator").value = 3;
+              document.getElementById("denominator").value = 1;
+              break;
+            case "quadrifolium":
+              this.k = 4;
+              this.func = "cos";
+              document.getElementById("numerator").value = 4;
+              document.getElementById("denominator").value = 1;
+              break;
+            case "pentafolium":
+              this.k = 5;
+              this.func = "cos";
+              document.getElementById("numerator").value = 5;
+              document.getElementById("denominator").value = 1;
+              break;
+            case "rational_2_3":
+              this.k = 2 / 3;
+              this.func = "cos";
+              document.getElementById("numerator").value = 2;
+              document.getElementById("denominator").value = 3;
+              break;
+            case "rational_5_2":
+              this.k = 5 / 2;
+              this.func = "cos";
+              document.getElementById("numerator").value = 5;
+              document.getElementById("denominator").value = 2;
+              break;
+            case "pi":
+              this.k = Math.PI;
+              this.func = "cos";
+              document.getElementById("numerator").value = 314;
+              document.getElementById("denominator").value = 100;
+              break;
+            case "sqrt2":
+              this.k = Math.sqrt(2);
+              this.func = "cos";
+              document.getElementById("numerator").value = 141;
+              document.getElementById("denominator").value = 100;
+              break;
+            case "golden":
+              this.k = (1 + Math.sqrt(5)) / 2; // 황금비
+              this.func = "cos";
+              document.getElementById("numerator").value = 161;
+              document.getElementById("denominator").value = 100;
+              break;
+          }
+          // 슬라이더 업데이트
+          if (this.k <= 20) {
+            document.getElementById("kValue").value = this.k;
+          }
+          document.getElementById("kValueDisplay").textContent =
+            preset.includes("rational") || Number.isInteger(this.k)
+              ? Number.isInteger(this.k)
+                ? this.k
+                : `${document.getElementById("numerator").value}/${
+                    document.getElementById("denominator").value
+                  }`
+              : this.k.toFixed(4);
+          // 라디오 버튼 업데이트
+          document.querySelector(
+            `input[name="func"][value="${this.func}"]`
+          ).checked = true;
+          // 활성 버튼 표시
+          event.target.classList.add("active");
+          this.draw();
+        }
+      }
+      // 시뮬레이터 초기화
+      const rose = new RoseCurve();
+    </script>
+  </body>
+</html>

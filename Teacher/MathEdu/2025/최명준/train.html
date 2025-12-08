@@ -1,0 +1,1886 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>서울 지하철 최단경로 알고리즘 시뮬레이션</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 20px;
+        min-height: 100vh;
+      }
+      .container {
+        max-width: 1900px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 20px;
+        padding: 30px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      }
+      h1 {
+        text-align: center;
+        color: #333;
+        margin-bottom: 10px;
+        font-size: 32px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+      .subtitle {
+        text-align: center;
+        color: #666;
+        margin-bottom: 30px;
+        font-size: 16px;
+      }
+      .main-layout {
+        display: grid;
+        grid-template-columns: 350px 1fr 400px;
+        gap: 25px;
+        margin-bottom: 25px;
+      }
+      .panel {
+        background: #f8f9fa;
+        border-radius: 15px;
+        padding: 25px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+      .panel h2 {
+        color: #667eea;
+        margin-bottom: 20px;
+        font-size: 20px;
+        border-bottom: 3px solid #667eea;
+        padding-bottom: 10px;
+      }
+      .section {
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid #e0e0e0;
+      }
+      .section:last-child {
+        border-bottom: none;
+      }
+      .section h3 {
+        color: #667eea;
+        margin-bottom: 15px;
+        font-size: 16px;
+      }
+      canvas {
+        border: 2px solid #ddd;
+        border-radius: 10px;
+        background: white;
+        display: block;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      }
+      select {
+        width: 100%;
+        padding: 12px;
+        border: 2px solid #ddd;
+        border-radius: 8px;
+        font-size: 14px;
+        margin-bottom: 15px;
+        background: white;
+        cursor: pointer;
+        max-height: 200px;
+      }
+      select:focus {
+        outline: none;
+        border-color: #667eea;
+      }
+      button {
+        width: 100%;
+        padding: 14px 20px;
+        font-size: 16px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-weight: bold;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        margin-bottom: 10px;
+      }
+      button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+      }
+      button:active {
+        transform: translateY(0);
+      }
+      .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+      }
+      .btn-secondary {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        color: white;
+      }
+      .btn-compare {
+        background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+        color: white;
+      }
+      .info-box {
+        background: white;
+        padding: 15px;
+        border-radius: 10px;
+        margin-top: 15px;
+        border-left: 4px solid #667eea;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+      .info-box h4 {
+        color: #667eea;
+        margin-bottom: 10px;
+        font-size: 15px;
+      }
+      .info-box p {
+        color: #555;
+        line-height: 1.6;
+        font-size: 13px;
+        margin-bottom: 5px;
+      }
+      .result-panel {
+        max-height: 800px;
+        overflow-y: auto;
+      }
+      .result-card {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        margin-bottom: 15px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+      .result-card h3 {
+        color: #667eea;
+        margin-bottom: 15px;
+        font-size: 18px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .badge {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 15px;
+        font-size: 12px;
+        font-weight: bold;
+      }
+      .badge-new {
+        background: #43e97b;
+        color: white;
+      }
+      .badge-old {
+        background: #f5576c;
+        color: white;
+      }
+      .stats {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-bottom: 15px;
+      }
+      .stat-item {
+        background: #f8f9fa;
+        padding: 12px;
+        border-radius: 8px;
+        text-align: center;
+      }
+      .stat-label {
+        font-size: 12px;
+        color: #666;
+        margin-bottom: 5px;
+      }
+      .stat-value {
+        font-size: 20px;
+        font-weight: bold;
+        color: #667eea;
+      }
+      .path-list {
+        list-style: none;
+        padding: 0;
+      }
+      .path-list li {
+        padding: 10px;
+        margin-bottom: 8px;
+        background: #f8f9fa;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .station-icon {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: bold;
+        font-size: 12px;
+        flex-shrink: 0;
+      }
+      .transfer-icon {
+        width: 24px;
+        height: 24px;
+        background: #ffc107;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 10px;
+        flex-shrink: 0;
+      }
+      .time-detail {
+        display: flex;
+        gap: 15px;
+        flex-wrap: wrap;
+        margin-top: 10px;
+        padding: 10px;
+        background: #f0f0f0;
+        border-radius: 6px;
+        font-size: 12px;
+      }
+      .time-detail span {
+        color: #555;
+      }
+      .time-detail strong {
+        color: #667eea;
+      }
+      .comparison-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 15px;
+      }
+      .comparison-table th,
+      .comparison-table td {
+        padding: 12px;
+        text-align: center;
+        border: 1px solid #ddd;
+      }
+      .comparison-table th {
+        background: #667eea;
+        color: white;
+        font-weight: bold;
+      }
+      .comparison-table tr:nth-child(even) {
+        background: #f8f9fa;
+      }
+      .legend {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-top: 15px;
+        padding: 15px;
+        background: white;
+        border-radius: 10px;
+      }
+      .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12px;
+      }
+      .legend-line {
+        width: 25px;
+        height: 4px;
+        border-radius: 2px;
+      }
+      .algorithm-info {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        margin-top: 15px;
+      }
+      .algorithm-info h4 {
+        color: #667eea;
+        margin-bottom: 12px;
+        font-size: 16px;
+      }
+      .algorithm-info ul {
+        list-style: none;
+        padding: 0;
+      }
+      .algorithm-info li {
+        padding: 8px 0;
+        color: #555;
+        font-size: 14px;
+        line-height: 1.5;
+      }
+      .algorithm-info li:before {
+        content: "• ";
+        color: #667eea;
+        font-weight: bold;
+        margin-right: 8px;
+      }
+      .network-stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+        margin-bottom: 20px;
+      }
+      .network-stat {
+        background: white;
+        padding: 15px;
+        border-radius: 8px;
+        text-align: center;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+      .network-stat-value {
+        font-size: 24px;
+        font-weight: bold;
+        color: #667eea;
+        margin-bottom: 5px;
+      }
+      .network-stat-label {
+        font-size: 12px;
+        color: #666;
+      }
+      .loading {
+        display: none;
+        text-align: center;
+        padding: 20px;
+        color: #667eea;
+        font-size: 16px;
+      }
+      .loading.active {
+        display: block;
+      }
+      @media (max-width: 1400px) {
+        .main-layout {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>🚇 서울 지하철 최단경로 알고리즘 시뮬레이션</h1>
+      <p class="subtitle">
+        개선된 다익스트라 알고리즘: 노드 가중치를 고려한 엣지 라벨링 방식 (실제
+        서울 지하철 노선도)
+      </p>
+      <div class="network-stats">
+        <div class="network-stat">
+          <div class="network-stat-value" id="totalStations">0</div>
+          <div class="network-stat-label">총 역 수</div>
+        </div>
+        <div class="network-stat">
+          <div class="network-stat-value" id="totalLines">0</div>
+          <div class="network-stat-label">노선 수</div>
+        </div>
+        <div class="network-stat">
+          <div class="network-stat-value" id="totalEdges">0</div>
+          <div class="network-stat-label">구간 수</div>
+        </div>
+      </div>
+      <div class="main-layout">
+        <!-- 제어 패널 -->
+        <div class="panel">
+          <h2>🎯 경로 설정</h2>
+          <div class="section">
+            <h3>출발역</h3>
+            <select id="startStation" size="8"></select>
+          </div>
+          <div class="section">
+            <h3>도착역</h3>
+            <select id="endStation" size="8"></select>
+          </div>
+          <div class="section">
+            <h3>알고리즘 실행</h3>
+            <button class="btn-primary" onclick="subway.findPathNew()">
+              ⚡ 개선된 알고리즘 실행
+            </button>
+            <button class="btn-secondary" onclick="subway.findPathOld()">
+              📊 기존 알고리즘 실행
+            </button>
+            <button class="btn-compare" onclick="subway.compareAlgorithms()">
+              🔍 두 알고리즘 비교
+            </button>
+          </div>
+          <div class="algorithm-info">
+            <h4>🔬 알고리즘 특징</h4>
+            <ul>
+              <li><strong>개선된 방식:</strong> 엣지 라벨링</li>
+              <li><strong>기존 방식:</strong> 노드 확장</li>
+              <li>역 진입/진출 시간 고려</li>
+              <li>환승 시간 동적 계산</li>
+              <li>실제 노선 데이터 반영</li>
+            </ul>
+          </div>
+          <div class="info-box">
+            <h4>📌 사용 방법</h4>
+            <p>1. 출발역과 도착역을 선택하세요</p>
+            <p>2. 알고리즘을 선택하여 실행하세요</p>
+            <p>3. 비교 버튼으로 두 방식을 비교할 수 있습니다</p>
+            <p>※ 실제 서울 지하철 1-9호선 데이터 사용</p>
+          </div>
+        </div>
+        <!-- 지하철 노선도 -->
+        <div class="panel">
+          <h2>️ 서울 지하철 노선도</h2>
+          <canvas id="subwayCanvas" width="1000" height="800"></canvas>
+          <div class="legend">
+            <div class="legend-item">
+              <div class="legend-line" style="background: #0052a4"></div>
+              <span>1호선</span>
+            </div>
+            <div class="legend-item">
+              <div class="legend-line" style="background: #00a84d"></div>
+              <span>2호선</span>
+            </div>
+            <div class="legend-item">
+              <div class="legend-line" style="background: #ef7c1c"></div>
+              <span>3호선</span>
+            </div>
+            <div class="legend-item">
+              <div class="legend-line" style="background: #00a5de"></div>
+              <span>4호선</span>
+            </div>
+            <div class="legend-item">
+              <div class="legend-line" style="background: #996cac"></div>
+              <span>5호선</span>
+            </div>
+            <div class="legend-item">
+              <div class="legend-line" style="background: #cd7c2f"></div>
+              <span>6호선</span>
+            </div>
+            <div class="legend-item">
+              <div class="legend-line" style="background: #747f00"></div>
+              <span>7호선</span>
+            </div>
+            <div class="legend-item">
+              <div class="legend-line" style="background: #e6186c"></div>
+              <span>8호선</span>
+            </div>
+            <div class="legend-item">
+              <div class="legend-line" style="background: #bdb092"></div>
+              <span>9호선</span>
+            </div>
+            <div class="legend-item">
+              <div class="station-icon" style="background: #ffd700">T</div>
+              <span>환승역</span>
+            </div>
+          </div>
+        </div>
+        <!-- 결과 패널 -->
+        <div class="panel result-panel">
+          <h2>📊 결과</h2>
+          <div class="loading" id="loading">🔄 계산 중...</div>
+          <div id="resultContainer"></div>
+        </div>
+      </div>
+      <!-- 이론 패널 -->
+      <div class="panel">
+        <h2>📚 이론적 배경</h2>
+        <div
+          style="
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+          "
+        >
+          <div class="result-card">
+            <h3>기존 다익스트라의 한계</h3>
+            <ul style="list-style: none; padding: 0">
+              <li style="padding: 8px 0; color: #555; font-size: 14px">
+                • 간선에만 가중치 고려
+              </li>
+              <li style="padding: 8px 0; color: #555; font-size: 14px">
+                • 노드(역) 내부 시간 무시
+              </li>
+              <li style="padding: 8px 0; color: #555; font-size: 14px">
+                • 환승 시간 정확히 반영 불가
+              </li>
+              <li style="padding: 8px 0; color: #555; font-size: 14px">
+                • 해결책: 노드 확장 (복잡도 증가)
+              </li>
+            </ul>
+          </div>
+          <div class="result-card">
+            <h3>개선된 알고리즘</h3>
+            <ul style="list-style: none; padding: 0">
+              <li style="padding: 8px 0; color: #555; font-size: 14px">
+                • 엣지를 라벨링 대상으로 변경
+              </li>
+              <li style="padding: 8px 0; color: #555; font-size: 14px">
+                • 노드 확장 불필요
+              </li>
+              <li style="padding: 8px 0; color: #555; font-size: 14px">
+                • 동적 환승 시간 계산
+              </li>
+              <li style="padding: 8px 0; color: #555; font-size: 14px">
+                • 시간 복잡도: O(m log m)
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script>
+      class SubwaySimulator {
+        constructor() {
+          this.canvas = document.getElementById("subwayCanvas");
+          this.ctx = this.canvas.getContext("2d");
+          this.stations = [];
+          this.edges = [];
+          this.lines = [];
+          this.currentPath = null;
+          this.initializeNetwork();
+          this.setupUI();
+          this.draw();
+        }
+        initializeNetwork() {
+          // 서울 지하철 실제 노선 색상
+          this.lines = [
+            { id: 1, name: "1호선", color: "#0052A4" },
+            { id: 2, name: "2호선", color: "#00A84D" },
+            { id: 3, name: "3호선", color: "#EF7C1C" },
+            { id: 4, name: "4호선", color: "#00A5DE" },
+            { id: 5, name: "5호선", color: "#996CAC" },
+            { id: 6, name: "6호선", color: "#CD7C2F" },
+            { id: 7, name: "7호선", color: "#747F00" },
+            { id: 8, name: "8호선", color: "#E6186C" },
+            { id: 9, name: "9호선", color: "#BDB092" },
+          ];
+          // 서울 지하철 주요 역 (실제 위치 반영)
+          this.stations = [
+            // 1호선 (세로)
+            {
+              id: "jonggak",
+              name: "종각",
+              x: 500,
+              y: 150,
+              lines: [1],
+              entry: 1.0,
+              exit: 1.0,
+            },
+            {
+              id: "jongno3",
+              name: "종로3가",
+              x: 500,
+              y: 200,
+              lines: [1, 3, 5],
+              entry: 2.0,
+              exit: 2.0,
+            },
+            {
+              id: "jongno5",
+              name: "종로5가",
+              x: 500,
+              y: 250,
+              lines: [1],
+              entry: 1.0,
+              exit: 1.0,
+            },
+            {
+              id: "dongdaemun",
+              name: "동대문",
+              x: 500,
+              y: 300,
+              lines: [1, 4],
+              entry: 1.5,
+              exit: 1.5,
+            },
+            {
+              id: "seoul",
+              name: "서울역",
+              x: 350,
+              y: 450,
+              lines: [1, 4],
+              entry: 2.0,
+              exit: 2.0,
+            },
+            // 2호선 (순환선)
+            {
+              id: "euljiro",
+              name: "을지로입구",
+              x: 450,
+              y: 450,
+              lines: [2],
+              entry: 1.0,
+              exit: 1.0,
+            },
+            {
+              id: "eulji3",
+              name: "을지로3가",
+              x: 550,
+              y: 450,
+              lines: [2, 3],
+              entry: 1.5,
+              exit: 1.5,
+            },
+            {
+              id: "ddm",
+              name: "동대문역사문화공원",
+              x: 600,
+              y: 350,
+              lines: [2, 4, 5],
+              entry: 2.5,
+              exit: 2.5,
+            },
+            {
+              id: "sindang",
+              name: "신당",
+              x: 650,
+              y: 450,
+              lines: [2, 6],
+              entry: 1.5,
+              exit: 1.5,
+            },
+            {
+              id: "wangsimni",
+              name: "왕십리",
+              x: 700,
+              y: 400,
+              lines: [2, 5],
+              entry: 2.0,
+              exit: 2.0,
+            },
+            {
+              id: "gangnam",
+              name: "강남",
+              x: 600,
+              y: 650,
+              lines: [2],
+              entry: 2.0,
+              exit: 2.0,
+            },
+            {
+              id: "seolleung",
+              name: "선릉",
+              x: 700,
+              y: 650,
+              lines: [2],
+              entry: 1.5,
+              exit: 1.5,
+            },
+            {
+              id: "samseong",
+              name: "삼성",
+              x: 800,
+              y: 650,
+              lines: [2],
+              entry: 1.5,
+              exit: 1.5,
+            },
+            {
+              id: "jamsil",
+              name: "잠실",
+              x: 850,
+              y: 550,
+              lines: [2, 8],
+              entry: 2.0,
+              exit: 2.0,
+            },
+            {
+              id: "sadang",
+              name: "사당",
+              x: 400,
+              y: 700,
+              lines: [2, 4],
+              entry: 2.0,
+              exit: 2.0,
+            },
+            {
+              id: "sindorim",
+              name: "신도림",
+              x: 250,
+              y: 650,
+              lines: [2],
+              entry: 2.0,
+              exit: 2.0,
+            },
+            {
+              id: "dangsan",
+              name: "당산",
+              x: 200,
+              y: 550,
+              lines: [2, 9],
+              entry: 1.5,
+              exit: 1.5,
+            },
+            {
+              id: "hapjeong",
+              name: "합정",
+              x: 200,
+              y: 450,
+              lines: [2, 6],
+              entry: 1.5,
+              exit: 1.5,
+            },
+            {
+              id: "hongdae",
+              name: "홍대입구",
+              x: 200,
+              y: 380,
+              lines: [2],
+              entry: 2.0,
+              exit: 2.0,
+            },
+            {
+              id: "sinchon",
+              name: "신촌",
+              x: 200,
+              y: 300,
+              lines: [2],
+              entry: 1.5,
+              exit: 1.5,
+            },
+            {
+              id: "ichon",
+              name: "이대",
+              x: 250,
+              y: 250,
+              lines: [2],
+              entry: 1.0,
+              exit: 1.0,
+            },
+            {
+              id: "ahyeon",
+              name: "아현",
+              x: 300,
+              y: 200,
+              lines: [2],
+              entry: 1.0,
+              exit: 1.0,
+            },
+            {
+              id: "chungjeongno",
+              name: "충정로",
+              x: 350,
+              y: 200,
+              lines: [2, 5],
+              entry: 1.5,
+              exit: 1.5,
+            },
+            {
+              id: "cityhall",
+              name: "시청",
+              x: 400,
+              y: 200,
+              lines: [2],
+              entry: 1.5,
+              exit: 1.5,
+            },
+            // 3호선
+            {
+              id: "anguk",
+              name: "안국",
+              x: 450,
+              y: 150,
+              lines: [3],
+              entry: 1.0,
+              exit: 1.0,
+            },
+            {
+              id: "gyeongbokgung",
+              name: "경복궁",
+              x: 400,
+              y: 100,
+              lines: [3],
+              entry: 1.0,
+              exit: 1.0,
+            },
+            {
+              id: "dongnimmun",
+              name: "독립문",
+              x: 300,
+              y: 100,
+              lines: [3],
+              entry: 1.0,
+              exit: 1.0,
+            },
+            {
+              id: "chungmuro",
+              name: "충무로",
+              x: 550,
+              y: 400,
+              lines: [3, 4],
+              entry: 1.5,
+              exit: 1.5,
+            },
+            {
+              id: "yaksu",
+              name: "약수",
+              x: 600,
+              y: 500,
+              lines: [3, 6],
+              entry: 1.5,
+              exit: 1.5,
+            },
+            {
+              id: "geumho",
+              name: "금호",
+              x: 650,
+              y: 550,
+              lines: [3],
+              entry: 1.0,
+              exit: 1.0,
+            },
+            {
+              id: "oksu",
+              name: "옥수",
+              x: 700,
+              y: 600,
+              lines: [3],
+              entry: 1.0,
+              exit: 1.0,
+            },
+            {
+              id: "apgujeong",
+              name: "압구정",
+              x: 750,
+              y: 650,
+              lines: [3],
+              entry: 1.5,
+              exit: 1.5,
+            },
+            {
+              id: "sinsa",
+              name: "신사",
+              x: 700,
+              y: 700,
+              lines: [3],
+              entry: 1.5,
+              exit: 1.5,
+            },
+            {
+              id: "express",
+              name: "고속터미널",
+              x: 550,
+              y: 700,
+              lines: [3, 7, 9],
+              entry: 2.5,
+              exit: 2.5,
+            },
+            {
+              id: "nambu",
+              name: "남부터미널",
+              x: 500,
+              y: 750,
+              lines: [3],
+              entry: 1.5,
+              exit: 1.5,
+            },
+            // 4호선
+            {
+              id: "myeongdong",
+              name: "명동",
+              x: 400,
+              y: 400,
+              lines: [4],
+              entry: 1.5,
+              exit: 1.5,
+            },
+            {
+              id: "hoehyeon",
+              name: "회현",
+              x: 350,
+              y: 350,
+              lines: [4],
+              entry: 1.0,
+              exit: 1.0,
+            },
+            {
+              id: "soongsil",
+              name: "총신대입구(이수)",
+              x: 450,
+              y: 750,
+              lines: [4, 7],
+              entry: 2.0,
+              exit: 2.0,
+            },
+            // 5호선
+            {
+              id: "gwanghwamun",
+              name: "광화문",
+              x: 450,
+              y: 100,
+              lines: [5],
+              entry: 1.5,
+              exit: 1.5,
+            },
+            {
+              id: "jongnangcheon",
+              name: "종로3가",
+              x: 500,
+              y: 200,
+              lines: [5],
+              entry: 0,
+              exit: 0,
+            }, // 중복
+            {
+              id: "seodaemun",
+              name: "서대문",
+              x: 350,
+              y: 150,
+              lines: [5],
+              entry: 1.0,
+              exit: 1.0,
+            },
+            {
+              id: "eulji4",
+              name: "을지로4가",
+              x: 600,
+              y: 450,
+              lines: [5],
+              entry: 1.0,
+              exit: 1.0,
+            },
+            {
+              id: "mapo",
+              name: "마포",
+              x: 250,
+              y: 350,
+              lines: [5],
+              entry: 1.0,
+              exit: 1.0,
+            },
+            {
+              id: "yeouinaru",
+              name: "여의나루",
+              x: 200,
+              y: 500,
+              lines: [5],
+              entry: 1.0,
+              exit: 1.0,
+            },
+            {
+              id: "yeongdeungpo",
+              name: "영등포구청",
+              x: 250,
+              y: 600,
+              lines: [5],
+              entry: 1.0,
+              exit: 1.0,
+            },
+            {
+              id: "omokgyo",
+              name: "오목교",
+              x: 300,
+              y: 650,
+              lines: [5],
+              entry: 1.0,
+              exit: 1.0,
+            },
+            // 6호선
+            {
+              id: "itaewon",
+              name: "이태원",
+              x: 500,
+              y: 550,
+              lines: [6],
+              entry: 1.0,
+              exit: 1.0,
+            },
+            {
+              id: "hangnyoul",
+              name: "한강진",
+              x: 450,
+              y: 600,
+              lines: [6],
+              entry: 1.0,
+              exit: 1.0,
+            },
+            {
+              id: "daehung",
+              name: "대흥",
+              x: 300,
+              y: 300,
+              lines: [6],
+              entry: 1.0,
+              exit: 1.0,
+            },
+            {
+              id: "gongdeok",
+              name: "공덕",
+              x: 300,
+              y: 350,
+              lines: [6],
+              entry: 1.5,
+              exit: 1.5,
+            },
+            // 7호선
+            {
+              id: "nonhyeon",
+              name: "논현",
+              x: 650,
+              y: 700,
+              lines: [7],
+              entry: 1.0,
+              exit: 1.0,
+            },
+            {
+              id: "gangnamgu",
+              name: "강남구청",
+              x: 600,
+              y: 750,
+              lines: [7],
+              entry: 1.0,
+              exit: 1.0,
+            },
+            {
+              id: "cheongdam",
+              name: "청담",
+              x: 750,
+              y: 700,
+              lines: [7],
+              entry: 1.0,
+              exit: 1.0,
+            },
+            {
+              id: "konkuk",
+              name: "건대입구",
+              x: 750,
+              y: 450,
+              lines: [7],
+              entry: 2.0,
+              exit: 2.0,
+            },
+            // 8호선
+            {
+              id: "moran",
+              name: "모란",
+              x: 900,
+              y: 700,
+              lines: [8],
+              entry: 1.5,
+              exit: 1.5,
+            },
+            {
+              id: "seokchon",
+              name: "석촌",
+              x: 850,
+              y: 600,
+              lines: [8],
+              entry: 1.0,
+              exit: 1.0,
+            },
+            // 9호선
+            {
+              id: "yeouido",
+              name: "여의도",
+              x: 250,
+              y: 500,
+              lines: [9],
+              entry: 2.0,
+              exit: 2.0,
+            },
+            {
+              id: "saetgang",
+              name: "샛강",
+              x: 300,
+              y: 500,
+              lines: [9],
+              entry: 1.0,
+              exit: 1.0,
+            },
+            {
+              id: "noryangjin",
+              name: "노량진",
+              x: 300,
+              y: 550,
+              lines: [9],
+              entry: 1.5,
+              exit: 1.5,
+            },
+            {
+              id: "dongjak",
+              name: "동작",
+              x: 350,
+              y: 600,
+              lines: [9],
+              entry: 1.0,
+              exit: 1.0,
+            },
+            {
+              id: "shinnnonhyeon",
+              name: "신논현",
+              x: 600,
+              y: 700,
+              lines: [9],
+              entry: 1.5,
+              exit: 1.5,
+            },
+          ];
+          // 간선 데이터 (실제 역간 평균 시간)
+          this.edges = [
+            // 1호선
+            { from: "jonggak", to: "jongno3", line: 1, time: 1.5 },
+            { from: "jongno3", to: "jongno5", line: 1, time: 1.5 },
+            { from: "jongno5", to: "dongdaemun", line: 1, time: 2.0 },
+            { from: "seoul", to: "jonggak", line: 1, time: 3.0 },
+            // 2호선 (순환)
+            { from: "cityhall", to: "euljiro", line: 2, time: 2.0 },
+            { from: "euljiro", to: "eulji3", line: 2, time: 1.5 },
+            { from: "eulji3", to: "ddm", line: 2, time: 2.0 },
+            { from: "ddm", to: "sindang", line: 2, time: 2.0 },
+            { from: "sindang", to: "wangsimni", line: 2, time: 2.5 },
+            { from: "wangsimni", to: "jamsil", line: 2, time: 4.0 },
+            { from: "jamsil", to: "samseong", line: 2, time: 2.0 },
+            { from: "samseong", to: "seolleung", line: 2, time: 2.0 },
+            { from: "seolleung", to: "gangnam", line: 2, time: 2.0 },
+            { from: "gangnam", to: "sadang", line: 2, time: 5.0 },
+            { from: "sadang", to: "sindorim", line: 2, time: 4.0 },
+            { from: "sindorim", to: "dangsan", line: 2, time: 3.0 },
+            { from: "dangsan", to: "hapjeong", line: 2, time: 2.5 },
+            { from: "hapjeong", to: "hongdae", line: 2, time: 2.0 },
+            { from: "hongdae", to: "sinchon", line: 2, time: 2.0 },
+            { from: "sinchon", to: "ichon", line: 2, time: 2.0 },
+            { from: "ichon", to: "ahyeon", line: 2, time: 1.5 },
+            { from: "ahyeon", to: "chungjeongno", line: 2, time: 1.5 },
+            { from: "chungjeongno", to: "cityhall", line: 2, time: 2.0 },
+            // 3호선
+            { from: "gyeongbokgung", to: "anguk", line: 3, time: 1.5 },
+            { from: "anguk", to: "jongno3", line: 3, time: 1.5 },
+            { from: "jongno3", to: "eulji3", line: 3, time: 2.5 },
+            { from: "eulji3", to: "chungmuro", line: 3, time: 1.5 },
+            { from: "chungmuro", to: "ddm", line: 3, time: 1.5 },
+            { from: "ddm", to: "yaksu", line: 3, time: 2.0 },
+            { from: "yaksu", to: "geumho", line: 3, time: 1.5 },
+            { from: "geumho", to: "oksu", line: 3, time: 2.0 },
+            { from: "oksu", to: "apgujeong", line: 3, time: 2.0 },
+            { from: "apgujeong", to: "sinsa", line: 3, time: 1.5 },
+            { from: "sinsa", to: "express", line: 3, time: 3.0 },
+            { from: "express", to: "nambu", line: 3, time: 2.0 },
+            { from: "dongnimmun", to: "gyeongbokgung", line: 3, time: 2.0 },
+            // 4호선
+            { from: "dongdaemun", to: "ddm", line: 4, time: 2.0 },
+            { from: "ddm", to: "chungmuro", line: 4, time: 1.5 },
+            { from: "chungmuro", to: "myeongdong", line: 4, time: 1.5 },
+            { from: "myeongdong", to: "hoehyeon", line: 4, time: 1.0 },
+            { from: "hoehyeon", to: "seoul", line: 4, time: 1.5 },
+            { from: "seoul", to: "sadang", line: 4, time: 6.0 },
+            { from: "sadang", to: "soongsil", line: 4, time: 2.0 },
+            // 5호선
+            { from: "gwanghwamun", to: "jongno3", line: 5, time: 2.0 },
+            { from: "jongno3", to: "eulji4", line: 5, time: 3.0 },
+            { from: "eulji4", to: "ddm", line: 5, time: 1.5 },
+            { from: "ddm", to: "wangsimni", line: 5, time: 3.0 },
+            { from: "seodaemun", to: "gwanghwamun", line: 5, time: 2.0 },
+            { from: "seodaemun", to: "chungjeongno", line: 5, time: 2.5 },
+            { from: "chungjeongno", to: "mapo", line: 5, time: 2.5 },
+            { from: "mapo", to: "yeouinaru", line: 5, time: 3.0 },
+            { from: "yeouinaru", to: "yeongdeungpo", line: 5, time: 3.0 },
+            { from: "yeongdeungpo", to: "omokgyo", line: 5, time: 2.0 },
+            // 6호선
+            { from: "daehung", to: "gongdeok", line: 6, time: 1.5 },
+            { from: "gongdeok", to: "hapjeong", line: 6, time: 2.0 },
+            { from: "itaewon", to: "hangnyoul", line: 6, time: 1.5 },
+            { from: "yaksu", to: "itaewon", line: 6, time: 3.0 },
+            { from: "sindang", to: "yaksu", line: 6, time: 2.5 },
+            // 7호선
+            { from: "express", to: "gangnamgu", line: 7, time: 2.0 },
+            { from: "gangnamgu", to: "nonhyeon", line: 7, time: 1.5 },
+            { from: "nonhyeon", to: "cheongdam", line: 7, time: 2.0 },
+            { from: "soongsil", to: "express", line: 7, time: 3.0 },
+            { from: "cheongdam", to: "konkuk", line: 7, time: 4.0 },
+            // 8호선
+            { from: "jamsil", to: "seokchon", line: 8, time: 1.5 },
+            { from: "seokchon", to: "moran", line: 8, time: 3.0 },
+            // 9호선
+            { from: "dangsan", to: "yeouido", line: 9, time: 2.0 },
+            { from: "yeouido", to: "saetgang", line: 9, time: 1.5 },
+            { from: "saetgang", to: "noryangjin", line: 9, time: 1.5 },
+            { from: "noryangjin", to: "dongjak", line: 9, time: 2.0 },
+            { from: "express", to: "shinnnonhyeon", line: 9, time: 2.0 },
+            { from: "shinnnonhyeon", to: "gangnam", line: 9, time: 1.5 },
+          ];
+          // 양방향 간선 생성
+          const bidirectionalEdges = [];
+          this.edges.forEach((edge) => {
+            bidirectionalEdges.push(edge);
+            bidirectionalEdges.push({
+              from: edge.to,
+              to: edge.from,
+              line: edge.line,
+              time: edge.time,
+            });
+          });
+          this.edges = bidirectionalEdges;
+          // 환승역 환승시간 설정 (실제 데이터 기반)
+          this.transferTimes = {
+            jongno3: { "1-3": 3.0, "1-5": 3.5, "3-5": 2.5 },
+            dongdaemun: { "1-4": 2.5 },
+            seoul: { "1-4": 3.0 },
+            eulji3: { "2-3": 2.5 },
+            ddm: { "2-4": 3.0, "2-5": 3.5, "4-5": 3.0 },
+            sindang: { "2-6": 2.5 },
+            wangsimni: { "2-5": 3.0 },
+            jamsil: { "2-8": 3.0 },
+            sadang: { "2-4": 3.5 },
+            dangsan: { "2-9": 2.5 },
+            hapjeong: { "2-6": 2.5 },
+            chungjeongno: { "2-5": 2.5 },
+            chungmuro: { "3-4": 2.0 },
+            yaksu: { "3-6": 2.5 },
+            express: { "3-7": 3.5, "3-9": 3.0, "7-9": 3.0 },
+            soongsil: { "4-7": 3.0 },
+          };
+          document.getElementById("totalStations").textContent =
+            this.stations.length;
+          document.getElementById("totalLines").textContent = this.lines.length;
+          document.getElementById("totalEdges").textContent =
+            this.edges.length / 2;
+        }
+        setupUI() {
+          const startSelect = document.getElementById("startStation");
+          const endSelect = document.getElementById("endStation");
+          // 노선별로 그룹화
+          const stationsByLine = {};
+          this.stations.forEach((station) => {
+            station.lines.forEach((lineId) => {
+              if (!stationsByLine[lineId]) {
+                stationsByLine[lineId] = [];
+              }
+              if (!stationsByLine[lineId].find((s) => s.id === station.id)) {
+                stationsByLine[lineId].push(station);
+              }
+            });
+          });
+          // 각 노선별로 옵션 추가
+          for (let lineId = 1; lineId <= 9; lineId++) {
+            if (stationsByLine[lineId]) {
+              const line = this.lines.find((l) => l.id === lineId);
+              // 시작역 선택
+              const optgroup1 = document.createElement("optgroup");
+              optgroup1.label = line.name;
+              stationsByLine[lineId].forEach((station) => {
+                const option = document.createElement("option");
+                option.value = station.id;
+                option.textContent =
+                  station.name + (station.lines.length > 1 ? " (환승)" : "");
+                optgroup1.appendChild(option);
+              });
+              startSelect.appendChild(optgroup1);
+              // 도착역 선택
+              const optgroup2 = document.createElement("optgroup");
+              optgroup2.label = line.name;
+              stationsByLine[lineId].forEach((station) => {
+                const option = document.createElement("option");
+                option.value = station.id;
+                option.textContent =
+                  station.name + (station.lines.length > 1 ? " (환승)" : "");
+                optgroup2.appendChild(option);
+              });
+              endSelect.appendChild(optgroup2);
+            }
+          }
+          startSelect.value = "gyeongbokgung"; // 경복궁
+          endSelect.value = "jamsil"; // 잠실
+        }
+        getStation(id) {
+          return this.stations.find((s) => s.id === id);
+        }
+        getTransferTime(fromLine, toLine, stationId) {
+          if (fromLine === toLine) return 0;
+          const station = this.getStation(stationId);
+          if (
+            !station ||
+            !station.lines.includes(fromLine) ||
+            !station.lines.includes(toLine)
+          ) {
+            return Infinity;
+          }
+          // 실제 환승시간 데이터 사용
+          if (this.transferTimes[stationId]) {
+            const key1 = `${fromLine}-${toLine}`;
+            const key2 = `${toLine}-${fromLine}`;
+            return (
+              this.transferTimes[stationId][key1] ||
+              this.transferTimes[stationId][key2] ||
+              3.0
+            );
+          }
+          return 3.0; // 기본 환승시간
+        }
+        // 개선된 다익스트라 알고리즘 (엣지 라벨링)
+        dijkstraEdgeLabeling(startId, endId) {
+          const startTime = performance.now();
+          const distances = new Map();
+          const previous = new Map();
+          const visited = new Set();
+          const startEdges = this.edges.filter((e) => e.from === startId);
+          const pq = [];
+          startEdges.forEach((edge) => {
+            const edgeKey = `${edge.from}-${edge.to}-${edge.line}`;
+            const startStation = this.getStation(edge.from);
+            const totalTime = startStation.entry + edge.time;
+            distances.set(edgeKey, totalTime);
+            pq.push({ edge, distance: totalTime, prevEdge: null });
+          });
+          let iterations = 0;
+          while (pq.length > 0) {
+            iterations++;
+            pq.sort((a, b) => a.distance - b.distance);
+            const {
+              edge: currentEdge,
+              distance: currentDist,
+              prevEdge,
+            } = pq.shift();
+            const currentKey = `${currentEdge.from}-${currentEdge.to}-${currentEdge.line}`;
+            if (visited.has(currentKey)) continue;
+            visited.add(currentKey);
+            previous.set(currentKey, prevEdge);
+            if (currentEdge.to === endId) {
+              const endStation = this.getStation(endId);
+              const finalTime = currentDist + endStation.exit;
+              const endTime = performance.now();
+              return {
+                path: this.reconstructPathFromEdges(
+                  previous,
+                  currentKey,
+                  startId
+                ),
+                totalTime: finalTime,
+                computeTime: endTime - startTime,
+                iterations: iterations,
+              };
+            }
+            const nextEdges = this.edges.filter(
+              (e) => e.from === currentEdge.to
+            );
+            nextEdges.forEach((nextEdge) => {
+              const nextKey = `${nextEdge.from}-${nextEdge.to}-${nextEdge.line}`;
+              if (visited.has(nextKey)) return;
+              const transferTime = this.getTransferTime(
+                currentEdge.line,
+                nextEdge.line,
+                currentEdge.to
+              );
+              if (transferTime === Infinity) return;
+              const stationTime = transferTime > 0 ? transferTime : 0;
+              const newDist = currentDist + stationTime + nextEdge.time;
+              if (!distances.has(nextKey) || newDist < distances.get(nextKey)) {
+                distances.set(nextKey, newDist);
+                pq.push({
+                  edge: nextEdge,
+                  distance: newDist,
+                  prevEdge: currentKey,
+                });
+              }
+            });
+          }
+          const endTime = performance.now();
+          return {
+            path: null,
+            totalTime: Infinity,
+            computeTime: endTime - startTime,
+            iterations: iterations,
+          };
+        }
+        reconstructPathFromEdges(previous, endKey, startId) {
+          const path = [];
+          let currentKey = endKey;
+          while (currentKey) {
+            const [from, to, line] = currentKey.split("-");
+            path.unshift({ from, to, line: parseInt(line) });
+            currentKey = previous.get(currentKey);
+          }
+          return path;
+        }
+        // 기존 다익스트라 알고리즘 (노드 확장)
+        dijkstraNodeExpansion(startId, endId) {
+          const startTime = performance.now();
+          const distances = new Map();
+          const previous = new Map();
+          const visited = new Set();
+          const pq = [];
+          const startStation = this.getStation(startId);
+          startStation.lines.forEach((line) => {
+            const nodeKey = `${startId}-L${line}`;
+            distances.set(nodeKey, startStation.entry);
+            pq.push({ nodeKey, distance: startStation.entry });
+          });
+          let iterations = 0;
+          const maxIterations = 20000;
+          while (pq.length > 0 && iterations < maxIterations) {
+            iterations++;
+            pq.sort((a, b) => a.distance - b.distance);
+            const { nodeKey: currentKey, distance: currentDist } = pq.shift();
+            if (visited.has(currentKey)) continue;
+            visited.add(currentKey);
+            const [stationId, lineStr] = currentKey.split("-L");
+            const currentLine = parseInt(lineStr);
+            if (stationId === endId) {
+              const endStation = this.getStation(endId);
+              const finalTime = currentDist + endStation.exit;
+              const endTime = performance.now();
+              return {
+                path: this.reconstructPathFromNodesImproved(
+                  previous,
+                  currentKey,
+                  startId
+                ),
+                totalTime: finalTime,
+                computeTime: endTime - startTime,
+                iterations: iterations,
+              };
+            }
+            const currentStation = this.getStation(stationId);
+            if (currentStation.lines.length > 1) {
+              currentStation.lines.forEach((otherLine) => {
+                if (otherLine === currentLine) return;
+                const transferKey = `${stationId}-L${otherLine}`;
+                if (visited.has(transferKey)) return;
+                const transferTime = this.getTransferTime(
+                  currentLine,
+                  otherLine,
+                  stationId
+                );
+                if (transferTime === Infinity) return;
+                const newDist = currentDist + transferTime;
+                if (
+                  !distances.has(transferKey) ||
+                  newDist < distances.get(transferKey)
+                ) {
+                  distances.set(transferKey, newDist);
+                  previous.set(transferKey, {
+                    prev: currentKey,
+                    type: "transfer",
+                  });
+                  pq.push({ nodeKey: transferKey, distance: newDist });
+                }
+              });
+            }
+            const outgoingEdges = this.edges.filter(
+              (e) => e.from === stationId && e.line === currentLine
+            );
+            outgoingEdges.forEach((edge) => {
+              const nextKey = `${edge.to}-L${edge.line}`;
+              if (visited.has(nextKey)) return;
+              const newDist = currentDist + edge.time;
+              if (!distances.has(nextKey) || newDist < distances.get(nextKey)) {
+                distances.set(nextKey, newDist);
+                previous.set(nextKey, {
+                  prev: currentKey,
+                  type: "move",
+                  edge: edge,
+                });
+                pq.push({ nodeKey: nextKey, distance: newDist });
+              }
+            });
+          }
+          const endTime = performance.now();
+          return {
+            path: null,
+            totalTime: Infinity,
+            computeTime: endTime - startTime,
+            iterations: iterations,
+          };
+        }
+        reconstructPathFromNodesImproved(previous, endKey, startId) {
+          const path = [];
+          let currentKey = endKey;
+          const maxSteps = 200;
+          let steps = 0;
+          while (currentKey && steps < maxSteps) {
+            steps++;
+            const prevInfo = previous.get(currentKey);
+            if (!prevInfo) break;
+            const [currentStationId, currentLineStr] = currentKey.split("-L");
+            const [prevStationId, prevLineStr] = prevInfo.prev.split("-L");
+            if (
+              prevInfo.type === "move" &&
+              currentStationId !== prevStationId
+            ) {
+              path.unshift({
+                from: prevStationId,
+                to: currentStationId,
+                line: parseInt(currentLineStr),
+              });
+            }
+            currentKey = prevInfo.prev;
+            if (prevStationId === startId) break;
+          }
+          return path;
+        }
+        findPathNew() {
+          const startId = document.getElementById("startStation").value;
+          const endId = document.getElementById("endStation").value;
+          if (startId === endId) {
+            alert("출발역과 도착역이 같습니다!");
+            return;
+          }
+          document.getElementById("loading").classList.add("active");
+          document.getElementById("resultContainer").innerHTML = "";
+          setTimeout(() => {
+            try {
+              const result = this.dijkstraEdgeLabeling(startId, endId);
+              this.displayResult(result, "개선된 알고리즘", "new");
+              this.currentPath = result.path;
+              this.draw();
+            } catch (error) {
+              console.error("Error:", error);
+              document.getElementById(
+                "resultContainer"
+              ).innerHTML = `<div class="result-card"><p style="color: red;">오류가 발생했습니다: ${error.message}</p></div>`;
+            } finally {
+              document.getElementById("loading").classList.remove("active");
+            }
+          }, 100);
+        }
+        findPathOld() {
+          const startId = document.getElementById("startStation").value;
+          const endId = document.getElementById("endStation").value;
+          if (startId === endId) {
+            alert("출발역과 도착역이 같습니다!");
+            return;
+          }
+          document.getElementById("loading").classList.add("active");
+          document.getElementById("resultContainer").innerHTML = "";
+          setTimeout(() => {
+            try {
+              const result = this.dijkstraNodeExpansion(startId, endId);
+              this.displayResult(result, "기존 알고리즘", "old");
+              this.currentPath = result.path;
+              this.draw();
+            } catch (error) {
+              console.error("Error:", error);
+              document.getElementById(
+                "resultContainer"
+              ).innerHTML = `<div class="result-card"><p style="color: red;">오류가 발생했습니다: ${error.message}</p></div>`;
+            } finally {
+              document.getElementById("loading").classList.remove("active");
+            }
+          }, 100);
+        }
+        compareAlgorithms() {
+          const startId = document.getElementById("startStation").value;
+          const endId = document.getElementById("endStation").value;
+          if (startId === endId) {
+            alert("출발역과 도착역이 같습니다!");
+            return;
+          }
+          document.getElementById("loading").classList.add("active");
+          document.getElementById("resultContainer").innerHTML = "";
+          setTimeout(() => {
+            try {
+              const resultNew = this.dijkstraEdgeLabeling(startId, endId);
+              const resultOld = this.dijkstraNodeExpansion(startId, endId);
+              this.displayComparison(resultNew, resultOld);
+              this.currentPath = resultNew.path;
+              this.draw();
+            } catch (error) {
+              console.error("Error:", error);
+              document.getElementById(
+                "resultContainer"
+              ).innerHTML = `<div class="result-card"><p style="color: red;">오류가 발생했습니다: ${error.message}</p></div>`;
+            } finally {
+              document.getElementById("loading").classList.remove("active");
+            }
+          }, 100);
+        }
+        generateResultHTML(result, algorithmName, type) {
+          const badgeClass = type === "new" ? "badge-new" : "badge-old";
+          if (!result.path || result.path.length === 0) {
+            return `
+<div class="result-card">
+<h3>${algorithmName} <span class="badge ${badgeClass}">${type.toUpperCase()}</span></h3>
+<p>경로를 찾을 수 없습니다.</p>
+</div>
+`;
+          }
+          let html = `
+<div class="result-card">
+<h3>${algorithmName} <span class="badge ${badgeClass}">${type.toUpperCase()}</span></h3>
+<div class="stats">
+<div class="stat-item">
+<div class="stat-label">총 소요 시간</div>
+<div class="stat-value">${result.totalTime.toFixed(1)}분</div>
+</div>
+<div class="stat-item">
+<div class="stat-label">계산 시간</div>
+<div class="stat-value">${result.computeTime.toFixed(2)}ms</div>
+</div>
+<div class="stat-item">
+<div class="stat-label">환승 횟수</div>
+<div class="stat-value">${this.countTransfers(result.path)}회</div>
+</div>
+<div class="stat-item">
+<div class="stat-label">정류장 수</div>
+<div class="stat-value">${result.path.length}개</div>
+</div>
+</div>
+<h4 style="color: #667eea; margin: 15px 0 10px 0;">경로 상세</h4>
+<ul class="path-list">
+`;
+          let prevLine = null;
+          result.path.forEach((segment, index) => {
+            const fromStation = this.getStation(segment.from);
+            const toStation = this.getStation(segment.to);
+            const line = this.lines.find((l) => l.id === segment.line);
+            const isTransfer = prevLine !== null && prevLine !== segment.line;
+            if (index === 0) {
+              html += `
+<li>
+<div class="station-icon" style="background: ${line.color};">출</div>
+<div style="flex: 1;">
+<strong>${fromStation.name}</strong> 승차 (${line.name})
+<div class="time-detail">
+<span>역 진입: <strong>${fromStation.entry}분</strong></span>
+</div>
+</div>
+</li>
+`;
+            }
+            if (isTransfer) {
+              const transferTime = this.getTransferTime(
+                prevLine,
+                segment.line,
+                segment.from
+              );
+              const prevLineName = this.lines.find(
+                (l) => l.id === prevLine
+              ).name;
+              html += `
+<li style="background: #FFF3CD;">
+<div class="transfer-icon">환</div>
+<div style="flex: 1;">
+<strong>환승</strong> ${prevLineName} → ${line.name}
+<div class="time-detail">
+<span>환승 시간: <strong>${transferTime.toFixed(1)}분</strong></span>
+</div>
+</div>
+</li>
+`;
+            }
+            const edge = this.edges.find(
+              (e) =>
+                e.from === segment.from &&
+                e.to === segment.to &&
+                e.line === segment.line
+            );
+            html += `
+<li>
+<div class="station-icon" style="background: ${line.color};">${line.id}</div>
+<div style="flex: 1;">
+<strong>${toStation.name}</strong>
+<div class="time-detail">
+<span>이동 시간: <strong>${edge ? edge.time.toFixed(1) : 0}분</strong></span>
+</div>
+</div>
+</li>
+`;
+            prevLine = segment.line;
+          });
+          const lastSegment = result.path[result.path.length - 1];
+          const lastStation = this.getStation(lastSegment.to);
+          html += `
+<li style="background: #E8F5E9;">
+<div class="station-icon" style="background: #4CAF50;">도</div>
+<div style="flex: 1;">
+<strong>${lastStation.name}</strong> 도착
+<div class="time-detail">
+<span>역 진출: <strong>${lastStation.exit}분</strong></span>
+</div>
+</div>
+</li>
+`;
+          html += `
+</ul>
+<div class="info-box">
+<h4>알고리즘 정보</h4>
+<p>반복 횟수: ${result.iterations}회</p>
+<p>시간 복잡도: O(m log m)</p>
+<p>방문 노드/간선: ${result.iterations}개</p>
+</div>
+</div>
+`;
+          return html;
+        }
+        displayResult(result, algorithmName, type) {
+          const container = document.getElementById("resultContainer");
+          container.innerHTML = this.generateResultHTML(
+            result,
+            algorithmName,
+            type
+          );
+        }
+        displayComparison(resultNew, resultOld) {
+          const container = document.getElementById("resultContainer");
+          let html = `
+<div class="result-card">
+<h3>⚖️ 알고리즘 비교 결과</h3>
+<table class="comparison-table">
+<tr>
+<th>항목</th>
+<th>개선된 알고리즘</th>
+<th>기존 알고리즘</th>
+</tr>
+<tr>
+<td>총 소요 시간</td>
+<td>${resultNew.totalTime.toFixed(1)}분</td>
+<td>${resultOld.totalTime.toFixed(1)}분</td>
+</tr>
+<tr>
+<td>계산 시간</td>
+<td>${resultNew.computeTime.toFixed(3)}ms</td>
+<td>${resultOld.computeTime.toFixed(3)}ms</td>
+</tr>
+<tr>
+<td>반복 횟수</td>
+<td>${resultNew.iterations}회</td>
+<td>${resultOld.iterations}회</td>
+</tr>
+<tr>
+<td>환승 횟수</td>
+<td>${this.countTransfers(resultNew.path)}회</td>
+<td>${this.countTransfers(resultOld.path)}회</td>
+</tr>
+<tr>
+<td>정류장 수</td>
+<td>${resultNew.path ? resultNew.path.length : 0}개</td>
+<td>${resultOld.path ? resultOld.path.length : 0}개</td>
+</tr>
+</table>
+<div class="info-box" style="margin-top: 20px;">
+<h4>📊 분석</h4>
+<p><strong>계산 시간 차이:</strong> ${Math.abs(
+            resultNew.computeTime - resultOld.computeTime
+          ).toFixed(3)}ms</p><p><strong>더 빠른 알고리즘:</strong> ${
+            resultNew.computeTime < resultOld.computeTime
+              ? "개선된알고리즘"
+              : "기존 알고리즘"
+          } (${Math.abs(
+            ((resultNew.computeTime - resultOld.computeTime) /
+              resultOld.computeTime) *
+              100
+          ).toFixed(1)}% 차이)</p><p><strong>총 시간 차이:</strong> ${Math.abs(
+            resultNew.totalTime - resultOld.totalTime
+          ).toFixed(1)}분</p>
+${
+  Math.abs(resultNew.totalTime - resultOld.totalTime) < 0.1
+    ? '<p style="color: #43e97b; font-weight: bold;">✓ 두 알고리즘 모두 동일한 최적 경로를 찾았습니다!</p>'
+    : '<p style="color: #f5576c;">⚠ 경로 시간이 약간 다릅니다.</p>'
+}
+</div>
+</div>
+`;
+          html += this.generateResultHTML(resultNew, "개선된 알고리즘", "new");
+          html += this.generateResultHTML(resultOld, "기존 알고리즘", "old");
+          container.innerHTML = html;
+        }
+        countTransfers(path) {
+          if (!path || path.length === 0) return 0;
+          let transfers = 0;
+          let prevLine = path[0].line;
+          for (let i = 1; i < path.length; i++) {
+            if (path[i].line !== prevLine) {
+              transfers++;
+              prevLine = path[i].line;
+            }
+          }
+          return transfers;
+        }
+        draw() {
+          const ctx = this.ctx;
+          ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+          // 배경 그리드
+          ctx.strokeStyle = "#f5f5f5";
+          ctx.lineWidth = 1;
+          for (let x = 0; x < this.canvas.width; x += 50) {
+            ctx.beginPath();
+            ctx.moveTo(x, 0);
+            ctx.lineTo(x, this.canvas.height);
+            ctx.stroke();
+          }
+          for (let y = 0; y < this.canvas.height; y += 50) {
+            ctx.beginPath();
+            ctx.moveTo(0, y);
+            ctx.lineTo(this.canvas.width, y);
+            ctx.stroke();
+          }
+          // 간선 그리기
+          this.edges.forEach((edge) => {
+            const fromStation = this.getStation(edge.from);
+            const toStation = this.getStation(edge.to);
+            const line = this.lines.find((l) => l.id === edge.line);
+            if (!fromStation || !toStation) return;
+            const isInPath =
+              this.currentPath &&
+              this.currentPath.some(
+                (p) =>
+                  p.from === edge.from &&
+                  p.to === edge.to &&
+                  p.line === edge.line
+              );
+            ctx.beginPath();
+            ctx.moveTo(fromStation.x, fromStation.y);
+            ctx.lineTo(toStation.x, toStation.y);
+            ctx.strokeStyle = isInPath ? line.color : line.color + "30";
+            ctx.lineWidth = isInPath ? 7 : 4;
+            ctx.stroke();
+            if (isInPath) {
+              const angle = Math.atan2(
+                toStation.y - fromStation.y,
+                toStation.x - fromStation.x
+              );
+              const midX = (fromStation.x + toStation.x) / 2;
+              const midY = (fromStation.y + toStation.y) / 2;
+              ctx.save();
+              ctx.translate(midX, midY);
+              ctx.rotate(angle);
+              ctx.beginPath();
+              ctx.moveTo(0, 0);
+              ctx.lineTo(-12, -6);
+              ctx.lineTo(-12, 6);
+              ctx.closePath();
+              ctx.fillStyle = line.color;
+              ctx.fill();
+              ctx.restore();
+            }
+          });
+          // 역 그리기
+          this.stations.forEach((station) => {
+            const isTransfer = station.lines.length > 1;
+            const isInPath =
+              this.currentPath &&
+              this.currentPath.some(
+                (p) => p.from === station.id || p.to === station.id
+              );
+            // 역 원
+            ctx.beginPath();
+            ctx.arc(station.x, station.y, isTransfer ? 10 : 6, 0, Math.PI * 2);
+            if (isInPath) {
+              ctx.fillStyle = "#FFD700";
+              ctx.fill();
+              ctx.strokeStyle = "#FF5722";
+              ctx.lineWidth = 4;
+            } else if (isTransfer) {
+              ctx.fillStyle = "white";
+              ctx.fill();
+              ctx.strokeStyle = "#333";
+              ctx.lineWidth = 3;
+            } else {
+              ctx.fillStyle = "white";
+              ctx.fill();
+              ctx.strokeStyle = "#666";
+              ctx.lineWidth = 2;
+            }
+            ctx.stroke();
+            // 역 이름
+            ctx.fillStyle = isInPath ? "#FF5722" : "#333";
+            ctx.font = isInPath ? "bold 11px Arial" : "10px Arial";
+            ctx.textAlign = "center";
+            ctx.fillText(station.name, station.x, station.y - 15);
+            // 환승역 표시
+            if (isTransfer) {
+              ctx.fillStyle = "#666";
+              ctx.font = "8px Arial";
+              ctx.fillText("환승", station.x, station.y + 20);
+            }
+          });
+        }
+      }
+      const subway = new SubwaySimulator();
+    </script>
+  </body>
+</html>

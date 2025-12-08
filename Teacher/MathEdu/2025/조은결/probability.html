@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>검사 측의 오류: DNA 증거의 함정</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+    <!-- MathJax -->
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <style>
+      body {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      }
+
+      .card {
+        background: white;
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        margin-bottom: 24px;
+        transition: transform 0.2s;
+      }
+
+      .card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+      }
+
+      .slider-container {
+        margin: 20px 0;
+      }
+
+      .slider {
+        width: 100%;
+        height: 8px;
+        border-radius: 5px;
+        background: #e2e8f0;
+        outline: none;
+        -webkit-appearance: none;
+      }
+
+      .slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: #667eea;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+
+      .slider::-webkit-slider-thumb:hover {
+        background: #764ba2;
+        transform: scale(1.2);
+      }
+
+      .slider::-moz-range-thumb {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: #667eea;
+        cursor: pointer;
+        border: none;
+      }
+
+      .result-highlight {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 20px;
+        border-radius: 12px;
+        font-size: 1.5rem;
+        font-weight: bold;
+        text-align: center;
+        margin: 20px 0;
+      }
+
+      .evidence-btn {
+        padding: 12px 24px;
+        margin: 8px;
+        border-radius: 8px;
+        border: none;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.3s;
+        color: white;
+      }
+
+      .evidence-btn.positive {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      }
+
+      .evidence-btn.negative {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+      }
+
+      .evidence-btn:hover {
+        transform: scale(1.05);
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+      }
+
+      .evidence-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      .log-entry {
+        padding: 10px;
+        margin: 5px 0;
+        border-left: 4px solid #667eea;
+        background: #f7fafc;
+        border-radius: 4px;
+        font-size: 0.9rem;
+      }
+
+      .heatmap-container {
+        position: relative;
+        margin: 20px 0;
+      }
+
+      #heatmapCanvas {
+        border-radius: 8px;
+        max-width: 100%;
+        cursor: crosshair;
+      }
+
+      .stat-card {
+        background: linear-gradient(135deg, #e0e7ff 0%, #f3e7ff 100%);
+        padding: 16px;
+        border-radius: 12px;
+        margin: 10px 0;
+      }
+
+      .stat-label {
+        font-size: 0.875rem;
+        color: #64748b;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .stat-value {
+        font-size: 1.5rem;
+        color: #1e293b;
+        font-weight: bold;
+        margin-top: 8px;
+      }
+
+      .warning-box {
+        background: #fef3c7;
+        border-left: 4px solid #f59e0b;
+        padding: 16px;
+        border-radius: 8px;
+        margin: 20px 0;
+      }
+    </style>
+    <link
+      rel="canonical"
+      href="https://ekc0517.github.io/math/probability.html"
+    />
+  </head>
+  <body class="p-4 md:p-8">
+    <div class="max-w-7xl mx-auto">
+      <!-- 헤더 -->
+      <div class="card text-center">
+        <h1
+          class="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent"
+        >
+          🔬 검사 측의 오류: DNA 증거의 함정
+        </h1>
+        <p class="text-lg text-gray-700 mb-6">
+          DNA 일치 확률이 1/1,000,000이라면, 용의자가 유죄일 확률은
+          99.9999%일까요?<br />
+          베이즈 정리를 통해 진실을 확인해보세요.
+        </p>
+
+        <div class="bg-gray-50 p-6 rounded-lg inline-block">
+          <p class="text-sm text-gray-600 mb-2">베이즈 정리 (Bayes' Theorem)</p>
+          <div class="text-xl">
+            $$P(G|M) = \frac{P(M|G)P(G)}{P(M|G)P(G) + P(M|\neg G)P(\neg G)}$$
+          </div>
+          <p class="text-xs text-gray-500 mt-3">
+            G = 유죄(Guilty), M = DNA 일치(Match)
+          </p>
+        </div>
+      </div>
+
+      <!-- 메인 시뮬레이터 -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- 왼쪽: 컨트롤 패널 -->
+        <div class="card">
+          <h2 class="text-2xl font-bold mb-6 text-gray-800">
+            🎛️ 시뮬레이션 설정
+          </h2>
+
+          <!-- 모집단 크기 -->
+          <div class="slider-container">
+            <label class="stat-label">모집단 크기 (Population Size)</label>
+            <div class="flex justify-between items-center mt-2">
+              <span class="text-sm text-gray-600">10,000명</span>
+              <span class="stat-value text-xl" id="populationDisplay"
+                >1,000,000명</span
+              >
+              <span class="text-sm text-gray-600">10,000,000명</span>
+            </div>
+            <input
+              type="range"
+              min="4"
+              max="7"
+              step="0.01"
+              value="6"
+              class="slider"
+              id="populationSlider"
+            />
+          </div>
+
+          <!-- DNA 오류율 -->
+          <div class="slider-container">
+            <label class="stat-label">DNA 무작위 일치 확률 P(M|¬G)</label>
+            <div class="flex justify-between items-center mt-2">
+              <span class="text-sm text-gray-600">1/1,000</span>
+              <span class="stat-value text-xl" id="errorRateDisplay"
+                >1/100,000</span
+              >
+              <span class="text-sm text-gray-600">1/1,000,000,000</span>
+            </div>
+            <input
+              type="range"
+              min="3"
+              max="9"
+              step="0.01"
+              value="5"
+              class="slider"
+              id="errorRateSlider"
+            />
+          </div>
+
+          <!-- 사전 확률 정보 -->
+          <div class="stat-card">
+            <div class="stat-label">사전 유죄 확률 P(G)</div>
+            <div class="stat-value" id="priorDisplay">1/1,000,000</div>
+            <p class="text-sm text-gray-600 mt-2">
+              ℹ️ 모집단 중 범인은 1명이라고 가정 (1/Population)
+            </p>
+          </div>
+
+          <div class="warning-box mt-6">
+            <p class="text-sm font-semibold text-amber-800">
+              ⚠️ 검사 측의 오류란?
+            </p>
+            <p class="text-sm text-amber-700 mt-2">
+              "DNA 일치 확률이 희귀하다"는 것과 "용의자가 유죄일 확률이 높다"는
+              것을 혼동하는 논리적 오류입니다.
+            </p>
+          </div>
+        </div>
+
+        <!-- 오른쪽: 결과 패널 -->
+        <div class="card">
+          <h2 class="text-2xl font-bold mb-6 text-gray-800">📊 계산 결과</h2>
+
+          <div class="stat-card">
+            <div class="stat-label">예상 무고한 일치자 수</div>
+            <div class="stat-value text-red-600" id="falseMatchCount">10명</div>
+            <p class="text-sm text-gray-600 mt-2">
+              범인이 아닌데도 우연히 DNA가 일치할 것으로 예상되는 인원
+            </p>
+          </div>
+
+          <div class="result-highlight">
+            <div class="text-sm opacity-90 mb-2">
+              DNA 일치 시 실제 유죄 확률
+            </div>
+            <div class="text-4xl" id="posteriorProbability">9.09%</div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-label">직관 vs 실제</div>
+            <div class="mt-3">
+              <div class="flex justify-between text-sm mb-1">
+                <span>많은 사람들의 직관</span>
+                <span class="font-bold text-red-600">99.999%</span>
+              </div>
+              <div class="flex justify-between text-sm">
+                <span>실제 베이즈 계산</span>
+                <span class="font-bold text-green-600" id="actualProbability"
+                  >9.09%</span
+                >
+              </div>
+            </div>
+          </div>
+
+          <!-- 비교 차트 -->
+          <div class="mt-6">
+            <canvas id="comparisonChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- 히트맵 분석 -->
+      <div class="card">
+        <h2 class="text-2xl font-bold mb-4 text-gray-800">
+          🗺️ 히트맵 분석: 유죄 확률 P(G|M)
+        </h2>
+        <p class="text-sm text-gray-600 mb-4">
+          X축: DNA 오류율 (낮을수록 정확) / Y축: 모집단 크기 (클수록 많은 무고한
+          일치자) / 색상: 유죄 확률 (진할수록 높음)
+        </p>
+        <div class="heatmap-container">
+          <canvas id="heatmapCanvas" width="800" height="400"></canvas>
+        </div>
+        <div class="flex items-center justify-center mt-4 text-sm">
+          <span class="mr-2">낮음</span>
+          <div
+            class="w-64 h-6 rounded"
+            style="
+              background: linear-gradient(
+                to right,
+                #fee2e2,
+                #fca5a5,
+                #ef4444,
+                #991b1b
+              );
+            "
+          ></div>
+          <span class="ml-2">높음 (유죄 확률)</span>
+        </div>
+      </div>
+
+      <!-- 베이즈 업데이트 게임 -->
+      <div class="card">
+        <h2 class="text-2xl font-bold mb-4 text-gray-800">
+          🎮 베이즈 추론 게임: 증거 수집하기
+        </h2>
+        <p class="text-gray-700 mb-4">
+          현재 DNA 증거만으로는 유죄 확률이
+          <span class="font-bold text-purple-600" id="gameInitialProb"
+            >9.09%</span
+          >입니다. 추가 증거를 수집하여 확률이 어떻게 변하는지 관찰해보세요!
+        </p>
+
+        <div class="stat-card">
+          <div class="stat-label">현재 유죄 확률</div>
+          <div class="stat-value text-3xl text-purple-600" id="gameCurrentProb">
+            9.09%
+          </div>
+        </div>
+
+        <div class="mt-6">
+          <h3 class="font-bold text-lg mb-3">추가 증거 선택:</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <button
+              class="evidence-btn positive"
+              onclick="addEvidence('witness', 7)"
+            >
+              👁️ 목격자 진술<br />
+              <span class="text-sm opacity-80">(인상착의 일치, 우도비 ×7)</span>
+            </button>
+            <button
+              class="evidence-btn positive"
+              onclick="addEvidence('no-alibi', 3)"
+            >
+              ⏰ 알리바이 부재<br />
+              <span class="text-sm opacity-80"
+                >(범행 시간대 확인 불가, 우도비 ×3)</span
+              >
+            </button>
+            <button
+              class="evidence-btn positive"
+              onclick="addEvidence('motive', 5)"
+            >
+              💰 범행 동기 발견<br />
+              <span class="text-sm opacity-80"
+                >(금전적 이해관계, 우도비 ×5)</span
+              >
+            </button>
+            <button
+              class="evidence-btn negative"
+              onclick="addEvidence('alibi', 0.01)"
+            >
+              ✅ 확실한 알리바이<br />
+              <span class="text-sm opacity-80">(CCTV 증거, 우도비 ×0.01)</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="mt-6">
+          <div class="flex justify-between items-center mb-3">
+            <h3 class="font-bold text-lg">증거 수집 로그:</h3>
+            <button
+              onclick="resetGame()"
+              class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition"
+            >
+              🔄 초기화
+            </button>
+          </div>
+          <div
+            id="evidenceLog"
+            class="max-h-64 overflow-y-auto bg-gray-50 p-4 rounded-lg"
+          >
+            <p class="text-gray-500 text-sm">아직 추가 증거가 없습니다.</p>
+          </div>
+        </div>
+
+        <!-- 베이즈 업데이트 시각화 차트 -->
+        <div class="mt-6">
+          <canvas id="updateChart"></canvas>
+        </div>
+      </div>
+
+      <!-- 푸터 -->
+      <div class="card text-center">
+        <p class="text-gray-600">
+          💡 <strong>핵심 교훈:</strong> 희귀한 증거라고 해서 반드시 높은 유죄
+          확률을 의미하는 것은 아닙니다. 사전 확률(Prior)과 모집단 크기를 함께
+          고려해야 합니다.
+        </p>
+        <p class="text-sm text-gray-500 mt-4">
+          Made with ❤️ for Data Science Education | Bayes' Theorem Interactive
+          Simulator
+        </p>
+      </div>
+    </div>
+
+    <script>
+      // ==================== 전역 변수 ====================
+      let comparisonChart = null;
+      let updateChart = null;
+      let gameHistory = [];
+      let currentGameProb = 0;
+
+      // ==================== 유틸리티 함수 ====================
+
+      /**
+       * 숫자를 읽기 쉬운 형식으로 포맷팅
+       */
+      function formatNumber(num) {
+        if (num >= 1000000) {
+          return (num / 1000000).toFixed(1) + "M";
+        } else if (num >= 1000) {
+          return (num / 1000).toFixed(1) + "K";
+        }
+        return num.toFixed(0);
+      }
+
+      /**
+       * 확률을 퍼센트로 포맷팅
+       */
+      function formatPercent(prob) {
+        if (prob < 0.01) {
+          return (prob * 100).toFixed(4) + "%";
+        } else if (prob < 1) {
+          return (prob * 100).toFixed(2) + "%";
+        }
+        return "100%";
+      }
+
+      // ==================== 베이즈 계산 ====================
+
+      /**
+       * 베이즈 정리를 사용하여 사후 확률 계산
+       * @param {number} prior - 사전 확률 P(G)
+       * @param {number} likelihood - 우도 P(M|G)
+       * @param {number} falsePositiveRate - 위양성률 P(M|¬G)
+       * @returns {number} 사후 확률 P(G|M)
+       */
+      function calculatePosterior(prior, likelihood, falsePositiveRate) {
+        const numerator = likelihood * prior;
+        const denominator =
+          likelihood * prior + falsePositiveRate * (1 - prior);
+        return numerator / denominator;
+      }
+
+      /**
+       * 슬라이더 값을 기반으로 계산 수행
+       */
+      function calculate() {
+        // 슬라이더 값 가져오기
+        const populationLog = parseFloat(
+          document.getElementById("populationSlider").value
+        );
+        const errorRateLog = parseFloat(
+          document.getElementById("errorRateSlider").value
+        );
+
+        // 실제 값 계산
+        const population = Math.pow(10, populationLog);
+        const errorRate = 1 / Math.pow(10, errorRateLog);
+
+        // 베이즈 계산
+        const prior = 1 / population; // P(G) = 1명 / 모집단
+        const likelihood = 1.0; // P(M|G) = 1 (진범은 100% 일치)
+        const posterior = calculatePosterior(prior, likelihood, errorRate);
+
+        // 예상 무고한 일치자 수
+        const falseMatches = (population - 1) * errorRate;
+
+        // UI 업데이트
+        document.getElementById("populationDisplay").textContent =
+          formatNumber(population) + "명";
+        document.getElementById("errorRateDisplay").textContent =
+          "1/" + formatNumber(Math.pow(10, errorRateLog));
+        document.getElementById("priorDisplay").textContent =
+          "1/" + formatNumber(population);
+        document.getElementById("falseMatchCount").textContent =
+          falseMatches.toFixed(2) + "명";
+        document.getElementById("posteriorProbability").textContent =
+          formatPercent(posterior);
+        document.getElementById("actualProbability").textContent =
+          formatPercent(posterior);
+        document.getElementById("gameInitialProb").textContent =
+          formatPercent(posterior);
+
+        // 게임 초기화
+        currentGameProb = posterior;
+        document.getElementById("gameCurrentProb").textContent =
+          formatPercent(currentGameProb);
+
+        // 차트 업데이트
+        updateComparisonChart(falseMatches, posterior);
+        drawHeatmap();
+      }
+
+      // ==================== 차트 시각화 ====================
+
+      /**
+       * 비교 막대 그래프 업데이트
+       */
+      function updateComparisonChart(falseMatches, posterior) {
+        const ctx = document.getElementById("comparisonChart").getContext("2d");
+
+        const truePositive = 1; // 진범 1명
+        const falsePositive = falseMatches; // 무고한 일치자
+
+        if (comparisonChart) {
+          comparisonChart.destroy();
+        }
+
+        comparisonChart = new Chart(ctx, {
+          type: "bar",
+          data: {
+            labels: ["진범 (실제 유죄)", "무고한 일치자 (위양성)"],
+            datasets: [
+              {
+                label: "예상 인원 수",
+                data: [truePositive, falsePositive],
+                backgroundColor: [
+                  "rgba(34, 197, 94, 0.7)",
+                  "rgba(239, 68, 68, 0.7)",
+                ],
+                borderColor: ["rgba(34, 197, 94, 1)", "rgba(239, 68, 68, 1)"],
+                borderWidth: 2,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              legend: {
+                display: false,
+              },
+              title: {
+                display: true,
+                text: "DNA 일치자 중 진범 vs 무고한 사람",
+                font: {
+                  size: 16,
+                  weight: "bold",
+                },
+              },
+              tooltip: {
+                callbacks: {
+                  label: function (context) {
+                    const total = truePositive + falsePositive;
+                    const percentage = ((context.raw / total) * 100).toFixed(2);
+                    return context.raw.toFixed(2) + "명 (" + percentage + "%)";
+                  },
+                },
+              },
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                title: {
+                  display: true,
+                  text: "인원 수",
+                },
+              },
+            },
+          },
+        });
+      }
+
+      // ==================== 히트맵 ====================
+
+      /**
+       * 히트맵 그리기
+       */
+      function drawHeatmap() {
+        const canvas = document.getElementById("heatmapCanvas");
+        const ctx = canvas.getContext("2d");
+        const width = canvas.width;
+        const height = canvas.height;
+
+        // 캔버스 초기화
+        ctx.clearRect(0, 0, width, height);
+
+        // 현재 슬라이더 값
+        const currentPopLog = parseFloat(
+          document.getElementById("populationSlider").value
+        );
+        const currentErrorLog = parseFloat(
+          document.getElementById("errorRateSlider").value
+        );
+
+        // 히트맵 범위 설정
+        const errorLogMin = 3; // 1/1,000
+        const errorLogMax = 9; // 1/1,000,000,000
+        const popLogMin = 4; // 10,000
+        const popLogMax = 7; // 10,000,000
+
+        const gridSize = 50;
+        const cellWidth = width / gridSize;
+        const cellHeight = height / gridSize;
+
+        // 그리드 생성
+        for (let i = 0; i < gridSize; i++) {
+          for (let j = 0; j < gridSize; j++) {
+            const errorLog =
+              errorLogMin + (i / gridSize) * (errorLogMax - errorLogMin);
+            const popLog = popLogMax - (j / gridSize) * (popLogMax - popLogMin); // Y축 반전
+
+            const errorRate = 1 / Math.pow(10, errorLog);
+            const population = Math.pow(10, popLog);
+            const prior = 1 / population;
+
+            const posterior = calculatePosterior(prior, 1.0, errorRate);
+
+            // 색상 계산 (빨간색 그라데이션)
+            const intensity = Math.min(posterior * 5, 1); // 0-1 범위로 정규화
+            const r = Math.floor(153 + intensity * (153 - 25)); // 991b1b to fee2e2
+            const g = Math.floor(27 + intensity * (226 - 27));
+            const b = Math.floor(27 + intensity * (226 - 27));
+
+            ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
+            ctx.fillRect(i * cellWidth, j * cellHeight, cellWidth, cellHeight);
+          }
+        }
+
+        // 현재 위치 표시
+        const currentX =
+          ((currentErrorLog - errorLogMin) / (errorLogMax - errorLogMin)) *
+          width;
+        const currentY =
+          ((popLogMax - currentPopLog) / (popLogMax - popLogMin)) * height;
+
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(currentX, currentY, 8, 0, 2 * Math.PI);
+        ctx.stroke();
+
+        ctx.fillStyle = "#667eea";
+        ctx.beginPath();
+        ctx.arc(currentX, currentY, 6, 0, 2 * Math.PI);
+        ctx.fill();
+
+        // 축 레이블
+        ctx.fillStyle = "#000";
+        ctx.font = "bold 12px Arial";
+        ctx.fillText("DNA 오류율 →", width - 100, height - 5);
+        ctx.save();
+        ctx.translate(15, 100);
+        ctx.rotate(-Math.PI / 2);
+        ctx.fillText("모집단 크기 →", 0, 0);
+        ctx.restore();
+      }
+
+      // ==================== 베이즈 게임 ====================
+
+      /**
+       * 증거 추가
+       */
+      function addEvidence(type, likelihoodRatio) {
+        const evidenceNames = {
+          witness: "👁️ 목격자 진술",
+          "no-alibi": "⏰ 알리바이 부재",
+          motive: "💰 범행 동기 발견",
+          alibi: "✅ 확실한 알리바이",
+        };
+
+        const previousProb = currentGameProb;
+
+        // 오즈(Odds)를 사용한 베이즈 업데이트
+        const previousOdds = previousProb / (1 - previousProb);
+        const posteriorOdds = previousOdds * likelihoodRatio;
+        currentGameProb = posteriorOdds / (1 + posteriorOdds);
+
+        // 0과 1 사이로 제한
+        currentGameProb = Math.max(0.0001, Math.min(0.9999, currentGameProb));
+
+        // 로그 추가
+        gameHistory.push({
+          evidence: evidenceNames[type],
+          likelihoodRatio: likelihoodRatio,
+          previousProb: previousProb,
+          newProb: currentGameProb,
+          timestamp: new Date().toLocaleTimeString(),
+        });
+
+        // UI 업데이트
+        document.getElementById("gameCurrentProb").textContent =
+          formatPercent(currentGameProb);
+        updateEvidenceLog();
+        updateGameChart();
+      }
+
+      /**
+       * 증거 로그 업데이트
+       */
+      function updateEvidenceLog() {
+        const logContainer = document.getElementById("evidenceLog");
+
+        if (gameHistory.length === 0) {
+          logContainer.innerHTML =
+            '<p class="text-gray-500 text-sm">아직 추가 증거가 없습니다.</p>';
+          return;
+        }
+
+        let html = "";
+        gameHistory.forEach((entry, index) => {
+          const change = entry.newProb - entry.previousProb;
+          const changeText = change > 0 ? "↗️ 증가" : "↘️ 감소";
+          const changeColor = change > 0 ? "text-red-600" : "text-green-600";
+
+          html += `
+                    <div class="log-entry">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <strong>${index + 1}. ${entry.evidence}</strong>
+                                <span class="text-xs text-gray-500 ml-2">${
+                                  entry.timestamp
+                                }</span>
+                            </div>
+                            <span class="text-xs bg-purple-100 px-2 py-1 rounded">우도비 ×${
+                              entry.likelihoodRatio
+                            }</span>
+                        </div>
+                        <div class="mt-2 text-sm">
+                            ${formatPercent(
+                              entry.previousProb
+                            )} → <strong class="${changeColor}">${formatPercent(
+            entry.newProb
+          )}</strong>
+                            <span class="${changeColor} ml-2">${changeText}</span>
+                        </div>
+                    </div>
+                `;
+        });
+
+        logContainer.innerHTML = html;
+        logContainer.scrollTop = logContainer.scrollHeight;
+      }
+
+      /**
+       * 게임 차트 업데이트
+       */
+      function updateGameChart() {
+        const ctx = document.getElementById("updateChart").getContext("2d");
+
+        if (updateChart) {
+          updateChart.destroy();
+        }
+
+        const labels = ["초기 (DNA만)"].concat(
+          gameHistory.map((e, i) => `증거 ${i + 1}`)
+        );
+        const initialProb =
+          parseFloat(document.getElementById("gameInitialProb").textContent) /
+          100;
+        const data = [initialProb].concat(gameHistory.map((e) => e.newProb));
+
+        updateChart = new Chart(ctx, {
+          type: "line",
+          data: {
+            labels: labels,
+            datasets: [
+              {
+                label: "유죄 확률",
+                data: data,
+                borderColor: "rgba(102, 126, 234, 1)",
+                backgroundColor: "rgba(102, 126, 234, 0.2)",
+                tension: 0.3,
+                fill: true,
+                pointRadius: 6,
+                pointHoverRadius: 8,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              title: {
+                display: true,
+                text: "증거 추가에 따른 유죄 확률 변화",
+                font: {
+                  size: 16,
+                  weight: "bold",
+                },
+              },
+              tooltip: {
+                callbacks: {
+                  label: function (context) {
+                    return "유죄 확률: " + formatPercent(context.raw);
+                  },
+                },
+              },
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                max: 1,
+                ticks: {
+                  callback: function (value) {
+                    return (value * 100).toFixed(0) + "%";
+                  },
+                },
+                title: {
+                  display: true,
+                  text: "확률",
+                },
+              },
+              x: {
+                title: {
+                  display: true,
+                  text: "증거 단계",
+                },
+              },
+            },
+          },
+        });
+      }
+
+      /**
+       * 게임 초기화
+       */
+      function resetGame() {
+        gameHistory = [];
+        const initialProb =
+          parseFloat(
+            document
+              .getElementById("gameInitialProb")
+              .textContent.replace("%", "")
+          ) / 100;
+        currentGameProb = initialProb;
+        document.getElementById("gameCurrentProb").textContent =
+          formatPercent(currentGameProb);
+        updateEvidenceLog();
+
+        if (updateChart) {
+          updateChart.destroy();
+          updateChart = null;
+        }
+      }
+
+      // ==================== 이벤트 리스너 ====================
+
+      document
+        .getElementById("populationSlider")
+        .addEventListener("input", calculate);
+      document
+        .getElementById("errorRateSlider")
+        .addEventListener("input", calculate);
+
+      // ==================== 초기화 ====================
+
+      window.addEventListener("load", function () {
+        calculate();
+
+        // MathJax 렌더링
+        if (window.MathJax) {
+          MathJax.typesetPromise();
+        }
+      });
+    </script>
+  </body>
+</html>

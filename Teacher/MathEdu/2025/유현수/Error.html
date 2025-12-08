@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>오차 전파 법칙 시뮬레이션</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 20px;
+        min-height: 100vh;
+      }
+
+      .container {
+        max-width: 1400px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 20px;
+        padding: 30px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      }
+
+      h1 {
+        text-align: center;
+        color: #667eea;
+        margin-bottom: 10px;
+        font-size: 2.5em;
+      }
+
+      .subtitle {
+        text-align: center;
+        color: #666;
+        margin-bottom: 30px;
+        font-size: 1.1em;
+      }
+
+      .control-panel {
+        background: #f8f9fa;
+        padding: 25px;
+        border-radius: 15px;
+        margin-bottom: 30px;
+      }
+
+      .input-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-bottom: 20px;
+      }
+
+      .input-group {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .input-group label {
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: #333;
+        font-size: 0.95em;
+      }
+
+      .input-group input {
+        padding: 10px;
+        border: 2px solid #ddd;
+        border-radius: 8px;
+        font-size: 1em;
+        transition: border-color 0.3s;
+      }
+
+      .input-group input:focus {
+        outline: none;
+        border-color: #667eea;
+      }
+
+      .function-selector {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 15px;
+        margin-bottom: 20px;
+      }
+
+      .function-card {
+        background: white;
+        padding: 15px;
+        border: 2px solid #ddd;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.3s;
+        text-align: center;
+      }
+
+      .function-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+      }
+
+      .function-card.active {
+        border-color: #667eea;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+      }
+
+      .function-title {
+        font-weight: 700;
+        font-size: 1.1em;
+        margin-bottom: 5px;
+      }
+
+      .function-formula {
+        font-family: "Courier New", monospace;
+        font-size: 1.2em;
+        margin: 10px 0;
+      }
+
+      .function-type {
+        font-size: 0.85em;
+        opacity: 0.8;
+      }
+
+      .simulate-btn {
+        width: 100%;
+        padding: 15px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-size: 1.1em;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 0.2s;
+      }
+
+      .simulate-btn:hover {
+        transform: scale(1.02);
+      }
+
+      .simulate-btn:active {
+        transform: scale(0.98);
+      }
+
+      .results-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 25px;
+        margin-bottom: 30px;
+      }
+
+      .result-card {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 15px;
+        border-left: 5px solid #667eea;
+      }
+
+      .result-title {
+        font-size: 1.3em;
+        font-weight: 700;
+        margin-bottom: 15px;
+        color: #333;
+      }
+
+      .result-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 10px 0;
+        border-bottom: 1px solid #ddd;
+      }
+
+      .result-row:last-child {
+        border-bottom: none;
+      }
+
+      .result-label {
+        font-weight: 600;
+        color: #555;
+      }
+
+      .result-value {
+        font-family: "Courier New", monospace;
+        color: #667eea;
+        font-weight: 700;
+      }
+
+      .error-indicator {
+        display: inline-block;
+        padding: 3px 8px;
+        border-radius: 5px;
+        font-size: 0.85em;
+        margin-left: 10px;
+      }
+
+      .error-good {
+        background: #d4edda;
+        color: #155724;
+      }
+
+      .error-warning {
+        background: #fff3cd;
+        color: #856404;
+      }
+
+      .error-bad {
+        background: #f8d7da;
+        color: #721c24;
+      }
+
+      .chart-container {
+        background: white;
+        padding: 20px;
+        border-radius: 15px;
+        margin-bottom: 20px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+      }
+
+      .chart-title {
+        font-size: 1.3em;
+        font-weight: 700;
+        margin-bottom: 15px;
+        color: #333;
+        text-align: center;
+      }
+
+      canvas {
+        max-height: 400px;
+      }
+
+      .loading {
+        display: none;
+        text-align: center;
+        padding: 20px;
+        font-size: 1.2em;
+        color: #667eea;
+      }
+
+      .loading.active {
+        display: block;
+      }
+
+      .interpretation {
+        background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+        padding: 20px;
+        border-radius: 15px;
+        margin-top: 20px;
+        border-left: 5px solid #667eea;
+      }
+
+      .interpretation h3 {
+        color: #667eea;
+        margin-bottom: 10px;
+      }
+
+      .interpretation p {
+        line-height: 1.6;
+        color: #555;
+      }
+
+      @media (max-width: 768px) {
+        .results-container {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+    <link rel="canonical" href="https://edgar0401.github.io/Math/Error.html" />
+  </head>
+  <body>
+    <div class="container">
+      <h1>오차 전파 법칙 시뮬레이션</h1>
+      <p class="subtitle">Monte Carlo Simulation으로 이론과 실제 분산 비교</p>
+
+      <div class="control-panel">
+        <h2 style="margin-bottom: 20px; color: #333">입력 파라미터 설정</h2>
+
+        <div class="input-grid">
+          <div class="input-group">
+            <label>X 평균 (μₓ)</label>
+            <input type="number" id="muX" value="10" step="0.1" />
+          </div>
+          <div class="input-group">
+            <label>X 표준편차 (σₓ)</label>
+            <input
+              type="number"
+              id="sigmaX"
+              value="0.1"
+              step="0.01"
+              min="0.01"
+            />
+          </div>
+          <div class="input-group">
+            <label>Y 평균 (μᵧ)</label>
+            <input type="number" id="muY" value="5" step="0.1" />
+          </div>
+          <div class="input-group">
+            <label>Y 표준편차 (σᵧ)</label>
+            <input
+              type="number"
+              id="sigmaY"
+              value="0.1"
+              step="0.01"
+              min="0.01"
+            />
+          </div>
+          <div class="input-group">
+            <label>샘플 수 (N)</label>
+            <input
+              type="number"
+              id="sampleSize"
+              value="10000"
+              step="1000"
+              min="1000"
+            />
+          </div>
+        </div>
+
+        <h3 style="margin: 20px 0 15px 0; color: #333">함수 선택</h3>
+        <div class="function-selector">
+          <div class="function-card active" data-function="linear">
+            <div class="function-title">선형 함수</div>
+            <div class="function-formula">f = 2x + 3y</div>
+            <div class="function-type">1차 근사 완벽 일치</div>
+          </div>
+          <div class="function-card" data-function="multiply">
+            <div class="function-title">곱셈 함수</div>
+            <div class="function-formula">f = x × y</div>
+            <div class="function-type">비선형 (약한)</div>
+          </div>
+          <div class="function-card" data-function="cosine">
+            <div class="function-title">삼각 함수</div>
+            <div class="function-formula">f = cos(xy)</div>
+            <div class="function-type">비선형 (강한)</div>
+          </div>
+        </div>
+
+        <button class="simulate-btn" onclick="runSimulation()">
+          시뮬레이션 실행
+        </button>
+      </div>
+
+      <div class="loading" id="loading">시뮬레이션 진행 중...</div>
+
+      <div id="resultsSection" style="display: none">
+        <div class="results-container">
+          <div class="result-card">
+            <div class="result-title">📊 이론적 예측값</div>
+            <div class="result-row">
+              <span class="result-label">예측 평균 E[f]</span>
+              <span class="result-value" id="theoreticalMean">-</span>
+            </div>
+            <div class="result-row">
+              <span class="result-label">예측 표준편차 σ_f</span>
+              <span class="result-value" id="theoreticalStd">-</span>
+            </div>
+            <div class="result-row">
+              <span class="result-label">사용 공식</span>
+              <span
+                class="result-value"
+                id="formulaUsed"
+                style="font-size: 0.9em"
+                >-</span
+              >
+            </div>
+          </div>
+
+          <div class="result-card">
+            <div class="result-title">🎲 시뮬레이션 결과</div>
+            <div class="result-row">
+              <span class="result-label">실제 평균</span>
+              <span class="result-value" id="simulatedMean">-</span>
+            </div>
+            <div class="result-row">
+              <span class="result-label">실제 표준편차</span>
+              <span class="result-value" id="simulatedStd">-</span>
+            </div>
+            <div class="result-row">
+              <span class="result-label">상대 오차</span>
+              <span class="result-value" id="relativeError">-</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="chart-container">
+          <div class="chart-title">결과값 분포 히스토그램</div>
+          <canvas id="histogramChart"></canvas>
+        </div>
+
+        <div class="interpretation" id="interpretation">
+          <h3>📌 해석</h3>
+          <p id="interpretationText"></p>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      let selectedFunction = "linear";
+      let histogramChart = null;
+
+      // 함수 선택 이벤트
+      document.querySelectorAll(".function-card").forEach((card) => {
+        card.addEventListener("click", function () {
+          document
+            .querySelectorAll(".function-card")
+            .forEach((c) => c.classList.remove("active"));
+          this.classList.add("active");
+          selectedFunction = this.dataset.function;
+        });
+      });
+
+      // 정규분포 난수 생성 (Box-Muller 변환)
+      function generateNormal(mean, std) {
+        let u1 = Math.random();
+        let u2 = Math.random();
+        let z0 = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
+        return mean + std * z0;
+      }
+
+      // 함수 계산
+      function calculateFunction(x, y, funcType) {
+        switch (funcType) {
+          case "linear":
+            return 2 * x + 3 * y;
+          case "multiply":
+            return x * y;
+          case "cosine":
+            return Math.cos(x * y);
+          default:
+            return 0;
+        }
+      }
+
+      // 이론적 표준편차 계산
+      function calculateTheoreticalStd(muX, muY, sigmaX, sigmaY, funcType) {
+        let variance = 0;
+        let formula = "";
+
+        switch (funcType) {
+          case "linear":
+            // f = 2x + 3y
+            // ∂f/∂x = 2, ∂f/∂y = 3
+            variance = Math.pow(2 * sigmaX, 2) + Math.pow(3 * sigmaY, 2);
+            formula = "√[(2σₓ)² + (3σᵧ)²]";
+            break;
+          case "multiply":
+            // f = xy
+            // ∂f/∂x = y, ∂f/∂y = x
+            variance = Math.pow(muY * sigmaX, 2) + Math.pow(muX * sigmaY, 2);
+            formula = "√[(yσₓ)² + (xσᵧ)²]";
+            break;
+          case "cosine":
+            // f = cos(xy)
+            // ∂f/∂x = -y·sin(xy), ∂f/∂y = -x·sin(xy)
+            let xy = muX * muY;
+            let sinxy = Math.sin(xy);
+            variance =
+              Math.pow(muY * sinxy * sigmaX, 2) +
+              Math.pow(muX * sinxy * sigmaY, 2);
+            formula = "√[(y·sin(xy)σₓ)² + (x·sin(xy)σᵧ)²]";
+            break;
+        }
+
+        return {
+          std: Math.sqrt(variance),
+          formula: formula,
+        };
+      }
+
+      // 시뮬레이션 실행
+      function runSimulation() {
+        // 입력값 가져오기
+        const muX = parseFloat(document.getElementById("muX").value);
+        const sigmaX = parseFloat(document.getElementById("sigmaX").value);
+        const muY = parseFloat(document.getElementById("muY").value);
+        const sigmaY = parseFloat(document.getElementById("sigmaY").value);
+        const N = parseInt(document.getElementById("sampleSize").value);
+
+        // 로딩 표시
+        document.getElementById("loading").classList.add("active");
+        document.getElementById("resultsSection").style.display = "none";
+
+        // 비동기 처리로 UI 블로킹 방지
+        setTimeout(() => {
+          // Monte Carlo 시뮬레이션
+          let results = [];
+          for (let i = 0; i < N; i++) {
+            let x = generateNormal(muX, sigmaX);
+            let y = generateNormal(muY, sigmaY);
+            let f = calculateFunction(x, y, selectedFunction);
+            results.push(f);
+          }
+
+          // 통계량 계산
+          const simMean = results.reduce((a, b) => a + b, 0) / N;
+          const simVariance =
+            results.reduce((sum, val) => sum + Math.pow(val - simMean, 2), 0) /
+            N;
+          const simStd = Math.sqrt(simVariance);
+
+          // 이론값 계산
+          const theoretical = calculateTheoreticalStd(
+            muX,
+            muY,
+            sigmaX,
+            sigmaY,
+            selectedFunction
+          );
+          const theoreticalMean = calculateFunction(muX, muY, selectedFunction);
+
+          // 상대 오차
+          const relativeError = Math.abs(
+            ((simStd - theoretical.std) / simStd) * 100
+          );
+
+          // 결과 표시
+          document.getElementById("theoreticalMean").textContent =
+            theoreticalMean.toFixed(6);
+          document.getElementById("theoreticalStd").textContent =
+            theoretical.std.toFixed(6);
+          document.getElementById("formulaUsed").textContent =
+            theoretical.formula;
+          document.getElementById("simulatedMean").textContent =
+            simMean.toFixed(6);
+          document.getElementById("simulatedStd").textContent =
+            simStd.toFixed(6);
+
+          let errorClass =
+            relativeError < 1
+              ? "error-good"
+              : relativeError < 5
+              ? "error-warning"
+              : "error-bad";
+          document.getElementById(
+            "relativeError"
+          ).innerHTML = `${relativeError.toFixed(
+            2
+          )}% <span class="error-indicator ${errorClass}">${
+            relativeError < 1 ? "우수" : relativeError < 5 ? "양호" : "주의"
+          }</span>`;
+
+          // 히스토그램 그리기
+          drawHistogram(results, simMean, simStd);
+
+          // 해석 텍스트
+          generateInterpretation(
+            relativeError,
+            selectedFunction,
+            theoretical.std,
+            simStd
+          );
+
+          // 결과 섹션 표시
+          document.getElementById("loading").classList.remove("active");
+          document.getElementById("resultsSection").style.display = "block";
+        }, 100);
+      }
+
+      // 히스토그램 그리기
+      function drawHistogram(data, mean, std) {
+        // 빈 설정
+        const bins = 50;
+        const min = Math.min(...data);
+        const max = Math.max(...data);
+        const binWidth = (max - min) / bins;
+
+        let histogram = new Array(bins).fill(0);
+        let labels = [];
+
+        for (let i = 0; i < bins; i++) {
+          labels.push((min + i * binWidth).toFixed(3));
+        }
+
+        data.forEach((val) => {
+          let binIndex = Math.floor((val - min) / binWidth);
+          if (binIndex >= bins) binIndex = bins - 1;
+          if (binIndex < 0) binIndex = 0;
+          histogram[binIndex]++;
+        });
+
+        // 정규분포 곡선 계산
+        let normalCurve = labels.map((x) => {
+          let xVal = parseFloat(x);
+          return (
+            data.length *
+            binWidth *
+            (1 / (std * Math.sqrt(2 * Math.PI))) *
+            Math.exp(-0.5 * Math.pow((xVal - mean) / std, 2))
+          );
+        });
+
+        // 차트 그리기
+        const ctx = document.getElementById("histogramChart").getContext("2d");
+
+        if (histogramChart) {
+          histogramChart.destroy();
+        }
+
+        histogramChart = new Chart(ctx, {
+          type: "bar",
+          data: {
+            labels: labels,
+            datasets: [
+              {
+                label: "시뮬레이션 빈도",
+                data: histogram,
+                backgroundColor: "rgba(102, 126, 234, 0.5)",
+                borderColor: "rgba(102, 126, 234, 1)",
+                borderWidth: 1,
+              },
+              {
+                label: "이론적 정규분포",
+                data: normalCurve,
+                type: "line",
+                borderColor: "rgba(220, 53, 69, 1)",
+                borderWidth: 3,
+                fill: false,
+                pointRadius: 0,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            scales: {
+              x: {
+                title: {
+                  display: true,
+                  text: "함수값 f",
+                  font: { size: 14, weight: "bold" },
+                },
+                ticks: {
+                  maxTicksLimit: 10,
+                },
+              },
+              y: {
+                title: {
+                  display: true,
+                  text: "빈도",
+                  font: { size: 14, weight: "bold" },
+                },
+              },
+            },
+            plugins: {
+              legend: {
+                display: true,
+                position: "top",
+              },
+              tooltip: {
+                mode: "index",
+                intersect: false,
+              },
+            },
+          },
+        });
+      }
+
+      // 해석 생성
+      function generateInterpretation(
+        relativeError,
+        funcType,
+        theoreticalStd,
+        simulatedStd
+      ) {
+        let text = "";
+
+        if (funcType === "linear") {
+          text = `선형 함수의 경우 1차 테일러 근사가 정확한 값이므로, 이론값과 시뮬레이션 결과가 거의 완벽하게 일치합니다 (오차 ${relativeError.toFixed(
+            3
+          )}%). 
+                        이는 오차 전파 법칙이 선형 관계에서는 근사가 아닌 엄밀해임을 보여줍니다.`;
+        } else if (funcType === "multiply") {
+          if (relativeError < 2) {
+            text = `곱셈 함수는 비선형이지만, 입력 변수의 표준편차가 평균에 비해 충분히 작을 때(σ/μ ≪ 1) 1차 근사가 매우 잘 작동합니다 (오차 ${relativeError.toFixed(
+              3
+            )}%). 
+                            현재 설정에서 오차 전파 공식은 신뢰할 수 있는 예측을 제공합니다.`;
+          } else {
+            text = `곱셈 함수에서 상대 오차 ${relativeError.toFixed(
+              2
+            )}%가 관찰되었습니다. 이는 입력 변수의 불확도가 커지면서 비선형 효과(고차 항)가 나타나기 시작했음을 의미합니다. 
+                            더 정확한 예측을 위해서는 2차 보정항을 고려하거나 몬테카를로 시뮬레이션을 사용해야 합니다.`;
+          }
+        } else if (funcType === "cosine") {
+          if (relativeError < 5) {
+            text = `삼각함수는 강한 비선형성을 가지지만, 현재 조건에서는 1차 근사가 비교적 잘 작동하고 있습니다 (오차 ${relativeError.toFixed(
+              2
+            )}%). 
+                            다만 입력값이 함수의 극값 근처에 있거나 표준편차가 커지면 근사 정확도가 급격히 떨어질 수 있습니다.`;
+          } else {
+            text = `삼각함수의 높은 비선형성으로 인해 ${relativeError.toFixed(
+              2
+            )}%의 상대 오차가 발생했습니다. 
+                            히스토그램을 보면 분포가 정규분포에서 벗어나 왜곡(skewness)되었을 가능성이 있습니다. 
+                            이러한 경우 단순 표준편차만으로 불확도를 표현하는 것은 부적절하며, 전체 분포를 고려한 신뢰구간 추정이 필요합니다.`;
+          }
+        }
+
+        document.getElementById("interpretationText").textContent = text;
+      }
+
+      // 페이지 로드 시 초기 시뮬레이션 실행
+      window.addEventListener("load", () => {
+        runSimulation();
+      });
+    </script>
+  </body>
+</html>

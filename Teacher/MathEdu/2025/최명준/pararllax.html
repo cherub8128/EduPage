@@ -1,0 +1,2014 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>VLBI 연주 시차 측정 시뮬레이션</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(
+          135deg,
+          #0a0a2e 0%,
+          #1a1a4e 50%,
+          #0d0d3d 100%
+        );
+        min-height: 100vh;
+        color: #e0e0ff;
+        overflow-x: hidden;
+      }
+      .container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+      header {
+        text-align: center;
+        padding: 30px 0;
+        border-bottom: 2px solid rgba(100, 150, 255, 0.3);
+        margin-bottom: 30px;
+      }
+      header h1 {
+        font-size: 2.2em;
+        background: linear-gradient(90deg, #6af, #f6a);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 10px;
+      }
+      header p {
+        color: #8899cc;
+        font-size: 1.1em;
+      }
+      .tabs {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 20px;
+        justify-content: center;
+      }
+      .tab-btn {
+        padding: 12px 24px;
+        background: rgba(50, 80, 150, 0.3);
+        border: 1px solid rgba(100, 150, 255, 0.3);
+        color: #aaccff;
+        cursor: pointer;
+        border-radius: 8px;
+        transition: all 0.3s;
+        font-size: 0.95em;
+      }
+      .tab-btn:hover {
+        background: rgba(80, 120, 200, 0.4);
+        transform: translateY(-2px);
+      }
+      .tab-btn.active {
+        background: linear-gradient(135deg, #3366cc, #6633cc);
+        color: white;
+        border-color: #66aaff;
+        box-shadow: 0 4px 20px rgba(100, 150, 255, 0.3);
+      }
+      .simulation-panel {
+        display: none;
+        background: rgba(20, 30, 60, 0.8);
+        border-radius: 16px;
+        padding: 30px;
+        border: 1px solid rgba(100, 150, 255, 0.2);
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+      }
+      .simulation-panel.active {
+        display: block;
+        animation: fadeIn 0.5s ease;
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .panel-title {
+        font-size: 1.5em;
+        color: #88ccff;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .panel-title::before {
+        content: "";
+        width: 4px;
+        height: 30px;
+        background: linear-gradient(180deg, #6af, #f6a);
+        border-radius: 2px;
+      }
+      canvas {
+        display: block;
+        margin: 0 auto;
+        border-radius: 12px;
+        background: radial-gradient(
+          ellipse at center,
+          #0a0a1a 0%,
+          #000010 100%
+        );
+        box-shadow: inset 0 0 50px rgba(0, 50, 100, 0.3);
+      }
+      .controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        margin-top: 20px;
+        padding: 20px;
+        background: rgba(30, 40, 80, 0.5);
+        border-radius: 12px;
+      }
+      .control-group {
+        flex: 1;
+        min-width: 200px;
+      }
+      .control-group label {
+        display: block;
+        color: #aabbdd;
+        margin-bottom: 8px;
+        font-size: 0.9em;
+      }
+      .control-group input[type="range"] {
+        width: 100%;
+        height: 6px;
+        border-radius: 3px;
+        background: rgba(100, 150, 255, 0.2);
+        outline: none;
+        -webkit-appearance: none;
+      }
+      .control-group input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #6af, #a6f);
+        cursor: pointer;
+        box-shadow: 0 2px 10px rgba(100, 150, 255, 0.5);
+      }
+      .btn {
+        padding: 12px 28px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 1em;
+        transition: all 0.3s;
+        margin: 5px;
+      }
+      .btn-primary {
+        background: linear-gradient(135deg, #3366cc, #6633cc);
+        color: white;
+      }
+      .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 20px rgba(100, 100, 255, 0.4);
+      }
+      .btn-secondary {
+        background: rgba(80, 100, 150, 0.5);
+        color: #aaccff;
+        border: 1px solid rgba(100, 150, 255, 0.3);
+      }
+      .info-box {
+        background: rgba(40, 60, 100, 0.4);
+        border-left: 4px solid #6af;
+        padding: 15px 20px;
+        margin: 20px 0;
+        border-radius: 0 8px 8px 0;
+      }
+      .info-box h4 {
+        color: #88ccff;
+        margin-bottom: 8px;
+      }
+      .info-box p {
+        color: #aabbcc;
+        line-height: 1.6;
+        font-size: 0.95em;
+      }
+      .data-display {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 15px;
+        margin-top: 20px;
+      }
+      .data-card {
+        background: linear-gradient(
+          135deg,
+          rgba(40, 60, 120, 0.6),
+          rgba(60, 40, 120, 0.6)
+        );
+        padding: 15px;
+        border-radius: 10px;
+        text-align: center;
+        border: 1px solid rgba(100, 150, 255, 0.2);
+      }
+      .data-card .value {
+        font-size: 1.8em;
+        color: #6af;
+        font-weight: bold;
+      }
+      .data-card .label {
+        font-size: 0.85em;
+        color: #8899bb;
+        margin-top: 5px;
+      }
+      .legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        margin-top: 15px;
+        justify-content: center;
+      }
+      .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.9em;
+        color: #aabbcc;
+      }
+      .legend-color {
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+      }
+      .timeline {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 20px;
+        background: rgba(30, 40, 70, 0.5);
+        border-radius: 10px;
+        margin: 20px 0;
+        overflow-x: auto;
+      }
+      .timeline-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 10px;
+        min-width: 80px;
+      }
+      .timeline-dot {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: #4466aa;
+        margin-bottom: 10px;
+        transition: all 0.3s;
+      }
+      .timeline-dot.active {
+        background: #6af;
+        box-shadow: 0 0 15px rgba(100, 170, 255, 0.8);
+        transform: scale(1.3);
+      }
+      .timeline-label {
+        font-size: 0.8em;
+        color: #8899bb;
+        text-align: center;
+      }
+      .phase-display {
+        font-family: monospace;
+        font-size: 1.2em;
+        color: #6f6;
+        background: rgba(0, 50, 0, 0.3);
+        padding: 10px 20px;
+        border-radius: 8px;
+        display: inline-block;
+      }
+      .warning {
+        background: rgba(200, 100, 50, 0.2);
+        border-left-color: #f80;
+      }
+      .grid-layout {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+      }
+      @media (max-width: 900px) {
+        .grid-layout {
+          grid-template-columns: 1fr;
+        }
+      }
+      .observation-sequence {
+        display: flex;
+        gap: 5px;
+        flex-wrap: wrap;
+        justify-content: center;
+        margin: 15px 0;
+      }
+      .seq-block {
+        padding: 8px 15px;
+        border-radius: 5px;
+        font-weight: bold;
+        font-size: 0.9em;
+      }
+      .seq-c {
+        background: linear-gradient(135deg, #446, #668);
+        color: #aaf;
+      }
+      .seq-t {
+        background: linear-gradient(135deg, #664, #886);
+        color: #ffa;
+      }
+      .seq-active {
+        box-shadow: 0 0 15px rgba(255, 255, 100, 0.5);
+        transform: scale(1.1);
+      }
+      footer {
+        text-align: center;
+        padding: 30px;
+        margin-top: 40px;
+        border-top: 1px solid rgba(100, 150, 255, 0.2);
+        color: #667799;
+      }
+      .formula {
+        font-family: "Times New Roman", serif;
+        font-style: italic;
+        background: rgba(50, 70, 120, 0.4);
+        padding: 15px 25px;
+        border-radius: 8px;
+        display: inline-block;
+        margin: 10px 0;
+        font-size: 1.1em;
+      }
+      .sub {
+        vertical-align: sub;
+        font-size: 0.8em;
+      }
+      .sup {
+        vertical-align: super;
+        font-size: 0.8em;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>🔭 VLBI 연주 시차 및 고유 운동 측정 시뮬레이션</h1>
+        <p>초장기선 간섭계를 이용한 정밀 천문학 기술</p>
+      </header>
+      <div class="tabs">
+        <button class="tab-btn active" onclick="showPanel('parallax')">
+          📐 연주 시차
+        </button>
+        <button class="tab-btn" onclick="showPanel('vlbi')">
+          📡 VLBI 기선
+        </button>
+        <button class="tab-btn" onclick="showPanel('phase')">
+          🔄 위상 참조
+        </button>
+        <button class="tab-btn" onclick="showPanel('multiview')">
+          🎯 MultiView
+        </button>
+        <button class="tab-btn" onclick="showPanel('wrapping')">
+          ⚠️ 위상 랩핑
+        </button>
+        <button class="tab-btn" onclick="showPanel('schedule')">
+          📅 관측 스케줄
+        </button>
+      </div>
+      <!-- 연주 시차 패널 -->
+      <div id="parallax" class="simulation-panel active">
+        <div class="panel-title">연주 시차 (Parallax) 원리</div>
+        <div class="info-box">
+          <h4>💡 연주 시차란?</h4>
+          <p>
+            지구가 태양 주위를 공전하면서, 가까운 별이 먼 배경 별(퀘이사)에 대해
+            상대적으로 움직이는 것처럼 보이는 현상입니다. 이 겉보기 운동의
+            크기를 측정하면 별까지의 거리를 계산할 수 있습니다.
+          </p>
+        </div>
+        <canvas id="parallaxCanvas" width="900" height="500"></canvas>
+        <div class="controls">
+          <div class="control-group">
+            <label>시간 속도: <span id="speedValue">1</span>x</label>
+            <input
+              type="range"
+              id="speedSlider"
+              min="0.1"
+              max="5"
+              step="0.1"
+              value="1"
+            />
+          </div>
+          <div class="control-group">
+            <label>별까지 거리: <span id="distValue">100</span> pc</label>
+            <input
+              type="range"
+              id="distSlider"
+              min="50"
+              max="500"
+              step="10"
+              value="100"
+            />
+          </div>
+          <div class="control-group">
+            <label>고유 운동: <span id="pmValue">0</span> mas/yr</label>
+            <input
+              type="range"
+              id="pmSlider"
+              min="0"
+              max="50"
+              step="1"
+              value="0"
+            />
+          </div>
+          <div style="display: flex; align-items: end">
+            <button class="btn btn-primary" onclick="toggleParallax()">
+              <span id="playBtn">⏸ 일시정지</span>
+            </button>
+            <button class="btn btn-secondary" onclick="resetParallax()">
+              🔄 초기화
+            </button>
+          </div>
+        </div>
+        <div class="data-display">
+          <div class="data-card">
+            <div class="value" id="parallaxAngle">10.00</div>
+            <div class="label">연주 시차 (mas)</div>
+          </div>
+          <div class="data-card">
+            <div class="value" id="currentMonth">1월</div>
+            <div class="label">현재 시점</div>
+          </div>
+          <div class="data-card">
+            <div class="value" id="ewDisp">0.00</div>
+            <div class="label">동서 변위 (mas)</div>
+          </div>
+          <div class="data-card">
+            <div class="value" id="nsDisp">0.00</div>
+            <div class="label">남북 변위 (mas)</div>
+          </div>
+        </div>
+        <div class="legend">
+          <div class="legend-item">
+            <div class="legend-color" style="background: #ff0"></div>
+            <span>태양</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-color" style="background: #4af"></div>
+            <span>지구</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-color" style="background: #f66"></div>
+            <span>타겟 별 (메이저)</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-color" style="background: #aaa"></div>
+            <span>배경 퀘이사</span>
+          </div>
+        </div>
+      </div>
+      <!-- VLBI 기선 패널 -->
+      <div id="vlbi" class="simulation-panel">
+        <div class="panel-title">VLBI 기선 및 간섭 원리</div>
+        <div class="info-box">
+          <h4>💡 VLBI (초장기선 간섭계)</h4>
+          <p>
+            수천 km 떨어진 여러 전파망원경을 연결하여 마치 지구 크기의 거대한
+            망원경처럼 작동시키는 기술입니다. 두 안테나에 도달하는 전파의
+            시간차(지연)를 측정하여 천체의 위치를 정밀하게 결정합니다.
+          </p>
+        </div>
+        <canvas id="vlbiCanvas" width="900" height="450"></canvas>
+        <div class="controls">
+          <div class="control-group">
+            <label>기선 길이: <span id="baselineValue">5000</span> km</label>
+            <input
+              type="range"
+              id="baselineSlider"
+              min="1000"
+              max="10000"
+              step="100"
+              value="5000"
+            />
+          </div>
+          <div class="control-group">
+            <label>관측 주파수: <span id="freqValue">22</span> GHz</label>
+            <input
+              type="range"
+              id="freqSlider"
+              min="1"
+              max="43"
+              step="1"
+              value="22"
+            />
+          </div>
+          <div class="control-group">
+            <label>천체 고도각: <span id="elevValue">45</span>°</label>
+            <input
+              type="range"
+              id="elevSlider"
+              min="10"
+              max="90"
+              step="1"
+              value="45"
+            />
+          </div>
+        </div>
+        <div class="data-display">
+          <div class="data-card">
+            <div class="value" id="resolution">0.9</div>
+            <div class="label">각분해능 (mas)</div>
+          </div>
+          <div class="data-card">
+            <div class="value" id="geoDelay">16.7</div>
+            <div class="label">기하학적 지연 (ms)</div>
+          </div>
+          <div class="data-card">
+            <div class="value" id="wavelength">13.6</div>
+            <div class="label">파장 (mm)</div>
+          </div>
+          <div class="data-card">
+            <div class="value" id="fringeRate">-</div>
+            <div class="label">위상 정밀도 (μas)</div>
+          </div>
+        </div>
+        <div class="formula">
+          θ = λ / B ≈ <span id="formulaResult">0.9 mas</span>
+        </div>
+      </div>
+      <!-- 위상 참조 패널 -->
+      <div id="phase" class="simulation-panel">
+        <div class="panel-title">위상 참조 (Phase Referencing) 관측</div>
+        <div class="info-box">
+          <h4>💡 위상 참조 기법</h4>
+          <p>
+            타겟(T)과 근처 교정 천체(C, 퀘이사)를 빠르게 번갈아 관측합니다. 교정
+            천체의 위상을 타겟에 전달하여 대기 요동으로 인한 오차를 상쇄합니다.
+            관측 주기는 대기 가간섭 시간(coherence time) 이내여야 합니다.
+          </p>
+        </div>
+        <canvas id="phaseCanvas" width="900" height="400"></canvas>
+        <div class="observation-sequence" id="obsSequence">
+          <!-- JS로 생성 -->
+        </div>
+        <div class="controls">
+          <div class="control-group">
+            <label>스위칭 주기: <span id="switchValue">40</span>초</label>
+            <input
+              type="range"
+              id="switchSlider"
+              min="20"
+              max="120"
+              step="5"
+              value="40"
+            />
+          </div>
+          <div class="control-group">
+            <label>타겟-교정체 거리: <span id="sepValue">1.0</span>°</label>
+            <input
+              type="range"
+              id="sepSlider"
+              min="0.1"
+              max="3"
+              step="0.1"
+              value="1.0"
+            />
+          </div>
+          <div class="control-group">
+            <label>대기 난류 강도: <span id="turbValue">50</span>%</label>
+            <input
+              type="range"
+              id="turbSlider"
+              min="10"
+              max="100"
+              step="5"
+              value="50"
+            />
+          </div>
+          <div style="display: flex; align-items: end">
+            <button class="btn btn-primary" onclick="togglePhase()">
+              <span id="phasePlayBtn">▶ 시작</span>
+            </button>
+          </div>
+        </div>
+        <div class="data-display">
+          <div class="data-card">
+            <div class="value" id="coherenceTime">80</div>
+            <div class="label">가간섭 시간 (초)</div>
+          </div>
+          <div class="data-card">
+            <div class="value" id="phaseRMS">15</div>
+            <div class="label">위상 RMS (°)</div>
+          </div>
+          <div class="data-card">
+            <div class="value" id="posError">25</div>
+            <div class="label">위치 오차 (μas)</div>
+          </div>
+          <div class="data-card">
+            <div class="value phase-display" id="currentPhase">+0.0°</div>
+            <div class="label">현재 위상</div>
+          </div>
+        </div>
+      </div>
+      <!-- MultiView 패널 -->
+      <div id="multiview" class="simulation-panel">
+        <div class="panel-title">MultiView 기법 (전리층 보정)</div>
+        <div class="info-box">
+          <h4>💡 MultiView 기법이란?</h4>
+          <p>
+            10 GHz 이하의 저주파에서는 전리층에 의한 지연 오차가 심각합니다.
+            타겟 주변의 여러 교정 천체(3~4개)를 관측하여 전리층 위상 변화를
+            2차원 평면(wedge)으로 모델링하고 보정합니다.
+          </p>
+        </div>
+        <div class="grid-layout">
+          <div>
+            <canvas id="multiviewCanvas" width="430" height="430"></canvas>
+          </div>
+          <div>
+            <canvas id="ionosphereCanvas" width="430" height="430"></canvas>
+          </div>
+        </div>
+        <div class="controls">
+          <div class="control-group">
+            <label>관측 주파수: <span id="mvFreqValue">5</span> GHz</label>
+            <input
+              type="range"
+              id="mvFreqSlider"
+              min="1"
+              max="22"
+              step="0.5"
+              value="5"
+            />
+          </div>
+          <div class="control-group">
+            <label>교정 천체 수: <span id="calNumValue">3</span></label>
+            <input
+              type="range"
+              id="calNumSlider"
+              min="1"
+              max="5"
+              step="1"
+              value="3"
+            />
+          </div>
+          <div class="control-group">
+            <label>전리층 활동: <span id="ionoValue">50</span>%</label>
+            <input
+              type="range"
+              id="ionoSlider"
+              min="10"
+              max="100"
+              step="5"
+              value="50"
+            />
+          </div>
+          <div style="display: flex; align-items: end">
+            <button class="btn btn-primary" onclick="recalcMultiview()">
+              🔄 재계산
+            </button>
+          </div>
+        </div>
+        <div class="data-display">
+          <div class="data-card">
+            <div class="value" id="ionoDelay">2.5</div>
+            <div class="label">전리층 지연 (ns)</div>
+          </div>
+          <div class="data-card">
+            <div class="value" id="ionoError">150</div>
+            <div class="label">보정 전 오차 (μas)</div>
+          </div>
+          <div class="data-card">
+            <div class="value" id="ionoCorrected">25</div>
+            <div class="label">보정 후 오차 (μas)</div>
+          </div>
+          <div class="data-card">
+            <div class="value" id="improvement">6x</div>
+            <div class="label">개선 배율</div>
+          </div>
+        </div>
+        <div class="info-box warning">
+          <h4>⚠️ 주의사항</h4>
+          <p>
+            전리층 지연은 주파수의 제곱에 반비례합니다 (∝ 1/f2). 따라서 저주파
+            관측에서는 MultiView가 필수적입니다. 교정 천체는 타겟을 둘러싸도록
+            배치해야 최적의 보정이 가능합니다.
+          </p>
+        </div>
+      </div>
+      <!-- 위상 랩핑 패널 -->
+      <div id="wrapping" class="simulation-panel">
+        <div class="panel-title">위상 랩핑 (Phase Wrapping) 문제</div>
+        <div class="info-box">
+          <h4>💡 위상 랩핑이란?</h4>
+          <p>
+            위상은 -180°에서 +180° 사이로 측정됩니다. 실제 위상이 이 범위를
+            넘어가면 값이 "튀어" 보입니다. 예: +185°는 -175°로 기록됩니다. 이
+            문제를 해결하지 않으면 위치 측정에 심각한 오류가 발생합니다.
+          </p>
+        </div>
+        <canvas id="wrappingCanvas" width="900" height="350"></canvas>
+        <div class="controls">
+          <div class="control-group">
+            <label>실제 위상 변화: <span id="realPhaseValue">0</span>°</label>
+            <input
+              type="range"
+              id="realPhaseSlider"
+              min="-540"
+              max="540"
+              step="5"
+              value="0"
+            />
+          </div>
+          <div class="control-group">
+            <label
+              >대기 변동 속도: <span id="atmRateValue">30</span>°/min</label
+            >
+            <input
+              type="range"
+              id="atmRateSlider"
+              min="10"
+              max="100"
+              step="5"
+              value="30"
+            />
+          </div>
+          <div style="display: flex; align-items: end">
+            <button class="btn btn-primary" onclick="toggleWrapping()">
+              <span id="wrapPlayBtn">▶ 시뮬레이션 시작</span>
+            </button>
+            <button class="btn btn-secondary" onclick="unwrapPhase()">
+              🔧 위상 해제
+            </button>
+          </div>
+        </div>
+        <div class="data-display">
+          <div class="data-card">
+            <div class="value phase-display" id="realPhase">+0°</div>
+            <div class="label">실제 위상</div>
+          </div>
+          <div class="data-card">
+            <div class="value phase-display" id="measuredPhase">+0°</div>
+            <div class="label">측정된 위상</div>
+          </div>
+          <div class="data-card">
+            <div class="value" id="wrapCount">0</div>
+            <div class="label">랩핑 횟수</div>
+          </div>
+          <div class="data-card">
+            <div class="value" id="unwrappedPhase">+0°</div>
+            <div class="label">해제된 위상</div>
+          </div>
+        </div>
+        <div class="info-box warning">
+          <h4>⚠️ 해결 방법</h4>
+          <p>
+            1 스위칭 주기를 짧게 하여 위상 변화가 180°를 넘지 않도록 합니다.<br />
+            2 연속적인 위상 변화를 추적하여 랩핑을
+            "언래핑(unwrapping)"합니다.<br />
+            3 MultiView에서는 각 교정체의 위상을 일관되게 언래핑해야 합니다.
+          </p>
+        </div>
+      </div>
+      <!-- 관측 스케줄 패널 -->
+      <div id="schedule" class="simulation-panel">
+        <div class="panel-title">연간 관측 스케줄 전략</div>
+        <div class="info-box">
+          <h4>💡 최적의 관측 전략</h4>
+          <p>
+            연주 시차를 정밀하게 측정하려면 1년에 걸쳐 최소 4회(권장 8회)
+            관측해야 합니다. 지구-태양-천체가 직각을 이룰 때 시차 효과가
+            최대이므로, 이 시점에 맞춰 관측합니다.
+          </p>
+        </div>
+        <canvas id="scheduleCanvas" width="900" height="400"></canvas>
+        <div class="timeline" id="scheduleTimeline">
+          <!-- JS로 생성 -->
+        </div>
+        <div class="controls">
+          <div class="control-group">
+            <label>타겟 적경 (RA): <span id="raValue">12</span>h</label>
+            <input
+              type="range"
+              id="raSlider"
+              min="0"
+              max="24"
+              step="1"
+              value="12"
+            />
+          </div>
+          <div class="control-group">
+            <label>타겟 적위 (Dec): <span id="decValue">0</span>°</label>
+            <input
+              type="range"
+              id="decSlider"
+              min="-60"
+              max="60"
+              step="5"
+              value="0"
+            />
+          </div>
+          <div class="control-group">
+            <label>관측 횟수: <span id="epochValue">8</span>회/년</label>
+            <input
+              type="range"
+              id="epochSlider"
+              min="4"
+              max="12"
+              step="1"
+              value="8"
+            />
+          </div>
+          <div style="display: flex; align-items: end">
+            <button class="btn btn-primary" onclick="animateYear()">
+              🎬 연간 시뮬레이션
+            </button>
+          </div>
+        </div>
+        <div class="data-display">
+          <div class="data-card">
+            <div class="value" id="optimalEpochs">3월, 9월</div>
+            <div class="label">최적 관측 시기</div>
+          </div>
+          <div class="data-card">
+            <div class="value" id="maxParallax">±10.0</div>
+            <div class="label">최대 시차 변위 (mas)</div>
+          </div>
+          <div class="data-card">
+            <div class="value" id="parallaxDir">E-W</div>
+            <div class="label">주요 시차 방향</div>
+          </div>
+          <div class="data-card">
+            <div class="value" id="estPrecision">±5</div>
+            <div class="label">예상 정밀도 (μas)</div>
+          </div>
+        </div>
+        <div class="info-box">
+          <h4>📊 관측 세션 구성</h4>
+          <p>
+            <strong>Fringe Finder:</strong> 강한 전파원으로 시계 오차 보정
+            (~5분)<br />
+            <strong>측지 블록:</strong> 전천의 12개 교정체로 대류권 지연 모델링
+            (~30분)<br />
+            <strong>위상 참조:</strong> 타겟-교정체 스위칭 관측 (~4시간)
+          </p>
+        </div>
+      </div>
+      <footer>
+        <p>
+          VLBI 연주 시차 측정 시뮬레이션 | Based on "Techniques for Measuring
+          Parallax and Proper Motion with VLBI" by Mark J. Reid
+        </p>
+        <p>BeSSeL Survey & VERA Project 기술 기반</p>
+      </footer>
+    </div>
+    <script>
+      // ===== 전역 변수 =====
+      let parallaxRunning = true;
+      let phaseRunning = false;
+      let wrappingRunning = false;
+      let time = 0;
+      let phaseTime = 0;
+      let wrapTime = 0;
+      // ===== 탭 전환 =====
+      function showPanel(panelId) {
+        document
+          .querySelectorAll(".simulation-panel")
+          .forEach((p) => p.classList.remove("active"));
+        document
+          .querySelectorAll(".tab-btn")
+          .forEach((b) => b.classList.remove("active"));
+        document.getElementById(panelId).classList.add("active");
+        event.target.classList.add("active");
+      }
+      // ===== 연주 시차 시뮬레이션 =====
+      const parallaxCanvas = document.getElementById("parallaxCanvas");
+      const pCtx = parallaxCanvas.getContext("2d");
+      function drawParallax() {
+        const width = parallaxCanvas.width;
+        const height = parallaxCanvas.height;
+        pCtx.clearRect(0, 0, width, height);
+        // 배경 별
+        pCtx.fillStyle = "#112";
+        pCtx.fillRect(0, 0, width, height);
+        for (let i = 0; i < 100; i++) {
+          pCtx.beginPath();
+          pCtx.arc(
+            (Math.sin(i * 123.456) * 0.5 + 0.5) * width,
+            (Math.cos(i * 654.321) * 0.5 + 0.5) * height,
+            Math.random() * 1.5,
+            0,
+            Math.PI * 2
+          );
+          pCtx.fillStyle = `rgba(200, 200, 255, ${Math.random() * 0.5 + 0.2})`;
+          pCtx.fill();
+        }
+        const speed = parseFloat(document.getElementById("speedSlider").value);
+        const dist = parseFloat(document.getElementById("distSlider").value);
+        const pm = parseFloat(document.getElementById("pmSlider").value);
+        // 왼쪽: 태양계 뷰
+        const solarCx = 180;
+        const solarCy = 250;
+        const earthOrbit = 80;
+        // 태양
+        pCtx.beginPath();
+        const sunGrad = pCtx.createRadialGradient(
+          solarCx,
+          solarCy,
+          0,
+          solarCx,
+          solarCy,
+          25
+        );
+        sunGrad.addColorStop(0, "#fff");
+        sunGrad.addColorStop(0.5, "#ff0");
+        sunGrad.addColorStop(1, "#f80");
+        pCtx.fillStyle = sunGrad;
+        pCtx.arc(solarCx, solarCy, 20, 0, Math.PI * 2);
+        pCtx.fill();
+        // 지구 궤도
+        pCtx.beginPath();
+        pCtx.strokeStyle = "rgba(100, 150, 255, 0.3)";
+        pCtx.setLineDash([5, 5]);
+        pCtx.arc(solarCx, solarCy, earthOrbit, 0, Math.PI * 2);
+        pCtx.stroke();
+        pCtx.setLineDash([]);
+        // 지구 위치
+        const earthAngle = time * 0.02;
+        const earthX = solarCx + Math.cos(earthAngle) * earthOrbit;
+        const earthY = solarCy + Math.sin(earthAngle) * earthOrbit;
+        // 지구
+        pCtx.beginPath();
+        const earthGrad = pCtx.createRadialGradient(
+          earthX,
+          earthY,
+          0,
+          earthX,
+          earthY,
+          12
+        );
+        earthGrad.addColorStop(0, "#6cf");
+        earthGrad.addColorStop(1, "#248");
+        pCtx.fillStyle = earthGrad;
+        pCtx.arc(earthX, earthY, 10, 0, Math.PI * 2);
+        pCtx.fill();
+        // 월 표시
+        const months = [
+          "1월",
+          "2월",
+          "3월",
+          "4월",
+          "5월",
+          "6월",
+          "7월",
+          "8월",
+          "9월",
+          "10월",
+          "11월",
+          "12월",
+        ];
+        const monthIdx = Math.floor(
+          (((earthAngle % (Math.PI * 2)) / (Math.PI * 2)) * 12 + 9) % 12
+        );
+        document.getElementById("currentMonth").textContent = months[monthIdx];
+        // 오른쪽: 시차 다이어그램
+        const viewCx = 650;
+        const viewCy = 250;
+        const parallaxAngle = 1000 / dist; // mas
+        const scale = 5; // mas to pixels
+        // 배경 퀘이사들
+        const quasars = [
+          { x: viewCx - 80, y: viewCy - 100 },
+          { x: viewCx + 100, y: viewCy - 80 },
+          { x: viewCx + 60, y: viewCy + 120 },
+          { x: viewCx - 100, y: viewCy + 90 },
+        ];
+        quasars.forEach((q) => {
+          pCtx.beginPath();
+          pCtx.arc(q.x, q.y, 4, 0, Math.PI * 2);
+          pCtx.fillStyle = "#888";
+          pCtx.fill();
+        });
+        // 시차 타원 (지구 위치에 따른 겉보기 위치)
+        const ewMax = parallaxAngle * Math.abs(Math.cos(0)); // E-W 성분 (은하평면 가정)
+        const nsMax = parallaxAngle * 0.3; // N-S 성분 (줄어듦)
+        // 시차 타원 그리기
+        pCtx.beginPath();
+        pCtx.strokeStyle = "rgba(255, 100, 100, 0.4)";
+        pCtx.setLineDash([3, 3]);
+        pCtx.ellipse(
+          viewCx,
+          viewCy,
+          ewMax * scale,
+          nsMax * scale,
+          0,
+          0,
+          Math.PI * 2
+        );
+        pCtx.stroke();
+        pCtx.setLineDash([]);
+        // 고유 운동에 의한 이동
+        const pmOffset = ((pm * (time * 0.02)) / (Math.PI * 2)) * scale;
+        // 타겟 별의 현재 위치
+        const targetX =
+          viewCx + Math.cos(earthAngle) * ewMax * scale + pmOffset;
+        const targetY = viewCy + Math.sin(earthAngle) * nsMax * scale;
+        // 타겟 별
+        pCtx.beginPath();
+        const starGrad = pCtx.createRadialGradient(
+          targetX,
+          targetY,
+          0,
+          targetX,
+          targetY,
+          12
+        );
+        starGrad.addColorStop(0, "#fff");
+        starGrad.addColorStop(0.3, "#f88");
+        starGrad.addColorStop(1, "rgba(255, 100, 100, 0)");
+        pCtx.fillStyle = starGrad;
+        pCtx.arc(targetX, targetY, 10, 0, Math.PI * 2);
+        pCtx.fill();
+        // 시선 그리기
+        pCtx.beginPath();
+        pCtx.strokeStyle = "rgba(100, 200, 255, 0.5)";
+        pCtx.moveTo(earthX, earthY);
+        pCtx.lineTo(
+          earthX + (targetX - viewCx) * 0.5,
+          earthY + (targetY - viewCy) * 0.3
+        );
+        pCtx.stroke();
+        // 궤적 표시
+        pCtx.beginPath();
+        pCtx.strokeStyle = "rgba(255, 150, 100, 0.6)";
+        pCtx.lineWidth = 2;
+        for (let a = 0; a <= earthAngle; a += 0.1) {
+          const tx =
+            viewCx +
+            Math.cos(a) * ewMax * scale +
+            ((pm * a) / (Math.PI * 2)) * scale;
+          const ty = viewCy + Math.sin(a) * nsMax * scale;
+          if (a === 0) pCtx.moveTo(tx, ty);
+          else pCtx.lineTo(tx, ty);
+        }
+        pCtx.stroke();
+        pCtx.lineWidth = 1;
+        // 데이터 업데이트
+        document.getElementById("parallaxAngle").textContent =
+          parallaxAngle.toFixed(2);
+        document.getElementById("ewDisp").textContent = (
+          Math.cos(earthAngle) * ewMax
+        ).toFixed(2);
+        document.getElementById("nsDisp").textContent = (
+          Math.sin(earthAngle) * nsMax
+        ).toFixed(2);
+        // 라벨
+        pCtx.font = "14px sans-serif";
+        pCtx.fillStyle = "#8af";
+        pCtx.fillText("태양계 뷰 (위에서 본)", 100, 30);
+        pCtx.fillText("하늘에서 본 겉보기 움직임", 560, 30);
+        // 축 표시
+        pCtx.fillStyle = "#666";
+        pCtx.fillText("E", viewCx + 180, viewCy + 5);
+        pCtx.fillText("W", viewCx - 190, viewCy + 5);
+        pCtx.fillText("N", viewCx - 5, viewCy - 180);
+        pCtx.fillText("S", viewCx - 5, viewCy + 195);
+        if (parallaxRunning) {
+          time += speed;
+        }
+        requestAnimationFrame(drawParallax);
+      }
+      function toggleParallax() {
+        parallaxRunning = !parallaxRunning;
+        document.getElementById("playBtn").textContent = parallaxRunning
+          ? "⏸ 일시정지"
+          : "▶ 재생";
+      }
+      function resetParallax() {
+        time = 0;
+      }
+      // 슬라이더 이벤트
+      document.getElementById("speedSlider").oninput = function () {
+        document.getElementById("speedValue").textContent = this.value;
+      };
+      document.getElementById("distSlider").oninput = function () {
+        document.getElementById("distValue").textContent = this.value;
+      };
+      document.getElementById("pmSlider").oninput = function () {
+        document.getElementById("pmValue").textContent = this.value;
+      };
+      // ===== VLBI 시뮬레이션 =====
+      const vlbiCanvas = document.getElementById("vlbiCanvas");
+      const vCtx = vlbiCanvas.getContext("2d");
+      function drawVLBI() {
+        const width = vlbiCanvas.width;
+        const height = vlbiCanvas.height;
+        vCtx.clearRect(0, 0, width, height);
+        const baseline = parseFloat(
+          document.getElementById("baselineSlider").value
+        );
+        const freq = parseFloat(document.getElementById("freqSlider").value);
+        const elev = parseFloat(document.getElementById("elevSlider").value);
+        // 배경
+        const skyGrad = vCtx.createLinearGradient(0, 0, 0, height);
+        skyGrad.addColorStop(0, "#001");
+        skyGrad.addColorStop(0.6, "#112");
+        skyGrad.addColorStop(1, "#221");
+        vCtx.fillStyle = skyGrad;
+        vCtx.fillRect(0, 0, width, height);
+        // 지구 곡선
+        vCtx.beginPath();
+        vCtx.fillStyle = "#342";
+        vCtx.ellipse(width / 2, height + 800, 1200, 900, 0, Math.PI, 0);
+        vCtx.fill();
+        // 안테나 위치
+        const ant1X = 200;
+        const ant2X = 700;
+        const antY = 380;
+        // 안테나 그리기 함수
+        function drawAntenna(x, y, angle) {
+          vCtx.save();
+          vCtx.translate(x, y);
+          // 받침대
+          vCtx.fillStyle = "#555";
+          vCtx.fillRect(-5, -30, 10, 30);
+          // 접시
+          vCtx.rotate((-angle * Math.PI) / 180 + Math.PI / 2);
+          vCtx.beginPath();
+          vCtx.fillStyle = "#789";
+          vCtx.ellipse(0, -40, 35, 10, 0, 0, Math.PI * 2);
+          vCtx.fill();
+          vCtx.beginPath();
+          vCtx.strokeStyle = "#9ab";
+          vCtx.lineWidth = 2;
+          vCtx.arc(0, -40, 35, Math.PI * 0.1, Math.PI * 0.9);
+          vCtx.stroke();
+          // Feed
+          vCtx.beginPath();
+          vCtx.fillStyle = "#456";
+          vCtx.moveTo(-3, -40);
+          vCtx.lineTo(0, -70);
+          vCtx.lineTo(3, -40);
+          vCtx.fill();
+          vCtx.restore();
+        }
+        drawAntenna(ant1X, antY, elev);
+        drawAntenna(ant2X, antY, elev);
+        // 천체
+        const sourceAngle = (elev * Math.PI) / 180;
+        const sourceX = width / 2;
+        const sourceY = 50;
+        // 전파 신호 (파동)
+        const wavePhase = Date.now() / 100;
+        vCtx.strokeStyle = "rgba(100, 200, 255, 0.4)";
+        vCtx.lineWidth = 2;
+        for (let i = 0; i < 3; i++) {
+          vCtx.beginPath();
+          vCtx.arc(
+            sourceX,
+            sourceY,
+            40 + i * 30 + (wavePhase % 30),
+            0.3 * Math.PI,
+            0.7 * Math.PI
+          );
+          vCtx.stroke();
+        }
+        // 천체
+        vCtx.beginPath();
+        const srcGrad = vCtx.createRadialGradient(
+          sourceX,
+          sourceY,
+          0,
+          sourceX,
+          sourceY,
+          15
+        );
+        srcGrad.addColorStop(0, "#fff");
+        srcGrad.addColorStop(0.5, "#f84");
+        srcGrad.addColorStop(1, "rgba(255, 100, 50, 0)");
+        vCtx.fillStyle = srcGrad;
+        vCtx.arc(sourceX, sourceY, 12, 0, Math.PI * 2);
+        vCtx.fill();
+        // 기선 표시
+        vCtx.beginPath();
+        vCtx.strokeStyle = "#6af";
+        vCtx.setLineDash([10, 5]);
+        vCtx.moveTo(ant1X, antY);
+        vCtx.lineTo(ant2X, antY);
+        vCtx.stroke();
+        vCtx.setLineDash([]);
+        // 기선 길이 라벨
+        vCtx.fillStyle = "#6af";
+        vCtx.font = "14px sans-serif";
+        vCtx.fillText(
+          `B = ${baseline} km`,
+          (ant1X + ant2X) / 2 - 40,
+          antY + 25
+        );
+        // 시선 경로
+        vCtx.beginPath();
+        vCtx.strokeStyle = "rgba(255, 200, 100, 0.3)";
+        vCtx.moveTo(sourceX, sourceY);
+        vCtx.lineTo(ant1X, antY - 50);
+        vCtx.moveTo(sourceX, sourceY);
+        vCtx.lineTo(ant2X, antY - 50);
+        vCtx.stroke();
+        // 지연 경로 차이 시각화
+        const pathDiff = baseline * Math.sin(((90 - elev) * Math.PI) / 180);
+        vCtx.fillStyle = "#fa6";
+        vCtx.fillText(
+          `경로차 ≈ ${pathDiff.toFixed(0)} km`,
+          ant2X - 50,
+          antY - 70
+        );
+        // 계산
+        const wavelength = 300 / freq; // mm
+        const resolution = (206265 * wavelength) / 1000 / (baseline * 1000); // arcsec to mas
+        const geoDelay = pathDiff / 299792.458; // ms
+        const phasePrecision = ((resolution * 1000) / (2 * Math.PI)) * 0.01; // rough estimate
+        document.getElementById("resolution").textContent =
+          resolution.toFixed(2);
+        document.getElementById("geoDelay").textContent = (
+          geoDelay * 1000
+        ).toFixed(1);
+        document.getElementById("wavelength").textContent =
+          wavelength.toFixed(1);
+        document.getElementById("fringeRate").textContent =
+          phasePrecision.toFixed(0);
+        document.getElementById("formulaResult").textContent =
+          resolution.toFixed(2) + " mas";
+        requestAnimationFrame(drawVLBI);
+      }
+      document.getElementById("baselineSlider").oninput = function () {
+        document.getElementById("baselineValue").textContent = this.value;
+      };
+      document.getElementById("freqSlider").oninput = function () {
+        document.getElementById("freqValue").textContent = this.value;
+      };
+      document.getElementById("elevSlider").oninput = function () {
+        document.getElementById("elevValue").textContent = this.value;
+      };
+      // ===== 위상 참조 시뮬레이션 =====
+      const phaseCanvas = document.getElementById("phaseCanvas");
+      const phCtx = phaseCanvas.getContext("2d");
+      let phaseData = [];
+      let calPhaseData = [];
+      let currentObs = 0;
+      function initPhaseSequence() {
+        const seq = document.getElementById("obsSequence");
+        seq.innerHTML = "";
+        for (let i = 0; i < 16; i++) {
+          const block = document.createElement("div");
+          block.className = `seq-block ${i % 2 === 0 ? "seq-c" : "seq-t"}`;
+          block.textContent = i % 2 === 0 ? "C" : "T";
+          block.id = `obs-${i}`;
+          seq.appendChild(block);
+        }
+      }
+      function drawPhase() {
+        const width = phaseCanvas.width;
+        const height = phaseCanvas.height;
+        phCtx.clearRect(0, 0, width, height);
+        const switchTime = parseFloat(
+          document.getElementById("switchSlider").value
+        );
+        const separation = parseFloat(
+          document.getElementById("sepSlider").value
+        );
+        const turbulence = parseFloat(
+          document.getElementById("turbSlider").value
+        );
+        // 배경
+        phCtx.fillStyle = "#0a0a1a";
+        phCtx.fillRect(0, 0, width, height);
+        // 그리드
+        phCtx.strokeStyle = "rgba(100, 150, 200, 0.2)";
+        phCtx.beginPath();
+        for (let y = 50; y < height - 50; y += 50) {
+          phCtx.moveTo(80, y);
+          phCtx.lineTo(width - 30, y);
+        }
+        phCtx.stroke();
+        // Y축 라벨
+        phCtx.fillStyle = "#668";
+        phCtx.font = "12px sans-serif";
+        phCtx.fillText("180°", 40, 55);
+        phCtx.fillText("0°", 50, height / 2);
+        phCtx.fillText("-180°", 35, height - 45);
+        // 축
+        phCtx.strokeStyle = "#446";
+        phCtx.beginPath();
+        phCtx.moveTo(80, 50);
+        phCtx.lineTo(80, height - 50);
+        phCtx.lineTo(width - 30, height - 50);
+        phCtx.stroke();
+        // 데이터 생성/업데이트
+        if (phaseRunning && phaseTime % 2 === 0) {
+          const atmPhase =
+            turbulence * 2 * Math.sin(phaseTime * 0.05) +
+            turbulence * Math.sin(phaseTime * 0.13) * 0.5 +
+            (Math.random() - 0.5) * turbulence * 0.5;
+          const targetPhase =
+            atmPhase + separation * 10 * Math.sin(phaseTime * 0.02);
+          const calPhase = atmPhase;
+          if (phaseData.length > 200) phaseData.shift();
+          if (calPhaseData.length > 200) calPhaseData.shift();
+          phaseData.push(targetPhase);
+          calPhaseData.push(calPhase);
+          currentObs = Math.floor(phaseTime / (switchTime / 2)) % 16;
+          document.querySelectorAll(".seq-block").forEach((b, i) => {
+            b.classList.toggle("seq-active", i === currentObs);
+          });
+        }
+        // 교정체 위상 (파란색)
+        if (calPhaseData.length > 1) {
+          phCtx.beginPath();
+          phCtx.strokeStyle = "#66f";
+          phCtx.lineWidth = 2;
+          calPhaseData.forEach((p, i) => {
+            const x = 80 + (i * (width - 110)) / 200;
+            const y = height / 2 - (p * (height - 100)) / 360;
+            if (i === 0) phCtx.moveTo(x, y);
+            else phCtx.lineTo(x, y);
+          });
+          phCtx.stroke();
+        }
+        // 타겟 위상 (노란색)
+        if (phaseData.length > 1) {
+          phCtx.beginPath();
+          phCtx.strokeStyle = "#ff6";
+          phCtx.lineWidth = 2;
+          phaseData.forEach((p, i) => {
+            const x = 80 + (i * (width - 110)) / 200;
+            const y = height / 2 - (p * (height - 100)) / 360;
+            if (i === 0) phCtx.moveTo(x, y);
+            else phCtx.lineTo(x, y);
+          });
+          phCtx.stroke();
+        }
+        // 보정된 위상 (녹색)
+        if (phaseData.length > 1 && calPhaseData.length > 1) {
+          phCtx.beginPath();
+          phCtx.strokeStyle = "#6f6";
+          phCtx.lineWidth = 2;
+          const minLen = Math.min(phaseData.length, calPhaseData.length);
+          for (let i = 0; i < minLen; i++) {
+            const corrected = phaseData[i] - calPhaseData[i];
+            const x = 80 + (i * (width - 110)) / 200;
+            const y = height / 2 - (corrected * (height - 100)) / 360;
+            if (i === 0) phCtx.moveTo(x, y);
+            else phCtx.lineTo(x, y);
+          }
+          phCtx.stroke();
+        }
+        // 범례
+        phCtx.font = "12px sans-serif";
+        phCtx.fillStyle = "#66f";
+        phCtx.fillText("● 교정체 위상", 100, 30);
+        phCtx.fillStyle = "#ff6";
+        phCtx.fillText("● 타겟 위상", 220, 30);
+        phCtx.fillStyle = "#6f6";
+        phCtx.fillText("● 보정된 위상", 340, 30);
+        // 가간섭 시간 계산
+        const coherence = (200 / turbulence) * 40;
+        document.getElementById("coherenceTime").textContent =
+          Math.round(coherence);
+        // 위상 RMS
+        if (phaseData.length > 10) {
+          const recent = phaseData.slice(-20);
+          const mean = recent.reduce((a, b) => a + b, 0) / recent.length;
+          const rms = Math.sqrt(
+            recent.reduce((a, b) => a + (b - mean) ** 2, 0) / recent.length
+          );
+          document.getElementById("phaseRMS").textContent = rms.toFixed(0);
+          document.getElementById("posError").textContent = (rms * 3).toFixed(
+            0
+          );
+          document.getElementById("currentPhase").textContent =
+            (phaseData[phaseData.length - 1] > 0 ? "+" : "") +
+            phaseData[phaseData.length - 1].toFixed(1) +
+            "°";
+        }
+        if (phaseRunning) phaseTime++;
+        requestAnimationFrame(drawPhase);
+      }
+      function togglePhase() {
+        phaseRunning = !phaseRunning;
+        document.getElementById("phasePlayBtn").textContent = phaseRunning
+          ? "⏸ 정지"
+          : "▶ 시작";
+      }
+      document.getElementById("switchSlider").oninput = function () {
+        document.getElementById("switchValue").textContent = this.value;
+      };
+      document.getElementById("sepSlider").oninput = function () {
+        document.getElementById("sepValue").textContent = this.value;
+      };
+      document.getElementById("turbSlider").oninput = function () {
+        document.getElementById("turbValue").textContent = this.value;
+      };
+      // ===== MultiView 시뮬레이션 =====
+      const mvCanvas = document.getElementById("multiviewCanvas");
+      const mvCtx = mvCanvas.getContext("2d");
+      const ionoCanvas = document.getElementById("ionosphereCanvas");
+      const ionoCtx = ionoCanvas.getContext("2d");
+      let calibrators = [];
+      function drawMultiview() {
+        const width = mvCanvas.width;
+        const height = mvCanvas.height;
+        mvCtx.clearRect(0, 0, width, height);
+        const calNum = parseInt(document.getElementById("calNumSlider").value);
+        const ionoLevel = parseFloat(
+          document.getElementById("ionoSlider").value
+        );
+        // 배경
+        mvCtx.fillStyle = "#0a0a1a";
+        mvCtx.fillRect(0, 0, width, height);
+        // 시야 원
+        mvCtx.beginPath();
+        mvCtx.strokeStyle = "rgba(100, 150, 255, 0.3)";
+        mvCtx.arc(width / 2, height / 2, 180, 0, Math.PI * 2);
+        mvCtx.stroke();
+        mvCtx.fillStyle = "#446";
+        mvCtx.font = "12px sans-serif";
+        mvCtx.fillText("2° 시야", width / 2 - 20, height / 2 + 195);
+        // 타겟 (중앙)
+        mvCtx.beginPath();
+        const targetGrad = mvCtx.createRadialGradient(
+          width / 2,
+          height / 2,
+          0,
+          width / 2,
+          height / 2,
+          15
+        );
+        targetGrad.addColorStop(0, "#fff");
+        targetGrad.addColorStop(0.5, "#f66");
+        targetGrad.addColorStop(1, "rgba(255, 100, 100, 0)");
+        mvCtx.fillStyle = targetGrad;
+        mvCtx.arc(width / 2, height / 2, 12, 0, Math.PI * 2);
+        mvCtx.fill();
+        mvCtx.fillStyle = "#f88";
+        mvCtx.fillText("타겟", width / 2 - 15, height / 2 + 30);
+        // 교정 천체들
+        calibrators = [];
+        for (let i = 0; i < calNum; i++) {
+          const angle = (i / calNum) * Math.PI * 2 - Math.PI / 2;
+          const r = 100 + (i % 2) * 50;
+          const x = width / 2 + Math.cos(angle) * r;
+          const y = height / 2 + Math.sin(angle) * r;
+          calibrators.push({ x, y, angle });
+          mvCtx.beginPath();
+          mvCtx.arc(x, y, 8, 0, Math.PI * 2);
+          mvCtx.fillStyle = "#88f";
+          mvCtx.fill();
+          mvCtx.fillStyle = "#aaf";
+          mvCtx.fillText(`C${i + 1}`, x - 8, y + 25);
+          // 연결선
+          mvCtx.beginPath();
+          mvCtx.strokeStyle = "rgba(100, 150, 255, 0.4)";
+          mvCtx.setLineDash([3, 3]);
+          mvCtx.moveTo(width / 2, height / 2);
+          mvCtx.lineTo(x, y);
+          mvCtx.stroke();
+          mvCtx.setLineDash([]);
+        }
+        // 제목
+        mvCtx.fillStyle = "#8af";
+        mvCtx.font = "14px sans-serif";
+        mvCtx.fillText("하늘 뷰: 타겟과 교정 천체들", 120, 25);
+        requestAnimationFrame(drawMultiview);
+      }
+      function drawIonosphere() {
+        const width = ionoCanvas.width;
+        const height = ionoCanvas.height;
+        ionoCtx.clearRect(0, 0, width, height);
+        const ionoLevel = parseFloat(
+          document.getElementById("ionoSlider").value
+        );
+        const calNum = parseInt(document.getElementById("calNumSlider").value);
+        const freq = parseFloat(document.getElementById("mvFreqSlider").value);
+        // 배경
+        ionoCtx.fillStyle = "#0a0a1a";
+        ionoCtx.fillRect(0, 0, width, height);
+        // 전리층 구배 시각화 (그라디언트)
+        const time = Date.now() / 2000;
+        const wedgeAngle = Math.sin(time) * 0.5;
+        for (let x = 0; x < width; x += 10) {
+          for (let y = 0; y < height; y += 10) {
+            const ionoDensity =
+              (((x * Math.cos(wedgeAngle) + y * Math.sin(wedgeAngle)) /
+                (width + height)) *
+                ionoLevel) /
+              50;
+            ionoCtx.fillStyle = `rgba(100, 50, 200, ${
+              0.1 + ionoDensity * 0.3
+            })`;
+            ionoCtx.fillRect(x, y, 10, 10);
+          }
+        }
+        // 타겟 위치
+        const tcx = width / 2;
+        const tcy = height / 2;
+        // 보정 평면 (교정체들을 잇는 삼각형/다각형)
+        if (calNum >= 3) {
+          ionoCtx.beginPath();
+          ionoCtx.fillStyle = "rgba(100, 200, 100, 0.2)";
+          calibrators.forEach((c, i) => {
+            const x = c.x - (mvCanvas.width - ionoCanvas.width) / 2;
+            const y = c.y;
+            if (i === 0) ionoCtx.moveTo(x, y);
+            else ionoCtx.lineTo(x, y);
+          });
+          ionoCtx.closePath();
+          ionoCtx.fill();
+        }
+        // 교정체 위치
+        calibrators.forEach((c, i) => {
+          const x = c.x - (mvCanvas.width - ionoCanvas.width) / 2;
+          const y = c.y;
+          ionoCtx.beginPath();
+          ionoCtx.arc(x, y, 6, 0, Math.PI * 2);
+          ionoCtx.fillStyle = "#88f";
+          ionoCtx.fill();
+        });
+        // 타겟
+        ionoCtx.beginPath();
+        ionoCtx.arc(tcx, tcy, 10, 0, Math.PI * 2);
+        ionoCtx.fillStyle = "#f66";
+        ionoCtx.fill();
+        // 제목
+        ionoCtx.fillStyle = "#a6f";
+        ionoCtx.font = "14px sans-serif";
+        ionoCtx.fillText("전리층 위상 구배 (Wedge 모델)", 100, 25);
+        // 보정 효과 계산
+        const ionoDelay = ((40 / (freq * freq)) * ionoLevel) / 50;
+        const errorBefore = ionoDelay * 60; // μas
+        const improvement = calNum >= 3 ? calNum + 1 : calNum;
+        const errorAfter = errorBefore / improvement;
+        document.getElementById("ionoDelay").textContent = ionoDelay.toFixed(2);
+        document.getElementById("ionoError").textContent =
+          Math.round(errorBefore);
+        document.getElementById("ionoCorrected").textContent =
+          Math.round(errorAfter);
+        document.getElementById("improvement").textContent = improvement + "x";
+        requestAnimationFrame(drawIonosphere);
+      }
+      function recalcMultiview() {
+        // 재계산 트리거 (이미 실시간 업데이트됨)
+      }
+      document.getElementById("mvFreqSlider").oninput = function () {
+        document.getElementById("mvFreqValue").textContent = this.value;
+      };
+      document.getElementById("calNumSlider").oninput = function () {
+        document.getElementById("calNumValue").textContent = this.value;
+      };
+      document.getElementById("ionoSlider").oninput = function () {
+        document.getElementById("ionoValue").textContent = this.value;
+      };
+      // ===== 위상 랩핑 시뮬레이션 =====
+      const wrapCanvas = document.getElementById("wrappingCanvas");
+      const wCtx = wrapCanvas.getContext("2d");
+      let realPhaseHistory = [];
+      let measuredPhaseHistory = [];
+
+      let unwrappedHistory = [];
+      function drawWrapping() {
+        const width = wrapCanvas.width;
+        const height = wrapCanvas.height;
+        wCtx.clearRect(0, 0, width, height);
+        const realPhase = parseFloat(
+          document.getElementById("realPhaseSlider").value
+        );
+        const atmRate = parseFloat(
+          document.getElementById("atmRateSlider").value
+        );
+        // 배경
+        wCtx.fillStyle = "#0a0a1a";
+        wCtx.fillRect(0, 0, width, height);
+        // ±180° 범위 표시
+        wCtx.fillStyle = "rgba(255, 100, 100, 0.1)";
+        wCtx.fillRect(80, height / 2 - 100, width - 110, 200);
+        // 그리드
+        wCtx.strokeStyle = "rgba(100, 150, 200, 0.2)";
+        wCtx.beginPath();
+        for (let y = 50; y <= height - 50; y += (height - 100) / 8) {
+          wCtx.moveTo(80, y);
+          wCtx.lineTo(width - 30, y);
+        }
+        wCtx.stroke();
+        // Y축 라벨
+        wCtx.fillStyle = "#668";
+        wCtx.font = "11px sans-serif";
+        const yScale = (height - 100) / 720; // -360 to +360
+        wCtx.fillText("+360°", 35, 50);
+        wCtx.fillText("+180°", 35, 50 + 180 * yScale);
+        wCtx.fillText("0°", 55, height / 2);
+        wCtx.fillText("-180°", 35, height - 50 - 180 * yScale);
+        wCtx.fillText("-360°", 35, height - 50);
+        // 축
+        wCtx.strokeStyle = "#446";
+        wCtx.lineWidth = 1;
+        wCtx.beginPath();
+        wCtx.moveTo(80, 50);
+        wCtx.lineTo(80, height - 50);
+        wCtx.lineTo(width - 30, height - 50);
+        wCtx.stroke();
+        // 실시간 데이터 업데이트
+        if (wrappingRunning) {
+          const currentReal =
+            realPhase + Math.sin(wrapTime * 0.05) * atmRate * 2;
+          let measured = currentReal % 360;
+          if (measured > 180) measured -= 360;
+          if (measured < -180) measured += 360;
+          realPhaseHistory.push(currentReal);
+          measuredPhaseHistory.push(measured);
+          // 언래핑 로직
+          let unwrapped = measured;
+          if (unwrappedHistory.length > 0) {
+            const prev = unwrappedHistory[unwrappedHistory.length - 1];
+            const diff =
+              measured - (prev % 360 > 180 ? (prev % 360) - 360 : prev % 360);
+            if (diff > 180) unwrapped = prev + diff - 360;
+            else if (diff < -180) unwrapped = prev + diff + 360;
+            else unwrapped = prev + diff;
+          }
+          unwrappedHistory.push(unwrapped);
+          if (realPhaseHistory.length > 300) {
+            realPhaseHistory.shift();
+            measuredPhaseHistory.shift();
+            unwrappedHistory.shift();
+          }
+          wrapTime++;
+        }
+        // 슬라이더 직접 조작시
+        if (!wrappingRunning) {
+          const currentReal = realPhase;
+          let measured = currentReal % 360;
+          if (measured > 180) measured -= 360;
+          if (measured < -180) measured += 360;
+          document.getElementById("realPhase").textContent =
+            (currentReal > 0 ? "+" : "") + currentReal.toFixed(0) + "°";
+          document.getElementById("measuredPhase").textContent =
+            (measured > 0 ? "+" : "") + measured.toFixed(0) + "°";
+          document.getElementById("wrapCount").textContent = Math.abs(
+            Math.floor(currentReal / 360)
+          );
+        }
+        // 실제 위상 (흰색)
+        if (realPhaseHistory.length > 1) {
+          wCtx.beginPath();
+          wCtx.strokeStyle = "#fff";
+          wCtx.lineWidth = 2;
+          realPhaseHistory.forEach((p, i) => {
+            const x = 80 + (i * (width - 110)) / 300;
+            const y = height / 2 - p * yScale;
+            if (i === 0) wCtx.moveTo(x, y);
+            else wCtx.lineTo(x, y);
+          });
+          wCtx.stroke();
+        }
+        // 측정된 위상 (빨간색, 랩핑됨)
+        if (measuredPhaseHistory.length > 1) {
+          wCtx.beginPath();
+          wCtx.strokeStyle = "#f44";
+          wCtx.lineWidth = 2;
+          let prevY = null;
+          measuredPhaseHistory.forEach((p, i) => {
+            const x = 80 + (i * (width - 110)) / 300;
+            const y = height / 2 - p * yScale;
+            if (i === 0) {
+              wCtx.moveTo(x, y);
+            } else {
+              // 점프 감지
+              if (prevY && Math.abs(y - prevY) > 100) {
+                wCtx.stroke();
+                wCtx.beginPath();
+                wCtx.moveTo(x, y);
+              } else {
+                wCtx.lineTo(x, y);
+              }
+            }
+            prevY = y;
+          });
+          wCtx.stroke();
+        }
+        // 언래핑된 위상 (녹색)
+        if (unwrappedHistory.length > 1) {
+          wCtx.beginPath();
+          wCtx.strokeStyle = "#4f4";
+          wCtx.lineWidth = 2;
+          wCtx.setLineDash([5, 3]);
+          unwrappedHistory.forEach((p, i) => {
+            const x = 80 + (i * (width - 110)) / 300;
+            const y = height / 2 - p * yScale;
+            if (i === 0) wCtx.moveTo(x, y);
+            else wCtx.lineTo(x, y);
+          });
+          wCtx.stroke();
+          wCtx.setLineDash([]);
+        }
+        // ±180 경계선
+        wCtx.strokeStyle = "rgba(255, 100, 100, 0.5)";
+        wCtx.setLineDash([5, 5]);
+        wCtx.beginPath();
+        wCtx.moveTo(80, height / 2 - 180 * yScale);
+        wCtx.lineTo(width - 30, height / 2 - 180 * yScale);
+        wCtx.moveTo(80, height / 2 + 180 * yScale);
+        wCtx.lineTo(width - 30, height / 2 + 180 * yScale);
+        wCtx.stroke();
+        wCtx.setLineDash([]);
+        // 범례
+        wCtx.font = "12px sans-serif";
+        wCtx.fillStyle = "#fff";
+        wCtx.fillText("━ 실제 위상", 100, 30);
+        wCtx.fillStyle = "#f44";
+        wCtx.fillText("━ 측정된 위상 (랩핑)", 230, 30);
+        wCtx.fillStyle = "#4f4";
+        wCtx.fillText("┅ 언래핑된 위상", 400, 30);
+        // 현재 값 업데이트
+        if (realPhaseHistory.length > 0) {
+          const lastReal = realPhaseHistory[realPhaseHistory.length - 1];
+          const lastMeas =
+            measuredPhaseHistory[measuredPhaseHistory.length - 1];
+          const lastUnwrap = unwrappedHistory[unwrappedHistory.length - 1];
+          document.getElementById("realPhase").textContent =
+            (lastReal > 0 ? "+" : "") + lastReal.toFixed(0) + "°";
+          document.getElementById("measuredPhase").textContent =
+            (lastMeas > 0 ? "+" : "") + lastMeas.toFixed(0) + "°";
+          document.getElementById("wrapCount").textContent = Math.abs(
+            Math.floor(lastReal / 360)
+          );
+          document.getElementById("unwrappedPhase").textContent =
+            (lastUnwrap > 0 ? "+" : "") + lastUnwrap.toFixed(0) + "°";
+        }
+        requestAnimationFrame(drawWrapping);
+      }
+      function toggleWrapping() {
+        wrappingRunning = !wrappingRunning;
+        document.getElementById("wrapPlayBtn").textContent = wrappingRunning
+          ? "⏸ 정지"
+          : "▶ 시뮬레이션 시작";
+        if (wrappingRunning) {
+          realPhaseHistory = [];
+          measuredPhaseHistory = [];
+          unwrappedHistory = [];
+          wrapTime = 0;
+        }
+      }
+      function unwrapPhase() {
+        // 언래핑 데모 - 이미 녹색으로 표시됨
+        alert(
+          "녹색 점선이 언래핑된 위상을 보여줍니다.\n" +
+            "알고리즘은 연속적인 위상 변화를 추적하여\n" +
+            "180° 점프를 감지하고 보정합니다."
+        );
+      }
+      document.getElementById("realPhaseSlider").oninput = function () {
+        document.getElementById("realPhaseValue").textContent = this.value;
+      };
+      document.getElementById("atmRateSlider").oninput = function () {
+        document.getElementById("atmRateValue").textContent = this.value;
+      };
+      // ===== 관측 스케줄 시뮬레이션 =====
+      const schedCanvas = document.getElementById("scheduleCanvas");
+      const sCtx = schedCanvas.getContext("2d");
+      let scheduleAnim = null;
+      let animMonth = 0;
+      function initScheduleTimeline() {
+        const timeline = document.getElementById("scheduleTimeline");
+        timeline.innerHTML = "";
+        const epochs = parseInt(document.getElementById("epochSlider").value);
+        const months = [
+          "1월",
+          "2월",
+          "3월",
+          "4월",
+          "5월",
+          "6월",
+          "7월",
+          "8월",
+          "9월",
+          "10월",
+          "11월",
+          "12월",
+        ];
+        const spacing = 12 / epochs;
+        for (let i = 0; i < epochs; i++) {
+          const monthIdx = Math.floor(i * spacing) % 12;
+          const item = document.createElement("div");
+          item.className = "timeline-item";
+          item.innerHTML = `
+<div class="timeline-dot" id="epoch-${i}"></div>
+<div class="timeline-label">Epoch ${i + 1}<br>${months[monthIdx]}</div>
+`;
+          timeline.appendChild(item);
+        }
+      }
+      function drawSchedule() {
+        const width = schedCanvas.width;
+        const height = schedCanvas.height;
+        sCtx.clearRect(0, 0, width, height);
+        const ra = parseFloat(document.getElementById("raSlider").value);
+        const dec = parseFloat(document.getElementById("decSlider").value);
+        const epochs = parseInt(document.getElementById("epochSlider").value);
+        // 배경
+        sCtx.fillStyle = "#0a0a1a";
+        sCtx.fillRect(0, 0, width, height);
+        // 지구 궤도
+        const cx = width / 2;
+        const cy = height / 2;
+        const orbitR = 150;
+        // 태양
+        sCtx.beginPath();
+        const sunGrad = sCtx.createRadialGradient(cx, cy, 0, cx, cy, 30);
+        sunGrad.addColorStop(0, "#fff");
+        sunGrad.addColorStop(0.5, "#ff0");
+        sunGrad.addColorStop(1, "#f80");
+        sCtx.fillStyle = sunGrad;
+        sCtx.arc(cx, cy, 25, 0, Math.PI * 2);
+        sCtx.fill();
+        // 궤도
+        sCtx.beginPath();
+        sCtx.strokeStyle = "rgba(100, 150, 255, 0.3)";
+        sCtx.setLineDash([5, 5]);
+        sCtx.arc(cx, cy, orbitR, 0, Math.PI * 2);
+        sCtx.stroke();
+        sCtx.setLineDash([]);
+        // 월 표시
+        const months = [
+          "1월",
+          "2월",
+          "3월",
+          "4월",
+          "5월",
+          "6월",
+          "7월",
+          "8월",
+          "9월",
+          "10월",
+          "11월",
+          "12월",
+        ];
+        sCtx.font = "11px sans-serif";
+        sCtx.fillStyle = "#668";
+        for (let i = 0; i < 12; i++) {
+          const angle = (i * Math.PI) / 6 - Math.PI / 2;
+          const x = cx + Math.cos(angle) * (orbitR + 25);
+          const y = cy + Math.sin(angle) * (orbitR + 25);
+          sCtx.fillText(months[i], x - 15, y + 4);
+        }
+        // 타겟 방향 (RA에 따라)
+        const targetAngle = (ra / 24) * Math.PI * 2 - Math.PI / 2;
+        const targetX = cx + Math.cos(targetAngle) * 250;
+        const targetY = cy + Math.sin(targetAngle) * 250;
+        // 타겟 방향 화살표
+        sCtx.beginPath();
+        sCtx.strokeStyle = "rgba(255, 100, 100, 0.5)";
+        sCtx.lineWidth = 2;
+        sCtx.moveTo(cx, cy);
+        sCtx.lineTo(targetX, targetY);
+        sCtx.stroke();
+        sCtx.lineWidth = 1;
+        // 타겟 별
+        sCtx.beginPath();
+        const starGrad = sCtx.createRadialGradient(
+          targetX,
+          targetY,
+          0,
+          targetX,
+          targetY,
+          15
+        );
+        starGrad.addColorStop(0, "#fff");
+        starGrad.addColorStop(0.5, "#f88");
+        starGrad.addColorStop(1, "rgba(255, 100, 100, 0)");
+        sCtx.fillStyle = starGrad;
+        sCtx.arc(targetX, targetY, 12, 0, Math.PI * 2);
+        sCtx.fill();
+        sCtx.fillStyle = "#f88";
+        sCtx.fillText("타겟", targetX - 12, targetY + 28);
+        // 최적 관측 시기 (시차 최대)
+        const optAngle1 = targetAngle + Math.PI / 2;
+        const optAngle2 = targetAngle - Math.PI / 2;
+        // 최적 시기 표시
+        [optAngle1, optAngle2].forEach((angle, idx) => {
+          const ex = cx + Math.cos(angle) * orbitR;
+          const ey = cy + Math.sin(angle) * orbitR;
+          sCtx.beginPath();
+          sCtx.arc(ex, ey, 8, 0, Math.PI * 2);
+          sCtx.fillStyle = idx === 0 ? "#6f6" : "#6ff";
+          sCtx.fill();
+        });
+        // 관측 에포크들
+        const epochSpacing = (Math.PI * 2) / epochs;
+        for (let i = 0; i < epochs; i++) {
+          const angle = i * epochSpacing - Math.PI / 2;
+          const ex = cx + Math.cos(angle) * orbitR;
+          const ey = cy + Math.sin(angle) * orbitR;
+          sCtx.beginPath();
+          sCtx.arc(ex, ey, 5, 0, Math.PI * 2);
+          sCtx.fillStyle = "#aaf";
+          sCtx.fill();
+        }
+        // 현재 지구 위치 (애니메이션)
+        const earthAngle = (animMonth * Math.PI) / 6 - Math.PI / 2;
+        const earthX = cx + Math.cos(earthAngle) * orbitR;
+        const earthY = cy + Math.sin(earthAngle) * orbitR;
+        sCtx.beginPath();
+        const earthGrad = sCtx.createRadialGradient(
+          earthX,
+          earthY,
+          0,
+          earthX,
+          earthY,
+          15
+        );
+        earthGrad.addColorStop(0, "#6cf");
+        earthGrad.addColorStop(1, "#248");
+        sCtx.fillStyle = earthGrad;
+        sCtx.arc(earthX, earthY, 12, 0, Math.PI * 2);
+        sCtx.fill();
+        // 시선 표시
+        sCtx.beginPath();
+        sCtx.strokeStyle = "rgba(100, 200, 255, 0.3)";
+        sCtx.moveTo(earthX, earthY);
+        sCtx.lineTo(targetX, targetY);
+        sCtx.stroke();
+        // 시차 효과 표시 (지구 위치에 따른 겉보기 각도 차이)
+        const parallaxEffect = Math.sin(earthAngle - targetAngle);
+        const parallaxText = (parallaxEffect * 10).toFixed(2);
+        sCtx.fillStyle = "#8af";
+        sCtx.font = "12px sans-serif";
+        sCtx.fillText(
+          `현재 시차 효과: ${parallaxEffect > 0 ? "+" : ""}${parallaxText} mas`,
+          20,
+          30
+        );
+        sCtx.fillText(`타겟 RA: ${ra}h`, 20, 50);
+        // 최적 관측 시기 계산
+        const optMonth1 = Math.floor(
+          (((targetAngle + Math.PI / 2 + Math.PI / 2) / (Math.PI * 2)) * 12 +
+            12) %
+            12
+        );
+        const optMonth2 = Math.floor(
+          (((targetAngle - Math.PI / 2 + Math.PI / 2) / (Math.PI * 2)) * 12 +
+            12) %
+            12
+        );
+        document.getElementById(
+          "optimalEpochs"
+        ).textContent = `${months[optMonth1]}, ${months[optMonth2]}`;
+        document.getElementById("parallaxDir").textContent =
+          Math.abs(dec) < 30 ? "E-W 우세" : "E-W/N-S 혼합";
+        requestAnimationFrame(drawSchedule);
+      }
+      function animateYear() {
+        if (scheduleAnim) clearInterval(scheduleAnim);
+        animMonth = 0;
+        scheduleAnim = setInterval(() => {
+          animMonth = (animMonth + 0.1) % 12;
+          // 타임라인 업데이트
+          const epochs = parseInt(document.getElementById("epochSlider").value);
+          const spacing = 12 / epochs;
+          for (let i = 0; i < epochs; i++) {
+            const epochMonth = i * spacing;
+            const dot = document.getElementById(`epoch-${i}`);
+            if (dot) {
+              dot.classList.toggle(
+                "active",
+                Math.abs(animMonth - epochMonth) < 0.5 ||
+                  Math.abs(animMonth - epochMonth + 12) < 0.5
+              );
+            }
+          }
+        }, 100);
+      }
+      document.getElementById("raSlider").oninput = function () {
+        document.getElementById("raValue").textContent = this.value;
+        initScheduleTimeline();
+      };
+      document.getElementById("decSlider").oninput = function () {
+        document.getElementById("decValue").textContent = this.value;
+      };
+      document.getElementById("epochSlider").oninput = function () {
+        document.getElementById("epochValue").textContent = this.value;
+        initScheduleTimeline();
+      };
+      // ===== 초기화 =====
+      window.onload = function () {
+        drawParallax();
+        drawVLBI();
+        initPhaseSequence();
+        drawPhase();
+        drawMultiview();
+        drawIonosphere();
+        drawWrapping();
+        initScheduleTimeline();
+        drawSchedule();
+      };
+    </script>
+  </body>
+</html>
