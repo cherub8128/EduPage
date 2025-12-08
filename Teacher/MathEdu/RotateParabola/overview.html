@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>회전하는 사각 물통의 포물선 - 개요</title>
+  <link rel="stylesheet" href="shared.css" />
+  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.8/dist/web/static/pretendard.css" />
+  
+  <!-- MathJax -->
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+
+<body>
+
+<header>
+  <div class="header-brand">
+    <h1>MathEdu Project</h1>
+    <span class="tagline">회전 유체 역학의 수학적 모델링</span>
+  </div>
+  <nav>
+    <a href="overview.html" class="active">개요</a>
+    <a href="simulation.html">시뮬레이션</a>
+    <a href="theory.html">수식·심화</a>
+  </nav>
+</header>
+
+<main>
+
+  <!-- Hero Section -->
+  <section style="text-align: center; margin-bottom: 4rem;">
+    <span class="badge" style="margin-bottom: 1rem;">Physics & Mathematics Integration</span>
+    <h1 style="font-size: 2.5rem; font-weight: 800; margin: 0 0 1rem 0; line-height: 1.2;">
+      회전하는 사각 물통의<br/>
+      <span style="color: var(--primary);">포물선 단면 탐구</span>
+    </h1>
+    <p class="sub-desc" style="margin: 0 auto;">
+      실생활 현상을 관찰하고, 논문 기반 실험을 바탕으로 수학적 모델링과<br/>
+      컴퓨터 시뮬레이션을 통해 이해하는 <strong>STEAM 융합 탐구 프로젝트</strong>입니다.
+    </p>
+    
+    <div style="margin-top: 2rem; display: flex; gap: 1rem; justify-content: center;">
+      <a href="simulation.html" class="btn btn-primary">
+        <span>🎮 시뮬레이션 시작하기</span>
+      </a>
+      <a href="#paper" class="btn btn-outline">
+        <span>📄 논문 살펴보기</span>
+      </a>
+    </div>
+  </section>
+
+  <!-- 1. 논문 기반 관찰 -->
+  <section id="paper">
+    <h2>
+      <span class="badge">STEP 1</span>
+      논문 기반 현상 관찰
+    </h2>
+    
+    <div class="two-column">
+      <div>
+        <div class="reference-box">
+          <div class="reference-title">📄 Monteiro et al. (2019)</div>
+          <p style="margin:0; font-size: 0.9rem; color: var(--text-sub);">
+            <em>"The Parabola of Revolution: An Experimental Study Using a Rectangular Container"</em><br/>
+            직사각형 좁은 물통을 회전시키며, 스마트폰 자이로스코프와 비디오 분석을 활용해 자유수면이 이론 포물선과 일치함을 검증했습니다.
+          </p>
+        </div>
+        
+        <div class="reference-box" style="background-color: #f0fdf4; border-left-color: #16a34a;">
+          <div class="reference-title" style="color: #15803d;">📄 Menker & Herczyński (2022)</div>
+          <p style="margin:0; font-size: 0.9rem; color: var(--text-sub);">
+            <em>"Dry Patches and Rotating Containers"</em><br/>
+            다양한 기하학적 형태(원통, 정육면체 등)의 용기에서 임계 각속도 이상으로 회전할 때 중심에 "마른 영역(dry patch)"이 생기는 현상을 분석했습니다.
+          </p>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3 style="margin-top:0; font-size:1.1rem;">핵심 관찰 포인트</h3>
+        <ul style="padding-left: 1.2rem; color: var(--text-sub); margin-bottom: 0;">
+          <li class="mb-2">용기 모양과 상관없이 <span class="text-highlight">자유수면 단면이 포물선</span>을 이룹니다.</li>
+          <li class="mb-2">각속도 \(\omega\) 가 커질수록 포물선이 더 가파르게 휘어집니다.</li>
+          <li class="mb-2">임계 각속도 이상에서는 바닥이 드러나는 "마른 영역"이 형성됩니다.</li>
+          <li>이 현상을 통해 중력가속도 \(g\) 를 역으로 추정할 수 있습니다.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. 모형화 -->
+  <section id="model">
+    <h2>
+      <span class="badge">STEP 2</span>
+      수학적 모델링
+    </h2>
+    <p class="sub-desc">
+      복잡한 유체역학 방정식을 <strong>단순화된 가정</strong>으로 축약하여 시뮬레이션 가능한 모델을 만듭니다.
+    </p>
+
+    <div class="two-column">
+      <div>
+        <div class="math-box">
+<strong>[물리 법칙에서 수식 유도]</strong>
+
+회전 좌표계 힘의 평형 (정상 상태):
+\[
+\nabla p = \rho(\mathbf{g} - \mathbf{a})
+\]
+\[
+\Rightarrow \frac{dp}{dr} = \rho \omega^2 r, \quad \frac{dp}{dz} = -\rho g
+\]
+
+이를 적분하여 자유수면(\(p=p_{atm}\))을 구하면:
+\[
+z(r) = \frac{\omega^2}{2g} r^2 + C
+\]
+
+부피 보존을 고려한 최종 식 (직사각형):
+\[
+z(r) = H - \frac{\omega^2}{2g} \left(\frac{L^2}{12} - r^2\right)
+\]
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 1rem;">
+        <div class="card">
+          <div class="chip-container">
+            <span class="chip">가정 1</span>
+            <span class="chip">가정 2</span>
+            <span class="chip">가정 3</span>
+          </div>
+          <h3 style="margin:0 0 0.5rem 0; font-size:1rem;">단순화 가정</h3>
+          <ul style="padding-left: 1.2rem; color: var(--text-sub); font-size: 0.9rem; margin: 0;">
+            <li><strong>정상 상태 (Steady State):</strong> 시간에 따른 변화가 없음 (\(\partial/\partial t = 0\))</li>
+            <li><strong>강체 회전 (Rigid Body Rotation):</strong> 유체가 통째로 회전 (\(v = r\omega\))</li>
+            <li><strong>점성 무시:</strong> 마찰이나 내부 저항을 고려하지 않음</li>
+          </ul>
+        </div>
+
+        <div class="card" style="background: linear-gradient(135deg, #eff6ff, #ffffff);">
+          <h3 style="margin:0 0 0.5rem 0; font-size:1rem; color: var(--primary-dark);">주요 파라미터</h3>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; font-size: 0.9rem;">
+            <div>
+              <div style="font-weight: 600; color: var(--text-main);">꼭짓점 높이 \(z_v\)</div>
+              <div style="color: var(--text-sub);">중심부의 수면 높이</div>
+            </div>
+            <div>
+              <div style="font-weight: 600; color: var(--text-main);">임계 각속도 \(\omega_c\)</div>
+              <div style="color: var(--text-sub);">바닥이 드러나는 순간</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Learning Path -->
+  <section>
+    <h2>
+      <span class="badge">ROADMAP</span>
+      학습 로드맵
+    </h2>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+      <div class="card" style="border-top: 4px solid var(--primary);">
+        <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">👀</div>
+        <h3 style="margin: 0 0 0.5rem 0; font-size: 1rem;">1. 현상 관찰</h3>
+        <p style="font-size: 0.85rem; color: var(--text-sub); margin: 0;">논문 실험 데이터를 통해 회전 유체 현상을 직관적으로 이해합니다.</p>
+      </div>
+      
+      <div class="card" style="border-top: 4px solid var(--secondary);">
+        <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">📐</div>
+        <h3 style="margin: 0 0 0.5rem 0; font-size: 1rem;">2. 모델링</h3>
+        <p style="font-size: 0.85rem; color: var(--text-sub); margin: 0;">물리 법칙을 적용하여 현상을 수학적 언어(수식)로 번역합니다.</p>
+      </div>
+      
+      <div class="card" style="border-top: 4px solid #10b981;">
+        <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">💻</div>
+        <h3 style="margin: 0 0 0.5rem 0; font-size: 1rem;">3. 시뮬레이션</h3>
+        <p style="font-size: 0.85rem; color: var(--text-sub); margin: 0;">이론값과 물리엔진 시뮬레이션 결과를 비교 분석합니다.</p>
+      </div>
+      
+      <div class="card" style="border-top: 4px solid #8b5cf6;">
+        <div style="font-size: 1.5rem; margin-bottom: 0.5rem;">🚀</div>
+        <h3 style="margin: 0 0 0.5rem 0; font-size: 1rem;">4. 심화 탐구</h3>
+        <p style="font-size: 0.85rem; color: var(--text-sub); margin: 0;">무차원화 및 다른 기하학적 형태로 확장하여 일반화합니다.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <p>MathEdu Project &copy; 2025. Based on research by Monteiro et al. & Menker et al.</p>
+  </footer>
+
+</main>
+
+</body>
+</html>
