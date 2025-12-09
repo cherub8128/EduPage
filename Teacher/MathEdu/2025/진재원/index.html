@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Projects</title>
+    <link rel="canonical" href="https://jinjw27.github.io/Webpage/" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: #fff;
+            font-size: 2.5rem;
+            margin-bottom: 50px;
+            text-shadow: 0 0 20px rgba(100, 200, 255, 0.5);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .card:hover {
+            transform: translateY(-10px);
+            background: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .card-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+
+        .card-title {
+            color: #fff;
+            font-size: 1.4rem;
+            margin-bottom: 10px;
+        }
+
+        .card-desc {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        /* 각 카드별 색상 */
+        .card:nth-child(1) {
+            border-left: 4px solid #ff6b6b;
+        }
+
+        .card:nth-child(2) {
+            border-left: 4px solid #4ecdc4;
+        }
+
+        .card:nth-child(3) {
+            border-left: 4px solid #ffe66d;
+        }
+
+        .card:nth-child(4) {
+            border-left: 4px solid #95e1d3;
+        }
+
+        .card:nth-child(5) {
+            border-left: 4px solid #a8e6cf;
+        }
+
+        .card:nth-child(6) {
+            border-left: 4px solid #dcd6f7;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>🚀 My Interactive Projects</h1>
+
+        <div class="grid">
+            <!-- 각 프로젝트 카드 -->
+            <a href="dimension4.html" class="card">
+                <div class="card-icon">🌌</div>
+                <div class="card-title">Dimension 4</div>
+                <div class="card-desc">4차원 시각화 프로젝트</div>
+            </a>
+
+            <a href="kaleindoscope.html" class="card">
+                <div class="card-icon">🔮</div>
+                <div class="card-title">Kaleidoscope</div>
+                <div class="card-desc">만화경 패턴 시뮬레이션</div>
+            </a>
+
+            <a href="logistic.html" class="card">
+                <div class="card-icon">📊</div>
+                <div class="card-title">Logistic Map</div>
+                <div class="card-desc">로지스틱 맵 시각화</div>
+            </a>
+
+            <a href="molniya.html" class="card">
+                <div class="card-icon">🛰️</div>
+                <div class="card-title">Molniya Orbit</div>
+                <div class="card-desc">몰니야 궤도 시뮬레이션</div>
+            </a>
+
+            <a href="robot.html" class="card">
+                <div class="card-icon">🤖</div>
+                <div class="card-title">Robot</div>
+                <div class="card-desc">로봇 시뮬레이션</div>
+            </a>
+
+            <a href="traffic_integral.html" class="card">
+                <div class="card-icon">🚗</div>
+                <div class="card-title">Traffic Integral</div>
+                <div class="card-desc">교통 흐름 시뮬레이션</div>
+            </a>
+        </div>
+    </div>
+</body>
