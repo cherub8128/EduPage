@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>2025 AI융합교육중심학교 운영결과</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;500;700;900&family=Orbitron:wght@500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    />
+    <style>
+      /* 1. CORE SETUP & DARK THEME */
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        background-color: #0f172a;
+        /* Deep Dark Blue Background */
+        margin: 0;
+        padding: 20px 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        gap: 20px;
+        font-family: "Noto Sans KR", sans-serif;
+      }
+
+      .slide-container {
+        width: 1280px;
+        height: 720px;
+        background-color: #1e293b;
+        /* Slightly lighter dark for slide card */
+        border-radius: 16px;
+        overflow: hidden;
+        position: relative;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+        display: flex;
+        flex-direction: column;
+        padding: 0;
+        /* Full bleed capability */
+        color: #f1f5f9;
+      }
+
+      /* 2. TYPOGRAPHY */
+      h1,
+      h2,
+      h3 {
+        font-family: "Noto Sans KR", sans-serif;
+        margin: 0;
+        line-height: 1.2;
+      }
+
+      .slide-title {
+        font-size: 48px;
+        font-weight: 700;
+        color: #38bdf8;
+        /* Light Blue Accent */
+        padding: 40px 60px 0 60px;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        z-index: 10;
+      }
+
+      p,
+      li {
+        font-size: 24px;
+        color: #cbd5e1;
+        line-height: 1.6;
+      }
+
+      .highlight {
+        color: #4ade80;
+        font-weight: 700;
+      }
+
+      /* Green Accent */
+
+      /* 3. LAYOUT UTILITIES */
+      .content-area {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        flex-grow: 1;
+        padding: 40px 60px;
+        margin-top: 60px;
+        /* Space for title */
+        width: 100%;
+        height: 100%;
+      }
+
+      /* Title Slide */
+      .title-layout {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        height: 100%;
+        text-align: center;
+        background: linear-gradient(
+            rgba(15, 23, 42, 0.8),
+            rgba(15, 23, 42, 0.8)
+          ),
+          url("https://placehold.co/1280x720/0f172a/38bdf8?text=AI+Network+Background");
+        background-size: cover;
+      }
+
+      .title-layout h1 {
+        font-family: "Orbitron", sans-serif;
+        font-size: 100px;
+        color: #fff;
+        text-shadow: 0 0 20px rgba(56, 189, 248, 0.5);
+        margin-bottom: 20px;
+      }
+
+      .title-layout p {
+        font-size: 32px;
+        color: #94a3b8;
+        letter-spacing: 4px;
+      }
+
+      /* Section Title */
+      .section-title-layout {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100%;
+        background-color: #000;
+      }
+
+      .section-title-layout h2 {
+        font-size: 80px;
+        color: #fff;
+        border-bottom: 6px solid #4ade80;
+        padding-bottom: 20px;
+      }
+
+      /* Two Column */
+      .two-column {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 40px;
+        width: 100%;
+        height: 100%;
+        align-items: center;
+      }
+
+      /* Bleed Image Right (For Videos/Media) */
+      .bleed-image-layout {
+        display: grid;
+        grid-template-columns: 35% 65%;
+        height: 100%;
+      }
+
+      .bleed-text-side {
+        padding: 120px 40px 40px 60px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+      }
+
+      .bleed-image-side {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        background-color: #000;
+        position: relative;
+      }
+
+      /* Media Placeholder Styles */
+      .media-placeholder {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background-color: #000;
+        border: 2px dashed #4ade80;
+        color: #4ade80;
+        font-family: "Orbitron", sans-serif;
+      }
+
+      .media-placeholder i {
+        font-size: 80px;
+        margin-bottom: 20px;
+      }
+
+      .media-placeholder span {
+        font-size: 24px;
+      }
+
+      .qr-code-box {
+        width: 300px;
+        height: 300px;
+        background-color: #fff;
+        margin: 0 auto;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      /* Charts & Numbers */
+      .highlight-numbers {
+        display: flex;
+        justify-content: space-around;
+        width: 100%;
+        text-align: center;
+      }
+
+      .number-item .num {
+        font-size: 120px;
+        font-weight: 900;
+        color: #4ade80;
+        font-family: "Orbitron", sans-serif;
+        display: block;
+      }
+
+      .number-item .label {
+        font-size: 30px;
+        color: #fff;
+        margin-top: 10px;
+        display: block;
+      }
+
+      .chart-container {
+        width: 80%;
+        height: 400px;
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-around;
+        gap: 20px;
+      }
+
+      .bar {
+        width: 100px;
+        background: linear-gradient(to top, #38bdf8, #2563eb);
+        border-radius: 8px 8px 0 0;
+        position: relative;
+        transition: height 1s;
+      }
+
+      .bar span {
+        position: absolute;
+        top: -30px;
+        left: 50%;
+        transform: translateX(-50%);
+        color: #fff;
+        font-weight: bold;
+        font-size: 20px;
+      }
+
+      .bar-label {
+        position: absolute;
+        bottom: -40px;
+        left: 50%;
+        transform: translateX(-50%);
+        color: #cbd5e1;
+        font-size: 18px;
+        width: 150px;
+        text-align: center;
+      }
+
+      /* Tiles */
+      .tiled-content {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 30px;
+        width: 100%;
+      }
+
+      .tile {
+        background-color: #334155;
+        padding: 30px;
+        border-radius: 12px;
+        text-align: center;
+      }
+
+      .tile i {
+        font-size: 50px;
+        color: #38bdf8;
+        margin-bottom: 20px;
+      }
+
+      .tile h3 {
+        color: #fff;
+        font-size: 28px;
+        margin-bottom: 15px;
+      }
+
+      /* 4. PRINT & PDF EXPORT FIXES */
+      @media print {
+        @page {
+          size: 1280px 720px;
+          /* Force slide dimensions */
+          margin: 0;
+        }
+
+        html,
+        body {
+          width: 1280px;
+          height: 100%;
+          margin: 0;
+          padding: 0;
+          background-color: #0f172a !important;
+          /* Ensure bg color prints */
+          -webkit-print-color-adjust: exact;
+          /* Chrome/Safari */
+          print-color-adjust: exact;
+          /* Firefox */
+          display: block;
+          /* Disable grid for print flow */
+        }
+
+        .slide-container {
+          break-after: page;
+          /* Force page break after each slide */
+          page-break-after: always;
+          margin: 0;
+          border-radius: 0;
+          /* Remove rounded corners for full bleed */
+          box-shadow: none;
+          width: 100%;
+          height: 100%;
+          overflow: hidden;
+          /* Prevent spillover */
+          print-color-adjust: exact;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- Slide 1: Title -->
+    <div class="slide-container">
+      <div class="title-layout">
+        <h1>AI로 다 잇[IT]다</h1>
+        <p>2025 AI융합교육중심학교 운영결과보고</p>
+        <p style="font-size: 24px; margin-top: 20px; color: #4ade80">
+          송도고등학교
+        </p>
+      </div>
+    </div>
+
+    <!-- Slide 2: Vision & Goal (Modified Structure) -->
+    <div class="slide-container">
+      <h2 class="slide-title">운영 목표</h2>
+      <div class="content-area">
+        <div
+          style="
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            width: 85%;
+          "
+        >
+          <!-- Top Layer: Extracurricular (Application) -->
+          <div
+            style="
+              width: 90%;
+              background: linear-gradient(
+                135deg,
+                rgba(244, 114, 182, 0.1),
+                rgba(244, 114, 182, 0.2)
+              );
+              border: 3px solid #f472b6;
+              border-radius: 16px;
+              padding: 30px;
+              text-align: center;
+              position: relative;
+              box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            "
+          >
+            <div
+              style="
+                position: absolute;
+                top: -20px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: #1e293b;
+                padding: 0 25px;
+                color: #f472b6;
+                font-weight: bold;
+                font-size: 24px;
+                border: 2px solid #f472b6;
+                border-radius: 20px;
+              "
+            >
+              비교과: 심화 및 확장
+            </div>
+            <h3 style="font-size: 38px; color: #fff; margin: 15px 0 10px 0">
+              장기 프로젝트로 역량의 살을 붙이다
+            </h3>
+            <p style="font-size: 20px; color: #cbd5e1; margin-bottom: 15px">
+              "수업에서 배운 역량을 바탕으로 내실 있는 결과물 완성"
+            </p>
+            <div style="display: flex; justify-content: center; gap: 20px">
+              <span
+                style="
+                  background: #f472b6;
+                  color: #1e293b;
+                  padding: 8px 20px;
+                  border-radius: 25px;
+                  font-weight: 800;
+                  font-size: 18px;
+                "
+                >진로 활동</span
+              >
+              <span
+                style="
+                  background: #f472b6;
+                  color: #1e293b;
+                  padding: 8px 20px;
+                  border-radius: 25px;
+                  font-weight: 800;
+                  font-size: 18px;
+                "
+                >자율 활동</span
+              >
+              <span
+                style="
+                  background: #f472b6;
+                  color: #1e293b;
+                  padding: 8px 20px;
+                  border-radius: 25px;
+                  font-weight: 800;
+                  font-size: 18px;
+                "
+                >동아리</span
+              >
+              <span
+                style="
+                  background: #f472b6;
+                  color: #1e293b;
+                  padding: 8px 20px;
+                  border-radius: 25px;
+                  font-weight: 800;
+                  font-size: 18px;
+                "
+                >봉사 활동</span
+              >
+            </div>
+          </div>
+
+          <!-- Arrow Connection -->
+          <div
+            style="
+              height: 80px;
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              justify-content: center;
+            "
+          >
+            <div style="width: 4px; height: 100%; background: #4ade80"></div>
+            <i
+              class="fa-solid fa-arrow-up"
+              style="font-size: 30px; color: #4ade80; margin-top: -10px"
+            ></i>
+          </div>
+
+          <!-- Bottom Layer: Curriculum (Foundation) -->
+          <div
+            style="
+              width: 100%;
+              background: linear-gradient(
+                135deg,
+                rgba(56, 189, 248, 0.1),
+                rgba(56, 189, 248, 0.2)
+              );
+              border: 3px solid #38bdf8;
+              border-radius: 16px;
+              padding: 35px;
+              text-align: center;
+              position: relative;
+              box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            "
+          >
+            <div
+              style="
+                position: absolute;
+                top: -20px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: #1e293b;
+                padding: 0 25px;
+                color: #38bdf8;
+                font-weight: bold;
+                font-size: 24px;
+                border: 2px solid #38bdf8;
+                border-radius: 20px;
+              "
+            >
+              교과 수업: 기초와 뿌리
+            </div>
+            <h3 style="font-size: 38px; color: #fff; margin: 15px 0 10px 0">
+              모든 것을 최대한 뽑아내다
+            </h3>
+            <p style="font-size: 20px; color: #cbd5e1; margin-bottom: 0">
+              정보 · 프로그래밍 · 인공지능 기초 · 데이터 분석
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 3: Curriculum Flow -->
+    <div class="slide-container">
+      <h2 class="slide-title">AI 교육과정 로드맵</h2>
+      <div class="content-area">
+        <div
+          style="
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            margin-top: 50px;
+          "
+        >
+          <div
+            class="tile"
+            style="
+              flex: 1;
+              margin: 0 10px;
+              background: #0f172a;
+              border: 2px solid #38bdf8;
+            "
+          >
+            <i class="fa-brands fa-python"></i>
+            <h3>1학년: 기초</h3>
+            <p style="font-size: 18px">정보(Python)<br />로봇과 공학세계</p>
+          </div>
+          <i
+            class="fa-solid fa-arrow-right"
+            style="font-size: 30px; color: #64748b"
+          ></i>
+          <div
+            class="tile"
+            style="
+              flex: 1;
+              margin: 0 10px;
+              background: #0f172a;
+              border: 2px solid #4ade80;
+            "
+          >
+            <i class="fa-brands fa-unity"></i>
+            <h3>2학년: 심화</h3>
+            <p style="font-size: 18px">프로그래밍(C#)<br />인공지능 기초(RL)</p>
+          </div>
+          <i
+            class="fa-solid fa-arrow-right"
+            style="font-size: 30px; color: #64748b"
+          ></i>
+          <div
+            class="tile"
+            style="
+              flex: 1;
+              margin: 0 10px;
+              background: #0f172a;
+              border: 2px solid #f472b6;
+            "
+          >
+            <i class="fa-solid fa-microchip"></i>
+            <h3>3학년: 적용</h3>
+            <p style="font-size: 18px">피지컬 컴퓨팅<br />자료구조</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 4: Grade 1 Intro -->
+    <div class="slide-container">
+      <div class="section-title-layout">
+        <h2>1학년: 기초를 다지다</h2>
+      </div>
+    </div>
+
+    <!-- Slide 5: Grade 1 Python Result (LINK PLACEHOLDER) -->
+    <div class="slide-container">
+      <h2 class="slide-title">1학년 정보: Python 프로젝트</h2>
+      <div class="content-area">
+        <div class="two-column">
+          <div>
+            <h3 style="font-size: 40px; margin-bottom: 20px">
+              생성형 AI 활용 게임 개발
+            </h3>
+            <p>
+              Pygame 라이브러리와 ChatGPT를 활용하여<br />나만의 창의적인 게임
+              제작
+            </p>
+            <div
+              style="
+                margin-top: 40px;
+                padding: 20px;
+                background: #334155;
+                border-radius: 8px;
+              "
+            >
+              <i class="fa-solid fa-arrow-right" style="color: #4ade80"></i>
+              <span style="color: #fff"
+                >우측 QR코드를 통해<br />학생들의 결과물을 확인하세요.</span
+              >
+            </div>
+          </div>
+          <!-- LINK PLACEHOLDER -->
+          <div class="media-placeholder" style="background: #fff; color: #000">
+            <!-- User: Replace this image with actual QR Code or Website Screenshot -->
+            <div class="qr-code-box">
+              <img
+                src="https://placehold.co/300x300/000/fff?text=QR+Code"
+                alt="Link QR"
+              />
+            </div>
+            <p style="color: #000; margin-top: 20px; font-weight: bold">
+              결과물 전시 사이트 접속
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 6: Grade 2 Intro -->
+    <div class="slide-container">
+      <div class="section-title-layout">
+        <h2 style="border-color: #38bdf8">2학년: 공학에 눈뜨다</h2>
+      </div>
+    </div>
+
+    <!-- Slide 7: Grade 2 Game Video 1 (VIDEO PLACEHOLDER) -->
+    <div class="slide-container bleed-image-layout">
+      <div class="bleed-text-side">
+        <h3 style="font-size: 36px; color: #38bdf8; margin-bottom: 10px">
+          프로그래밍(C#)
+        </h3>
+        <h2 style="font-size: 48px; margin-bottom: 30px">물리 엔진 게임 1</h2>
+        <p>Unity와 C#을 활용한<br />STEAM 융합 프로젝트</p>
+        <p class="highlight" style="margin-top: 20px">[학생 작품 시연 영상]</p>
+      </div>
+      <!-- VIDEO PLACEHOLDER AREA -->
+      <div class="bleed-image-side">
+        <!-- User: Insert Video Tag Here -->
+        <div class="media-placeholder">
+          <i class="fa-solid fa-circle-play"></i>
+          <span>영상 삽입 영역 (작품 1)</span>
+          <span style="font-size: 16px; margin-top: 10px; color: #94a3b8"
+            >1280x720 영상 또는 YouTube Iframe</span
+          >
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 8: Grade 2 Game Video 2 (VIDEO PLACEHOLDER) -->
+    <div class="slide-container bleed-image-layout">
+      <div class="bleed-text-side">
+        <h3 style="font-size: 36px; color: #38bdf8; margin-bottom: 10px">
+          프로그래밍(C#)
+        </h3>
+        <h2 style="font-size: 48px; margin-bottom: 30px">물리 엔진 게임 2</h2>
+        <p>GIGDC 출품작 수준의<br />높은 완성도 구현</p>
+        <p class="highlight" style="margin-top: 20px">[학생 작품 시연 영상]</p>
+      </div>
+      <!-- VIDEO PLACEHOLDER AREA -->
+      <div class="bleed-image-side">
+        <div class="media-placeholder">
+          <i class="fa-solid fa-circle-play"></i>
+          <span>영상 삽입 영역 (작품 2)</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 9: Grade 2 Game Video 3 (VIDEO PLACEHOLDER) -->
+    <div class="slide-container bleed-image-layout">
+      <div class="bleed-text-side">
+        <h3 style="font-size: 36px; color: #38bdf8; margin-bottom: 10px">
+          프로그래밍(C#)
+        </h3>
+        <h2 style="font-size: 48px; margin-bottom: 30px">물리 엔진 게임 3</h2>
+        <p>창의적 알고리즘 설계와<br />최적화 과정</p>
+        <p class="highlight" style="margin-top: 20px">[학생 작품 시연 영상]</p>
+      </div>
+      <!-- VIDEO PLACEHOLDER AREA -->
+      <div class="bleed-image-side">
+        <div class="media-placeholder">
+          <i class="fa-solid fa-circle-play"></i>
+          <span>영상 삽입 영역 (작품 3)</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 10: AI Basics Intro -->
+    <div class="slide-container">
+      <div class="section-title-layout">
+        <h2 style="border-color: #f472b6">2학년: AI 원리를 깨우치다</h2>
+      </div>
+    </div>
+
+    <!-- Slide 11: AI Basics RL Result (IMAGE/GIF PLACEHOLDER) -->
+    <div class="slide-container">
+      <h2 class="slide-title">인공지능 기초: 강화학습(RL)</h2>
+      <div class="content-area">
+        <div class="two-column">
+          <div>
+            <h3 style="font-size: 40px; margin-bottom: 20px">
+              Unity ML-Agents
+            </h3>
+            <ul style="list-style: none; padding: 0">
+              <li style="margin-bottom: 15px">강화학습 환경 직접 설계</li>
+              <li style="margin-bottom: 15px">에이전트 보상 함수 코딩</li>
+              <li style="margin-bottom: 15px">
+                텐서보드(TensorBoard) 학습 분석
+              </li>
+            </ul>
+          </div>
+          <!-- RESULT PLACEHOLDER -->
+          <div
+            class="media-placeholder"
+            style="border-style: solid; border-color: #f472b6; color: #f472b6"
+          >
+            <i class="fa-solid fa-robot"></i>
+            <span>강화학습 결과 화면/GIF 삽입</span>
+            <span style="font-size: 16px; margin-top: 10px"
+              >(CartPole, 주행 시뮬레이션 등)</span
+            >
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 12: Math Fusion (LINK/IMAGE PLACEHOLDER) -->
+    <div class="slide-container">
+      <h2 class="slide-title">수학 교과 융합 프로젝트</h2>
+      <div class="content-area">
+        <div class="two-column">
+          <!-- LINK PLACEHOLDER -->
+          <div
+            class="media-placeholder"
+            style="background: #fff; color: #333; border: none"
+          >
+            <img
+              src="https://placehold.co/600x400/e2e8f0/64748b?text=Math+Simulation+Screenshot"
+              style="width: 100%; height: 100%; object-fit: cover"
+            />
+          </div>
+          <div>
+            <h3 style="font-size: 40px; margin-bottom: 20px">수학의 시각화</h3>
+            <p>미적분, 기하 원리를<br />코드로 구현한 시뮬레이션</p>
+            <div style="margin-top: 30px">
+              <p class="highlight" style="font-size: 20px">
+                [예시] 이중 진자, 최속 강하선 등
+              </p>
+              <p style="font-size: 18px; margin-top: 10px; color: #94a3b8">
+                * 좌측 이미지를 클릭하여 시연 (링크 연결)
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 13: STEAM Challenge Intro -->
+    <div class="slide-container">
+      <div class="section-title-layout">
+        <h2 style="border-color: #fbbf24">STEAM 융합 AI·SW 챌린지</h2>
+      </div>
+    </div>
+
+    <!-- Slide 14: STEAM Stats -->
+    <div class="slide-container">
+      <h2 class="slide-title">챌린지 운영 성과</h2>
+      <div class="content-area">
+        <div class="highlight-numbers">
+          <div class="number-item">
+            <span class="num">29</span>
+            <span class="label">참여 팀</span>
+          </div>
+          <div class="number-item">
+            <span class="num">63</span>
+            <span class="label">참여 학생(명)</span>
+          </div>
+          <div class="number-item">
+            <span class="num">100<span style="font-size: 60px">%</span></span>
+            <span class="label">프로젝트 완주율</span>
+          </div>
+        </div>
+        <p style="margin-top: 60px; text-align: center">
+          9개월간의 장기 프로젝트, 중도 포기 없는 열정
+        </p>
+      </div>
+    </div>
+
+    <!-- Slide 15: STEAM Results Showcase (VIDEO/LINK PLACEHOLDER) -->
+    <div class="slide-container">
+      <h2 class="slide-title">STEAM 융합 우수 산출물</h2>
+      <div class="content-area">
+        <div class="tiled-content">
+          <!-- Placeholder 1 -->
+          <div
+            class="media-placeholder"
+            style="height: 300px; border-color: #fbbf24; color: #fbbf24"
+          >
+            <i class="fa-solid fa-drone"></i>
+            <span>N.F.O 드론 방어</span>
+            <span style="font-size: 14px">(영상/이미지 교체)</span>
+          </div>
+          <!-- Placeholder 2 -->
+          <div
+            class="media-placeholder"
+            style="height: 300px; border-color: #fbbf24; color: #fbbf24"
+          >
+            <i class="fa-solid fa-comments"></i>
+            <span>Gemma3 온디바이스 챗봇</span>
+            <span style="font-size: 14px">(영상/이미지 교체)</span>
+          </div>
+          <!-- Placeholder 3 -->
+          <div
+            class="media-placeholder"
+            style="height: 300px; border-color: #fbbf24; color: #fbbf24"
+          >
+            <i class="fa-solid fa-leaf"></i>
+            <span>스마트팜 제어 시스템</span>
+            <span style="font-size: 14px">(영상/이미지 교체)</span>
+          </div>
+        </div>
+        <p style="margin-top: 30px; font-size: 20px; color: #fbbf24">
+          * 각 영역을 클릭하여 상세 내용을 확인하세요.
+        </p>
+      </div>
+    </div>
+
+    <!-- Slide 16: Culture & Sharing -->
+    <div class="slide-container">
+      <h2 class="slide-title">나눔과 공유의 문화</h2>
+      <div class="content-area">
+        <div class="two-column">
+          <div class="media-placeholder" style="border: none">
+            <img
+              src="https://placehold.co/600x400/1e293b/fff?text=AI+Day+Photo"
+              style="
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                border-radius: 12px;
+              "
+            />
+          </div>
+          <div>
+            <h3 style="font-size: 40px; margin-bottom: 20px">
+              AI의 날 & 페스티벌
+            </h3>
+            <ul style="list-style: none; padding: 0">
+              <li style="margin-bottom: 20px">전교생 대상 부스 운영</li>
+              <li style="margin-bottom: 20px">학생이 직접 설명하고 시연</li>
+              <li style="margin-bottom: 20px">지역 사회와 성과 공유</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 17: External Awards -->
+    <div class="slide-container">
+      <h2 class="slide-title">대외적 성과 입증</h2>
+      <div class="content-area">
+        <div class="bleed-image-layout" style="grid-template-columns: 50% 50%">
+          <!-- Photo Placeholder -->
+          <div class="bleed-image-side">
+            <img
+              src="https://placehold.co/640x720/fbbf24/000?text=Award+Photo"
+              style="width: 100%; height: 100%; object-fit: cover"
+            />
+          </div>
+          <div class="bleed-text-side">
+            <h3 style="font-size: 40px; color: #fbbf24; margin-bottom: 30px">
+              전국 대회 대상 수상
+            </h3>
+            <p style="margin-bottom: 20px">
+              🏆 전국 자율주행차 경진대회 <span class="highlight">대상</span>
+            </p>
+            <p style="margin-bottom: 20px">🏅 인천 해커톤 챌린지 수상</p>
+            <p style="margin-bottom: 20px">🎮 GIGDC(게임개발) 출품</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 18: Competency Growth -->
+    <div class="slide-container">
+      <h2 class="slide-title">학생 역량 성장 변화</h2>
+      <div class="content-area">
+        <div class="chart-container">
+          <!-- Data Visualization -->
+          <div class="bar" style="height: 40%">
+            <span>45%</span>
+            <div class="bar-label">사전 역량</div>
+          </div>
+          <div
+            class="bar"
+            style="
+              height: 60%;
+              background: linear-gradient(to top, #38bdf8, #2563eb);
+              opacity: 0.5;
+            "
+          >
+            <!-- Animation Gap -->
+          </div>
+          <div
+            class="bar"
+            style="
+              height: 95%;
+              background: linear-gradient(to top, #4ade80, #16a34a);
+            "
+          >
+            <span>95%</span>
+            <div class="bar-label">사후 역량</div>
+          </div>
+        </div>
+        <p style="margin-top: 40px; font-size: 28px">
+          참여 학생 <span class="highlight">95%</span> 역량 향상 체감
+        </p>
+      </div>
+    </div>
+
+    <!-- Slide 19: Conclusion -->
+    <div class="slide-container">
+      <div class="title-layout" style="background: #0f172a">
+        <i
+          class="fa-solid fa-rocket"
+          style="font-size: 100px; color: #38bdf8; margin-bottom: 40px"
+        ></i>
+        <h1 style="font-size: 70px">From Classroom<br />To The World</h1>
+        <p>교실 속 배움이 세상을 바꾸는 기술로</p>
+      </div>
+    </div>
+
+    <!-- Slide 20: Q&A -->
+    <div class="slide-container">
+      <div class="title-layout" style="background: #000">
+        <h1 style="color: #4ade80">Q & A</h1>
+        <p>경청해 주셔서 감사합니다.</p>
+        <p style="font-size: 20px; margin-top: 40px; color: #64748b">
+          송도고등학교 교육정보부
+        </p>
+      </div>
+    </div>
+  </body>
+</html>
