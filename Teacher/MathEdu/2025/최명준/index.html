@@ -1,260 +1,250 @@
 <!DOCTYPE html>
 <html lang="ko">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>MJ's MATH WORLD</title>
-    <style>
-      @import url("https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&family=Quicksand:wght@500;700&display=swap");
 
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MJ's MATH WORLD</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&family=Quicksand:wght@500;700&display=swap');
 
-      body {
-        font-family: "Nunito", sans-serif;
-        background-color: #fff0f5;
-        color: #5d5d5d;
-        min-height: 100vh;
-        overflow-x: hidden;
-      }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
-      .background {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        z-index: -1;
-        background: linear-gradient(135deg, #fff0f5 0%, #ffe4e1 100%);
-      }
+    body {
+      font-family: 'Nunito', sans-serif;
+      background-color: #fff0f5;
+      color: #5d5d5d;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
 
-      .grid-lines {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-image: linear-gradient(
-            rgba(255, 182, 193, 0.2) 1px,
-            transparent 1px
-          ),
-          linear-gradient(90deg, rgba(255, 182, 193, 0.2) 1px, transparent 1px);
-        background-size: 50px 50px;
-      }
+    .background {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+      background: linear-gradient(135deg, #fff0f5 0%, #ffe4e1 100%);
+    }
 
-      .container {
-        max-width: 1400px;
-        margin: 0 auto;
-        padding: 40px 20px;
-      }
+    .grid-lines {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: linear-gradient(rgba(255, 182, 193, 0.2) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 182, 193, 0.2) 1px, transparent 1px);
+      background-size: 50px 50px;
+    }
 
-      header {
-        text-align: center;
-        margin-bottom: 60px;
-        padding-top: 40px;
-        position: relative;
-      }
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
 
+    header {
+      text-align: center;
+      margin-bottom: 60px;
+      padding-top: 40px;
+      position: relative;
+    }
+
+    h1 {
+      font-family: 'Quicksand', sans-serif;
+      font-size: 3.5rem;
+      font-weight: 700;
+      color: #ff69b4;
+      margin-bottom: 10px;
+      text-shadow: 2px 2px 0px #fff, 4px 4px 0px rgba(255, 105, 180, 0.2);
+      letter-spacing: -1px;
+    }
+
+    .subtitle {
+      font-size: 1.2rem;
+      color: #886070;
+      font-weight: 600;
+      letter-spacing: 1px;
+      background-color: rgba(255, 255, 255, 0.6);
+      display: inline-block;
+      padding: 5px 15px;
+      border-radius: 20px;
+    }
+
+    .projects-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 30px;
+      padding: 20px;
+    }
+
+    .card {
+      background: #ffffff;
+      border: 2px solid #ffeff5;
+      border-radius: 24px;
+      padding: 30px;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.3s ease;
+      box-shadow: 0 10px 20px rgba(255, 182, 193, 0.2);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      height: 320px;
+    }
+
+    .card:hover {
+      transform: translateY(-8px);
+      border-color: #ffb6c1;
+      box-shadow: 0 15px 30px rgba(255, 105, 180, 0.3);
+    }
+
+    .card-icon {
+      font-size: 3.5rem;
+      margin-bottom: 15px;
+      transition: transform 0.3s ease;
+    }
+
+    .card:hover .card-icon {
+      transform: scale(1.1) rotate(5deg);
+    }
+
+    .card-title {
+      font-family: 'Quicksand', sans-serif;
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: #ff69b4;
+      margin-bottom: 10px;
+    }
+
+    .card-desc {
+      font-size: 0.95rem;
+      color: #777;
+      line-height: 1.6;
+      margin-bottom: 20px;
+      flex-grow: 1;
+    }
+
+    .card-link {
+      display: inline-block;
+      padding: 12px 0;
+      background: #ffecf2;
+      color: #ff69b4;
+      text-decoration: none;
+      font-weight: 700;
+      border-radius: 12px;
+      transition: all 0.3s ease;
+      text-align: center;
+      width: 100%;
+    }
+
+    .card-link:hover {
+      background: #ff69b4;
+      color: #ffffff;
+      box-shadow: 0 5px 15px rgba(255, 105, 180, 0.4);
+    }
+
+    @media (max-width: 768px) {
       h1 {
-        font-family: "Quicksand", sans-serif;
-        font-size: 3.5rem;
-        font-weight: 700;
-        color: #ff69b4;
-        margin-bottom: 10px;
-        text-shadow: 2px 2px 0px #fff, 4px 4px 0px rgba(255, 105, 180, 0.2);
-        letter-spacing: -1px;
-      }
-
-      .subtitle {
-        font-size: 1.2rem;
-        color: #886070;
-        font-weight: 600;
-        letter-spacing: 1px;
-        background-color: rgba(255, 255, 255, 0.6);
-        display: inline-block;
-        padding: 5px 15px;
-        border-radius: 20px;
+        font-size: 2.5rem;
       }
 
       .projects-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        gap: 30px;
-        padding: 20px;
+        grid-template-columns: 1fr;
       }
+    }
+  </style>
+</head>
 
-      .card {
-        background: #ffffff;
-        border: 2px solid #ffeff5;
-        border-radius: 24px;
-        padding: 30px;
-        position: relative;
-        overflow: hidden;
-        transition: all 0.3s ease;
-        box-shadow: 0 10px 20px rgba(255, 182, 193, 0.2);
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-        height: 320px;
-      }
+<body>
+  <div class="background">
+    <div class="grid-lines"></div>
+  </div>
 
-      .card:hover {
-        transform: translateY(-8px);
-        border-color: #ffb6c1;
-        box-shadow: 0 15px 30px rgba(255, 105, 180, 0.3);
-      }
+  <div class="container">
+    <header>
+      <h1>Math Lab</h1>
+      <div class="subtitle">Computational Experiments by Choi Myung-jun</div>
+    </header>
 
-      .card-icon {
-        font-size: 3.5rem;
-        margin-bottom: 15px;
-        transition: transform 0.3s ease;
-      }
+    <main class="projects-grid">
+      <!-- Friction Simulator -->
+      <article class="card">
+        <div class="card-icon">🚗</div>
+        <h2 class="card-title">Friction</h2>
+        <p class="card-desc">
+          Simulation of vehicle braking dynamics and Coulomb friction energy loss.
+        </p>
+        <a href="friction.html" class="card-link">Launch</a>
+      </article>
 
-      .card:hover .card-icon {
-        transform: scale(1.1) rotate(5deg);
-      }
+      <!-- Electric Circuit -->
+      <article class="card">
+        <div class="card-icon">⚡</div>
+        <h2 class="card-title">Circuit</h2>
+        <p class="card-desc">Gauss elimination visualized through partial resistive circuits.</p>
+        <a href="electric.html" class="card-link">Launch</a>
+      </article>
 
-      .card-title {
-        font-family: "Quicksand", sans-serif;
-        font-size: 1.6rem;
-        font-weight: 700;
-        color: #ff69b4;
-        margin-bottom: 10px;
-      }
+      <!-- Magnus Effect -->
+      <article class="card">
+        <div class="card-icon">⚾</div>
+        <h2 class="card-title">Magnus</h2>
+        <p class="card-desc">3D visualization of the Magnus effect on a spinning ball.</p>
+        <a href="magnus.html" class="card-link">Launch</a>
+      </article>
 
-      .card-desc {
-        font-size: 0.95rem;
-        color: #777;
-        line-height: 1.6;
-        margin-bottom: 20px;
-        flex-grow: 1;
-      }
+      <!-- Rose Curve -->
+      <article class="card">
+        <div class="card-icon">🌹</div>
+        <h2 class="card-title">Rose Curve</h2>
+        <p class="card-desc">
+          Mathematical beauty of polar rose curves with adjustable parameters.
+        </p>
+        <a href="rose.html" class="card-link">Launch</a>
+      </article>
 
-      .card-link {
-        display: inline-block;
-        padding: 12px 0;
-        background: #ffecf2;
-        color: #ff69b4;
-        text-decoration: none;
-        font-weight: 700;
-        border-radius: 12px;
-        transition: all 0.3s ease;
-        text-align: center;
-        width: 100%;
-      }
+      <!-- Solar System -->
+      <article class="card">
+        <div class="card-icon">☄️</div>
+        <h2 class="card-title">Orbit</h2>
+        <p class="card-desc">
+          Hyperbolic comet trajectory simulation with gravitational assists.
+        </p>
+        <a href="solar.html" class="card-link">Launch</a>
+      </article>
 
-      .card-link:hover {
-        background: #ff69b4;
-        color: #ffffff;
-        box-shadow: 0 5px 15px rgba(255, 105, 180, 0.4);
-      }
+      <!-- Train Path -->
+      <article class="card">
+        <div class="card-icon">🚇</div>
+        <h2 class="card-title">Dijkstra</h2>
+        <p class="card-desc">Seoul Subway shortest path finding using Dijkstra's algorithm.</p>
+        <a href="train.html" class="card-link">Launch</a>
+      </article>
 
-      @media (max-width: 768px) {
-        h1 {
-          font-size: 2.5rem;
-        }
-        .projects-grid {
-          grid-template-columns: 1fr;
-        }
-      }
-    </style>
-  </head>
-  <body>
-    <div class="background">
-      <div class="grid-lines"></div>
-    </div>
+      <!-- Two Envelope -->
+      <article class="card">
+        <div class="card-icon">✉️</div>
+        <h2 class="card-title">Paradox</h2>
+        <p class="card-desc">Simulation of the Two Envelope Paradox and probability analysis.</p>
+        <a href="twoEnvelop.html" class="card-link">Launch</a>
+      </article>
 
-    <div class="container">
-      <header>
-        <h1>Math Lab</h1>
-        <div class="subtitle">Computational Experiments by Choi Myung-jun</div>
-      </header>
+      <!-- Parallax -->
+      <article class="card">
+        <div class="card-icon">🔭</div>
+        <h2 class="card-title">Parallax</h2>
+        <p class="card-desc">Understanding stellar parallax and distance measurement.</p>
+        <a href="pararllax.html" class="card-link">Launch</a>
+      </article>
+    </main>
+  </div>
+</body>
 
-      <main class="projects-grid">
-        <!-- Friction Simulator -->
-        <article class="card">
-          <div class="card-icon">🚗</div>
-          <h2 class="card-title">Friction</h2>
-          <p class="card-desc">
-            Simulation of vehicle braking dynamics and Coulomb friction energy
-            loss.
-          </p>
-          <a href="friction.html" class="card-link">Launch</a>
-        </article>
-
-        <!-- Electric Circuit -->
-        <article class="card">
-          <div class="card-icon">⚡</div>
-          <h2 class="card-title">Circuit</h2>
-          <p class="card-desc">
-            Gauss elimination visualized through partial resistive circuits.
-          </p>
-          <a href="electric.html" class="card-link">Launch</a>
-        </article>
-
-        <!-- Magnus Effect -->
-        <article class="card">
-          <div class="card-icon">⚾</div>
-          <h2 class="card-title">Magnus</h2>
-          <p class="card-desc">
-            3D visualization of the Magnus effect on a spinning ball.
-          </p>
-          <a href="magnus.html" class="card-link">Launch</a>
-        </article>
-
-        <!-- Rose Curve -->
-        <article class="card">
-          <div class="card-icon">🌹</div>
-          <h2 class="card-title">Rose Curve</h2>
-          <p class="card-desc">
-            Mathematical beauty of polar rose curves with adjustable parameters.
-          </p>
-          <a href="rose.html" class="card-link">Launch</a>
-        </article>
-
-        <!-- Solar System -->
-        <article class="card">
-          <div class="card-icon">☄️</div>
-          <h2 class="card-title">Orbit</h2>
-          <p class="card-desc">
-            Hyperbolic comet trajectory simulation with gravitational assists.
-          </p>
-          <a href="solar.html" class="card-link">Launch</a>
-        </article>
-
-        <!-- Train Path -->
-        <article class="card">
-          <div class="card-icon">🚇</div>
-          <h2 class="card-title">Dijkstra</h2>
-          <p class="card-desc">
-            Seoul Subway shortest path finding using Dijkstra's algorithm.
-          </p>
-          <a href="train.html" class="card-link">Launch</a>
-        </article>
-
-        <!-- Two Envelope -->
-        <article class="card">
-          <div class="card-icon">✉️</div>
-          <h2 class="card-title">Paradox</h2>
-          <p class="card-desc">
-            Simulation of the Two Envelope Paradox and probability analysis.
-          </p>
-          <a href="twoEnvelop.html" class="card-link">Launch</a>
-        </article>
-
-        <!-- Parallax -->
-        <article class="card">
-          <div class="card-icon">🔭</div>
-          <h2 class="card-title">Parallax</h2>
-          <p class="card-desc">
-            Understanding stellar parallax and distance measurement.
-          </p>
-          <a href="pararllax.html" class="card-link">Launch</a>
-        </article>
-      </main>
-    </div>
-  </body>
 </html>

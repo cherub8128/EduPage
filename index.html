@@ -1,461 +1,371 @@
 <!DOCTYPE html>
 <html lang="ko" class="dark">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Pi's Digital Universe</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="canonical" href="https://edu.pi-dimension.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&family=Orbitron:wght@700&display=swap"
-      rel="stylesheet"
-    />
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- 새롭게 추가된 공유 스타일시트 링크 -->
-    <link rel="stylesheet" href="css/shared_style.css" />
-    <script>
-      tailwind.config = {
-        darkMode: "class",
-        theme: {
-          extend: {
-            colors: {
-              // --- 새로운 다크 테마 색상 ---
-              "dark-bg": "#0b132b", // Deep navy
-              "dark-particle": "#3a506b", // Muted slate blue for particles
-              "dark-text": "#e0e0e0", // Light gray text
-              "dark-title": "#ffffff", // White
-              "dark-subtitle": "#94a3b8", // Slate 400
-              "dark-card-bg": "rgba(28, 39, 70, 0.6)", // Translucent dark indigo
-              "dark-card-border": "rgba(56, 189, 248, 0.5)", // Sky blue border
-              "dark-card-glow": "rgba(217, 70, 239, 0.6)", // Fuchsia glow
-              "dark-card-text": "#e2e8f0", // Slate 200
-              "dark-card-hover-bg": "rgba(40, 54, 94, 0.8)", // Darker indigo on hover
 
-              // --- 새로운 라이트 테마 색상 ---
-              "light-bg": "#f1f5f9", // slate-100
-              "light-particle": "#cbd5e1", // slate-300
-              "light-text": "#1e293b", // slate-800
-              "light-title": "#0f172a", // slate-900
-              "light-subtitle": "#475569", // slate-600
-              "light-card-bg": "rgba(255, 255, 255, 0.9)",
-              "light-card-border": "rgba(203, 213, 225, 0.9)", // slate-300
-              "light-card-glow": "rgba(99, 102, 241, 0.5)", // indigo-500
-              "light-card-text": "#334155", // slate-700
-              "light-card-hover-bg": "rgba(248, 250, 252, 1)", // slate-50
-            },
-            fontFamily: {
-              orbitron: ["Orbitron", "sans-serif"],
-              "noto-sans": ["Noto Sans KR", "sans-serif"],
-            },
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pi's Digital Universe</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="canonical" href="https://edu.pi-dimension.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&family=Orbitron:wght@700&display=swap"
+    rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- 새롭게 추가된 공유 스타일시트 링크 -->
+  <link rel="stylesheet" href="css/shared_style.css" />
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            // --- 새로운 다크 테마 색상 ---
+            'dark-bg': '#0b132b', // Deep navy
+            'dark-particle': '#3a506b', // Muted slate blue for particles
+            'dark-text': '#e0e0e0', // Light gray text
+            'dark-title': '#ffffff', // White
+            'dark-subtitle': '#94a3b8', // Slate 400
+            'dark-card-bg': 'rgba(28, 39, 70, 0.6)', // Translucent dark indigo
+            'dark-card-border': 'rgba(56, 189, 248, 0.5)', // Sky blue border
+            'dark-card-glow': 'rgba(217, 70, 239, 0.6)', // Fuchsia glow
+            'dark-card-text': '#e2e8f0', // Slate 200
+            'dark-card-hover-bg': 'rgba(40, 54, 94, 0.8)', // Darker indigo on hover
+
+            // --- 새로운 라이트 테마 색상 ---
+            'light-bg': '#f1f5f9', // slate-100
+            'light-particle': '#cbd5e1', // slate-300
+            'light-text': '#1e293b', // slate-800
+            'light-title': '#0f172a', // slate-900
+            'light-subtitle': '#475569', // slate-600
+            'light-card-bg': 'rgba(255, 255, 255, 0.9)',
+            'light-card-border': 'rgba(203, 213, 225, 0.9)', // slate-300
+            'light-card-glow': 'rgba(99, 102, 241, 0.5)', // indigo-500
+            'light-card-text': '#334155', // slate-700
+            'light-card-hover-bg': 'rgba(248, 250, 252, 1)', // slate-50
+          },
+          fontFamily: {
+            orbitron: ['Orbitron', 'sans-serif'],
+            'noto-sans': ['Noto Sans KR', 'sans-serif'],
           },
         },
-      };
-    </script>
-    <style>
-      :root {
-        --particle-color: #3a506b;
-      }
-      html.light {
-        --particle-color: #cbd5e1;
-      }
-      .text-glow {
-        text-shadow: 0 0 8px rgba(56, 189, 248, 0.7),
-          0 0 16px rgba(217, 70, 239, 0.5);
-      }
-      html.light .text-glow {
-        text-shadow: none;
-      }
-      .card-glow-shadow {
-        box-shadow: 0 0 25px var(--card-glow-color),
-          0 0 40px var(--card-glow-color);
-      }
-      .nav-link.active {
-        background-color: rgba(255, 255, 255, 0.1);
-      }
-      html.light .nav-link.active {
-        background-color: rgba(0, 0, 0, 0.1);
-      }
+      },
+    };
+  </script>
+  <style>
+    :root {
+      --particle-color: #3a506b;
+    }
 
-      #page-title-container {
-        transition: all 0.3s ease;
-        width: 100%;
-        display: flex;
-        align-items: center;
-      }
-    </style>
-  </head>
-  <body
-    class="font-noto-sans bg-light-bg text-light-text dark:bg-dark-bg dark:text-dark-text transition-colors duration-300"
-  >
-    <canvas
-      id="particle-canvas"
-      class="fixed top-0 left-0 w-full h-full z-[-1]"
-    ></canvas>
+    html.light {
+      --particle-color: #cbd5e1;
+    }
 
-    <nav
-      class="sticky top-0 z-50 bg-light-card-bg/95 dark:bg-dark-card-bg/80 backdrop-blur-sm border-b border-light-card-border/50 dark:border-dark-card-border/50"
-    >
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex items-center justify-between h-16">
-          <div class="flex items-center">
-            <span
-              class="font-sans font-bold text-xl text-light-title dark:text-dark-title"
-              >Pi's Universe</span
-            >
+    .text-glow {
+      text-shadow: 0 0 8px rgba(56, 189, 248, 0.7), 0 0 16px rgba(217, 70, 239, 0.5);
+    }
+
+    html.light .text-glow {
+      text-shadow: none;
+    }
+
+    .card-glow-shadow {
+      box-shadow: 0 0 25px var(--card-glow-color), 0 0 40px var(--card-glow-color);
+    }
+
+    .nav-link.active {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    html.light .nav-link.active {
+      background-color: rgba(0, 0, 0, 0.1);
+    }
+
+    #page-title-container {
+      transition: all 0.3s ease;
+      width: 100%;
+      display: flex;
+      align-items: center;
+    }
+  </style>
+</head>
+
+<body
+  class="font-noto-sans bg-light-bg text-light-text dark:bg-dark-bg dark:text-dark-text transition-colors duration-300">
+  <canvas id="particle-canvas" class="fixed top-0 left-0 w-full h-full z-[-1]"></canvas>
+
+  <nav
+    class="sticky top-0 z-50 bg-light-card-bg/95 dark:bg-dark-card-bg/80 backdrop-blur-sm border-b border-light-card-border/50 dark:border-dark-card-border/50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+        <div class="flex items-center">
+          <span class="font-sans font-bold text-xl text-light-title dark:text-dark-title">Pi's Universe</span>
+        </div>
+        <div class="hidden md:block">
+          <div id="main-nav" class="ml-10 flex items-baseline space-x-1">
+            <a href="#Reinforcement"
+              class="nav-link text-light-subtitle dark:text-dark-subtitle hover:bg-light-card-hover-bg dark:hover:bg-dark-card-hover-bg hover:text-light-text dark:hover:text-dark-text block px-3 py-2 rounded-md text-base font-medium"
+              data-page="Reinforcement/index.html">Reinforcement</a>
+            <a href="#Math"
+              class="nav-link text-light-subtitle dark:text-dark-subtitle hover:bg-light-card-hover-bg dark:hover:bg-dark-card-hover-bg hover:text-light-text dark:hover:text-dark-text block px-3 py-2 rounded-md text-base font-medium"
+              data-page="Math/index.html">Math</a>
+            <a href="#LaTeX"
+              class="nav-link text-light-subtitle dark:text-dark-subtitle hover:bg-light-card-hover-bg dark:hover:bg-dark-card-hover-bg hover:text-light-text dark:hover:text-dark-text block px-3 py-2 rounded-md text-base font-medium"
+              data-page="LaTeX/index.html">LaTeX</a>
+            <a href="#Teacher"
+              class="nav-link text-light-subtitle dark:text-dark-subtitle hover:bg-light-card-hover-bg dark:hover:bg-dark-card-hover-bg hover:text-light-text dark:hover:text-dark-text block px-3 py-2 rounded-md text-base font-medium"
+              data-page="Teacher/index.html">Teacher</a>
+            <a href="#Lab"
+              class="nav-link text-light-subtitle dark:text-dark-subtitle hover:bg-light-card-hover-bg dark:hover:bg-dark-card-hover-bg hover:text-light-text dark:hover:text-dark-text block px-3 py-2 rounded-md text-base font-medium"
+              data-page="Lab/index.html">Lab</a>
+            <a href="#Game"
+              class="nav-link text-light-subtitle dark:text-dark-subtitle hover:bg-light-card-hover-bg dark:hover:bg-dark-card-hover-bg hover:text-light-text dark:hover:text-dark-text block px-3 py-2 rounded-md text-base font-medium"
+              data-page="Game/index.html">Game</a>
           </div>
-          <div class="hidden md:block">
-            <div id="main-nav" class="ml-10 flex items-baseline space-x-1">
-              <a
-                href="#Reinforcement"
-                class="nav-link text-light-subtitle dark:text-dark-subtitle hover:bg-light-card-hover-bg dark:hover:bg-dark-card-hover-bg hover:text-light-text dark:hover:text-dark-text block px-3 py-2 rounded-md text-base font-medium"
-                data-page="Reinforcement/index.html"
-                >Reinforcement</a
-              >
-              <a
-                href="#Math"
-                class="nav-link text-light-subtitle dark:text-dark-subtitle hover:bg-light-card-hover-bg dark:hover:bg-dark-card-hover-bg hover:text-light-text dark:hover:text-dark-text block px-3 py-2 rounded-md text-base font-medium"
-                data-page="Math/index.html"
-                >Math</a
-              >
-              <a
-                href="#LaTeX"
-                class="nav-link text-light-subtitle dark:text-dark-subtitle hover:bg-light-card-hover-bg dark:hover:bg-dark-card-hover-bg hover:text-light-text dark:hover:text-dark-text block px-3 py-2 rounded-md text-base font-medium"
-                data-page="LaTeX/index.html"
-                >LaTeX</a
-              >
-              <a
-                href="#Teacher"
-                class="nav-link text-light-subtitle dark:text-dark-subtitle hover:bg-light-card-hover-bg dark:hover:bg-dark-card-hover-bg hover:text-light-text dark:hover:text-dark-text block px-3 py-2 rounded-md text-base font-medium"
-                data-page="Teacher/index.html"
-                >Teacher</a
-              >
-              <a
-                href="#Lab"
-                class="nav-link text-light-subtitle dark:text-dark-subtitle hover:bg-light-card-hover-bg dark:hover:bg-dark-card-hover-bg hover:text-light-text dark:hover:text-dark-text block px-3 py-2 rounded-md text-base font-medium"
-                data-page="Lab/index.html"
-                >Lab</a
-              >
-              <a
-                href="#Game"
-                class="nav-link text-light-subtitle dark:text-dark-subtitle hover:bg-light-card-hover-bg dark:hover:bg-dark-card-hover-bg hover:text-light-text dark:hover:text-dark-text block px-3 py-2 rounded-md text-base font-medium"
-                data-page="Game/index.html"
-                >Game</a
-              >
-            </div>
-          </div>
-          <div class="flex items-center">
-            <button
-              id="theme-toggle"
-              class="p-2 rounded-md text-light-subtitle dark:text-dark-subtitle hover:text-light-text dark:hover:text-dark-text focus:outline-none"
-            >
-              <svg
-                id="theme-icon-light"
-                class="h-6 w-6 hidden"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
-                />
-              </svg>
-              <svg
-                id="theme-icon-dark"
-                class="h-6 w-6 hidden"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
-                />
+        </div>
+        <div class="flex items-center">
+          <button id="theme-toggle"
+            class="p-2 rounded-md text-light-subtitle dark:text-dark-subtitle hover:text-light-text dark:hover:text-dark-text focus:outline-none">
+            <svg id="theme-icon-light" class="h-6 w-6 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+            </svg>
+            <svg id="theme-icon-dark" class="h-6 w-6 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+            </svg>
+          </button>
+          <div class="-mr-2 flex md:hidden">
+            <button id="mobile-menu-button"
+              class="inline-flex items-center justify-center p-2 rounded-md text-light-subtitle dark:text-dark-subtitle hover:text-light-text dark:hover:text-dark-text focus:outline-none">
+              <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
+                <path class="inline-flex" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M4 6h16M4 12h16M4 18h16" />
               </svg>
             </button>
-            <div class="-mr-2 flex md:hidden">
-              <button
-                id="mobile-menu-button"
-                class="inline-flex items-center justify-center p-2 rounded-md text-light-subtitle dark:text-dark-subtitle hover:text-light-text dark:hover:text-dark-text focus:outline-none"
-              >
-                <svg
-                  class="h-6 w-6"
-                  stroke="currentColor"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    class="inline-flex"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M4 6h16M4 12h16M4 18h16"
-                  />
-                </svg>
-              </button>
-            </div>
           </div>
         </div>
       </div>
-      <div id="mobile-menu" class="md:hidden hidden">
-        <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-          <a
-            href="#Reinforcement"
-            class="nav-link text-light-subtitle dark:text-dark-subtitle hover:bg-light-card-hover-bg dark:hover:bg-dark-card-hover-bg hover:text-light-text dark:hover:text-dark-text block px-3 py-2 rounded-md text-base font-medium"
-            data-page="Reinforcement/index.html"
-            >Reinforcement</a
-          >
-          <a
-            href="#Math"
-            class="nav-link text-light-subtitle dark:text-dark-subtitle hover:bg-light-card-hover-bg dark:hover:bg-dark-card-hover-bg hover:text-light-text dark:hover:text-dark-text block px-3 py-2 rounded-md text-base font-medium"
-            data-page="Math/index.html"
-            >Math</a
-          >
-          <a
-            href="#LaTeX"
-            class="nav-link text-light-subtitle dark:text-dark-subtitle hover:bg-light-card-hover-bg dark:hover:bg-dark-card-hover-bg hover:text-light-text dark:hover:text-dark-text block px-3 py-2 rounded-md text-base font-medium"
-            data-page="LaTeX/index.html"
-            >LaTeX</a
-          >
-          <a
-            href="#Teacher"
-            class="nav-link text-light-subtitle dark:text-dark-subtitle hover:bg-light-card-hover-bg dark:hover:bg-dark-card-hover-bg hover:text-light-text dark:hover:text-dark-text block px-3 py-2 rounded-md text-base font-medium"
-            data-page="Teacher/index.html"
-            >Teacher</a
-          >
-          <a
-            href="#Lab"
-            class="nav-link text-light-subtitle dark:text-dark-subtitle hover:bg-light-card-hover-bg dark:hover:bg-dark-card-hover-bg hover:text-light-text dark:hover:text-dark-text block px-3 py-2 rounded-md text-base font-medium"
-            data-page="Lab/index.html"
-            >Lab</a
-          >
-          <a
-            href="#Game"
-            class="nav-link text-light-subtitle dark:text-dark-subtitle hover:bg-light-card-hover-bg dark:hover:bg-dark-card-hover-bg hover:text-light-text dark:hover:text-dark-text block px-3 py-2 rounded-md text-base font-medium"
-            data-page="Lab/index.html"
-            >Game</a
-          >
-        </div>
-      </div>
-    </nav>
-
-    <div id="page-title-container">
-      <!-- Title will be injected here -->
     </div>
+    <div id="mobile-menu" class="md:hidden hidden">
+      <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+        <a href="#Reinforcement"
+          class="nav-link text-light-subtitle dark:text-dark-subtitle hover:bg-light-card-hover-bg dark:hover:bg-dark-card-hover-bg hover:text-light-text dark:hover:text-dark-text block px-3 py-2 rounded-md text-base font-medium"
+          data-page="Reinforcement/index.html">Reinforcement</a>
+        <a href="#Math"
+          class="nav-link text-light-subtitle dark:text-dark-subtitle hover:bg-light-card-hover-bg dark:hover:bg-dark-card-hover-bg hover:text-light-text dark:hover:text-dark-text block px-3 py-2 rounded-md text-base font-medium"
+          data-page="Math/index.html">Math</a>
+        <a href="#LaTeX"
+          class="nav-link text-light-subtitle dark:text-dark-subtitle hover:bg-light-card-hover-bg dark:hover:bg-dark-card-hover-bg hover:text-light-text dark:hover:text-dark-text block px-3 py-2 rounded-md text-base font-medium"
+          data-page="LaTeX/index.html">LaTeX</a>
+        <a href="#Teacher"
+          class="nav-link text-light-subtitle dark:text-dark-subtitle hover:bg-light-card-hover-bg dark:hover:bg-dark-card-hover-bg hover:text-light-text dark:hover:text-dark-text block px-3 py-2 rounded-md text-base font-medium"
+          data-page="Teacher/index.html">Teacher</a>
+        <a href="#Lab"
+          class="nav-link text-light-subtitle dark:text-dark-subtitle hover:bg-light-card-hover-bg dark:hover:bg-dark-card-hover-bg hover:text-light-text dark:hover:text-dark-text block px-3 py-2 rounded-md text-base font-medium"
+          data-page="Lab/index.html">Lab</a>
+        <a href="#Game"
+          class="nav-link text-light-subtitle dark:text-dark-subtitle hover:bg-light-card-hover-bg dark:hover:bg-dark-card-hover-bg hover:text-light-text dark:hover:text-dark-text block px-3 py-2 rounded-md text-base font-medium"
+          data-page="Lab/index.html">Game</a>
+      </div>
+    </div>
+  </nav>
 
-    <main id="content-container" class="max-w-7xl mx-auto px-6 py-12">
-      <!-- Dynamic content will be loaded here -->
-    </main>
+  <div id="page-title-container">
+    <!-- Title will be injected here -->
+  </div>
 
-    <script>
-      // --- Particle Animation ---
-      const canvas = document.getElementById("particle-canvas");
-      const ctx = canvas.getContext("2d");
-      let particlesArray;
+  <main id="content-container" class="max-w-7xl mx-auto px-6 py-12">
+    <!-- Dynamic content will be loaded here -->
+  </main>
 
-      function getParticleColor() {
-        return getComputedStyle(document.documentElement)
-          .getPropertyValue("--particle-color")
-          .trim();
+  <script>
+    // --- Particle Animation ---
+    const canvas = document.getElementById('particle-canvas');
+    const ctx = canvas.getContext('2d');
+    let particlesArray;
+
+    function getParticleColor() {
+      return getComputedStyle(document.documentElement)
+        .getPropertyValue('--particle-color')
+        .trim();
+    }
+
+    function setCanvasSize() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+
+    class Particle {
+      constructor(x, y, directionX, directionY, size, color) {
+        this.x = x;
+        this.y = y;
+        this.directionX = directionX;
+        this.directionY = directionY;
+        this.size = size;
+        this.color = color;
       }
-
-      function setCanvasSize() {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
+      draw() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2, false);
+        ctx.fillStyle = this.color;
+        ctx.fill();
       }
-
-      class Particle {
-        constructor(x, y, directionX, directionY, size, color) {
-          this.x = x;
-          this.y = y;
-          this.directionX = directionX;
-          this.directionY = directionY;
-          this.size = size;
-          this.color = color;
+      update() {
+        if (this.x > canvas.width || this.x < 0) {
+          this.directionX = -this.directionX;
         }
-        draw() {
-          ctx.beginPath();
-          ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2, false);
-          ctx.fillStyle = this.color;
-          ctx.fill();
+        if (this.y > canvas.height || this.y < 0) {
+          this.directionY = -this.directionY;
         }
-        update() {
-          if (this.x > canvas.width || this.x < 0) {
-            this.directionX = -this.directionX;
-          }
-          if (this.y > canvas.height || this.y < 0) {
-            this.directionY = -this.directionY;
-          }
-          this.x += this.directionX;
-          this.y += this.directionY;
-          this.draw();
-        }
+        this.x += this.directionX;
+        this.y += this.directionY;
+        this.draw();
       }
+    }
 
-      function initParticles() {
-        setCanvasSize();
-        particlesArray = [];
-        const numberOfParticles = (canvas.height * canvas.width) / 9000;
-        const color = getParticleColor();
-        for (let i = 0; i < numberOfParticles; i++) {
-          const size = Math.random() * 2 + 1;
-          const x =
-            Math.random() * (innerWidth - size * 2 - size * 2) + size * 2;
-          const y =
-            Math.random() * (innerHeight - size * 2 - size * 2) + size * 2;
-          const directionX = Math.random() * 0.4 - 0.2;
-          const directionY = Math.random() * 0.4 - 0.2;
-          particlesArray.push(
-            new Particle(x, y, directionX, directionY, size, color)
-          );
-        }
+    function initParticles() {
+      setCanvasSize();
+      particlesArray = [];
+      const numberOfParticles = (canvas.height * canvas.width) / 9000;
+      const color = getParticleColor();
+      for (let i = 0; i < numberOfParticles; i++) {
+        const size = Math.random() * 2 + 1;
+        const x = Math.random() * (innerWidth - size * 2 - size * 2) + size * 2;
+        const y = Math.random() * (innerHeight - size * 2 - size * 2) + size * 2;
+        const directionX = Math.random() * 0.4 - 0.2;
+        const directionY = Math.random() * 0.4 - 0.2;
+        particlesArray.push(new Particle(x, y, directionX, directionY, size, color));
       }
+    }
 
-      function animateParticles() {
-        if (!particlesArray) return;
-        ctx.clearRect(0, 0, innerWidth, innerHeight);
-        for (let i = 0; i < particlesArray.length; i++) {
-          particlesArray[i].update();
-        }
-        requestAnimationFrame(animateParticles);
+    function animateParticles() {
+      if (!particlesArray) return;
+      ctx.clearRect(0, 0, innerWidth, innerHeight);
+      for (let i = 0; i < particlesArray.length; i++) {
+        particlesArray[i].update();
       }
+      requestAnimationFrame(animateParticles);
+    }
 
-      // --- Core App Logic ---
-      document.addEventListener("DOMContentLoaded", () => {
-        const contentContainer = document.getElementById("content-container");
-        const titleContainer = document.getElementById("page-title-container");
-        const navLinks = document.querySelectorAll(".nav-link");
-        const mobileMenu = document.getElementById("mobile-menu");
-        const mobileMenuButton = document.getElementById("mobile-menu-button");
-        const themeToggle = document.getElementById("theme-toggle");
-        const themeIconLight = document.getElementById("theme-icon-light");
-        const themeIconDark = document.getElementById("theme-icon-dark");
-        const html = document.documentElement;
+    // --- Core App Logic ---
+    document.addEventListener('DOMContentLoaded', () => {
+      const contentContainer = document.getElementById('content-container');
+      const titleContainer = document.getElementById('page-title-container');
+      const navLinks = document.querySelectorAll('.nav-link');
+      const mobileMenu = document.getElementById('mobile-menu');
+      const mobileMenuButton = document.getElementById('mobile-menu-button');
+      const themeToggle = document.getElementById('theme-toggle');
+      const themeIconLight = document.getElementById('theme-icon-light');
+      const themeIconDark = document.getElementById('theme-icon-dark');
+      const html = document.documentElement;
 
-        const applyTheme = (theme) => {
-          if (theme === "dark") {
-            html.classList.add("dark");
-            html.classList.remove("light");
-            themeIconLight.classList.remove("hidden");
-            themeIconDark.classList.add("hidden");
-          } else {
-            html.classList.add("light");
-            html.classList.remove("dark");
-            themeIconLight.classList.add("hidden");
-            themeIconDark.classList.remove("hidden");
-          }
-          setTimeout(initParticles, 50);
-        };
+      const applyTheme = (theme) => {
+        if (theme === 'dark') {
+          html.classList.add('dark');
+          html.classList.remove('light');
+          themeIconLight.classList.remove('hidden');
+          themeIconDark.classList.add('hidden');
+        } else {
+          html.classList.add('light');
+          html.classList.remove('dark');
+          themeIconLight.classList.add('hidden');
+          themeIconDark.classList.remove('hidden');
+        }
+        setTimeout(initParticles, 50);
+      };
 
-        const toggleTheme = () => {
-          const newTheme = html.classList.contains("dark") ? "light" : "dark";
-          localStorage.setItem("theme", newTheme);
-          applyTheme(newTheme);
-        };
+      const toggleTheme = () => {
+        const newTheme = html.classList.contains('dark') ? 'light' : 'dark';
+        localStorage.setItem('theme', newTheme);
+        applyTheme(newTheme);
+      };
 
-        themeToggle.addEventListener("click", toggleTheme);
-        mobileMenuButton.addEventListener("click", () =>
-          mobileMenu.classList.toggle("hidden")
-        );
+      themeToggle.addEventListener('click', toggleTheme);
+      mobileMenuButton.addEventListener('click', () => mobileMenu.classList.toggle('hidden'));
 
-        const fetchAndLoadContent = async (pageUrl) => {
-          try {
-            const response = await fetch(pageUrl);
-            if (!response.ok)
-              throw new Error(`HTTP error! status: ${response.status}`);
+      const fetchAndLoadContent = async (pageUrl) => {
+        try {
+          const response = await fetch(pageUrl);
+          if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
-            const text = await response.text();
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(text, "text/html");
+          const text = await response.text();
+          const parser = new DOMParser();
+          const doc = parser.parseFromString(text, 'text/html');
 
-            // --- Script Handling ---
-            const loadedScript = doc.querySelector("script");
-            const oldScript = document.getElementById("page-script");
-            if (oldScript) oldScript.remove();
-            if (loadedScript) {
-              const newScript = document.createElement("script");
-              if (loadedScript.src) {
-                newScript.src = loadedScript.src;
-              } else {
-                newScript.textContent = loadedScript.textContent;
-              }
-              newScript.id = "page-script";
-              document.body.appendChild(newScript);
-              loadedScript.remove();
-            }
-
-            // --- Content Layout Handling ---
-            const titleSection = doc.body.firstElementChild;
-            const mainSection = doc.querySelector("main");
-            const isTitlePage =
-              mainSection &&
-              titleSection &&
-              titleSection.nextElementSibling === mainSection;
-
-            // Reset title container styles before loading new content
-            titleContainer.removeAttribute("style");
-            titleContainer.className = "";
-
-            if (isTitlePage) {
-              // For pages with a title section, set a fixed height
-              titleContainer.style.height = "500px";
-
-              // Transfer background styles and classes from the loaded title section to our container
-              if (titleSection.hasAttribute("style")) {
-                titleContainer.style.cssText +=
-                  titleSection.getAttribute("style");
-              }
-              titleContainer.className = titleSection.className;
-
-              // Inject the *inner* content, allowing flexbox to center it
-              titleContainer.innerHTML = titleSection.innerHTML;
-              contentContainer.innerHTML = mainSection.outerHTML;
+          // --- Script Handling ---
+          const loadedScript = doc.querySelector('script');
+          const oldScript = document.getElementById('page-script');
+          if (oldScript) oldScript.remove();
+          if (loadedScript) {
+            const newScript = document.createElement('script');
+            if (loadedScript.src) {
+              newScript.src = loadedScript.src;
             } else {
-              // For content-only pages (like the game), collapse the title container
-              titleContainer.style.height = "0";
-              titleContainer.innerHTML = "";
-              contentContainer.innerHTML = doc.body.innerHTML;
+              newScript.textContent = loadedScript.textContent;
             }
-          } catch (error) {
-            console.error("Error loading page:", error);
-            contentContainer.innerHTML = `<div class="text-center"><h1>Error</h1><p>Could not load content.</p></div>`;
+            newScript.id = 'page-script';
+            document.body.appendChild(newScript);
+            loadedScript.remove();
           }
-        };
 
-        const handleNavigation = () => {
-          const path = location.hash.substring(1) || "Reinforcement/index.html";
-          fetchAndLoadContent(path);
-          navLinks.forEach((link) =>
-            link.classList.toggle("active", link.dataset.page === path)
-          );
-          mobileMenu.classList.add("hidden");
-        };
+          // --- Content Layout Handling ---
+          const titleSection = doc.body.firstElementChild;
+          const mainSection = doc.querySelector('main');
+          const isTitlePage =
+            mainSection && titleSection && titleSection.nextElementSibling === mainSection;
 
-        navLinks.forEach((link) =>
-          link.addEventListener("click", () =>
-            mobileMenu.classList.add("hidden")
-          )
-        );
-        window.addEventListener("hashchange", handleNavigation);
+          // Reset title container styles before loading new content
+          titleContainer.removeAttribute('style');
+          titleContainer.className = '';
 
-        const savedTheme = localStorage.getItem("theme") || "dark";
-        applyTheme(savedTheme);
-        handleNavigation();
+          if (isTitlePage) {
+            // For pages with a title section, set a fixed height
+            titleContainer.style.height = '500px';
 
-        animateParticles();
-        window.addEventListener("resize", initParticles);
-      });
-    </script>
-    <footer class="copyright-footer">
-      <p>
-        &copy; 2025 Cherub8128. All rights reserved. 무단 복제 및 배포를
-        금지합니다.
-      </p>
-    </footer>
-  </body>
+            // Transfer background styles and classes from the loaded title section to our container
+            if (titleSection.hasAttribute('style')) {
+              titleContainer.style.cssText += titleSection.getAttribute('style');
+            }
+            titleContainer.className = titleSection.className;
+
+            // Inject the *inner* content, allowing flexbox to center it
+            titleContainer.innerHTML = titleSection.innerHTML;
+            contentContainer.innerHTML = mainSection.outerHTML;
+          } else {
+            // For content-only pages (like the game), collapse the title container
+            titleContainer.style.height = '0';
+            titleContainer.innerHTML = '';
+            contentContainer.innerHTML = doc.body.innerHTML;
+          }
+        } catch (error) {
+          console.error('Error loading page:', error);
+          contentContainer.innerHTML = `<div class="text-center"><h1>Error</h1><p>Could not load content.</p></div>`;
+        }
+      };
+
+      const handleNavigation = () => {
+        const path = location.hash.substring(1) || 'Reinforcement/index.html';
+        fetchAndLoadContent(path);
+        navLinks.forEach((link) => link.classList.toggle('active', link.dataset.page === path));
+        mobileMenu.classList.add('hidden');
+      };
+
+      navLinks.forEach((link) =>
+        link.addEventListener('click', () => mobileMenu.classList.add('hidden'))
+      );
+      window.addEventListener('hashchange', handleNavigation);
+
+      const savedTheme = localStorage.getItem('theme') || 'dark';
+      applyTheme(savedTheme);
+      handleNavigation();
+
+      animateParticles();
+      window.addEventListener('resize', initParticles);
+    });
+  </script>
+  <footer class="copyright-footer">
+    <p>&copy; 2025 Cherub8128. All rights reserved. 무단 복제 및 배포를 금지합니다.</p>
+  </footer>
+</body>
+
 </html>
