@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>코너 리플렉터 3D 시뮬레이션</title>
+    <style>
+        body { margin: 0; overflow: hidden; background-color: #050505; font-family: 'Segoe UI', sans-serif; }
+        #canvas-container { width: 100vw; height: 100vh; }
+        
+        /* UI 오버레이 디자인 */
+        #ui-layer {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: #00ffff;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 20px;
+            border: 1px solid #00ffff;
+            border-radius: 8px;
+            backdrop-filter: blur(5px);
+            max-width: 350px;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.2);
+            pointer-events: none; /* 마우스 이벤트 통과 */
+        }
+        h1 { margin: 0 0 10px 0; font-size: 1.5rem; text-transform: uppercase; letter-spacing: 2px; }
+        p { margin: 5px 0; font-size: 0.9rem; color: #cccccc; }
+        .math-highlight { color: #ff00ff; font-weight: bold; font-family: monospace; }
+        .vector-info { margin-top: 15px; font-family: monospace; font-size: 0.85rem; border-top: 1px solid #555; padding-top: 10px; }
+        
+        /* 하단 컨트롤 안내 */
+        #controls-info {
+            position: absolute;
+            bottom: 20px;
+            width: 100%;
+            text-align: center;
+            color: #666;
+            pointer-events: none;
+        }
+    </style>
+    <!-- Three.js 라이브러리 CDN 로드 -->
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+</head>
+<body>
+
+    <div id="ui-layer">
+        <h1>Corner Reflector</h1>
+        <p>서로 수직인 세 거울에 의한 빛의 재귀반사</p>
+        <p>빛은 3번의 반사를 거쳐 입사 방향과 정반대인 평행한 경로로 되돌아갑니다.</p>
+        
+        <div class="vector-info">
+            <div>입사 벡터 (<span style="color:#00ffff">In</span>): <span id="vec-in">calculating...</span></div>
+            <div>반사 벡터 (<span style="color:#ff00ff">Out</span>): <span id="vec-out">calculating...</span></div>
+            <div style="margin-top:5px; color:#ffff00;">결과: V_out ≈ -V_in</div>
+        </div>
+    </div>
+
+    <div id="controls-info">마우스 왼쪽: 회전 | 휠: 확대/축소 | 우클릭: 이동</div>
+    <div id="canvas-container"></div>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+        // 1. 씬 설정
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x050505);
+        scene.fog = new THREE.FogExp2(0x050505, 0.02);
+
+        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(8, 6, 8);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+        // 2. 컨트롤러
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.autoRotate = false; // 자동 회전은 끄고, 광원을 회전시킴
+
+        // 3. 조명
+        const ambientLight = new THREE.AmbientLight(0x404040);
+        scene.add(ambientLight);
+
+        // 4. 코너 리플렉터 (거울 3개) 생성
+        // 기하학적 단순화: 1사분면(+,+,+)쪽을 바라보는 코너
+        const mirrorSize = 4;
+        const mirrorGeo = new THREE.PlaneGeometry(mirrorSize, mirrorSize);
+        
+        // 거울 재질 (약간 투명하고 그리드가 보이게)
+        const mirrorMat = new THREE.MeshPhysicalMaterial({
+            color: 0x222222,
+            metalness: 0.1,
+            roughness: 0.1,
+            transparent: true,
+            opacity: 0.3,
+            side: THREE.DoubleSide,
+            depthWrite: false
+        });
+
+        // 거울 테두리 및 그리드 헬퍼 함수
+        function createMirror(rotation, position, color) {
+            const group = new THREE.Group();
+            
+            // 거울 면
+            const mesh = new THREE.Mesh(mirrorGeo, mirrorMat);
+            mesh.rotation.set(...rotation);
+            mesh.position.set(...position);
+            group.add(mesh);
+
+            // 그리드 라인 (공간좌표 느낌)
+            const gridHelper = new THREE.GridHelper(mirrorSize, 10, color, 0x333333);
+            gridHelper.rotation.set(...rotation);
+            // GridHelper는 기본적으로 XZ평면에 누워있음. 회전 조정 필요
+            if(rotation[0] !== 0) gridHelper.rotation.x = Math.PI/2; // XY -> 세움
+            if(rotation[1] !== 0) gridHelper.rotation.z = Math.PI/2; // YZ
+            
+            gridHelper.position.set(...position);
+            group.add(gridHelper);
+
+            return group;
+        }
+
+        // XY 평면 (z=0)
+        const mirrorXY = createMirror([0, 0, 0], [mirrorSize/2, mirrorSize/2, 0], 0x0000ff);
+        // YZ 평면 (x=0)
+        const mirrorYZ = createMirror([0, Math.PI/2, 0], [0, mirrorSize/2, mirrorSize/2], 0xff0000);
+        // ZX 평면 (y=0)
+        const mirrorZX = createMirror([Math.PI/2, 0, 0], [mirrorSize/2, 0, mirrorSize/2], 0x00ff00);
+
+        scene.add(mirrorXY);
+        scene.add(mirrorYZ);
+        scene.add(mirrorZX);
+
+        // 원점 표시
+        const axesHelper = new THREE.AxesHelper(5);
+        scene.add(axesHelper);
+
+
+        // 5. 레이저 소스 및 광선
+        const sourceGroup = new THREE.Group();
+        scene.add(sourceGroup);
+
+        // 레이저 발사기 모델
+        const sourceGeo = new THREE.SphereGeometry(0.2, 32, 32);
+        const sourceMat = new THREE.MeshBasicMaterial({ color: 0x00ffff });
+        const sourceMesh = new THREE.Mesh(sourceGeo, sourceMat);
+        sourceGroup.add(sourceMesh);
+
+        // 레이저 빔 (Line)
+        // 최대 4개의 점 (시작 -> 반사1 -> 반사2 -> 반사3 -> 끝)
+        const maxPoints = 5;
+        const laserPositions = new Float32Array(maxPoints * 3);
+        const laserGeo = new THREE.BufferGeometry();
+        laserGeo.setAttribute('position', new THREE.BufferAttribute(laserPositions, 3));
+        
+        // 네온 효과를 위한 쉐이더 또는 AdditiveBlending
+        const laserMat = new THREE.LineBasicMaterial({
+            color: 0x00ffff,
+            linewidth: 2, // 일부 브라우저에서는 무시됨
+            blending: THREE.AdditiveBlending,
+            transparent: true
+        });
+        
+        const laserLine = new THREE.Line(laserGeo, laserMat);
+        scene.add(laserLine);
+
+        // 반사된 최종 빛 (구분을 위해 색상 변경)
+        const returnLineMat = new THREE.LineBasicMaterial({ color: 0xff00ff, blending: THREE.AdditiveBlending });
+        
+        // 6. 레이 트레이싱 로직 (핵심 알고리즘)
+        // 위치와 방향 벡터를 받아 다음 충돌 지점을 계산
+        
+        // 평면 정의 (법선 벡터, 평면 상의 점)
+        const planes = [
+            { normal: new THREE.Vector3(1, 0, 0), constant: 0, name: "YZ" }, // x=0
+            { normal: new THREE.Vector3(0, 1, 0), constant: 0, name: "ZX" }, // y=0
+            { normal: new THREE.Vector3(0, 0, 1), constant: 0, name: "XY" }  // z=0
+        ];
+
+        function updateLaser() {
+            // 광원 위치 (애니메이션 됨)
+            const origin = sourceMesh.getWorldPosition(new THREE.Vector3());
+            
+            // 목표 지점 (원점 근처 약간 안쪽을 향해 쏴서 3면을 다 맞추도록 유도)
+            // 완벽한 원점(0,0,0)을 향하면 모서리에 맞아 계산이 불안정할 수 있으므로 약간 오프셋을 줌
+            const target = new THREE.Vector3(0.5, 0.5, 0.5); 
+            
+            let direction = new THREE.Vector3().subVectors(target, origin).normalize();
+            
+            // HTML UI 업데이트
+            document.getElementById('vec-in').innerText = 
+                `(${direction.x.toFixed(2)}, ${direction.y.toFixed(2)}, ${direction.z.toFixed(2)})`;
+
+            // 경로 점들 배열
+            let points = [origin.clone()];
+            let currentPos = origin.clone();
+            let currentDir = direction.clone();
+            
+            // 반사 시뮬레이션 (최대 3번 반사)
+            // 단순화를 위해, 광선이 x, y, z 평면을 순차적으로 통과한다고 가정 (Bounding Box 내부에서)
+            // 실제로는 '가장 가까운 교차점'을 찾아야 함.
+            
+            // 이미 충돌한 평면을 추적하여 다시 충돌하지 않도록 함
+            let hitPlanes = [];
+
+            for(let i=0; i<3; i++) {
+                let bestT = Infinity;
+                let bestPlaneIdx = -1;
+
+                // 3개의 평면 중 진행 방향에 있고 가장 가까운 평면 찾기
+                for(let p=0; p<planes.length; p++) {
+                    if(hitPlanes.includes(p)) continue; // 이미 부딪힌 거울 패스
+
+                    const planeNormal = planes[p].normal;
+                    // 평면까지의 거리 t 구하기
+                    // 평면 방정식: P dot N = 0 (원점 통과 평면)
+                    // Ray: P(t) = Origin + t * Dir
+                    // (Origin + t*Dir) dot N = 0
+                    // t = -(Origin dot N) / (Dir dot N)
+                    
+                    const denom = currentDir.dot(planeNormal);
+                    
+                    // denom이 음수여야 평면을 향해 다가가는 것 (법선이 양의 방향이므로)
+                    if (denom < -0.0001) {
+                        const t = -(currentPos.dot(planeNormal)) / denom;
+                        if (t > 0 && t < bestT) {
+                            bestT = t;
+                            bestPlaneIdx = p;
+                        }
+                    }
+                }
+
+                if(bestPlaneIdx !== -1) {
+                    // 교차점 계산
+                    const hitPoint = currentPos.clone().add(currentDir.clone().multiplyScalar(bestT));
+                    points.push(hitPoint);
+                    
+                    // 반사 벡터 계산: V_new = V_old - 2(V_old dot N)N
+                    // 좌표축 수직 평면이므로 단순히 해당 성분 부호 반전과 같음
+                    const normal = planes[bestPlaneIdx].normal;
+                    const reflectDir = currentDir.clone().reflect(normal);
+                    
+                    // 상태 업데이트
+                    currentPos = hitPoint;
+                    currentDir = reflectDir;
+                    hitPlanes.push(bestPlaneIdx);
+                } else {
+                    break; // 더 이상 부딪힐 평면이 없음
+                }
+            }
+
+            // 마지막으로 공간 밖으로 나가는 선 그리기
+            const exitPoint = currentPos.clone().add(currentDir.clone().multiplyScalar(5));
+            points.push(exitPoint);
+
+            // UI 출력 (최종 벡터)
+            document.getElementById('vec-out').innerText = 
+                `(${currentDir.x.toFixed(2)}, ${currentDir.y.toFixed(2)}, ${currentDir.z.toFixed(2)})`;
+
+            // Geometry 업데이트
+            const positions = laserLine.geometry.attributes.position.array;
+            let idx = 0;
+            
+            // Line Segment 그리기
+            for(let i=0; i<points.length; i++) {
+                positions[idx++] = points[i].x;
+                positions[idx++] = points[i].y;
+                positions[idx++] = points[i].z;
+            }
+            
+            // 남은 버퍼는 마지막 점으로 채워 에러 방지
+            for(let i=idx; i<maxPoints*3; i+=3) {
+                positions[i] = points[points.length-1].x;
+                positions[i+1] = points[points.length-1].y;
+                positions[i+2] = points[points.length-1].z;
+            }
+            
+            laserLine.geometry.attributes.position.needsUpdate = true;
+            
+            // 최종 반사광 색상을 다르게 표현하고 싶다면 별도의 라인 객체를 쓰는 것이 좋으나,
+            // 여기서는 간소화를 위해 하나의 라인으로 표현하되 입사/반사 구분을 위해 점 표시
+            
+            // 반사 포인트들에 작은 점(스파크) 효과
+            updateSparks(points);
+        }
+
+        // 스파크(충돌 지점) 시각화
+        const sparkGroup = new THREE.Group();
+        scene.add(sparkGroup);
+        const sparkMeshes = [];
+        
+        for(let i=0; i<3; i++) {
+            const sGeo = new THREE.SphereGeometry(0.05, 8, 8);
+            const sMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+            const mesh = new THREE.Mesh(sGeo, sMat);
+            mesh.visible = false;
+            sparkGroup.add(mesh);
+            sparkMeshes.push(mesh);
+        }
+
+        function updateSparks(points) {
+            // points[0]은 시작점, points[last]는 끝점. 중간 점들이 충돌점
+            for(let i=0; i<3; i++) {
+                if(i + 1 < points.length - 1) {
+                    sparkMeshes[i].position.copy(points[i+1]);
+                    sparkMeshes[i].visible = true;
+                } else {
+                    sparkMeshes[i].visible = false;
+                }
+            }
+        }
+
+        // 7. 애니메이션 루프
+        let time = 0;
+        function animate() {
+            requestAnimationFrame(animate);
+            time += 0.005;
+
+            // 광원 이동 (나선형 궤도)
+            const r = 6;
+            // 1사분면(x>0, y>0, z>0)에서만 움직이도록 조정하여 거울 안쪽을 비추게 함
+            const x = Math.abs(Math.cos(time) * r) + 0.5; 
+            const y = Math.abs(Math.sin(time * 0.7) * r) + 0.5;
+            const z = Math.abs(Math.sin(time) * r) + 0.5;
+            
+            sourceMesh.position.set(x, y, z);
+
+            updateLaser();
+            controls.update();
+            renderer.render(scene, camera);
+        }
+
+        // 창 크기 변경 대응
+        window.addEventListener('resize', onWindowResize, false);
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        animate();
+
+    </script>
+</body>
+</html>

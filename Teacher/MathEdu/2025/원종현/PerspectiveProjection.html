@@ -1,0 +1,1054 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>원근 투영 및 역변환 안정성 시뮬레이터</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;800&family=Roboto+Mono:wght@400;600;700&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #fff;
+        }
+
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 30px;
+            padding: 30px;
+            box-shadow: 0 30px 90px rgba(0,0,0,0.5);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: rotate 20s linear infinite;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            font-weight: 800;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 20px rgba(0,0,0,0.5);
+            position: relative;
+            z-index: 1;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.95;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Main Grid */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin-bottom: 25px;
+        }
+
+        /* Card Styles */
+        .card {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 25px;
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: all 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.3);
+            border-color: rgba(102, 126, 234, 0.5);
+        }
+
+        .card-title {
+            font-size: 1.4em;
+            font-weight: 700;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #fff;
+        }
+
+        .card-title::before {
+            content: '';
+            width: 5px;
+            height: 25px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 3px;
+        }
+
+        /* Canvas */
+        .canvas-container {
+            position: relative;
+            background: rgba(0,0,0,0.3);
+            border-radius: 15px;
+            padding: 15px;
+            border: 2px solid rgba(102, 126, 234, 0.3);
+        }
+
+        canvas {
+            width: 100%;
+            height: 500px;
+            border-radius: 10px;
+            background: #000;
+            display: block;
+        }
+
+        .canvas-info {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .info-badge {
+            background: rgba(102, 126, 234, 0.2);
+            padding: 10px;
+            border-radius: 10px;
+            text-align: center;
+            border: 1px solid rgba(102, 126, 234, 0.4);
+        }
+
+        .info-label {
+            font-size: 0.75em;
+            opacity: 0.8;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .info-value {
+            font-family: 'Roboto Mono', monospace;
+            font-size: 1.1em;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        /* Controls */
+        .control-group {
+            margin-bottom: 20px;
+        }
+
+        .control-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            font-size: 0.95em;
+        }
+
+        .control-name {
+            font-weight: 600;
+        }
+
+        .control-value {
+            font-family: 'Roboto Mono', monospace;
+            background: rgba(102, 126, 234, 0.3);
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            border-radius: 5px;
+            background: rgba(255,255,255,0.1);
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(102, 126, 234, 0.8);
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 0 10px rgba(102, 126, 234, 0.8);
+        }
+
+        /* Matrix Display */
+        .matrix-display {
+            background: rgba(0,0,0,0.4);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border: 1px solid rgba(102, 126, 234, 0.3);
+        }
+
+        .matrix-label {
+            font-size: 0.9em;
+            margin-bottom: 15px;
+            opacity: 0.9;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .matrix {
+            display: table;
+            margin: 0 auto;
+            position: relative;
+            padding: 15px 20px;
+        }
+
+        .matrix::before,
+        .matrix::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 15px;
+            border: 3px solid;
+            border-image: linear-gradient(135deg, #667eea 0%, #764ba2 100%) 1;
+        }
+
+        .matrix::before {
+            left: 0;
+            border-right: none;
+            border-radius: 8px 0 0 8px;
+        }
+
+        .matrix::after {
+            right: 0;
+            border-left: none;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .matrix-row {
+            display: flex;
+            gap: 20px;
+            margin: 8px 0;
+            justify-content: center;
+        }
+
+        .matrix-cell {
+            font-family: 'Roboto Mono', monospace;
+            min-width: 65px;
+            text-align: right;
+            font-size: 0.95em;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        /* Stability Indicator */
+        .stability-panel {
+            background: rgba(0,0,0,0.4);
+            border-radius: 15px;
+            padding: 20px;
+            border: 2px solid;
+        }
+
+        .stability-panel.stable {
+            border-color: #4ade80;
+            background: rgba(74, 222, 128, 0.1);
+        }
+
+        .stability-panel.warning {
+            border-color: #fbbf24;
+            background: rgba(251, 191, 36, 0.1);
+        }
+
+        .stability-panel.unstable {
+            border-color: #f87171;
+            background: rgba(248, 113, 113, 0.1);
+        }
+
+        .stability-title {
+            font-size: 1.1em;
+            font-weight: 700;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .stability-value {
+            font-family: 'Roboto Mono', monospace;
+            font-size: 2.5em;
+            font-weight: 800;
+            text-align: center;
+            margin: 15px 0;
+        }
+
+        .stability-status {
+            text-align: center;
+            padding: 12px;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 0.95em;
+        }
+
+        .stability-panel.stable .stability-value {
+            color: #4ade80;
+        }
+
+        .stability-panel.warning .stability-value {
+            color: #fbbf24;
+        }
+
+        .stability-panel.unstable .stability-value {
+            color: #f87171;
+        }
+
+        .stability-metrics {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .metric-box {
+            background: rgba(0,0,0,0.3);
+            padding: 12px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .metric-label {
+            font-size: 0.8em;
+            opacity: 0.8;
+            margin-bottom: 5px;
+        }
+
+        .metric-value {
+            font-family: 'Roboto Mono', monospace;
+            font-size: 1.3em;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        /* Buttons */
+        .button-group {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.9em;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6);
+        }
+
+        .btn-secondary {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            border: 2px solid rgba(255,255,255,0.2);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .btn-secondary.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-color: transparent;
+        }
+
+        /* Mode Tabs */
+        .mode-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            background: rgba(0,0,0,0.3);
+            padding: 5px;
+            border-radius: 12px;
+        }
+
+        .mode-tab {
+            flex: 1;
+            padding: 12px;
+            background: transparent;
+            border: none;
+            color: white;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .mode-tab.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.5);
+        }
+
+        /* Info Box */
+        .info-box {
+            background: rgba(102, 126, 234, 0.1);
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            font-size: 0.9em;
+            line-height: 1.6;
+        }
+
+        .info-box strong {
+            color: #667eea;
+        }
+
+        /* Formula Display */
+        .formula-box {
+            background: rgba(0,0,0,0.4);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 10px 0;
+            font-family: 'Roboto Mono', monospace;
+            font-size: 0.95em;
+            text-align: center;
+            color: #667eea;
+            border: 1px solid rgba(102, 126, 234, 0.3);
+        }
+
+        @media (max-width: 1200px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🎯 원근 투영 및 역변환 안정성 시뮬레이터</h1>
+            <p>Perspective Projection & Matrix Stability Analysis</p>
+        </div>
+
+        <!-- Mode Tabs -->
+        <div class="mode-tabs">
+            <button class="mode-tab active" data-mode="perspective">원근 투영</button>
+            <button class="mode-tab" data-mode="stability">역변환 안정성</button>
+            <button class="mode-tab" data-mode="combined">통합 분석</button>
+        </div>
+
+        <!-- Main Grid -->
+        <div class="main-grid">
+            <!-- Left: Visualization -->
+            <div class="card">
+                <h2 class="card-title">📊 3D → 2D 투영 시각화</h2>
+                <div class="canvas-container">
+                    <canvas id="canvas3d"></canvas>
+                    <div class="canvas-info">
+                        <div class="info-badge">
+                            <div class="info-label">Focal Length</div>
+                            <div class="info-value" id="focalInfo">500</div>
+                        </div>
+                        <div class="info-badge">
+                            <div class="info-label">Depth (Z)</div>
+                            <div class="info-value" id="depthInfo">100</div>
+                        </div>
+                        <div class="info-badge">
+                            <div class="info-label">w' Component</div>
+                            <div class="info-value" id="wInfo">1.000</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="formula-box">
+                    (x_screen, y_screen) = (x·d/(d-z), y·d/(d-z))
+                </div>
+
+                <div class="info-box">
+                    <strong>원근 투영 원리:</strong><br>
+                    • 멀리 있는 물체(큰 z)는 작게 보입니다<br>
+                    • z = d(초점거리)에서 소실점 형성<br>
+                    • z > d일 때 뒤집힘 현상 발생
+                </div>
+            </div>
+
+            <!-- Right: Controls & Analysis -->
+            <div class="card">
+                <h2 class="card-title">🎛️ 투영 파라미터</h2>
+                
+                <!-- Perspective Controls -->
+                <div id="perspectiveControls">
+                    <div class="control-group">
+                        <div class="control-label">
+                            <span class="control-name">초점 거리 (Focal Length)</span>
+                            <span class="control-value" id="focalValue">500</span>
+                        </div>
+                        <input type="range" id="focalLength" min="100" max="1000" value="500" step="10">
+                    </div>
+
+                    <div class="control-group">
+                        <div class="control-label">
+                            <span class="control-name">깊이 (Depth Z)</span>
+                            <span class="control-value" id="depthValue">100</span>
+                        </div>
+                        <input type="range" id="depth" min="-200" max="500" value="100" step="10">
+                    </div>
+
+                    <div class="control-group">
+                        <div class="control-label">
+                            <span class="control-name">원근 계수 (px)</span>
+                            <span class="control-value" id="pxValue">0.000</span>
+                        </div>
+                        <input type="range" id="perspectiveX" min="-0.01" max="0.01" value="0" step="0.0001">
+                    </div>
+
+                    <div class="control-group">
+                        <div class="control-label">
+                            <span class="control-name">원근 계수 (py)</span>
+                            <span class="control-value" id="pyValue">0.000</span>
+                        </div>
+                        <input type="range" id="perspectiveY" min="-0.01" max="0.01" value="0" step="0.0001">
+                    </div>
+
+                    <div class="control-group">
+                        <div class="control-label">
+                            <span class="control-name">회전 (X축)</span>
+                            <span class="control-value" id="rotXValue">30°</span>
+                        </div>
+                        <input type="range" id="rotationX" min="-90" max="90" value="30" step="1">
+                    </div>
+
+                    <div class="control-group">
+                        <div class="control-label">
+                            <span class="control-name">회전 (Y축)</span>
+                            <span class="control-value" id="rotYValue">45°</span>
+                        </div>
+                        <input type="range" id="rotationY" min="-90" max="90" value="45" step="1">
+                    </div>
+                </div>
+
+                <!-- Matrix Display -->
+                <div class="matrix-display">
+                    <div class="matrix-label">투영 행렬 P (4×4)</div>
+                    <div class="matrix">
+                        <div class="matrix-row">
+                            <span class="matrix-cell" id="p00">1.00</span>
+                            <span class="matrix-cell" id="p01">0.00</span>
+                            <span class="matrix-cell" id="p02">0.00</span>
+                            <span class="matrix-cell" id="p03">0.00</span>
+                        </div>
+                        <div class="matrix-row">
+                            <span class="matrix-cell" id="p10">0.00</span>
+                            <span class="matrix-cell" id="p11">1.00</span>
+                            <span class="matrix-cell" id="p12">0.00</span>
+                            <span class="matrix-cell" id="p13">0.00</span>
+                        </div>
+                        <div class="matrix-row">
+                            <span class="matrix-cell" id="p20">0.00</span>
+                            <span class="matrix-cell" id="p21">0.00</span>
+                            <span class="matrix-cell" id="p22">1.00</span>
+                            <span class="matrix-cell" id="p23">0.00</span>
+                        </div>
+                        <div class="matrix-row">
+                            <span class="matrix-cell" id="p30">0.00</span>
+                            <span class="matrix-cell" id="p31">0.00</span>
+                            <span class="matrix-cell" id="p32">-0.002</span>
+                            <span class="matrix-cell" id="p33">1.00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn btn-primary" id="resetBtn">🔄 초기화</button>
+                    <button class="btn btn-secondary" id="animateBtn">▶️ 애니메이션</button>
+                    <button class="btn btn-secondary" id="singularBtn">⚠️ 특이점</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stability Analysis -->
+        <div class="main-grid">
+            <div class="card">
+                <h2 class="card-title">🔍 역변환 안정성 분석</h2>
+                <div class="stability-panel stable" id="stabilityPanel">
+                    <div class="stability-title">행렬식 (Determinant)</div>
+                    <div class="stability-value" id="detValue">1.000</div>
+                    <div class="stability-status" id="detStatus">✓ 역변환 가능 (안정)</div>
+                    
+                    <div class="stability-metrics">
+                        <div class="metric-box">
+                            <div class="metric-label">조건수 (κ)</div>
+                            <div class="metric-value" id="conditionNumber">1.0</div>
+                        </div>
+                        <div class="metric-box">
+                            <div class="metric-label">안정성 등급</div>
+                            <div class="metric-value" id="stabilityGrade">A+</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-box">
+                    <strong>안정성 기준:</strong><br>
+                    • det(H) > 0.1: 안정 (녹색)<br>
+                    • 0.001 < det(H) ≤ 0.1: 주의 (노란색)<br>
+                    • det(H) ≤ 0.001: 불안정 (빨간색)<br>
+                    • det(H) = 0: 특이행렬 (역변환 불가)
+                </div>
+            </div>
+
+            <div class="card">
+                <h2 class="card-title">📐 변환 행렬 H (3×3)</h2>
+                <div class="matrix-display">
+                    <div class="matrix-label">아핀 변환 행렬</div>
+                    <div class="matrix">
+                        <div class="matrix-row">
+                            <span class="matrix-cell" id="h00">1.00</span>
+                            <span class="matrix-cell" id="h01">0.00</span>
+                            <span class="matrix-cell" id="h02">0.00</span>
+                        </div>
+                        <div class="matrix-row">
+                            <span class="matrix-cell" id="h10">0.00</span>
+                            <span class="matrix-cell" id="h11">1.00</span>
+                            <span class="matrix-cell" id="h12">0.00</span>
+                        </div>
+                        <div class="matrix-row">
+                            <span class="matrix-cell" id="h20">0.00</span>
+                            <span class="matrix-cell" id="h21">0.00</span>
+                            <span class="matrix-cell" id="h22">1.00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="formula-box">
+                    det(H) = a(ei-fh) - b(di-fg) + c(dh-eg)
+                </div>
+
+                <div class="info-box">
+                    <strong>조건수 (Condition Number):</strong><br>
+                    κ(H) = ||H|| · ||H⁻¹||<br>
+                    • κ = 1: 완벽 (직교행렬)<br>
+                    • κ < 10: 잘 조건화됨<br>
+                    • κ > 1000: 심각하게 ill-conditioned
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas3d');
+        const ctx = canvas.getContext('2d');
+
+        // Canvas resize
+        function resizeCanvas() {
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = rect.width;
+            canvas.height = 500;
+            draw();
+        }
+
+        window.addEventListener('load', resizeCanvas);
+        window.addEventListener('resize', resizeCanvas);
+
+        // State
+        let state = {
+            mode: 'perspective',
+            focalLength: 500,
+            depth: 100,
+            px: 0,
+            py: 0,
+            rotX: 30,
+            rotY: 45,
+            animating: false
+        };
+
+        // Mode Tabs
+        document.querySelectorAll('.mode-tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                document.querySelectorAll('.mode-tab').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                state.mode = this.dataset.mode;
+                draw();
+            });
+        });
+
+        // Controls
+        const controls = {
+            focalLength: document.getElementById('focalLength'),
+            depth: document.getElementById('depth'),
+            px: document.getElementById('perspectiveX'),
+            py: document.getElementById('perspectiveY'),
+            rotX: document.getElementById('rotationX'),
+            rotY: document.getElementById('rotationY')
+        };
+
+        const displays = {
+            focal: document.getElementById('focalValue'),
+            depth: document.getElementById('depthValue'),
+            px: document.getElementById('pxValue'),
+            py: document.getElementById('pyValue'),
+            rotX: document.getElementById('rotXValue'),
+            rotY: document.getElementById('rotYValue')
+        };
+
+        function updateValues() {
+            state.focalLength = parseFloat(controls.focalLength.value);
+            state.depth = parseFloat(controls.depth.value);
+            state.px = parseFloat(controls.px.value);
+            state.py = parseFloat(controls.py.value);
+            state.rotX = parseFloat(controls.rotX.value);
+            state.rotY = parseFloat(controls.rotY.value);
+
+            displays.focal.textContent = state.focalLength;
+            displays.depth.textContent = state.depth;
+            displays.px.textContent = state.px.toFixed(4);
+            displays.py.textContent = state.py.toFixed(4);
+            displays.rotX.textContent = state.rotX + '°';
+            displays.rotY.textContent = state.rotY + '°';
+
+            document.getElementById('focalInfo').textContent = state.focalLength;
+            document.getElementById('depthInfo').textContent = state.depth;
+
+            draw();
+        }
+
+        Object.values(controls).forEach(control => {
+            control.addEventListener('input', updateValues);
+        });
+
+        // Matrix Operations
+        function createProjectionMatrix() {
+            const d = state.focalLength;
+            return [
+                [1, 0, 0, 0],
+                [0, 1, 0, 0],
+                [0, 0, 1, 0],
+                [state.px, state.py, -1/d, 1]
+            ];
+        }
+
+        function createAffineMatrix() {
+            const px = state.px;
+            const py = state.py;
+            return [
+                [1, 0, 0],
+                [0, 1, 0],
+                [px, py, 1]
+            ];
+        }
+
+        function determinant3x3(m) {
+            return m[0][0] * (m[1][1] * m[2][2] - m[1][2] * m[2][1]) -
+                   m[0][1] * (m[1][0] * m[2][2] - m[1][2] * m[2][0]) +
+                   m[0][2] * (m[1][0] * m[2][1] - m[1][1] * m[2][0]);
+        }
+
+        function calculateConditionNumber(m) {
+            // Simplified condition number estimation
+            const det = Math.abs(determinant3x3(m));
+            if (det < 0.000001) return Infinity;
+            
+            // Frobenius norm approximation
+            let normH = 0;
+            for (let i = 0; i < 3; i++) {
+                for (let j = 0; j < 3; j++) {
+                    normH += m[i][j] * m[i][j];
+                }
+            }
+            normH = Math.sqrt(normH);
+            
+            // Estimate condition number
+            return normH / det;
+        }
+
+        function updateMatrices() {
+            const P = createProjectionMatrix();
+            const H = createAffineMatrix();
+
+            // Update projection matrix display
+            for (let i = 0; i < 4; i++) {
+                for (let j = 0; j < 4; j++) {
+                    const elem = document.getElementById(`p${i}${j}`);
+                    if (elem) elem.textContent = P[i][j].toFixed(3);
+                }
+            }
+
+            // Update affine matrix display
+            for (let i = 0; i < 3; i++) {
+                for (let j = 0; j < 3; j++) {
+                    const elem = document.getElementById(`h${i}${j}`);
+                    if (elem) elem.textContent = H[i][j].toFixed(3);
+                }
+            }
+
+            // Calculate determinant
+            const det = determinant3x3(H);
+            document.getElementById('detValue').textContent = det.toFixed(6);
+
+            // Calculate condition number
+            const cond = calculateConditionNumber(H);
+            document.getElementById('conditionNumber').textContent = 
+                cond === Infinity ? '∞' : cond.toFixed(2);
+
+            // Update stability status
+            const panel = document.getElementById('stabilityPanel');
+            const status = document.getElementById('detStatus');
+            const grade = document.getElementById('stabilityGrade');
+
+            panel.className = 'stability-panel';
+            
+            if (Math.abs(det) < 0.000001) {
+                panel.classList.add('unstable');
+                status.textContent = '✗ 특이행렬 (역변환 불가)';
+                grade.textContent = 'F';
+            } else if (Math.abs(det) < 0.001) {
+                panel.classList.add('unstable');
+                status.textContent = '⚠ 매우 불안정';
+                grade.textContent = 'D';
+            } else if (Math.abs(det) < 0.1) {
+                panel.classList.add('warning');
+                status.textContent = '⚠ 수치적으로 불안정';
+                grade.textContent = 'C';
+            } else if (cond > 100) {
+                panel.classList.add('warning');
+                status.textContent = '⚠ 조건수 높음';
+                grade.textContent = 'B';
+            } else {
+                panel.classList.add('stable');
+                status.textContent = '✓ 역변환 가능 (안정)';
+                grade.textContent = cond < 10 ? 'A+' : 'A';
+            }
+        }
+
+        // 3D Rendering
+        function rotateX(point, angle) {
+            const rad = angle * Math.PI / 180;
+            const cos = Math.cos(rad);
+            const sin = Math.sin(rad);
+            return {
+                x: point.x,
+                y: point.y * cos - point.z * sin,
+                z: point.y * sin + point.z * cos
+            };
+        }
+
+        function rotateY(point, angle) {
+            const rad = angle * Math.PI / 180;
+            const cos = Math.cos(rad);
+            const sin = Math.sin(rad);
+            return {
+                x: point.x * cos + point.z * sin,
+                y: point.y,
+                z: -point.x * sin + point.z * cos
+            };
+        }
+
+        function project(point) {
+            const d = state.focalLength;
+            const z = point.z + state.depth;
+            
+            // Perspective divide
+            const w = state.px * point.x + state.py * point.y - z / d + 1;
+            
+            document.getElementById('wInfo').textContent = w.toFixed(3);
+            
+            if (Math.abs(w) < 0.001) {
+                return { x: 0, y: 0, visible: false };
+            }
+            
+            return {
+                x: point.x / w,
+                y: point.y / w,
+                visible: z < d && z > -d
+            };
+        }
+
+        function draw() {
+            if (!canvas.width) return;
+            
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            const cx = canvas.width / 2;
+            const cy = canvas.height / 2;
+            const scale = 2;
+
+            // Draw axes
+            ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(0, cy);
+            ctx.lineTo(canvas.width, cy);
+            ctx.moveTo(cx, 0);
+            ctx.lineTo(cx, canvas.height);
+            ctx.stroke();
+
+            // Define 3D cube vertices
+            const size = 50;
+            const vertices = [
+                {x: -size, y: -size, z: -size},
+                {x:  size, y: -size, z: -size},
+                {x:  size, y:  size, z: -size},
+                {x: -size, y:  size, z: -size},
+                {x: -size, y: -size, z:  size},
+                {x:  size, y: -size, z:  size},
+                {x:  size, y:  size, z:  size},
+                {x: -size, y:  size, z:  size}
+            ];
+
+            // Rotate vertices
+            const rotated = vertices.map(v => {
+                let p = rotateX(v, state.rotX);
+                p = rotateY(p, state.rotY);
+                return p;
+            });
+
+            // Project vertices
+            const projected = rotated.map(v => project(v));
+
+            // Draw cube edges
+            const edges = [
+                [0,1],[1,2],[2,3],[3,0], // back face
+                [4,5],[5,6],[6,7],[7,4], // front face
+                [0,4],[1,5],[2,6],[3,7]  // connecting edges
+            ];
+
+            ctx.strokeStyle = '#667eea';
+            ctx.lineWidth = 2;
+
+            edges.forEach(([i, j]) => {
+                const p1 = projected[i];
+                const p2 = projected[j];
+                
+                if (p1.visible && p2.visible) {
+                    ctx.beginPath();
+                    ctx.moveTo(cx + p1.x * scale, cy - p1.y * scale);
+                    ctx.lineTo(cx + p2.x * scale, cy - p2.y * scale);
+                    ctx.stroke();
+                }
+            });
+
+            // Draw vertices
+            projected.forEach((p, i) => {
+                if (p.visible) {
+                    ctx.fillStyle = i < 4 ? '#764ba2' : '#667eea';
+                    ctx.beginPath();
+                    ctx.arc(cx + p.x * scale, cy - p.y * scale, 5, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            });
+
+            // Draw reference grid
+            ctx.strokeStyle = 'rgba(102, 126, 234, 0.1)';
+            ctx.lineWidth = 1;
+            for (let i = -200; i <= 200; i += 50) {
+                const p1 = project({x: i, y: -200, z: 0});
+                const p2 = project({x: i, y: 200, z: 0});
+                if (p1.visible && p2.visible) {
+                    ctx.beginPath();
+                    ctx.moveTo(cx + p1.x * scale, cy - p1.y * scale);
+                    ctx.lineTo(cx + p2.x * scale, cy - p2.y * scale);
+                    ctx.stroke();
+                }
+            }
+
+            updateMatrices();
+        }
+
+        // Buttons
+        document.getElementById('resetBtn').addEventListener('click', () => {
+            controls.focalLength.value = 500;
+            controls.depth.value = 100;
+            controls.px.value = 0;
+            controls.py.value = 0;
+            controls.rotX.value = 30;
+            controls.rotY.value = 45;
+            updateValues();
+        });
+
+        document.getElementById('singularBtn').addEventListener('click', () => {
+            controls.px.value = 0;
+            controls.py.value = 0;
+            controls.depth.value = controls.focalLength.value;
+            updateValues();
+        });
+
+        const animateBtn = document.getElementById('animateBtn');
+        animateBtn.addEventListener('click', function() {
+            state.animating = !state.animating;
+            if (state.animating) {
+                this.textContent = '⏸️ 정지';
+                this.classList.add('active');
+                animate();
+            } else {
+                this.textContent = '▶️ 애니메이션';
+                this.classList.remove('active');
+            }
+        });
+
+        function animate() {
+            if (!state.animating) return;
+            
+            controls.rotY.value = (parseFloat(controls.rotY.value) + 1) % 360;
+            updateValues();
+            
+            requestAnimationFrame(animate);
+        }
+
+        // Initialize
+        setTimeout(() => {
+            resizeCanvas();
+            updateValues();
+        }, 100);
+    </script>
+</body>
+</html>

@@ -1,0 +1,1310 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>동차 좌표와 아핀 변환 시뮬레이터</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background: #0f0f23;
+            padding: 15px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Animated Background */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            opacity: 0.1;
+        }
+
+        .container {
+            max-width: 1900px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 25px;
+            box-shadow: 0 30px 80px rgba(0,0,0,0.5);
+            overflow: hidden;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Header - 컴팩트 */
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 25px 30px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header h1 {
+            color: white;
+            font-size: 2em;
+            font-weight: 700;
+            margin-bottom: 5px;
+            text-shadow: 2px 2px 10px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            color: rgba(255,255,255,0.95);
+            font-size: 1em;
+            font-weight: 300;
+        }
+
+        /* Theme Selector */
+        .theme-selector {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            display: flex;
+            gap: 8px;
+            z-index: 10;
+        }
+
+        .theme-btn {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border: 2px solid white;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .theme-btn:hover {
+            transform: scale(1.15);
+        }
+
+        .theme-btn.active {
+            box-shadow: 0 0 0 3px rgba(255,255,255,0.5);
+        }
+
+        .theme-purple { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .theme-ocean { background: linear-gradient(135deg, #2E3192 0%, #1BFFFF 100%); }
+        .theme-sunset { background: linear-gradient(135deg, #FF6B6B 0%, #FFE66D 100%); }
+        .theme-forest { background: linear-gradient(135deg, #134E5E 0%, #71B280 100%); }
+
+        /* Main Layout */
+        .main-layout {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 20px;
+            padding: 20px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: calc(100vh - 150px);
+        }
+
+        /* Left Panel */
+        .left-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .canvas-container {
+            background: white;
+            border-radius: 18px;
+            padding: 20px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+        }
+
+        .canvas-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .canvas-title {
+            font-size: 1.4em;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .view-mode {
+            display: flex;
+            gap: 5px;
+            background: #f0f0f0;
+            padding: 3px;
+            border-radius: 8px;
+        }
+
+        .mode-btn {
+            padding: 6px 12px;
+            border: none;
+            background: transparent;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.8em;
+            transition: all 0.3s;
+            color: #666;
+        }
+
+        .mode-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        #canvas {
+            width: 100%;
+            height: 450px;
+            border-radius: 12px;
+            background: 
+                linear-gradient(45deg, #f9f9f9 25%, transparent 25%),
+                linear-gradient(-45deg, #f9f9f9 25%, transparent 25%),
+                linear-gradient(45deg, transparent 75%, #f9f9f9 75%),
+                linear-gradient(-45deg, transparent 75%, #f9f9f9 75%);
+            background-size: 20px 20px;
+            background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+            box-shadow: inset 0 2px 8px rgba(0,0,0,0.05);
+            cursor: crosshair;
+            display: block;
+        }
+
+        .canvas-controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        .control-badge {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            padding: 8px 14px;
+            border-radius: 8px;
+            border-left: 3px solid;
+            flex: 1;
+        }
+
+        .control-badge:nth-child(1) { border-color: #667eea; }
+        .control-badge:nth-child(2) { border-color: #764ba2; }
+        .control-badge:nth-child(3) { border-color: #f093fb; }
+
+        .badge-label {
+            font-size: 0.7em;
+            color: #718096;
+            font-weight: 600;
+            margin-bottom: 3px;
+            text-transform: uppercase;
+        }
+
+        .badge-value {
+            font-family: 'Courier New', monospace;
+            font-size: 0.95em;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Matrix Display */
+        .matrix-section {
+            background: white;
+            border-radius: 18px;
+            padding: 18px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+        }
+
+        .section-title {
+            font-size: 1.3em;
+            font-weight: 700;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-title::before {
+            content: '';
+            width: 4px;
+            height: 22px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 2px;
+        }
+
+        .matrix-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .matrix-box {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 12px;
+            border-radius: 10px;
+            border: 2px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .matrix-box:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+        }
+
+        .matrix-label {
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85em;
+        }
+
+        .matrix-symbol {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 3px 8px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.8em;
+            font-weight: 700;
+        }
+
+        .matrix {
+            display: inline-block;
+            position: relative;
+            padding: 10px 15px;
+        }
+
+        .matrix::before,
+        .matrix::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 10px;
+            border: 2px solid;
+            border-image: linear-gradient(135deg, #667eea 0%, #764ba2 100%) 1;
+        }
+
+        .matrix::before {
+            left: 0;
+            border-right: none;
+            border-radius: 5px 0 0 5px;
+        }
+
+        .matrix::after {
+            right: 0;
+            border-left: none;
+            border-radius: 0 5px 5px 0;
+        }
+
+        .matrix-row {
+            display: flex;
+            gap: 15px;
+            margin: 5px 0;
+        }
+
+        .matrix-cell {
+            min-width: 55px;
+            text-align: right;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85em;
+            font-weight: 700;
+            color: #2d3748;
+        }
+
+        .matrix-cell.highlight {
+            color: #764ba2;
+        }
+
+        .final-matrix {
+            grid-column: 1 / -1;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            border: 2px solid #667eea;
+        }
+
+        .formula {
+            background: white;
+            padding: 8px;
+            border-radius: 6px;
+            text-align: center;
+            font-family: 'Courier New', monospace;
+            font-size: 1em;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-top: 8px;
+        }
+
+        /* Right Panel - 완전히 보이도록 최적화 */
+        .right-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding-right: 5px;
+            height: fit-content;
+            max-height: calc(100vh - 180px);
+        }
+
+        .right-panel::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .right-panel::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.05);
+            border-radius: 10px;
+        }
+
+        .right-panel::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+        }
+
+        .control-card {
+            background: white;
+            border-radius: 12px;
+            padding: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            transition: all 0.3s;
+        }
+
+        .control-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+        }
+
+        .control-title {
+            font-size: 1em;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* Shape Selector */
+        .shape-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+
+        .shape-option {
+            padding: 10px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: white;
+            font-weight: 600;
+            color: #4a5568;
+            font-size: 0.85em;
+        }
+
+        .shape-option:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+        }
+
+        .shape-option.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: transparent;
+        }
+
+        /* Slider */
+        .control-item {
+            margin-bottom: 10px;
+        }
+
+        .control-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+
+        .label-text {
+            font-weight: 600;
+            color: #2d3748;
+            font-size: 0.85em;
+        }
+
+        .value-badge {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 3px 10px;
+            border-radius: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.75em;
+            font-weight: 700;
+            min-width: 60px;
+            text-align: center;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 6px;
+            border-radius: 6px;
+            background: linear-gradient(to right, #667eea 0%, #764ba2 100%);
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: white;
+            cursor: pointer;
+            box-shadow: 
+                0 3px 8px rgba(102, 126, 234, 0.5),
+                0 0 0 3px #667eea;
+            transition: all 0.3s;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.15);
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: white;
+            cursor: pointer;
+            border: none;
+            box-shadow: 
+                0 3px 8px rgba(102, 126, 234, 0.5),
+                0 0 0 3px #667eea;
+        }
+
+        /* Info Box */
+        .info-box {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.08) 100%);
+            border-left: 3px solid #667eea;
+            padding: 8px;
+            border-radius: 6px;
+            margin-top: 6px;
+        }
+
+        .info-box p {
+            font-size: 0.75em;
+            color: #4a5568;
+            line-height: 1.5;
+            margin: 2px 0;
+        }
+
+        .info-box strong {
+            color: #667eea;
+        }
+
+        /* Determinant */
+        .det-display {
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            border-radius: 10px;
+            padding: 12px;
+            margin-top: 8px;
+            border: 2px solid #e2e8f0;
+        }
+
+        .det-title {
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 8px;
+            font-size: 0.8em;
+            text-transform: uppercase;
+        }
+
+        .det-value {
+            font-family: 'Courier New', monospace;
+            font-size: 1.6em;
+            font-weight: 800;
+            text-align: center;
+            margin: 8px 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .det-status {
+            padding: 8px;
+            border-radius: 6px;
+            text-align: center;
+            font-weight: 700;
+            font-size: 0.75em;
+        }
+
+        .det-status.safe {
+            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+            color: #155724;
+        }
+
+        .det-status.warning {
+            background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+            color: #856404;
+        }
+
+        .det-status.danger {
+            background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+            color: #721c24;
+        }
+
+        /* Buttons */
+        .button-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .btn {
+            padding: 10px 16px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 0.85em;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(102, 126, 234, 0.6);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+
+        .btn-secondary:hover {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+        }
+
+        .btn-secondary.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: transparent;
+        }
+
+        /* Legend */
+        .legend {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+            padding: 10px;
+            background: rgba(102, 126, 234, 0.05);
+            border-radius: 8px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.75em;
+            color: #4a5568;
+            font-weight: 500;
+            padding: 4px 8px;
+            background: white;
+            border-radius: 5px;
+        }
+
+        .legend-dot {
+            width: 16px;
+            height: 16px;
+            border-radius: 3px;
+        }
+
+        /* Responsive */
+        @media (max-width: 1400px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .right-panel {
+                max-height: none;
+                grid-template-columns: repeat(2, 1fr);
+                display: grid;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .right-panel {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-animation"></div>
+    
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="theme-selector">
+                <div class="theme-btn theme-purple active" data-theme="purple"></div>
+                <div class="theme-btn theme-ocean" data-theme="ocean"></div>
+                <div class="theme-btn theme-sunset" data-theme="sunset"></div>
+                <div class="theme-btn theme-forest" data-theme="forest"></div>
+            </div>
+            <h1>🎯 동차 좌표와 아핀 변환 시뮬레이터</h1>
+            <p>Interactive Matrix Transformation Simulator</p>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-layout">
+            <!-- Left Panel -->
+            <div class="left-panel">
+                <!-- Canvas Section -->
+                <div class="canvas-container">
+                    <div class="canvas-header">
+                        <h2 class="canvas-title">📐 변환 시각화</h2>
+                        <div class="view-mode">
+                            <button class="mode-btn active" data-mode="normal">기본</button>
+                            <button class="mode-btn" data-mode="trail">트레일</button>
+                            <button class="mode-btn" data-mode="grid">그리드</button>
+                        </div>
+                    </div>
+                    <canvas id="canvas"></canvas>
+                    <div class="canvas-controls">
+                        <div class="control-badge">
+                            <div class="badge-label">원본 좌표</div>
+                            <div class="badge-value" id="originalCoord">(0, 0, 1)</div>
+                        </div>
+                        <div class="control-badge">
+                            <div class="badge-label">변환 좌표</div>
+                            <div class="badge-value" id="transformedCoord">(0, 0, 1)</div>
+                        </div>
+                        <div class="control-badge">
+                            <div class="badge-label">동차 성분</div>
+                            <div class="badge-value" id="wComponent">w = 1.000</div>
+                        </div>
+                    </div>
+                    <div class="legend">
+                        <div class="legend-item">
+                            <div class="legend-dot" style="background: rgba(200,200,200,0.3); border: 2px dashed #999;"></div>
+                            <span>원본</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-dot" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);"></div>
+                            <span>변환</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-dot" style="background: #e0e0e0;"></div>
+                            <span>축</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Matrix Display -->
+                <div class="matrix-section">
+                    <h2 class="section-title">🔢 변환 행렬</h2>
+                    <div class="matrix-grid">
+                        <!-- Scale Matrix -->
+                        <div class="matrix-box">
+                            <div class="matrix-label">
+                                <span>스케일</span>
+                                <span class="matrix-symbol">S</span>
+                            </div>
+                            <div class="matrix">
+                                <div class="matrix-row">
+                                    <span class="matrix-cell" id="s00">1.00</span>
+                                    <span class="matrix-cell" id="s01">0.00</span>
+                                    <span class="matrix-cell" id="s02">0.00</span>
+                                </div>
+                                <div class="matrix-row">
+                                    <span class="matrix-cell" id="s10">0.00</span>
+                                    <span class="matrix-cell" id="s11">1.00</span>
+                                    <span class="matrix-cell" id="s12">0.00</span>
+                                </div>
+                                <div class="matrix-row">
+                                    <span class="matrix-cell" id="s20">0.00</span>
+                                    <span class="matrix-cell" id="s21">0.00</span>
+                                    <span class="matrix-cell" id="s22">1.00</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Rotation Matrix -->
+                        <div class="matrix-box">
+                            <div class="matrix-label">
+                                <span>회전</span>
+                                <span class="matrix-symbol">R</span>
+                            </div>
+                            <div class="matrix">
+                                <div class="matrix-row">
+                                    <span class="matrix-cell" id="r00">1.00</span>
+                                    <span class="matrix-cell" id="r01">0.00</span>
+                                    <span class="matrix-cell" id="r02">0.00</span>
+                                </div>
+                                <div class="matrix-row">
+                                    <span class="matrix-cell" id="r10">0.00</span>
+                                    <span class="matrix-cell" id="r11">1.00</span>
+                                    <span class="matrix-cell" id="r12">0.00</span>
+                                </div>
+                                <div class="matrix-row">
+                                    <span class="matrix-cell" id="r20">0.00</span>
+                                    <span class="matrix-cell" id="r21">0.00</span>
+                                    <span class="matrix-cell" id="r22">1.00</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Translation Matrix -->
+                        <div class="matrix-box">
+                            <div class="matrix-label">
+                                <span>이동</span>
+                                <span class="matrix-symbol">T</span>
+                            </div>
+                            <div class="matrix">
+                                <div class="matrix-row">
+                                    <span class="matrix-cell" id="t00">1.00</span>
+                                    <span class="matrix-cell" id="t01">0.00</span>
+                                    <span class="matrix-cell highlight" id="t02">0.00</span>
+                                </div>
+                                <div class="matrix-row">
+                                    <span class="matrix-cell" id="t10">0.00</span>
+                                    <span class="matrix-cell" id="t11">1.00</span>
+                                    <span class="matrix-cell highlight" id="t12">0.00</span>
+                                </div>
+                                <div class="matrix-row">
+                                    <span class="matrix-cell" id="t20">0.00</span>
+                                    <span class="matrix-cell" id="t21">0.00</span>
+                                    <span class="matrix-cell" id="t22">1.00</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Combined Matrix -->
+                        <div class="matrix-box final-matrix">
+                            <div class="matrix-label">
+                                <span>통합 행렬</span>
+                                <span class="matrix-symbol">H = T × R × S</span>
+                            </div>
+                            <div class="matrix">
+                                <div class="matrix-row">
+                                    <span class="matrix-cell" id="h00">1.00</span>
+                                    <span class="matrix-cell" id="h01">0.00</span>
+                                    <span class="matrix-cell" id="h02">0.00</span>
+                                </div>
+                                <div class="matrix-row">
+                                    <span class="matrix-cell" id="h10">0.00</span>
+                                    <span class="matrix-cell" id="h11">1.00</span>
+                                    <span class="matrix-cell" id="h12">0.00</span>
+                                </div>
+                                <div class="matrix-row">
+                                    <span class="matrix-cell" id="h20">0.00</span>
+                                    <span class="matrix-cell" id="h21">0.00</span>
+                                    <span class="matrix-cell" id="h22">1.00</span>
+                                </div>
+                            </div>
+                            <div class="formula">x' = H × x</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Panel -->
+            <div class="right-panel">
+                <!-- 1. Shape Selection -->
+                <div class="control-card">
+                    <h3 class="control-title">🎨 도형 선택</h3>
+                    <div class="shape-grid">
+                        <div class="shape-option active" data-shape="rect">사각형</div>
+                        <div class="shape-option" data-shape="triangle">삼각형</div>
+                        <div class="shape-option" data-shape="star">별</div>
+                    </div>
+                </div>
+
+                <!-- 2. Translation Controls -->
+                <div class="control-card">
+                    <h3 class="control-title">↔️ 이동</h3>
+                    <div class="control-item">
+                        <div class="control-label">
+                            <span class="label-text">X 축</span>
+                            <span class="value-badge" id="txValue">0</span>
+                        </div>
+                        <input type="range" id="translateX" min="-200" max="200" value="0" step="1">
+                    </div>
+                    <div class="control-item">
+                        <div class="control-label">
+                            <span class="label-text">Y 축</span>
+                            <span class="value-badge" id="tyValue">0</span>
+                        </div>
+                        <input type="range" id="translateY" min="-200" max="200" value="0" step="1">
+                    </div>
+                    <div class="info-box">
+                        <p><strong>T</strong> = [1 0 tx; 0 1 ty; 0 0 1]</p>
+                    </div>
+                </div>
+
+                <!-- 3. Rotation Controls -->
+                <div class="control-card">
+                    <h3 class="control-title">🔄 회전</h3>
+                    <div class="control-item">
+                        <div class="control-label">
+                            <span class="label-text">각도</span>
+                            <span class="value-badge" id="rotValue">0°</span>
+                        </div>
+                        <input type="range" id="rotation" min="-180" max="180" value="0" step="1">
+                    </div>
+                    <div class="info-box">
+                        <p><strong>R</strong> = [cos(θ) -sin(θ) 0; sin(θ) cos(θ) 0; 0 0 1]</p>
+                    </div>
+                </div>
+
+                <!-- 4. Scale Controls -->
+                <div class="control-card">
+                    <h3 class="control-title">📏 스케일</h3>
+                    <div class="control-item">
+                        <div class="control-label">
+                            <span class="label-text">X 축</span>
+                            <span class="value-badge" id="sxValue">1.0</span>
+                        </div>
+                        <input type="range" id="scaleX" min="0.1" max="3" value="1" step="0.1">
+                    </div>
+                    <div class="control-item">
+                        <div class="control-label">
+                            <span class="label-text">Y 축</span>
+                            <span class="value-badge" id="syValue">1.0</span>
+                        </div>
+                        <input type="range" id="scaleY" min="0.1" max="3" value="1" step="0.1">
+                    </div>
+                    <div class="info-box">
+                        <p><strong>S</strong> = [sx 0 0; 0 sy 0; 0 0 1]</p>
+                    </div>
+                </div>
+
+                <!-- 5. Determinant -->
+                <div class="control-card">
+                    <h3 class="control-title">🧮 역변환</h3>
+                    <div class="det-display">
+                        <div class="det-title">det(H)</div>
+                        <div class="det-value" id="detValue">1.000</div>
+                        <div class="det-status safe" id="detStatus">✓ 안정</div>
+                    </div>
+                    <div class="info-box">
+                        <p><strong>≠ 0:</strong> 역변환 가능</p>
+                        <p><strong>= 0:</strong> 특이행렬</p>
+                    </div>
+                </div>
+
+                <!-- 6. Control Buttons -->
+                <div class="control-card">
+                    <div class="button-group">
+                        <button class="btn btn-primary" id="resetBtn">🔄 초기화</button>
+                        <button class="btn btn-secondary" id="animateBtn">▶️ 애니메이션</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Canvas Setup
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        function resizeCanvas() {
+            const container = canvas.parentElement;
+            const rect = container.getBoundingClientRect();
+            canvas.width = rect.width - 40;
+            canvas.height = 450;
+            draw();
+        }
+
+        window.addEventListener('load', resizeCanvas);
+        window.addEventListener('resize', resizeCanvas);
+
+        // State
+        let state = {
+            shape: 'rect',
+            mode: 'normal',
+            theme: 'purple',
+            tx: 0,
+            ty: 0,
+            rotation: 0,
+            sx: 1,
+            sy: 1,
+            animating: false,
+            trail: []
+        };
+
+        // Theme Colors
+        const themes = {
+            purple: { primary: '#667eea', secondary: '#764ba2' },
+            ocean: { primary: '#2E3192', secondary: '#1BFFFF' },
+            sunset: { primary: '#FF6B6B', secondary: '#FFE66D' },
+            forest: { primary: '#134E5E', secondary: '#71B280' }
+        };
+
+        // Theme Selector
+        document.querySelectorAll('.theme-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                state.theme = this.dataset.theme;
+                draw();
+            });
+        });
+
+        // View Mode
+        document.querySelectorAll('.mode-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                state.mode = this.dataset.mode;
+                draw();
+            });
+        });
+
+        // Matrix Operations
+        function multiplyMatrices(a, b) {
+            const result = [[0,0,0],[0,0,0],[0,0,0]];
+            for (let i = 0; i < 3; i++) {
+                for (let j = 0; j < 3; j++) {
+                    for (let k = 0; k < 3; k++) {
+                        result[i][j] += a[i][k] * b[k][j];
+                    }
+                }
+            }
+            return result;
+        }
+
+        function determinant(m) {
+            return m[0][0] * (m[1][1] * m[2][2] - m[1][2] * m[2][1]) -
+                   m[0][1] * (m[1][0] * m[2][2] - m[1][2] * m[2][0]) +
+                   m[0][2] * (m[1][0] * m[2][1] - m[1][1] * m[2][0]);
+        }
+
+        function getMatrices() {
+            const theta = state.rotation * Math.PI / 180;
+            const cos = Math.cos(theta);
+            const sin = Math.sin(theta);
+
+            const S = [[state.sx, 0, 0], [0, state.sy, 0], [0, 0, 1]];
+            const R = [[cos, -sin, 0], [sin, cos, 0], [0, 0, 1]];
+            const T = [[1, 0, state.tx], [0, 1, state.ty], [0, 0, 1]];
+
+            const RS = multiplyMatrices(R, S);
+            const H = multiplyMatrices(T, RS);
+
+            return { S, R, T, H };
+        }
+
+        function updateMatrixDisplay(matrices) {
+            const { S, R, T, H } = matrices;
+
+            updateMatrix('s', S);
+            updateMatrix('r', R);
+            updateMatrix('t', T);
+            updateMatrix('h', H);
+
+            const det = determinant(H);
+            document.getElementById('detValue').textContent = det.toFixed(3);
+
+            const detStatus = document.getElementById('detStatus');
+            if (Math.abs(det) > 0.1) {
+                detStatus.className = 'det-status safe';
+                detStatus.textContent = '✓ 안정';
+            } else if (Math.abs(det) > 0.001) {
+                detStatus.className = 'det-status warning';
+                detStatus.textContent = '⚠ 불안정';
+            } else {
+                detStatus.className = 'det-status danger';
+                detStatus.textContent = '✗ 특이';
+            }
+        }
+
+        function updateMatrix(prefix, matrix) {
+            for (let i = 0; i < 3; i++) {
+                for (let j = 0; j < 3; j++) {
+                    const elem = document.getElementById(`${prefix}${i}${j}`);
+                    if (elem) elem.textContent = matrix[i][j].toFixed(2);
+                }
+            }
+        }
+
+        // Drawing Functions
+        function drawShape(shape, color, isDashed = false) {
+            ctx.save();
+
+            if (isDashed) {
+                ctx.setLineDash([10, 10]);
+                ctx.strokeStyle = '#aaa';
+                ctx.fillStyle = 'rgba(200,200,200,0.15)';
+                ctx.lineWidth = 2;
+            } else {
+                ctx.fillStyle = color;
+                ctx.strokeStyle = 'white';
+                ctx.lineWidth = 4;
+                ctx.shadowColor = color;
+                ctx.shadowBlur = 15;
+            }
+
+            ctx.beginPath();
+
+            switch (shape) {
+                case 'rect':
+                    ctx.rect(-60, -40, 120, 80);
+                    break;
+                case 'triangle':
+                    ctx.moveTo(0, -50);
+                    ctx.lineTo(60, 40);
+                    ctx.lineTo(-60, 40);
+                    ctx.closePath();
+                    break;
+                case 'star':
+                    const spikes = 5;
+                    const outerR = 50;
+                    const innerR = 25;
+                    let rot = Math.PI / 2 * 3;
+                    const step = Math.PI / spikes;
+
+                    ctx.moveTo(0, -outerR);
+                    for (let i = 0; i < spikes; i++) {
+                        ctx.lineTo(Math.cos(rot) * outerR, Math.sin(rot) * outerR);
+                        rot += step;
+                        ctx.lineTo(Math.cos(rot) * innerR, Math.sin(rot) * innerR);
+                        rot += step;
+                    }
+                    ctx.lineTo(0, -outerR);
+                    ctx.closePath();
+                    break;
+            }
+
+            ctx.fill();
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        function draw() {
+            if (!canvas.width || !canvas.height) return;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const cx = canvas.width / 2;
+            const cy = canvas.height / 2;
+
+            // Grid
+            if (state.mode === 'grid' || state.mode === 'normal') {
+                ctx.save();
+                ctx.strokeStyle = 'rgba(0,0,0,0.04)';
+                ctx.lineWidth = 1;
+                for (let i = 0; i < canvas.width; i += 40) {
+                    ctx.beginPath();
+                    ctx.moveTo(i, 0);
+                    ctx.lineTo(i, canvas.height);
+                    ctx.stroke();
+                }
+                for (let i = 0; i < canvas.height; i += 40) {
+                    ctx.beginPath();
+                    ctx.moveTo(0, i);
+                    ctx.lineTo(canvas.width, i);
+                    ctx.stroke();
+                }
+                ctx.restore();
+            }
+
+            // Axes
+            ctx.save();
+            ctx.strokeStyle = 'rgba(0,0,0,0.1)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(0, cy);
+            ctx.lineTo(canvas.width, cy);
+            ctx.moveTo(cx, 0);
+            ctx.lineTo(cx, canvas.height);
+            ctx.stroke();
+            ctx.restore();
+
+            // Trail Effect
+            if (state.mode === 'trail' && state.trail.length > 0) {
+                state.trail.forEach((pos, i) => {
+                    const alpha = i / state.trail.length;
+                    ctx.save();
+                    ctx.translate(cx, cy);
+                    ctx.globalAlpha = alpha * 0.3;
+                    const theme = themes[state.theme];
+                    const gradient = ctx.createLinearGradient(-60, -40, 60, 40);
+                    gradient.addColorStop(0, theme.primary);
+                    gradient.addColorStop(1, theme.secondary);
+                    
+                    ctx.transform(pos.H[0][0], pos.H[1][0], pos.H[0][1], pos.H[1][1], pos.H[0][2], pos.H[1][2]);
+                    drawShape(state.shape, gradient);
+                    ctx.restore();
+                });
+            }
+
+            // Original shape
+            ctx.save();
+            ctx.translate(cx, cy);
+            drawShape(state.shape, '#666', true);
+            ctx.restore();
+
+            // Transformed shape
+            const matrices = getMatrices();
+            const H = matrices.H;
+            updateMatrixDisplay(matrices);
+
+            ctx.save();
+            ctx.translate(cx, cy);
+            ctx.transform(H[0][0], H[1][0], H[0][1], H[1][1], H[0][2], H[1][2]);
+
+            const theme = themes[state.theme];
+            const gradient = ctx.createLinearGradient(-60, -40, 60, 40);
+            gradient.addColorStop(0, theme.primary);
+            gradient.addColorStop(1, theme.secondary);
+
+            drawShape(state.shape, gradient);
+            ctx.restore();
+
+            // Store trail
+            if (state.mode === 'trail') {
+                state.trail.push({ H: H });
+                if (state.trail.length > 15) state.trail.shift();
+            } else {
+                state.trail = [];
+            }
+
+            // Center point
+            ctx.save();
+            ctx.fillStyle = theme.primary;
+            ctx.shadowColor = theme.primary;
+            ctx.shadowBlur = 15;
+            ctx.beginPath();
+            ctx.arc(cx, cy, 6, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = 'white';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            ctx.restore();
+
+            // Update coordinates
+            const transformed = {
+                x: H[0][2],
+                y: H[1][2],
+                w: H[2][2]
+            };
+
+            document.getElementById('originalCoord').textContent = '(0, 0, 1)';
+            document.getElementById('transformedCoord').textContent = 
+                `(${transformed.x.toFixed(1)}, ${transformed.y.toFixed(1)}, ${transformed.w.toFixed(2)})`;
+            document.getElementById('wComponent').textContent = `w = ${transformed.w.toFixed(3)}`;
+        }
+
+        // Event Handlers
+        document.querySelectorAll('.shape-option').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.shape-option').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                state.shape = this.dataset.shape;
+                draw();
+            });
+        });
+
+        // Sliders
+        const sliders = {
+            translateX: document.getElementById('translateX'),
+            translateY: document.getElementById('translateY'),
+            rotation: document.getElementById('rotation'),
+            scaleX: document.getElementById('scaleX'),
+            scaleY: document.getElementById('scaleY')
+        };
+
+        const displays = {
+            tx: document.getElementById('txValue'),
+            ty: document.getElementById('tyValue'),
+            rot: document.getElementById('rotValue'),
+            sx: document.getElementById('sxValue'),
+            sy: document.getElementById('syValue')
+        };
+
+        function updateValues() {
+            state.tx = parseFloat(sliders.translateX.value);
+            state.ty = parseFloat(sliders.translateY.value);
+            state.rotation = parseFloat(sliders.rotation.value);
+            state.sx = parseFloat(sliders.scaleX.value);
+            state.sy = parseFloat(sliders.scaleY.value);
+
+            displays.tx.textContent = state.tx;
+            displays.ty.textContent = state.ty;
+            displays.rot.textContent = state.rotation + '°';
+            displays.sx.textContent = state.sx.toFixed(1);
+            displays.sy.textContent = state.sy.toFixed(1);
+
+            draw();
+        }
+
+        Object.values(sliders).forEach(slider => {
+            slider.addEventListener('input', updateValues);
+        });
+
+        // Buttons
+        document.getElementById('resetBtn').addEventListener('click', () => {
+            sliders.translateX.value = 0;
+            sliders.translateY.value = 0;
+            sliders.rotation.value = 0;
+            sliders.scaleX.value = 1;
+            sliders.scaleY.value = 1;
+            updateValues();
+        });
+
+        const animateBtn = document.getElementById('animateBtn');
+        animateBtn.addEventListener('click', function() {
+            state.animating = !state.animating;
+            if (state.animating) {
+                this.textContent = '⏸️ 정지';
+                this.classList.add('active');
+                animate();
+            } else {
+                this.textContent = '▶️ 애니메이션';
+                this.classList.remove('active');
+            }
+        });
+
+        function animate() {
+            if (!state.animating) return;
+
+            const time = Date.now() / 1000;
+            sliders.rotation.value = (parseFloat(sliders.rotation.value) + 2) % 360;
+            sliders.translateX.value = Math.sin(time * 0.7) * 100;
+            sliders.translateY.value = Math.cos(time * 0.7) * 100;
+            sliders.scaleX.value = 1 + Math.sin(time * 1.3) * 0.4;
+            sliders.scaleY.value = 1 + Math.cos(time * 1.3) * 0.4;
+
+            updateValues();
+            requestAnimationFrame(animate);
+        }
+
+        // Initialize
+        setTimeout(() => {
+            resizeCanvas();
+            updateValues();
+        }, 100);
+    </script>
+</body>
+</html>
