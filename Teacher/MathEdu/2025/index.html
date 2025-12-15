@@ -40,6 +40,87 @@
         transform: translateY(-2px);
         box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
       }
+
+      /* Custom utility classes to reduce repetition and ensure consistency */
+      .project-card {
+        background-color: white;
+        border-radius: 0.75rem; /* rounded-xl */
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+          0 4px 6px -4px rgba(0, 0, 0, 0.1); /* shadow-lg */
+        overflow: hidden;
+        transition: transform 0.3s ease;
+        display: flex;
+        flex-direction: column;
+        height: 100%; /* Ensure all cards have the same height in the grid */
+      }
+
+      .project-card:hover {
+        transform: translateY(-0.25rem);
+      }
+
+      .project-card-content {
+        padding: 2rem;
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+      }
+
+      .card-title {
+        font-size: 1.5rem; /* 2xl */
+        line-height: 2rem;
+        font-weight: 700;
+        color: #0f172a; /* slate-900 */
+        margin-bottom: 0.75rem;
+      }
+
+      .card-description {
+        color: #475569; /* slate-600 */
+        margin-bottom: 1.5rem;
+        flex-grow: 1;
+      }
+
+      .card-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        margin-top: auto;
+      }
+
+      .card-link {
+        /* Inherits card-button and btn-purple styles plus specific layout */
+        background-color: #8b5cf6;
+        color: white;
+        font-weight: 600;
+        padding: 0.5rem 1.25rem;
+        border-radius: 0.5rem;
+        display: inline-block;
+        text-align: center;
+        transition: all 0.3s ease;
+      }
+
+      .card-link:hover {
+        background-color: #7c3aed;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+      }
+
+      .original-link {
+        font-size: 0.75rem; /* text-xs */
+        color: #94a3b8; /* slate-400 */
+        text-align: center;
+        transition: color 0.3s;
+
+        /* Truncate long text */
+        display: block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        max-width: 100%;
+      }
+
+      .original-link:hover {
+        color: #475569; /* slate-600 */
+      }
     </style>
   </head>
 
@@ -77,22 +158,16 @@
 
       <main class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         <!-- Cho Eun-gyeol Project -->
-        <div
-          class="bg-white rounded-xl shadow-lg overflow-hidden transform hover:-translate-y-1 transition-transform duration-300"
-        >
-          <div class="p-8">
-            <h2 class="text-2xl font-bold text-slate-900 mb-3">조은결</h2>
-            <p class="text-slate-600 mb-6">수학 탐구 프로젝트 모음</p>
-            <div class="flex flex-col gap-3">
-              <a
-                href="조은결/index.html"
-                class="card-button btn-purple text-white font-semibold py-2 px-5 rounded-lg inline-block text-center"
-                >보러가기</a
-              >
+        <div class="project-card">
+          <div class="project-card-content">
+            <h2 class="card-title">조은결</h2>
+            <p class="card-description">수학 탐구 프로젝트 모음</p>
+            <div class="card-actions">
+              <a href="조은결/index.html" class="card-link">보러가기</a>
               <a
                 href="https://ekc0517.github.io/math/"
                 target="_blank"
-                class="text-xs text-slate-400 hover:text-slate-600 text-center transition-colors"
+                class="original-link"
                 >Original: https://ekc0517.github.io/math/</a
               >
             </div>
@@ -100,39 +175,34 @@
         </div>
 
         <!-- Choi Myung-jun Project -->
-        <div
-          class="bg-white rounded-xl shadow-lg overflow-hidden transform hover:-translate-y-1 transition-transform duration-300"
-        >
-          <div class="p-8">
-            <h2 class="text-2xl font-bold text-slate-900 mb-3">최명준</h2>
-            <p class="text-slate-600 mb-6">수학 탐구 프로젝트 모음</p>
-            <div class="flex flex-col gap-3">
-              <a
-                href="최명준/index.html"
-                class="card-button btn-purple text-white font-semibold py-2 px-5 rounded-lg inline-block text-center"
-                >보러가기</a
+        <div class="project-card">
+          <div class="project-card-content">
+            <h2 class="card-title">최명준</h2>
+            <p class="card-description">수학 탐구 프로젝트 모음</p>
+            <div class="card-actions">
+              <a href="최명준/index.html" class="card-link">보러가기</a>
+              <!-- Placeholder to align buttons across cards -->
+              <span
+                class="original-link"
+                style="visibility: hidden"
+                aria-hidden="true"
+                >Original Link Placeholder</span
               >
             </div>
           </div>
         </div>
 
         <!-- Jin Jae-won Project -->
-        <div
-          class="bg-white rounded-xl shadow-lg overflow-hidden transform hover:-translate-y-1 transition-transform duration-300"
-        >
-          <div class="p-8">
-            <h2 class="text-2xl font-bold text-slate-900 mb-3">진재원</h2>
-            <p class="text-slate-600 mb-6">수학 탐구 프로젝트 모음</p>
-            <div class="flex flex-col gap-3">
-              <a
-                href="진재원/index.html"
-                class="card-button btn-purple text-white font-semibold py-2 px-5 rounded-lg inline-block text-center"
-                >보러가기</a
-              >
+        <div class="project-card">
+          <div class="project-card-content">
+            <h2 class="card-title">진재원</h2>
+            <p class="card-description">수학 탐구 프로젝트 모음</p>
+            <div class="card-actions">
+              <a href="진재원/index.html" class="card-link">보러가기</a>
               <a
                 href="https://jinjw27.github.io/Webpage/"
                 target="_blank"
-                class="text-xs text-slate-400 hover:text-slate-600 text-center transition-colors"
+                class="original-link"
                 >Original: https://jinjw27.github.io/Webpage/</a
               >
             </div>
@@ -140,44 +210,37 @@
         </div>
 
         <!-- Yoo Hyun-soo Project -->
-        <div
-          class="bg-white rounded-xl shadow-lg overflow-hidden transform hover:-translate-y-1 transition-transform duration-300"
-        >
-          <div class="p-8">
-            <h2 class="text-2xl font-bold text-slate-900 mb-3">유현수</h2>
-            <p class="text-slate-600 mb-6">수학 탐구 프로젝트 모음</p>
-            <div class="flex flex-col gap-3">
-              <a
-                href="유현수/index.html"
-                class="card-button btn-purple text-white font-semibold py-2 px-5 rounded-lg inline-block text-center"
-                >보러가기</a
-              >
+        <div class="project-card">
+          <div class="project-card-content">
+            <h2 class="card-title">유현수</h2>
+            <p class="card-description">수학 탐구 프로젝트 모음</p>
+            <div class="card-actions">
+              <a href="유현수/index.html" class="card-link">보러가기</a>
               <a
                 href="https://edgar0401.github.io/Math/"
                 target="_blank"
-                class="text-xs text-slate-400 hover:text-slate-600 text-center transition-colors"
+                class="original-link"
                 >Original: edgar0401.github.io/Math</a
               >
             </div>
           </div>
         </div>
+
         <!-- 권혁주 Project -->
-        <div
-          class="bg-white rounded-xl shadow-lg overflow-hidden transform hover:-translate-y-1 transition-transform duration-300"
-        >
-          <div class="p-8">
-            <h2 class="text-2xl font-bold text-slate-900 mb-3">권혁주</h2>
-            <p class="text-slate-600 mb-6">수학 탐구 프로젝트</p>
-            <div class="flex flex-col gap-3">
+        <div class="project-card">
+          <div class="project-card-content">
+            <h2 class="card-title">권혁주</h2>
+            <p class="card-description">수학 탐구 프로젝트</p>
+            <div class="card-actions">
               <a
                 href="https://hoodinga.github.io/PlanetaryGear_HarmonicDrive_CycloidalDrive_Sim/"
-                class="card-button btn-purple text-white font-semibold py-2 px-5 rounded-lg inline-block text-center"
+                class="card-link"
                 >보러가기</a
               >
               <a
                 href="https://hoodinga.github.io/PlanetaryGear_HarmonicDrive_CycloidalDrive_Sim/"
                 target="_blank"
-                class="text-xs text-slate-400 hover:text-slate-600 text-center transition-colors"
+                class="original-link"
                 >Original:
                 hoodinga.github.io/PlanetaryGear_HarmonicDrive_CycloidalDrive_Sim</a
               >
@@ -186,19 +249,20 @@
         </div>
 
         <!-- Won Jong-hyeon Project -->
-        <div
-          class="bg-white rounded-xl shadow-lg overflow-hidden transform hover:-translate-y-1 transition-transform duration-300"
-        >
-          <div class="p-8">
-            <h2 class="text-2xl font-bold text-slate-900 mb-3">원종현</h2>
-            <p class="text-slate-600 mb-6">
+        <div class="project-card">
+          <div class="project-card-content">
+            <h2 class="card-title">원종현</h2>
+            <p class="card-description">
               수학 탐구 프로젝트 모음 (기하, 미적분, 확률 등)
             </p>
-            <div class="flex flex-col gap-3">
-              <a
-                href="원종현/index.html"
-                class="card-button btn-purple text-white font-semibold py-2 px-5 rounded-lg inline-block text-center"
-                >보러가기</a
+            <div class="card-actions">
+              <a href="원종현/index.html" class="card-link">보러가기</a>
+              <!-- Placeholder to align buttons across cards -->
+              <span
+                class="original-link"
+                style="visibility: hidden"
+                aria-hidden="true"
+                >Original Link Placeholder</span
               >
             </div>
           </div>
