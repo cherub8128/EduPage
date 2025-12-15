@@ -1,140 +1,209 @@
 <!DOCTYPE html>
 <html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>2025 수학 교과 프로젝트</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg-primary: #f1f5f9;
+        --bg-secondary: #ffffff;
+        --text-primary: #1e293b;
+        --text-secondary: #475569;
+      }
 
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>2025 수학 교과 프로젝트</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link
-    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap"
-    rel="stylesheet" />
-  <style>
-    :root {
-      --bg-primary: #f1f5f9;
-      --bg-secondary: #ffffff;
-      --text-primary: #1e293b;
-      --text-secondary: #475569;
-    }
+      body {
+        font-family: "Inter", "Noto Sans KR", sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        background-color: var(--bg-primary);
+        color: var(--text-secondary);
+      }
 
-    body {
-      font-family: 'Inter', 'Noto Sans KR', sans-serif;
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
-      background-color: var(--bg-primary);
-      color: var(--text-secondary);
-    }
+      .card-button {
+        transition: all 0.3s ease;
+      }
 
-    .card-button {
-      transition: all 0.3s ease;
-    }
+      .btn-purple {
+        background-color: #8b5cf6;
+      }
 
-    .btn-purple {
-      background-color: #8b5cf6;
-    }
+      .btn-purple:hover {
+        background-color: #7c3aed;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+      }
+    </style>
+  </head>
 
-    .btn-purple:hover {
-      background-color: #7c3aed;
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
-    }
-  </style>
-</head>
+  <body>
+    <a
+      href="../index.html"
+      class="absolute top-4 left-4 text-slate-600 hover:text-slate-900 transition-colors"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        class="h-6 w-6"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M10 19l-7-7m0 0l7-7m-7 7h18"
+        />
+      </svg>
+    </a>
+    <div class="container mx-auto max-w-5xl px-4 py-16 sm:py-24">
+      <header class="text-center mb-12">
+        <h1
+          class="text-4xl sm:text-5xl font-bold tracking-tight text-slate-900"
+        >
+          2025 수학 교과 프로젝트
+        </h1>
+        <p class="mt-4 text-lg text-slate-600">
+          2025학년도 학생들의 수학 탐구 프로젝트
+        </p>
+      </header>
 
-<body>
-  <a href="../index.html" class="absolute top-4 left-4 text-slate-600 hover:text-slate-900 transition-colors">
-    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-    </svg>
-  </a>
-  <div class="container mx-auto max-w-5xl px-4 py-16 sm:py-24">
-    <header class="text-center mb-12">
-      <h1 class="text-4xl sm:text-5xl font-bold tracking-tight text-slate-900">
-        2025 수학 교과 프로젝트
-      </h1>
-      <p class="mt-4 text-lg text-slate-600">2025학년도 학생들의 수학 탐구 프로젝트</p>
-    </header>
-
-    <main class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-      <!-- Cho Eun-gyeol Project -->
-      <div
-        class="bg-white rounded-xl shadow-lg overflow-hidden transform hover:-translate-y-1 transition-transform duration-300">
-        <div class="p-8">
-          <h2 class="text-2xl font-bold text-slate-900 mb-3">조은결</h2>
-          <p class="text-slate-600 mb-6">수학 탐구 프로젝트 모음</p>
-          <div class="flex flex-col gap-3">
-            <a href="조은결/index.html"
-              class="card-button btn-purple text-white font-semibold py-2 px-5 rounded-lg inline-block text-center">보러가기</a>
-            <a href="https://ekc0517.github.io/math/" target="_blank"
-              class="text-xs text-slate-400 hover:text-slate-600 text-center transition-colors">Original:
-              https://ekc0517.github.io/math/</a>
+      <main class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <!-- Cho Eun-gyeol Project -->
+        <div
+          class="bg-white rounded-xl shadow-lg overflow-hidden transform hover:-translate-y-1 transition-transform duration-300"
+        >
+          <div class="p-8">
+            <h2 class="text-2xl font-bold text-slate-900 mb-3">조은결</h2>
+            <p class="text-slate-600 mb-6">수학 탐구 프로젝트 모음</p>
+            <div class="flex flex-col gap-3">
+              <a
+                href="조은결/index.html"
+                class="card-button btn-purple text-white font-semibold py-2 px-5 rounded-lg inline-block text-center"
+                >보러가기</a
+              >
+              <a
+                href="https://ekc0517.github.io/math/"
+                target="_blank"
+                class="text-xs text-slate-400 hover:text-slate-600 text-center transition-colors"
+                >Original: https://ekc0517.github.io/math/</a
+              >
+            </div>
           </div>
         </div>
-      </div>
 
-      <!-- Choi Myung-jun Project -->
-      <div
-        class="bg-white rounded-xl shadow-lg overflow-hidden transform hover:-translate-y-1 transition-transform duration-300">
-        <div class="p-8">
-          <h2 class="text-2xl font-bold text-slate-900 mb-3">최명준</h2>
-          <p class="text-slate-600 mb-6">수학 탐구 프로젝트 모음</p>
-          <div class="flex flex-col gap-3">
-            <a href="최명준/index.html"
-              class="card-button btn-purple text-white font-semibold py-2 px-5 rounded-lg inline-block text-center">보러가기</a>
+        <!-- Choi Myung-jun Project -->
+        <div
+          class="bg-white rounded-xl shadow-lg overflow-hidden transform hover:-translate-y-1 transition-transform duration-300"
+        >
+          <div class="p-8">
+            <h2 class="text-2xl font-bold text-slate-900 mb-3">최명준</h2>
+            <p class="text-slate-600 mb-6">수학 탐구 프로젝트 모음</p>
+            <div class="flex flex-col gap-3">
+              <a
+                href="최명준/index.html"
+                class="card-button btn-purple text-white font-semibold py-2 px-5 rounded-lg inline-block text-center"
+                >보러가기</a
+              >
+            </div>
           </div>
         </div>
-      </div>
 
-      <!-- Jin Jae-won Project -->
-      <div
-        class="bg-white rounded-xl shadow-lg overflow-hidden transform hover:-translate-y-1 transition-transform duration-300">
-        <div class="p-8">
-          <h2 class="text-2xl font-bold text-slate-900 mb-3">진재원</h2>
-          <p class="text-slate-600 mb-6">수학 탐구 프로젝트 모음</p>
-          <div class="flex flex-col gap-3">
-            <a href="진재원/index.html"
-              class="card-button btn-purple text-white font-semibold py-2 px-5 rounded-lg inline-block text-center">보러가기</a>
-            <a href="https://jinjw27.github.io/Webpage/" target="_blank"
-              class="text-xs text-slate-400 hover:text-slate-600 text-center transition-colors">Original:
-              https://jinjw27.github.io/Webpage/</a>
+        <!-- Jin Jae-won Project -->
+        <div
+          class="bg-white rounded-xl shadow-lg overflow-hidden transform hover:-translate-y-1 transition-transform duration-300"
+        >
+          <div class="p-8">
+            <h2 class="text-2xl font-bold text-slate-900 mb-3">진재원</h2>
+            <p class="text-slate-600 mb-6">수학 탐구 프로젝트 모음</p>
+            <div class="flex flex-col gap-3">
+              <a
+                href="진재원/index.html"
+                class="card-button btn-purple text-white font-semibold py-2 px-5 rounded-lg inline-block text-center"
+                >보러가기</a
+              >
+              <a
+                href="https://jinjw27.github.io/Webpage/"
+                target="_blank"
+                class="text-xs text-slate-400 hover:text-slate-600 text-center transition-colors"
+                >Original: https://jinjw27.github.io/Webpage/</a
+              >
+            </div>
           </div>
         </div>
-      </div>
 
-      <!-- Yoo Hyun-soo Project -->
-      <div
-        class="bg-white rounded-xl shadow-lg overflow-hidden transform hover:-translate-y-1 transition-transform duration-300">
-        <div class="p-8">
-          <h2 class="text-2xl font-bold text-slate-900 mb-3">유현수</h2>
-          <p class="text-slate-600 mb-6">수학 탐구 프로젝트 모음</p>
-          <div class="flex flex-col gap-3">
-            <a href="유현수/index.html"
-              class="card-button btn-purple text-white font-semibold py-2 px-5 rounded-lg inline-block text-center">보러가기</a>
-            <a href="https://edgar0401.github.io/Math/" target="_blank"
-              class="text-xs text-slate-400 hover:text-slate-600 text-center transition-colors">Original:
-              edgar0401.github.io/Math</a>
+        <!-- Yoo Hyun-soo Project -->
+        <div
+          class="bg-white rounded-xl shadow-lg overflow-hidden transform hover:-translate-y-1 transition-transform duration-300"
+        >
+          <div class="p-8">
+            <h2 class="text-2xl font-bold text-slate-900 mb-3">유현수</h2>
+            <p class="text-slate-600 mb-6">수학 탐구 프로젝트 모음</p>
+            <div class="flex flex-col gap-3">
+              <a
+                href="유현수/index.html"
+                class="card-button btn-purple text-white font-semibold py-2 px-5 rounded-lg inline-block text-center"
+                >보러가기</a
+              >
+              <a
+                href="https://edgar0401.github.io/Math/"
+                target="_blank"
+                class="text-xs text-slate-400 hover:text-slate-600 text-center transition-colors"
+                >Original: edgar0401.github.io/Math</a
+              >
+            </div>
           </div>
         </div>
-      </div>
-      <!-- 권혁주 Project -->
-      <div
-        class="bg-white rounded-xl shadow-lg overflow-hidden transform hover:-translate-y-1 transition-transform duration-300">
-        <div class="p-8">
-          <h2 class="text-2xl font-bold text-slate-900 mb-3">권혁주</h2>
-          <p class="text-slate-600 mb-6">수학 탐구 프로젝트</p>
-          <div class="flex flex-col gap-3">
-            <a href="https://hoodinga.github.io/PlanetaryGear_HarmonicDrive_CycloidalDrive_Sim/"
-              class="card-button btn-purple text-white font-semibold py-2 px-5 rounded-lg inline-block text-center">보러가기</a>
-            <a href="https://hoodinga.github.io/PlanetaryGear_HarmonicDrive_CycloidalDrive_Sim/" target="_blank"
-              class="text-xs text-slate-400 hover:text-slate-600 text-center transition-colors">Original:
-              hoodinga.github.io/PlanetaryGear_HarmonicDrive_CycloidalDrive_Sim</a>
+        <!-- 권혁주 Project -->
+        <div
+          class="bg-white rounded-xl shadow-lg overflow-hidden transform hover:-translate-y-1 transition-transform duration-300"
+        >
+          <div class="p-8">
+            <h2 class="text-2xl font-bold text-slate-900 mb-3">권혁주</h2>
+            <p class="text-slate-600 mb-6">수학 탐구 프로젝트</p>
+            <div class="flex flex-col gap-3">
+              <a
+                href="https://hoodinga.github.io/PlanetaryGear_HarmonicDrive_CycloidalDrive_Sim/"
+                class="card-button btn-purple text-white font-semibold py-2 px-5 rounded-lg inline-block text-center"
+                >보러가기</a
+              >
+              <a
+                href="https://hoodinga.github.io/PlanetaryGear_HarmonicDrive_CycloidalDrive_Sim/"
+                target="_blank"
+                class="text-xs text-slate-400 hover:text-slate-600 text-center transition-colors"
+                >Original:
+                hoodinga.github.io/PlanetaryGear_HarmonicDrive_CycloidalDrive_Sim</a
+              >
+            </div>
           </div>
         </div>
-      </div>
-    </main>
-  </div>
-</body>
 
+        <!-- Won Jong-hyeon Project -->
+        <div
+          class="bg-white rounded-xl shadow-lg overflow-hidden transform hover:-translate-y-1 transition-transform duration-300"
+        >
+          <div class="p-8">
+            <h2 class="text-2xl font-bold text-slate-900 mb-3">원종현</h2>
+            <p class="text-slate-600 mb-6">
+              수학 탐구 프로젝트 모음 (기하, 미적분, 확률 등)
+            </p>
+            <div class="flex flex-col gap-3">
+              <a
+                href="원종현/index.html"
+                class="card-button btn-purple text-white font-semibold py-2 px-5 rounded-lg inline-block text-center"
+                >보러가기</a
+              >
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </body>
 </html>
