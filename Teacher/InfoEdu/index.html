@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,15 +8,19 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap"
+        rel="stylesheet">
     <style>
         :root {
             --bg-primary: #f1f5f9;
             --bg-secondary: #ffffff;
             --text-primary: #1e293b;
             --text-secondary: #475569;
-            --accent-color: #3b82f6; /* Blue from pyproject */
+            --accent-color: #3b82f6;
+            /* Blue from pyproject */
         }
+
         body {
             font-family: 'Inter', 'Noto Sans KR', sans-serif;
             -webkit-font-smoothing: antialiased;
@@ -23,17 +28,22 @@
             background-color: var(--bg-primary);
             color: var(--text-secondary);
         }
+
         .card-button {
             background-color: var(--accent-color);
             transition: background-color 0.3s ease;
         }
+
         .card-button:hover {
-            background-color: #2563eb; /* Darker blue */
+            background-color: #2563eb;
+            /* Darker blue */
         }
     </style>
 </head>
+
 <body>
-    <a href="../../index.html#/Teacher/index.html" class="absolute top-4 left-4 text-slate-600 hover:text-slate-900 transition-colors">
+    <a href="../../index.html#/Teacher/index.html"
+        class="absolute top-4 left-4 text-slate-600 hover:text-slate-900 transition-colors">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
         </svg>
@@ -45,42 +55,61 @@
         </header>
 
         <main class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <!-- 2025 AI School Result -->
+            <div
+                class="bg-white rounded-xl shadow-lg overflow-hidden transform hover:-translate-y-1 transition-transform duration-300">
+                <div class="p-8">
+                    <h2 class="text-2xl font-bold text-slate-900 mb-3">🏫 2025 AI 중심학교</h2>
+                    <p class="text-slate-600 mb-6">2025학년도 AI융합교육중심학교 운영 결과 보고 자료입니다.</p>
+                    <a href="2025AISchool.html"
+                        class="card-button text-white font-semibold py-2 px-5 rounded-lg inline-block">보러가기</a>
+                </div>
+            </div>
             <!-- Python Project -->
-            <div class="bg-white rounded-xl shadow-lg overflow-hidden transform hover:-translate-y-1 transition-transform duration-300">
+            <div
+                class="bg-white rounded-xl shadow-lg overflow-hidden transform hover:-translate-y-1 transition-transform duration-300">
                 <div class="p-8">
                     <h2 class="text-2xl font-bold text-slate-900 mb-3">🐍 Python Project</h2>
                     <p class="text-slate-600 mb-6">다양한 라이브러리를 활용한 파이썬 기반 AI 프로젝트 학습 자료입니다.</p>
-                    <a href="pyproject.html" class="card-button text-white font-semibold py-2 px-5 rounded-lg inline-block">살펴보기</a>
+                    <a href="pyproject.html"
+                        class="card-button text-white font-semibold py-2 px-5 rounded-lg inline-block">살펴보기</a>
                 </div>
             </div>
 
             <!-- Orange Project -->
-            <div class="bg-white rounded-xl shadow-lg overflow-hidden transform hover:-translate-y-1 transition-transform duration-300">
+            <div
+                class="bg-white rounded-xl shadow-lg overflow-hidden transform hover:-translate-y-1 transition-transform duration-300">
                 <div class="p-8">
                     <h2 class="text-2xl font-bold text-slate-900 mb-3">🍊 Orange Project</h2>
                     <p class="text-slate-600 mb-6">시각적 데이터 마이닝 도구 Orange3를 이용한 머신러닝 프로젝트입니다.</p>
-                    <a href="orangeproject.html" class="card-button text-white font-semibold py-2 px-5 rounded-lg inline-block">살펴보기</a>
+                    <a href="orangeproject.html"
+                        class="card-button text-white font-semibold py-2 px-5 rounded-lg inline-block">살펴보기</a>
                 </div>
             </div>
 
             <!-- Orange Project -->
-            <div class="bg-white rounded-xl shadow-lg overflow-hidden transform hover:-translate-y-1 transition-transform duration-300">
+            <div
+                class="bg-white rounded-xl shadow-lg overflow-hidden transform hover:-translate-y-1 transition-transform duration-300">
                 <div class="p-8">
                     <h2 class="text-2xl font-bold text-slate-900 mb-3">📑 STEAM융합 AI.SW 챌린지 포스터</h2>
                     <p class="text-slate-600 mb-6">STEAM융합 AI.SW 챌린지 포스터 양식입니다.</p>
-                    <a href="poster.html" class="card-button text-white font-semibold py-2 px-5 rounded-lg inline-block">살펴보기</a>
+                    <a href="poster.html"
+                        class="card-button text-white font-semibold py-2 px-5 rounded-lg inline-block">살펴보기</a>
                 </div>
             </div>
 
             <!-- KaTeX Cheatsheet -->
-            <div class="bg-white rounded-xl shadow-lg overflow-hidden transform hover:-translate-y-1 transition-transform duration-300">
+            <div
+                class="bg-white rounded-xl shadow-lg overflow-hidden transform hover:-translate-y-1 transition-transform duration-300">
                 <div class="p-8">
                     <h2 class="text-2xl font-bold text-slate-900 mb-3">∑ KaTeX Cheatsheet</h2>
                     <p class="text-slate-600 mb-6">웹 페이지에 수식을 깔끔하게 렌더링하는 KaTeX 라이브러리 사용법 안내입니다.</p>
-                    <a href="../../LaTeX/katex_usage.html" class="card-button text-white font-semibold py-2 px-5 rounded-lg inline-block">사용법 보기</a>
+                    <a href="../../LaTeX/katex_usage.html"
+                        class="card-button text-white font-semibold py-2 px-5 rounded-lg inline-block">사용법 보기</a>
                 </div>
             </div>
         </main>
     </div>
 </body>
+
 </html>

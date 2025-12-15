@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Molniya 궤도 분석</title>
+  <link rel="canonical" href="https://jinjw27.github.io/Webpage/molniya.html" />
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      color: #fff;
+      padding: 20px;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 10px;
+      font-size: 2.5em;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    }
+
+    .subtitle {
+      text-align: center;
+      margin-bottom: 30px;
+      color: #aaa;
+      font-size: 1.1em;
+    }
+
+    .panels {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 30px;
+      margin-bottom: 30px;
+    }
+
+    .panel {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 15px;
+      padding: 20px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .panel h2 {
+      margin-bottom: 15px;
+      color: #4fc3f7;
+      font-size: 1.5em;
+    }
+
+    canvas {
+      width: 100%;
+      border-radius: 10px;
+      background: rgba(0, 0, 0, 0.3);
+    }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin-top: 20px;
+    }
+
+    .info-card {
+      background: rgba(79, 195, 247, 0.1);
+      padding: 15px;
+      border-radius: 10px;
+      border-left: 4px solid #4fc3f7;
+    }
+
+    .info-card h3 {
+      font-size: 0.9em;
+      color: #aaa;
+      margin-bottom: 5px;
+    }
+
+    .info-card p {
+      font-size: 1.5em;
+      font-weight: bold;
+      color: #4fc3f7;
+    }
+
+    .legend {
+      display: flex;
+      gap: 20px;
+      margin-top: 15px;
+      flex-wrap: wrap;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .legend-color {
+      width: 20px;
+      height: 20px;
+      border-radius: 3px;
+    }
+
+    .controls {
+      display: flex;
+      gap: 15px;
+      margin-top: 15px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      background: #4fc3f7;
+      color: #1a1a2e;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    button:hover {
+      background: #29b6f6;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(79, 195, 247, 0.4);
+    }
+
+    .speed-control {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    input[type="range"] {
+      width: 150px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1>🛰️ Molniya 궤도 분석</h1>
+    <p class="subtitle">고타원 통신 궤도의 체공시간 시각화</p>
+
+    <div class="panels">
+      <div class="panel">
+        <h2>궤도 애니메이션</h2>
+        <canvas id="orbitCanvas" width="600" height="600"></canvas>
+        <div class="legend">
+          <div class="legend-item">
+            <div class="legend-color" style="background: #ff5252"></div>
+            <span>서비스 구간 (원지점)</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-color" style="background: #2196f3"></div>
+            <span>비활성 구간</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-color" style="background: #4fc3f7"></div>
+            <span>지구</span>
+          </div>
+        </div>
+        <div class="controls">
+          <button id="pauseBtn">일시정지</button>
+          <button id="resetBtn">재시작</button>
+          <div class="speed-control">
+            <label>속도:</label>
+            <input type="range" id="speedSlider" min="0.1" max="5" step="0.1" value="1" />
+            <span id="speedValue">1.0x</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>고도-시간 그래프</h2>
+        <canvas id="graphCanvas" width="600" height="600"></canvas>
+      </div>
+    </div>
+
+    <div class="info-grid">
+      <div class="info-card">
+        <h3>현재 고도</h3>
+        <p id="altitude">0 km</p>
+      </div>
+      <div class="info-card">
+        <h3>현재 속도</h3>
+        <p id="velocity">0 km/s</p>
+      </div>
+      <div class="info-card">
+        <h3>경과 시간</h3>
+        <p id="time">0.0 h</p>
+      </div>
+      <div class="info-card">
+        <h3>서비스 시간</h3>
+        <p id="serviceTime">0.0 h</p>
+      </div>
+      <div class="info-card">
+        <h3>궤도 이심률</h3>
+        <p>0.74</p>
+      </div>
+      <div class="info-card">
+        <h3>궤도 주기</h3>
+        <p>12.0 h</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 궤도 파라미터
+    const e = 0.74; // 이심률
+    const a = 26554; // 반장축 (km)
+    const period = 12 * 3600; // 주기 (초)
+    const perigeeAlt = 500; // 근지점 고도 (km)
+    const apogeeAlt = 39000; // 원지점 고도 (km)
+    const earthRadius = 6371; // 지구 반지름 (km)
+    const serviceAngleStart = 90; // 서비스 구간 시작 각도
+    const serviceAngleEnd = 270; // 서비스 구간 종료 각도
+
+    // Canvas 설정
+    const orbitCanvas = document.getElementById("orbitCanvas");
+    const orbitCtx = orbitCanvas.getContext("2d");
+    const graphCanvas = document.getElementById("graphCanvas");
+    const graphCtx = graphCanvas.getContext("2d");
+
+    // 애니메이션 변수
+    let time = 0;
+    let paused = false;
+    let speedMultiplier = 1;
+    let serviceTimeAccum = 0;
+    const graphData = [];
+
+    // 케플러 방정식을 풀어 진근점이각 계산
+    function solveKepler(M, e, tolerance = 1e-6) {
+      let E = M;
+      let delta = 1;
+      while (Math.abs(delta) > tolerance) {
+        delta = E - e * Math.sin(E) - M;
+        E = E - delta / (1 - e * Math.cos(E));
+      }
+      return E;
+    }
+
+    // 진근점이각에서 위치와 속도 계산
+    function getOrbitalState(t) {
+      const n = (2 * Math.PI) / period; // 평균 각속도
+      const M = n * t; // 평균근점이각
+      const E = solveKepler(M, e); // 이심근점이각
+
+      // 진근점이각
+      const nu =
+        2 *
+        Math.atan2(
+          Math.sqrt(1 + e) * Math.sin(E / 2),
+          Math.sqrt(1 - e) * Math.cos(E / 2)
+        );
+
+      // 궤도상 거리
+      const r = (a * (1 - e * e)) / (1 + e * Math.cos(nu));
+
+      // 고도
+      const altitude = r - earthRadius;
+
+      // 속도 (비스-비바 방정식)
+      const mu = 398600; // 지구 중력 파라미터 (km^3/s^2)
+      const v = Math.sqrt(mu * (2 / r - 1 / a));
+
+      return {
+        angle: nu,
+        distance: r,
+        altitude: altitude,
+        velocity: v,
+        x: r * Math.cos(nu),
+        y: r * Math.sin(nu),
+      };
+    }
+
+    // 서비스 구간 여부 확인
+    function isInServiceZone(angle) {
+      const deg = ((angle * 180) / Math.PI + 360) % 360;
+      return deg >= serviceAngleStart && deg <= serviceAngleEnd;
+    }
+
+    // 궤도 그리기
+    function drawOrbit() {
+      const canvas = orbitCanvas;
+      const ctx = orbitCtx;
+      const centerX = canvas.width / 2;
+      const centerY = canvas.height / 2;
+      const scale = 0.008; // 스케일 조정
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // 배경 격자
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.05)";
+      ctx.lineWidth = 1;
+      for (let i = 0; i < 10; i++) {
+        const radius = (i + 1) * 50;
+        ctx.beginPath();
+        ctx.arc(centerX - a * e * scale, centerY, radius, 0, 2 * Math.PI);
+        ctx.stroke();
+      }
+
+      // 궤도 그리기 (색상 구분)
+      const steps = 360;
+      for (let i = 0; i < steps; i++) {
+        const angle = (i / steps) * 2 * Math.PI;
+        const r = (a * (1 - e * e)) / (1 + e * Math.cos(angle));
+        const x1 = centerX - a * e * scale + r * Math.cos(angle) * scale;
+        const y1 = centerY + r * Math.sin(angle) * scale;
+
+        const nextAngle = ((i + 1) / steps) * 2 * Math.PI;
+        const r2 = (a * (1 - e * e)) / (1 + e * Math.cos(nextAngle));
+        const x2 = centerX - a * e * scale + r2 * Math.cos(nextAngle) * scale;
+        const y2 = centerY + r2 * Math.sin(nextAngle) * scale;
+
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.strokeStyle = isInServiceZone(angle) ? "#ff5252" : "#2196f3";
+        ctx.lineWidth = 3;
+        ctx.stroke();
+      }
+
+      // 지구 그리기
+      ctx.beginPath();
+      ctx.arc(
+        centerX - a * e * scale,
+        centerY,
+        earthRadius * scale,
+        0,
+        2 * Math.PI
+      );
+      ctx.fillStyle = "#4fc3f7";
+      ctx.fill();
+      ctx.strokeStyle = "#29b6f6";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // 지구 라벨
+      ctx.fillStyle = "#fff";
+      ctx.font = "bold 14px sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText("지구", centerX - a * e * scale, centerY + 5);
+
+      // 위성 그리기
+      const state = getOrbitalState(time);
+      const satX = centerX - a * e * scale + state.x * scale;
+      const satY = centerY + state.y * scale;
+
+      // 위성 궤적
+      ctx.beginPath();
+      ctx.arc(satX, satY, 8, 0, 2 * Math.PI);
+      ctx.fillStyle = isInServiceZone(state.angle) ? "#ff5252" : "#fff";
+      ctx.fill();
+      ctx.strokeStyle = "#000";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // 위성 라벨
+      ctx.fillStyle = "#fff";
+      ctx.font = "bold 12px sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText("위성", satX, satY - 15);
+
+      // 근지점/원지점 표시
+      ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
+      ctx.font = "12px sans-serif";
+      ctx.textAlign = "right";
+      ctx.fillText(
+        "근지점",
+        centerX - a * e * scale + a * (1 - e) * scale - 10,
+        centerY + 5
+      );
+      ctx.textAlign = "left";
+      ctx.fillText(
+        "원지점",
+        centerX - a * e * scale - a * (1 + e) * scale + 10,
+        centerY + 5
+      );
+    }
+
+    // 그래프 그리기
+    function drawGraph() {
+      const canvas = graphCanvas;
+      const ctx = graphCtx;
+      const padding = 60;
+      const graphWidth = canvas.width - 2 * padding;
+      const graphHeight = canvas.height - 2 * padding;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // 축 그리기
+      ctx.strokeStyle = "#fff";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(padding, padding);
+      ctx.lineTo(padding, canvas.height - padding);
+      ctx.lineTo(canvas.width - padding, canvas.height - padding);
+      ctx.stroke();
+
+      // 축 라벨
+      ctx.fillStyle = "#fff";
+      ctx.font = "bold 14px sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText("시간 (hours)", canvas.width / 2, canvas.height - 20);
+      ctx.save();
+      ctx.translate(20, canvas.height / 2);
+      ctx.rotate(-Math.PI / 2);
+      ctx.fillText("고도 (km)", 0, 0);
+      ctx.restore();
+
+      // 격자선
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.1)";
+      ctx.lineWidth = 1;
+      for (let i = 0; i <= 10; i++) {
+        const y = padding + (graphHeight / 10) * i;
+        ctx.beginPath();
+        ctx.moveTo(padding, y);
+        ctx.lineTo(canvas.width - padding, y);
+        ctx.stroke();
+
+        const altitude = apogeeAlt - (apogeeAlt - perigeeAlt) * (i / 10);
+        ctx.fillStyle = "#aaa";
+        ctx.font = "10px sans-serif";
+        ctx.textAlign = "right";
+        ctx.fillText(altitude.toFixed(0), padding - 10, y + 4);
+      }
+
+      for (let i = 0; i <= 12; i++) {
+        const x = padding + (graphWidth / 12) * i;
+        ctx.beginPath();
+        ctx.moveTo(x, padding);
+        ctx.lineTo(x, canvas.height - padding);
+        ctx.stroke();
+
+        ctx.fillStyle = "#aaa";
+        ctx.font = "10px sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText(i.toString(), x, canvas.height - padding + 20);
+      }
+
+      // 데이터 그리기
+      if (graphData.length > 1) {
+        ctx.strokeStyle = "#4fc3f7";
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        for (let i = 0; i < graphData.length; i++) {
+          const point = graphData[i];
+          const x = padding + (point.time / period) * graphWidth;
+          const y =
+            canvas.height -
+            padding -
+            ((point.altitude - perigeeAlt) / (apogeeAlt - perigeeAlt)) *
+            graphHeight;
+
+          if (i === 0) {
+            ctx.moveTo(x, y);
+          } else {
+            ctx.lineTo(x, y);
+          }
+        }
+        ctx.stroke();
+
+        // 서비스 구간 강조
+        ctx.fillStyle = "rgba(255, 82, 82, 0.1)";
+        for (let i = 0; i < graphData.length - 1; i++) {
+          const point = graphData[i];
+          if (point.inService) {
+            const x1 = padding + (point.time / period) * graphWidth;
+            const y1 =
+              canvas.height -
+              padding -
+              ((point.altitude - perigeeAlt) / (apogeeAlt - perigeeAlt)) *
+              graphHeight;
+            const point2 = graphData[i + 1];
+            const x2 = padding + (point2.time / period) * graphWidth;
+            const y2 =
+              canvas.height -
+              padding -
+              ((point2.altitude - perigeeAlt) / (apogeeAlt - perigeeAlt)) *
+              graphHeight;
+
+            ctx.beginPath();
+            ctx.moveTo(x1, y1);
+            ctx.lineTo(x2, y2);
+            ctx.lineTo(x2, canvas.height - padding);
+            ctx.lineTo(x1, canvas.height - padding);
+            ctx.closePath();
+            ctx.fill();
+          }
+        }
+      }
+    }
+
+    // 정보 업데이트
+    function updateInfo() {
+      const state = getOrbitalState(time);
+      document.getElementById("altitude").textContent =
+        state.altitude.toFixed(0) + " km";
+      document.getElementById("velocity").textContent =
+        state.velocity.toFixed(2) + " km/s";
+      document.getElementById("time").textContent =
+        (time / 3600).toFixed(2) + " h";
+      document.getElementById("serviceTime").textContent =
+        (serviceTimeAccum / 3600).toFixed(2) + " h";
+    }
+
+    // 애니메이션 루프
+    function animate() {
+      if (!paused) {
+        time += 30 * speedMultiplier; // 30초씩 증가
+
+        if (time >= period) {
+          time = 0;
+          serviceTimeAccum = 0;
+          graphData.length = 0;
+        }
+
+        const state = getOrbitalState(time);
+        const inService = isInServiceZone(state.angle);
+
+        if (inService) {
+          serviceTimeAccum += 30 * speedMultiplier;
+        }
+
+        graphData.push({
+          time: time,
+          altitude: state.altitude,
+          inService: inService,
+        });
+
+        if (graphData.length > 500) {
+          graphData.shift();
+        }
+      }
+
+      drawOrbit();
+      drawGraph();
+      updateInfo();
+
+      requestAnimationFrame(animate);
+    }
+
+    // 컨트롤
+    document
+      .getElementById("pauseBtn")
+      .addEventListener("click", function () {
+        paused = !paused;
+        this.textContent = paused ? "재생" : "일시정지";
+      });
+
+    document
+      .getElementById("resetBtn")
+      .addEventListener("click", function () {
+        time = 0;
+        serviceTimeAccum = 0;
+        graphData.length = 0;
+        paused = false;
+        document.getElementById("pauseBtn").textContent = "일시정지";
+      });
+
+    document
+      .getElementById("speedSlider")
+      .addEventListener("input", function () {
+        speedMultiplier = parseFloat(this.value);
+        document.getElementById("speedValue").textContent =
+          speedMultiplier.toFixed(1) + "x";
+      });
+
+    // 시작
+    animate();
+  </script>
+</body>
+
+</html>

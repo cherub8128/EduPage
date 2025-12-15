@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>4D 테서랙트 & 16-Cell 3D 투영</title>
+  <link rel="canonical" href="https://jinjw27.github.io/Webpage/dimension4.html" />
+  <style>
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 10px;
+      font-size: 2.5em;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    .subtitle {
+      text-align: center;
+      margin-bottom: 30px;
+      opacity: 0.9;
+      font-size: 1.1em;
+    }
+
+    canvas {
+      display: block;
+      margin: 0 auto;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 15px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+    }
+
+    .controls {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border-radius: 15px;
+      padding: 25px;
+      margin-top: 30px;
+      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .control-group {
+      margin-bottom: 20px;
+    }
+
+    .control-group:last-child {
+      margin-bottom: 0;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      font-size: 0.95em;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      height: 6px;
+      border-radius: 3px;
+      background: rgba(255, 255, 255, 0.2);
+      outline: none;
+      -webkit-appearance: none;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: white;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    input[type="range"]::-moz-range-thumb {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: white;
+      cursor: pointer;
+      border: none;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    .value-display {
+      display: inline-block;
+      float: right;
+      background: rgba(255, 255, 255, 0.2);
+      padding: 2px 10px;
+      border-radius: 12px;
+      font-size: 0.9em;
+    }
+
+    button {
+      background: white;
+      color: #667eea;
+      border: none;
+      padding: 12px 30px;
+      border-radius: 25px;
+      font-size: 1em;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    .info {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border-radius: 15px;
+      padding: 20px;
+      margin-top: 20px;
+      font-size: 0.95em;
+      line-height: 1.6;
+    }
+
+    .formula {
+      background: rgba(0, 0, 0, 0.2);
+      padding: 15px;
+      border-radius: 10px;
+      margin: 15px 0;
+      font-family: "Courier New", monospace;
+      overflow-x: auto;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1 id="title">🔷 4D 테서랙트 투영 (Full Rotation)</h1>
+    <div class="subtitle" id="subtitle">
+      4차원 초입방체의 3차원 그림자 (6개 평면 회전)
+    </div>
+
+    <canvas id="canvas" width="800" height="600"></canvas>
+
+    <div class="controls">
+      <div class="control-group">
+        <label>
+          4D 회전 XY 평면 (α)
+          <span class="value-display" id="rotXY-val">0.00</span>
+        </label>
+        <input type="range" id="rotXY" min="0" max="6.28" step="0.01" value="0" />
+      </div>
+
+      <div class="control-group">
+        <label>
+          4D 회전 XZ 평면 (β)
+          <span class="value-display" id="rotXZ-val">0.00</span>
+        </label>
+        <input type="range" id="rotXZ" min="0" max="6.28" step="0.01" value="0" />
+      </div>
+
+      <div class="control-group">
+        <label>
+          4D 회전 XW 평면 (γ)
+          <span class="value-display" id="rotXW-val">0.00</span>
+        </label>
+        <input type="range" id="rotXW" min="0" max="6.28" step="0.01" value="0" />
+      </div>
+
+      <div class="control-group">
+        <label>
+          4D 회전 YZ 평면 (δ)
+          <span class="value-display" id="rotYZ-val">0.00</span>
+        </label>
+        <input type="range" id="rotYZ" min="0" max="6.28" step="0.01" value="0" />
+      </div>
+
+      <div class="control-group">
+        <label>
+          4D 회전 YW 평면 (ε)
+          <span class="value-display" id="rotYW-val">0.00</span>
+        </label>
+        <input type="range" id="rotYW" min="0" max="6.28" step="0.01" value="0" />
+      </div>
+
+      <div class="control-group">
+        <label>
+          4D 회전 ZW 평면 (ζ)
+          <span class="value-display" id="rotZW-val">0.00</span>
+        </label>
+        <input type="range" id="rotZW" min="0" max="6.28" step="0.01" value="0" />
+      </div>
+      <hr style="
+            border: 0;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            margin: 25px 0;
+          " />
+
+      <div class="control-group">
+        <label>
+          4D→3D 투영 거리
+          <span class="value-display" id="distance4D-val">2.00</span>
+        </label>
+        <input type="range" id="distance4D" min="1.5" max="5" step="0.1" value="2" />
+      </div>
+
+      <div class="control-group">
+        <label>
+          3D→2D 투영 거리
+          <span class="value-display" id="distance3D-val">4.00</span>
+        </label>
+        <input type="range" id="distance3D" min="2" max="8" step="0.1" value="4" />
+      </div>
+
+      <div class="control-group" style="text-align: center">
+        <button id="toggle4D">16-Cell로 전환</button>
+        <button id="autoRotate" style="margin-left: 10px">
+          자동 회전 정지
+        </button>
+        <button id="reset" style="margin-left: 10px">초기화</button>
+      </div>
+    </div>
+
+    <div class="info">
+      <h3>📐 4D 회전 및 투영 수식</h3>
+      <div class="formula">
+        x' = P · R(α,β,γ,δ,ε,ζ) · x
+        <br /><br />
+        여기서:<br />
+        • x = (x, y, z, w) ∈ ℝ⁴ (4D 좌표)<br />
+        • R(...) = 4D 회전 행렬 (6개 평면 회전의 곱)<br />
+        • P: 4D→3D 투영 (원근 투영)<br />
+        • x' ∈ ℝ³ (3D 투영 결과)
+      </div>
+
+      <p id="structure-info">
+        <strong>테서랙트 구조:</strong> 16개 정점, 32개 간선, 24개 면, 8개 셀
+      </p>
+      <p>
+        <strong>4D 회전:</strong> 4차원에서는 6개의 독립적인 회전 평면이
+        존재합니다 (XY, XZ, XW, YZ, YW, ZW).
+      </p>
+    </div>
+  </div>
+  <script>
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+
+    // 현재 표시 중인 4D 도형
+    let current4DShape = "tesseract"; // "tesseract" 또는 "16cell"
+    let vertices = [];
+    let edges = [];
+
+    // 테서랙트 정점 생성 (16개)
+    function generateTesseractVertices() {
+      const vertices = [];
+      for (let x = -1; x <= 1; x += 2) {
+        for (let y = -1; y <= 1; y += 2) {
+          for (let z = -1; z <= 1; z += 2) {
+            for (let w = -1; w <= 1; w += 2) {
+              vertices.push([x, y, z, w]);
+            }
+          }
+        }
+      }
+      return vertices;
+    }
+
+    // 16-Cell 정점 생성 (8개)
+    function generate16CellVertices() {
+      return [
+        [1, 0, 0, 0],
+        [-1, 0, 0, 0],
+        [0, 1, 0, 0],
+        [0, -1, 0, 0],
+        [0, 0, 1, 0],
+        [0, 0, -1, 0],
+        [0, 0, 0, 1],
+        [0, 0, 0, -1],
+      ];
+    }
+
+    // 테서랙트 간선 생성 (32개)
+    function generateTesseractEdges() {
+      const edges = [];
+      const vertices = generateTesseractVertices();
+
+      for (let i = 0; i < vertices.length; i++) {
+        for (let j = i + 1; j < vertices.length; j++) {
+          let diff = 0;
+          for (let k = 0; k < 4; k++) {
+            if (vertices[i][k] !== vertices[j][k]) diff++;
+          }
+          if (diff === 1) {
+            edges.push([i, j]);
+          }
+        }
+      }
+      return edges;
+    }
+
+    // 16-Cell 간선 생성 (24개)
+    function generate16CellEdges() {
+      const edges = [];
+      const vertices = generate16CellVertices();
+
+      for (let i = 0; i < vertices.length; i++) {
+        for (let j = i + 1; j < vertices.length; j++) {
+          let distSq = 0;
+          for (let k = 0; k < 4; k++) {
+            distSq += Math.pow(vertices[i][k] - vertices[j][k], 2);
+          }
+          if (Math.abs(distSq - 2) < 0.01) {
+            edges.push([i, j]);
+          }
+        }
+      }
+      return edges;
+    }
+
+    // 현재 도형 초기화
+    function initShape() {
+      if (current4DShape === "tesseract") {
+        vertices = generateTesseractVertices();
+        edges = generateTesseractEdges();
+      } else {
+        vertices = generate16CellVertices();
+        edges = generate16CellEdges();
+      }
+    }
+
+    initShape();
+
+    // 4D 회전 행렬 (6개 평면 모두 적용)
+    function rotate4D(point, angles) {
+      let [x, y, z, w] = point;
+      const [aXY, aXZ, aXW, aYZ, aYW, aZW] = angles;
+
+      // 1. XY 평면 회전
+      let cosXY = Math.cos(aXY),
+        sinXY = Math.sin(aXY);
+      [x, y] = [x * cosXY - y * sinXY, x * sinXY + y * cosXY];
+
+      // 2. XZ 평면 회전
+      let cosXZ = Math.cos(aXZ),
+        sinXZ = Math.sin(aXZ);
+      [x, z] = [x * cosXZ - z * sinXZ, x * sinXZ + z * cosXZ];
+
+      // 3. XW 평면 회전
+      let cosXW = Math.cos(aXW),
+        sinXW = Math.sin(aXW);
+      [x, w] = [x * cosXW - w * sinXW, x * sinXW + w * cosXW];
+
+      // 4. YZ 평면 회전
+      let cosYZ = Math.cos(aYZ),
+        sinYZ = Math.sin(aYZ);
+      [y, z] = [y * cosYZ - z * sinYZ, y * sinYZ + z * cosYZ];
+
+      // 5. YW 평면 회전
+      let cosYW = Math.cos(aYW),
+        sinYW = Math.sin(aYW);
+      [y, w] = [y * cosYW - w * sinYW, y * sinYW + w * cosYW];
+
+      // 6. ZW 평면 회전
+      let cosZW = Math.cos(aZW),
+        sinZW = Math.sin(aZW);
+      [z, w] = [z * cosZW - w * sinZW, z * sinZW + w * cosZW];
+
+      return [x, y, z, w];
+    }
+
+    // 4D→3D 원근 투영
+    function project4Dto3D(point, distance) {
+      const [x, y, z, w] = point;
+      const factor = distance / (distance - w);
+      if (distance - w <= 0) return [null, null, null];
+      return [x * factor, y * factor, z * factor];
+    }
+
+    // 3D→2D 원근 투영
+    function project3Dto2D(point, distance) {
+      const [x, y, z] = point;
+      if (x === null) return [null, null];
+      const factor = distance / (distance - z);
+      if (distance - z <= 0) return [null, null];
+      return [x * factor, y * factor];
+    }
+
+    // 렌더링
+    function render() {
+      ctx.fillStyle = "rgba(0, 0, 0, 0.3)";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      const rotXY = parseFloat(document.getElementById("rotXY").value);
+      const rotXZ = parseFloat(document.getElementById("rotXZ").value);
+      const rotXW = parseFloat(document.getElementById("rotXW").value);
+      const rotYZ = parseFloat(document.getElementById("rotYZ").value);
+      const rotYW = parseFloat(document.getElementById("rotYW").value);
+      const rotZW = parseFloat(document.getElementById("rotZW").value);
+      const dist4D = parseFloat(document.getElementById("distance4D").value);
+      const dist3D = parseFloat(document.getElementById("distance3D").value);
+
+      document.getElementById("rotXY-val").textContent = rotXY.toFixed(2);
+      document.getElementById("rotXZ-val").textContent = rotXZ.toFixed(2);
+      document.getElementById("rotXW-val").textContent = rotXW.toFixed(2);
+      document.getElementById("rotYZ-val").textContent = rotYZ.toFixed(2);
+      document.getElementById("rotYW-val").textContent = rotYW.toFixed(2);
+      document.getElementById("rotZW-val").textContent = rotZW.toFixed(2);
+      document.getElementById("distance4D-val").textContent =
+        dist4D.toFixed(2);
+      document.getElementById("distance3D-val").textContent =
+        dist3D.toFixed(2);
+
+      const angles = [rotXY, rotXZ, rotXW, rotYZ, rotYW, rotZW];
+
+      const projectedVertices = vertices.map((v) => {
+        const rotated = rotate4D(v, angles);
+        const proj3D = project4Dto3D(rotated, dist4D);
+        const proj2D = project3Dto2D(proj3D, dist3D);
+        return proj2D;
+      });
+
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.6)";
+      ctx.lineWidth = 2;
+
+      edges.forEach(([i, j]) => {
+        const [x1, y1] = projectedVertices[i];
+        const [x2, y2] = projectedVertices[j];
+
+        if (x1 !== null && x2 !== null) {
+          ctx.beginPath();
+          ctx.moveTo(
+            canvas.width / 2 + x1 * 100,
+            canvas.height / 2 - y1 * 100
+          );
+          ctx.lineTo(
+            canvas.width / 2 + x2 * 100,
+            canvas.height / 2 - y2 * 100
+          );
+          ctx.stroke();
+        }
+      });
+
+      ctx.fillStyle = "rgba(255, 255, 255, 0.9)";
+      projectedVertices.forEach(([x, y]) => {
+        if (x !== null) {
+          ctx.beginPath();
+          ctx.arc(
+            canvas.width / 2 + x * 100,
+            canvas.height / 2 - y * 100,
+            4,
+            0,
+            Math.PI * 2
+          );
+          ctx.fill();
+        }
+      });
+    }
+
+    document.querySelectorAll('input[type="range"]').forEach((input) => {
+      input.addEventListener("input", render);
+    });
+
+    // 자동 회전
+    let autoRotating = true;
+    let animationId = null;
+    let time = 0;
+
+    function animate() {
+      time += 0.01;
+
+      const rotXY = document.getElementById("rotXY");
+      const rotXZ = document.getElementById("rotXZ");
+      const rotXW = document.getElementById("rotXW");
+      const rotYZ = document.getElementById("rotYZ");
+      const rotYW = document.getElementById("rotYW");
+      const rotZW = document.getElementById("rotZW");
+
+      rotXY.value = Math.sin(time * 0.5) * 3.14 + 3.14;
+      rotXZ.value = Math.cos(time * 0.3) * 1.57 + 1.57;
+      rotXW.value = time * 0.5;
+      rotYZ.value = Math.sin(time * 0.7) * 2;
+      rotYW.value = Math.cos(time * 0.4) * 3.14;
+      rotZW.value = Math.sin(time * 0.6) * 1.57;
+
+      render();
+      if (autoRotating) {
+        animationId = requestAnimationFrame(animate);
+      }
+    }
+
+    document
+      .getElementById("autoRotate")
+      .addEventListener("click", function () {
+        autoRotating = !autoRotating;
+        this.textContent = autoRotating ? "자동 회전 정지" : "자동 회전 시작";
+
+        if (autoRotating) {
+          animate();
+        } else {
+          if (animationId) {
+            cancelAnimationFrame(animationId);
+          }
+        }
+      });
+
+    // 도형 전환 버튼
+    document
+      .getElementById("toggle4D")
+      .addEventListener("click", function () {
+        if (current4DShape === "tesseract") {
+          current4DShape = "16cell";
+          this.textContent = "테서랙트로 전환";
+          document.getElementById("title").textContent =
+            "🔶 4D 16-Cell 투영 (Full Rotation)";
+          document.getElementById("subtitle").textContent =
+            "4차원 정16포체의 3차원 그림자 (6개 평면 회전)";
+          document.getElementById("structure-info").innerHTML =
+            "<strong>16-Cell 구조:</strong> 8개 정점, 24개 간선, 32개 면, 16개 셀";
+        } else {
+          current4DShape = "tesseract";
+          this.textContent = "16-Cell로 전환";
+          document.getElementById("title").textContent =
+            "🔷 4D 테서랙트 투영 (Full Rotation)";
+          document.getElementById("subtitle").textContent =
+            "4차원 초입방체의 3차원 그림자 (6개 평면 회전)";
+          document.getElementById("structure-info").innerHTML =
+            "<strong>테서랙트 구조:</strong> 16개 정점, 32개 간선, 24개 면, 8개 셀";
+        }
+        initShape();
+        render();
+      });
+
+    document.getElementById("reset").addEventListener("click", function () {
+      document.getElementById("rotXY").value = 0;
+      document.getElementById("rotXZ").value = 0;
+      document.getElementById("rotXW").value = 0;
+      document.getElementById("rotYZ").value = 0;
+      document.getElementById("rotYW").value = 0;
+      document.getElementById("rotZW").value = 0;
+      document.getElementById("distance4D").value = 2;
+      document.getElementById("distance3D").value = 4;
+      render();
+    });
+
+    render();
+    animate();
+  </script>
+</body>
+
+</html>

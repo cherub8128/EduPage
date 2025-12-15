@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>서울 교통량-시간 적분 (실시간)</title>
+  <link rel="canonical" href="https://jinjw27.github.io/Webpage/traffic_integral.html" />
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <style>
+    /* (1) 다크/라이트 모드 테마 변수 */
+    :root {
+      --bg-color: #f4f7f6;
+      --text-color: #333;
+      --card-bg: #ffffff;
+      --border-color: #ddd;
+      --primary-color: #007bff;
+      --primary-hover: #0056b3;
+      --secondary-color: #6c757d;
+      --highlight-color: rgba(255, 99, 132, 0.8);
+      --default-color: rgba(54, 162, 235, 0.6);
+      --chart-grid-color: rgba(0, 0, 0, 0.1);
+      --chart-tick-color: #666;
+    }
+
+    [data-theme="dark"] {
+      --bg-color: #121212;
+      --text-color: #e0e0e0;
+      --card-bg: #1e1e1e;
+      --border-color: #444;
+      --primary-color: #0a84ff;
+      --primary-hover: #0060df;
+      --secondary-color: #8e8e93;
+      --chart-grid-color: rgba(255, 255, 255, 0.1);
+      --chart-tick-color: #bbb;
+    }
+
+    /* (기타 스타일은 이전과 동일...) */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      transition: background-color 0.3s, color 0.3s;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      background-color: var(--card-bg);
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 1.8em;
+    }
+
+    .theme-switch-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .theme-switch {
+      display: inline-block;
+      height: 24px;
+      position: relative;
+      width: 44px;
+    }
+
+    .theme-switch input {
+      display: none;
+    }
+
+    .slider {
+      background-color: #ccc;
+      bottom: 0;
+      cursor: pointer;
+      left: 0;
+      position: absolute;
+      right: 0;
+      top: 0;
+      transition: 0.4s;
+      border-radius: 34px;
+    }
+
+    .slider:before {
+      background-color: #fff;
+      bottom: 4px;
+      content: "";
+      height: 16px;
+      left: 4px;
+      position: absolute;
+      transition: 0.4s;
+      width: 16px;
+      border-radius: 50%;
+    }
+
+    input:checked+.slider {
+      background-color: var(--primary-color);
+    }
+
+    input:checked+.slider:before {
+      transform: translateX(20px);
+    }
+
+    .content-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+
+    @media (max-width: 1024px) {
+      .content-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background-color: var(--card-bg);
+      border-radius: 12px;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.07);
+      padding: 25px;
+      border: 1px solid var(--border-color);
+      transition: background-color 0.3s, border-color 0.3s;
+    }
+
+    .card h2 {
+      margin-top: 0;
+      margin-bottom: 15px;
+      font-size: 1.3em;
+    }
+
+    #map {
+      height: 500px;
+      border-radius: 8px;
+      border: 2px solid var(--border-color);
+    }
+
+    /* (3) 요일별 뷰 버튼 포함 */
+    .view-selector {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .view-button {
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+      border: 2px solid var(--border-color);
+      background-color: var(--card-bg);
+      color: var(--text-color);
+      border-radius: 8px;
+      transition: all 0.3s;
+      font-weight: 500;
+    }
+
+    .view-button:hover {
+      border-color: var(--primary-color);
+      transform: translateY(-2px);
+    }
+
+    .view-button.active {
+      background-color: var(--primary-color);
+      color: white;
+      border-color: var(--primary-color);
+    }
+
+    #chartContainer {
+      width: 100%;
+      height: 350px;
+      margin: 20px 0;
+    }
+
+    .controls {
+      display: flex;
+      gap: 15px;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 20px;
+    }
+
+    .controls label {
+      font-weight: bold;
+    }
+
+    .controls select,
+    .controls button {
+      padding: 10px 14px;
+      border: 1px solid var(--border-color);
+      background-color: var(--card-bg);
+      color: var(--text-color);
+      border-radius: 6px;
+      font-size: 16px;
+    }
+
+    .controls button {
+      background-color: var(--primary-color);
+      color: white;
+      cursor: pointer;
+      border: none;
+      font-weight: bold;
+      transition: background-color 0.3s;
+    }
+
+    .controls button:hover {
+      background-color: var(--primary-hover);
+    }
+
+    #result {
+      margin-top: 20px;
+      font-size: 1.3em;
+      font-weight: bold;
+      color: var(--primary-color);
+      text-align: center;
+      padding: 15px;
+      background-color: var(--bg-color);
+      border-radius: 8px;
+      min-height: 1.5em;
+    }
+
+    .location-info {
+      text-align: center;
+      margin-bottom: 15px;
+    }
+
+    .location-name {
+      font-size: 1.3em;
+      font-weight: bold;
+      color: var(--text-color);
+      margin-bottom: 8px;
+    }
+
+    /* (1) 평균 혼잡도 표시 */
+    .traffic-stats {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+
+    .stat-item {
+      padding: 8px 15px;
+      background-color: var(--bg-color);
+      border-radius: 8px;
+      font-size: 0.95em;
+    }
+
+    .stat-label {
+      color: var(--secondary-color);
+      margin-right: 5px;
+    }
+
+    .stat-value {
+      font-weight: bold;
+      color: var(--text-color);
+    }
+
+    /* (출처) */
+    footer {
+      margin-top: 30px;
+      text-align: center;
+      font-size: 0.9em;
+      color: var(--secondary-color);
+      background-color: var(--card-bg);
+      padding: 20px;
+      border-radius: 12px;
+    }
+
+    footer a {
+      color: var(--primary-color);
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
+
+    /* (1) 현재 혼잡도 마커 */
+    .traffic-marker {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      color: white;
+      font-size: 12px;
+      border: 3px solid white;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .traffic-marker:hover {
+      transform: scale(1.2);
+    }
+
+    .legend {
+      background: white;
+      padding: 10px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 5px 0;
+      font-size: 12px;
+    }
+
+    .legend-color {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      border: 2px solid white;
+    }
+
+    .current-time-info {
+      text-align: center;
+      font-size: 0.9em;
+      color: var(--secondary-color);
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <header>
+      <h1>🚗 서울 실시간 교통량-시간 적분 분석</h1>
+      <div class="theme-switch-wrapper">
+        <span>☀️</span>
+        <label class="theme-switch">
+          <input type="checkbox" id="theme-toggle" />
+          <span class="slider"></span>
+        </label>
+        <span>🌙</span>
+      </div>
+    </header>
+
+    <div class="content-grid">
+      <div class="card">
+        <h2>📍 서울시 주요 지점 교통량 지도</h2>
+        <div class="current-time-info" id="currentTimeInfo">
+          현재 시간: <strong id="currentHour"></strong>
+        </div>
+        <p style="
+              text-align: center;
+              color: var(--secondary-color);
+              margin-bottom: 15px;
+            ">
+          마커를 클릭하여 해당 지점의 교통량 데이터를 확인하세요<br />
+          (마커 색상은 현재 시간대의 혼잡도를 나타냅니다)
+        </p>
+        <div id="map"></div>
+      </div>
+
+      <div class="card">
+        <h2>📊 교통량 분석 차트</h2>
+
+        <div class="location-info">
+          <div class="location-name" id="currentLocation">
+            지점을 선택해주세요
+          </div>
+          <div class="traffic-stats" id="trafficStats" style="display: none">
+            <div class="stat-item">
+              <span class="stat-label">현재 교통량:</span>
+              <span class="stat-value" id="currentTraffic">-</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">평균 교통량:</span>
+              <span class="stat-value" id="avgTraffic">-</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-label">평균 혼잡도:</span>
+              <span class="stat-value" id="avgCongestion">-</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="view-selector">
+          <button class="view-button active" onclick="changeView('today')">
+            오늘
+          </button>
+          <button class="view-button" onclick="changeView('yesterday')">
+            어제
+          </button>
+          <button class="view-button" onclick="changeView('weekly')">
+            요일별 평균
+          </button>
+        </div>
+
+        <div id="chartContainer">
+          <canvas id="trafficChart"></canvas>
+        </div>
+
+        <hr style="
+              border: none;
+              border-top: 1px solid var(--border-color);
+              margin: 20px 0;
+            " />
+
+        <div class="controls" id="integralControls">
+          <label for="startTime">시작 시간:</label>
+          <select id="startTime"></select>
+          <label for="endTime">종료 시간:</label>
+          <select id="endTime"></select>
+          <button onclick="calculateIntegral()">📈 누적 교통량 계산</button>
+        </div>
+
+        <div id="result">지도에서 지점을 선택하고 시간 범위를 설정하세요</div>
+      </div>
+    </div>
+
+    <footer>
+      <p><strong>📌 데이터 출처</strong></p>
+      <p>
+        본 시각화는
+        <a href="https://data.seoul.go.kr/SeoulRtd/list" target="_blank" rel="noopener noreferrer">서울 열린데이터 광장 - 실시간
+          도시데이터</a>를 기반으로 제작되었습니다.
+      </p>
+      <p style="margin-top: 10px; font-size: 0.85em">
+        실시간 교통량 데이터를 활용하여 교통량-시간 적분 개념을
+        시각화하였습니다.<br />
+        적분 값은 선택한 시간 구간 동안의 누적 차량 대수를 나타냅니다.
+      </p>
+    </footer>
+  </div>
+
+  <script>
+    // --- (2) 서울시 주요 교통 지점 12곳 ---
+    const trafficLocations = [
+      { name: "강남역 사거리", lat: 37.4979, lng: 127.0276, id: "gangnam" },
+      {
+        name: "광화문 사거리",
+        lat: 37.572,
+        lng: 126.9769,
+        id: "gwanghwamun",
+      },
+      { name: "여의도 사거리", lat: 37.5219, lng: 126.9245, id: "yeouido" },
+      { name: "시청역 사거리", lat: 37.5662, lng: 126.9779, id: "cityhall" },
+      { name: "잠실대교 북단", lat: 37.5172, lng: 127.0856, id: "jamsil" },
+      { name: "한남대교 북단", lat: 37.5366, lng: 127.0046, id: "hannam" },
+      { name: "성수대교 북단", lat: 37.5447, lng: 127.0411, id: "seongsu" },
+      { name: "신촌 로터리", lat: 37.5556, lng: 126.9364, id: "sinchon" },
+      { name: "서울역 앞", lat: 37.5547, lng: 126.9707, id: "seoulstation" },
+      { name: "종로3가 사거리", lat: 37.5703, lng: 126.992, id: "jongno3" },
+      { name: "교대역 사거리", lat: 37.4933, lng: 127.0143, id: "kyodae" },
+      { name: "구로디지털단지역", lat: 37.485, lng: 126.9013, id: "guro" },
+    ];
+
+    // --- (1) 현재 시간 (지도 마커용) ---
+    const currentHour = new Date().getHours();
+    document.getElementById("currentHour").textContent = `${currentHour}시`;
+
+    // --- 혼잡도 계산 함수 ---
+    // 혼잡도 색상
+    function getCongestionColor(traffic) {
+      if (traffic < 500) return "#4CAF50"; // 원활
+      if (traffic < 1000) return "#FFC107"; // 보통
+      if (traffic < 1500) return "#FF9800"; // 혼잡
+      if (traffic < 2000) return "#FF5722"; // 매우혼잡
+      return "#D32F2F"; // 극심혼잡
+    }
+    // 혼잡도 텍스트
+    function getCongestionText(traffic) {
+      if (traffic < 500) return "원활";
+      if (traffic < 1000) return "보통";
+      if (traffic < 1500) return "혼잡";
+      if (traffic < 2000) return "매우혼잡";
+      return "극심혼잡";
+    }
+
+    // --- 가상 데이터 생성기 (서울시 데이터 시뮬레이션) ---
+    // 시간대별 교통량 생성 (오늘/어제)
+    function generateRealisticTrafficData(locationId, isToday = true) {
+      // (지점별 24시간 기본 패턴 - 실제 데이터로 교체 가능)
+      const basePatterns = {
+        gangnam: [
+          300, 200, 150, 200, 350, 700, 1800, 2500, 2200, 1500, 1300, 1400,
+          1500, 1600, 1700, 1800, 2000, 2800, 3000, 2400, 1500, 1000, 800,
+          500,
+        ],
+        gwanghwamun: [
+          150, 100, 80, 100, 200, 450, 1100, 1900, 1600, 1200, 1100, 1300,
+          1400, 1350, 1400, 1500, 1700, 2100, 2300, 1800, 1000, 700, 500, 300,
+        ],
+        yeouido: [
+          100, 80, 70, 90, 150, 500, 1700, 2400, 2000, 1000, 800, 850, 900,
+          950, 1000, 1100, 1500, 2600, 2700, 2000, 1100, 700, 400, 200,
+        ],
+        cityhall: [
+          200, 150, 120, 150, 300, 600, 1400, 2000, 1800, 1300, 1200, 1350,
+          1450, 1500, 1550, 1600, 1800, 2200, 2500, 2000, 1200, 800, 600, 400,
+        ],
+        jamsil: [
+          250, 180, 140, 180, 320, 650, 1500, 2200, 1900, 1400, 1250, 1380,
+          1480, 1520, 1600, 1700, 1900, 2400, 2600, 2100, 1300, 900, 700, 450,
+        ],
+        hannam: [
+          180, 130, 100, 130, 280, 580, 1300, 1900, 1700, 1200, 1100, 1250,
+          1350, 1400, 1450, 1550, 1750, 2100, 2300, 1900, 1100, 750, 550, 350,
+        ],
+        seongsu: [
+          220, 160, 130, 160, 310, 620, 1450, 2100, 1850, 1350, 1220, 1330,
+          1430, 1480, 1580, 1680, 1880, 2300, 2550, 2050, 1250, 850, 650, 420,
+        ],
+        sinchon: [
+          280, 200, 160, 200, 340, 680, 1550, 2300, 2000, 1450, 1280, 1400,
+          1500, 1550, 1650, 1750, 1950, 2500, 2700, 2200, 1400, 950, 750, 480,
+        ],
+        seoulstation: [
+          240, 170, 135, 170, 330, 670, 1520, 2250, 2050, 1480, 1300, 1420,
+          1520, 1570, 1670, 1770, 1970, 2450, 2650, 2150, 1350, 900, 700, 460,
+        ],
+        jongno3: [
+          210, 150, 125, 150, 290, 610, 1380, 2050, 1820, 1330, 1230, 1360,
+          1460, 1510, 1610, 1710, 1910, 2350, 2580, 2080, 1280, 870, 670, 440,
+        ],
+        kyodae: [
+          260, 190, 145, 190, 325, 660, 1510, 2210, 1920, 1420, 1270, 1400,
+          1500, 1540, 1640, 1740, 1940, 2420, 2620, 2120, 1320, 920, 720, 470,
+        ],
+        guro: [
+          230, 165, 132, 165, 315, 640, 1490, 2180, 1980, 1450, 1290, 1410,
+          1510, 1560, 1660, 1760, 1960, 2380, 2600, 2100, 1300, 890, 690, 450,
+        ],
+      };
+      const pattern = basePatterns[locationId] || basePatterns.gangnam;
+      const variation = isToday ? 1 : 0.85; // 어제는 85% 수준으로 가정
+
+      // 데이터에 약간의 랜덤성 부여
+      return pattern.map((val) =>
+        Math.floor(val * variation * (0.9 + Math.random() * 0.2))
+      );
+    }
+
+    // --- (3) 요일별 평균 데이터 생성 ---
+    function generateWeeklyData(locationId) {
+      const baseData = generateRealisticTrafficData(locationId, true); // 오늘 데이터를 기준으로
+      const weekdays = ["월", "화", "수", "목", "금", "토", "일"];
+      const variations = [1.0, 1.02, 1.01, 1.03, 1.05, 0.85, 0.75]; // 요일/주말 편차
+
+      return weekdays.map((day, idx) => {
+        // 24시간 평균에 요일별 편차 적용
+        const avgTraffic = Math.floor(
+          (baseData.reduce((a, b) => a + b, 0) / 24) * variations[idx]
+        );
+        return avgTraffic;
+      });
+    }
+
+    // --- 지도 초기화 ---
+    const map = L.map("map").setView([37.5665, 126.978], 11); // 서울 중심
+
+    // 오픈스트리트맵 타일 레이어
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: "© OpenStreetMap contributors",
+    }).addTo(map);
+
+    // --- (1) 혼잡도 범례 추가 ---
+    const legend = L.control({ position: "bottomright" });
+    legend.onAdd = function (map) {
+      const div = L.DomUtil.create("div", "legend");
+      div.innerHTML = `
+                <div style="font-weight: bold; margin-bottom: 8px;">현재 시간대 혼잡도</div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #4CAF50;"></div>
+                    <span>원활 (&lt;500)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #FFC107;"></div>
+                    <span>보통 (500-1000)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #FF9800;"></div>
+                    <span>혼잡 (1000-1500)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #FF5722;"></div>
+                    <span>매우혼잡 (1500-2000)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #D32F2F;"></div>
+                    <span>극심혼잡 (&gt;2000)</span>
+                </div>
+            `;
+      return div;
+    };
+    legend.addTo(map);
+
+    // --- 전역 변수 ---
+    let currentLocation = null;
+    let currentView = "today";
+    let trafficChart = null;
+    let markers = []; // 마커 저장 (나중에 참조할 수 있도록)
+
+    // --- 차트 초기화 (빈 차트) ---
+    const ctx = document.getElementById("trafficChart").getContext("2d");
+    const labels = Array.from({ length: 24 }, (_, i) => `${i}시`); // 24시간 X축
+
+    function initChart() {
+      trafficChart = new Chart(ctx, {
+        type: "bar",
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: "시간당 교통량 (대/시간)",
+              data: Array(24).fill(0), // 빈 데이터로 시작
+              backgroundColor: Array(24).fill("rgba(54, 162, 235, 0.6)"),
+              borderWidth: 0,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false, // 컨테이너 높이에 맞춤
+          scales: {
+            y: {
+              beginAtZero: true,
+              title: {
+                display: true,
+                text: "교통량 (대/시간)",
+                color: "var(--chart-tick-color)",
+              },
+              grid: { color: "var(--chart-grid-color)" },
+              ticks: { color: "var(--chart-tick-color)" },
+            },
+            x: {
+              title: {
+                display: true,
+                text: "시간 (t)",
+                color: "var(--chart-tick-color)",
+              },
+              grid: { color: "var(--chart-grid-color)" },
+              ticks: { color: "var(--chart-tick-color)" },
+            },
+          },
+          plugins: {
+            legend: { labels: { color: "var(--chart-tick-color)" } },
+            tooltip: {
+              callbacks: {
+                label: (context) =>
+                  ` ${context.parsed.y.toLocaleString()} 대/시간`,
+              },
+            },
+          },
+        },
+      });
+    }
+
+    // --- (1) + (2) 마커 생성 및 지도에 추가 ---
+    function createMarkers() {
+      trafficLocations.forEach((location) => {
+        const data = generateRealisticTrafficData(location.id, true); // '오늘' 데이터 기준
+
+        // (1) '현재 시간' 교통량으로 색상 결정
+        const currentTraffic = data[currentHour];
+        const color = getCongestionColor(currentTraffic);
+        const status = getCongestionText(currentTraffic);
+
+        // (1) '평균' 교통량 (팝업 정보용)
+        const avgTraffic = Math.floor(data.reduce((a, b) => a + b, 0) / 24);
+
+        // 마커 아이콘 (현재 교통량 표시)
+        const icon = L.divIcon({
+          className: "custom-icon", // CSS에서 스타일링하지 않음 (인라인 스타일 사용)
+          html: `<div class="traffic-marker" style="background-color: ${color};">${currentTraffic}</div>`,
+          iconSize: [40, 40],
+        });
+
+        const marker = L.marker([location.lat, location.lng], { icon: icon })
+          .addTo(map)
+          .bindPopup(
+            `
+                        <strong>${location.name}</strong><br>
+                        현재(${currentHour}시) 교통량: ${currentTraffic.toLocaleString()} 대/시간<br>
+                        현재 혼잡도: <strong style="color: ${color};">${status}</strong><br>
+                        일평균 교통량: ${avgTraffic.toLocaleString()} 대/시간
+                    `
+          )
+          .on("click", () => selectLocation(location)); // 클릭 시 차트 업데이트
+
+        markers.push({ marker, location, data });
+      });
+    }
+
+    // --- 위치 선택 시 이벤트 ---
+    function selectLocation(location) {
+      currentLocation = location;
+      document.getElementById("currentLocation").textContent = location.name; // 지점 이름 업데이트
+      document.getElementById("trafficStats").style.display = "flex"; // 통계 카드 보이기
+
+      // 맵을 부드럽게 해당 위치로 이동
+      map.flyTo([location.lat, location.lng], 13);
+
+      updateChart(); // 차트 업데이트
+    }
+
+    // --- (3) 뷰 변경 시 이벤트 ---
+    function changeView(view) {
+      currentView = view;
+
+      // 버튼 활성화 스타일 변경
+      document
+        .querySelectorAll(".view-button")
+        .forEach((btn) => btn.classList.remove("active"));
+      event.target.classList.add("active");
+
+      // 요일별 평균일 때는 적분 컨트롤 숨기기
+      if (view === "weekly") {
+        document.getElementById("integralControls").style.display = "none";
+      } else {
+        document.getElementById("integralControls").style.display = "flex";
+      }
+
+      // 현재 위치가 선택된 상태라면 차트 업데이트
+      if (currentLocation) updateChart();
+    }
+
+    // --- 🌟 차트 업데이트 (핵심 로직) 🌟 ---
+    // (여기가 잘렸던 부분입니다)
+    function updateChart() {
+      if (!currentLocation) return; // 선택된 위치가 없으면 중단
+
+      // (3) 요일별 뷰 처리
+      if (currentView === "weekly") {
+        const weeklyData = generateWeeklyData(currentLocation.id);
+        const weekdays = ["월", "화", "수", "목", "금", "토", "일"];
+
+        trafficChart.data.labels = weekdays; // X축을 요일로 변경
+        trafficChart.data.datasets[0].data = weeklyData;
+        trafficChart.data.datasets[0].label = "요일별 평균 교통량 (대/시간)";
+        trafficChart.data.datasets[0].backgroundColor = weekdays.map(
+          (_, idx) =>
+            idx >= 5 ? "rgba(255, 152, 0, 0.6)" : "rgba(54, 162, 235, 0.6)" // 주말/주중 색상 구분
+        );
+        trafficChart.options.scales.x.title.text = "요일";
+
+        document.getElementById("result").textContent =
+          "요일별 평균 교통량을 확인하세요.";
+        document.getElementById("result").style.color = "var(--text-color)";
+
+        // (1) 통계 업데이트 (주간 평균)
+        const avgWeekly = Math.floor(
+          weeklyData.reduce((a, b) => a + b, 0) / 7
+        ); // <-- 여기가 잘린 부분
+
+        document.getElementById("currentTraffic").textContent = "-"; // 주간 평균에는 '현재'가 없음
+        document.getElementById(
+          "avgTraffic"
+        ).textContent = `${avgWeekly.toLocaleString()} 대`;
+        document.getElementById("avgCongestion").textContent =
+          getCongestionText(avgWeekly);
+      } else {
+        // '오늘' 또는 '어제' 뷰 처리
+        const isToday = currentView === "today";
+        const data = generateRealisticTrafficData(
+          currentLocation.id,
+          isToday
+        );
+
+        trafficChart.data.labels = labels; // X축을 24시간으로 복원
+        trafficChart.data.datasets[0].data = data;
+        trafficChart.data.datasets[0].label = `${isToday ? "오늘" : "어제"
+          } 시간당 교통량 (대/시간)`;
+
+        // 차트 색상 초기화 (적분 하이라이트 제거)
+        const defaultBarColor = getComputedStyle(document.documentElement)
+          .getPropertyValue("--default-color")
+          .trim();
+        trafficChart.data.datasets[0].backgroundColor =
+          Array(24).fill(defaultBarColor);
+        trafficChart.options.scales.x.title.text = "시간 (t)";
+
+        // (1) 통계 업데이트 (일간 평균)
+        const currentTraffic = data[currentHour];
+        const avgTraffic = Math.floor(data.reduce((a, b) => a + b, 0) / 24);
+
+        document.getElementById("currentTraffic").textContent = `${isToday ? currentTraffic.toLocaleString() : "-"
+          } 대`;
+        document.getElementById(
+          "avgTraffic"
+        ).textContent = `${avgTraffic.toLocaleString()} 대`;
+        document.getElementById("avgCongestion").textContent =
+          getCongestionText(avgTraffic);
+
+        // 적분 계산기 결과창 초기화 (기본값으로 계산)
+        calculateIntegral();
+      }
+
+      // 차트 다시 그리기
+      trafficChart.update();
+    }
+
+    // --- 적분 계산 (누적 교통량) ---
+    function calculateIntegral() {
+      if (currentView === "weekly" || !currentLocation) return; // 주간 뷰에서는 실행 안 함
+
+      const startIdx = parseInt(document.getElementById("startTime").value);
+      const endIdx = parseInt(document.getElementById("endTime").value);
+      const resultDiv = document.getElementById("result");
+
+      // CSS 변수에서 테마에 맞는 색상 값을 가져옴
+      const highlightColor = getComputedStyle(document.documentElement)
+        .getPropertyValue("--highlight-color")
+        .trim();
+      const defaultColor = getComputedStyle(document.documentElement)
+        .getPropertyValue("--default-color")
+        .trim();
+
+      let barColors = Array(24).fill(defaultColor);
+
+      if (startIdx > endIdx) {
+        resultDiv.textContent =
+          "오류: 시작 시간은 종료 시간보다 빠르거나 같아야 합니다.";
+        resultDiv.style.color = "#d9534f"; // 오류 색상
+        return;
+      }
+
+      let cumulativeTraffic = 0;
+      const currentData = trafficChart.data.datasets[0].data;
+
+      // 리만 합 (Riemann Sum) 계산: Σ q(t_i) * Δt (여기서 Δt = 1시간)
+      for (let i = startIdx; i <= endIdx; i++) {
+        cumulativeTraffic += currentData[i];
+        barColors[i] = highlightColor; // 선택된 범위 강조
+      }
+
+      trafficChart.data.datasets[0].backgroundColor = barColors;
+      trafficChart.update(); // 차트 업데이트로 색상 변경 적용
+
+      // 결과 표시 (숫자에 콤마 추가)
+      resultDiv.textContent = `[${startIdx}시 ~ ${endIdx}시] 총 누적 교통량: ${cumulativeTraffic.toLocaleString()} 대`;
+      resultDiv.style.color = "var(--primary-color)";
+    }
+
+    // --- 시간 선택 <select> 옵션 생성 (0시~23시) ---
+    function initTimeSelectors() {
+      const startTimeSelect = document.getElementById("startTime");
+      const endTimeSelect = document.getElementById("endTime");
+
+      labels.forEach((label, index) => {
+        startTimeSelect.options.add(new Option(label, index));
+        endTimeSelect.options.add(new Option(label, index));
+      });
+      // 출근 시간(7-9시)을 기본값으로 설정
+      startTimeSelect.value = 7;
+      endTimeSelect.value = 9;
+    }
+
+    // --- 다크/라이트 모드 테마 관리 ---
+    const themeToggle = document.getElementById("theme-toggle");
+
+    // 차트와 지도 타일의 테마를 업데이트하는 함수
+    function updateChartTheme() {
+      const isDark = document.body.getAttribute("data-theme") === "dark";
+      const gridColor = isDark
+        ? "rgba(255, 255, 255, 0.1)"
+        : "rgba(0, 0, 0, 0.1)";
+      const tickColor = isDark ? "#bbb" : "#666";
+
+      // 차트 테마 업데이트
+      if (trafficChart) {
+        trafficChart.options.scales.y.grid.color = gridColor;
+        trafficChart.options.scales.y.ticks.color = tickColor;
+        trafficChart.options.scales.y.title.color = tickColor;
+        trafficChart.options.scales.x.grid.color = gridColor;
+        trafficChart.options.scales.x.ticks.color = tickColor;
+        trafficChart.options.scales.x.title.color = tickColor;
+        trafficChart.options.plugins.legend.labels.color = tickColor;
+        trafficChart.update();
+      }
+
+      // 지도 타일 테마 (필터 적용으로 어둡게)
+      const mapTile = document.querySelector(".leaflet-tile-container");
+      if (mapTile) {
+        mapTile.style.filter = isDark
+          ? "invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%)"
+          : "none";
+      }
+      // 지도 범례 테마
+      const legendControl = document.querySelector(".legend");
+      if (legendControl) {
+        legendControl.style.background = isDark ? "#333" : "white";
+        legendControl.style.color = isDark ? "#eee" : "#333";
+      }
+    }
+
+    // 테마 토글 스위치 이벤트 리스너
+    themeToggle.addEventListener("change", function () {
+      if (this.checked) {
+        document.body.setAttribute("data-theme", "dark");
+        localStorage.setItem("theme", "dark");
+      } else {
+        document.body.setAttribute("data-theme", "light");
+        localStorage.setItem("theme", "light");
+      }
+      updateChartTheme(); // 테마 변경 시 차트/지도 업데이트
+    });
+
+    // 초기 테마 설정 (시스템 설정 또는 로컬 스토리지 값 확인)
+    function setInitialTheme() {
+      const currentTheme = localStorage.getItem("theme")
+        ? localStorage.getItem("theme")
+        : null;
+      if (currentTheme) {
+        document.body.setAttribute("data-theme", currentTheme);
+        if (currentTheme === "dark") {
+          themeToggle.checked = true;
+        }
+      } else if (
+        window.matchMedia &&
+        window.matchMedia("(prefers-color-scheme: dark)").matches
+      ) {
+        // 사용자가 시스템 다크 모드를 선호하는 경우
+        document.body.setAttribute("data-theme", "dark");
+        themeToggle.checked = true;
+      }
+    }
+
+    // --- 페이지 로드 시 초기화 실행 ---
+    setInitialTheme();
+    initChart();
+    initTimeSelectors();
+    createMarkers();
+    updateChartTheme(); // 초기 로드 시 테마 적용
+  </script>
+</body>
+
+</html>

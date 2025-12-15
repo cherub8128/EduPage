@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>로지스틱 회귀</title>
+  <link rel="canonical" href="https://jinjw27.github.io/Webpage/logistic.html" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      overflow: hidden;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 60px 40px;
+      text-align: center;
+    }
+
+    .header h1 {
+      font-size: 3.5em;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    .content {
+      padding: 40px;
+    }
+
+    .section {
+      margin-bottom: 40px;
+    }
+
+    .section h2 {
+      color: #667eea;
+      font-size: 1.8em;
+      margin-bottom: 15px;
+      border-left: 5px solid #667eea;
+      padding-left: 15px;
+    }
+
+    .section p {
+      color: #555;
+      line-height: 1.8;
+      font-size: 1.1em;
+    }
+
+    .chart-container {
+      position: relative;
+      height: 500px;
+      margin: 30px 0;
+      padding: 20px;
+      background: #f8f9fa;
+      border-radius: 15px;
+      box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .formula {
+      background: #f8f9fa;
+      padding: 30px;
+      border-radius: 15px;
+      text-align: center;
+      font-size: 1.8em;
+      color: #333;
+      margin: 20px 0;
+      border: 2px solid #667eea;
+      font-family: "Times New Roman", serif;
+    }
+
+    .formula-box {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      display: inline-block;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .legend {
+      display: flex;
+      justify-content: center;
+      gap: 30px;
+      margin: 20px 0;
+      flex-wrap: wrap;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 1.1em;
+    }
+
+    .legend-color {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+    }
+
+    .legend-line {
+      width: 40px;
+      height: 3px;
+      border-radius: 2px;
+    }
+
+    .stats {
+      background: #e3f2fd;
+      padding: 20px;
+      border-radius: 10px;
+      margin: 20px 0;
+    }
+
+    .stats h3 {
+      color: #1976d2;
+      margin-bottom: 10px;
+    }
+
+    .btn {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 15px 30px;
+      font-size: 1.1em;
+      border-radius: 25px;
+      cursor: pointer;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+      transition: transform 0.2s;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    .btn:active {
+      transform: translateY(0);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>로지스틱 회귀</h1>
+    </div>
+
+    <div class="content">
+      <div class="section">
+        <h2>📈 시각화</h2>
+        <div class="legend">
+          <div class="legend-item">
+            <div class="legend-color" style="background: #ff6384"></div>
+            <span>실제 데이터 (합격/불합격)</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-line" style="background: #36a2eb"></div>
+            <span>로지스틱 회귀 곡선 (S-Curve)</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-line" style="background: #4bc0c0; border: 2px dashed #4bc0c0"></div>
+            <span>결정 경계 (임계값 0.5)</span>
+          </div>
+        </div>
+
+        <div class="chart-container">
+          <canvas id="logisticChart"></canvas>
+        </div>
+
+        <div class="stats" id="stats">
+          <h3>📊 통계 정보</h3>
+          <p id="statsContent">데이터를 생성하세요...</p>
+        </div>
+
+        <div style="text-align: center; margin: 20px 0">
+          <button class="btn" onclick="regenerateData()">
+            🔄 새로운 데이터 생성
+          </button>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2>📐 수식</h2>
+        <div class="formula">
+          <div class="formula-box">
+            ln(<sup>p</sup>/<sub>1−p</sub>) = β₀ + β₁x
+          </div>
+        </div>
+        <p style="text-align: center; color: #666; margin-top: 15px">
+          로짓 함수: 확률 p를 실수 범위로 변환하여 선형 모델을 적용합니다.
+        </p>
+        <div class="formula" style="margin-top: 30px">
+          <div class="formula-box">
+            p(x) = <sup>1</sup>/<sub>1 + e<sup>−(β₀ + β₁x)</sup></sub>
+          </div>
+        </div>
+        <p style="text-align: center; color: #666; margin-top: 15px">
+          시그모이드 함수: 선형 조합을 0과 1 사이의 확률로 변환합니다.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let chart = null;
+
+    // 시그모이드 함수
+    function sigmoid(x, beta0, beta1) {
+      const z = beta0 + beta1 * x;
+      return 1 / (1 + Math.exp(-z));
+    }
+
+    // 데이터 생성 함수
+    function generateData() {
+      const data = [];
+      const beta0 = -5; // 절편
+      const beta1 = 1; // 기울기 (x=5일 때 확률 0.5)
+
+      // 각 시간별로 여러 샘플 생성
+      for (let hour = 1; hour <= 10; hour += 0.5) {
+        const prob = sigmoid(hour, beta0, beta1);
+
+        // 각 시간별로 2-3개의 샘플 생성
+        const numSamples = Math.floor(Math.random() * 2) + 2;
+        for (let i = 0; i < numSamples; i++) {
+          const randomValue = Math.random();
+          const result = randomValue < prob ? 1 : 0;
+
+          // 약간의 지터(jitter) 추가로 점들이 겹치지 않게
+          const jitterX = (Math.random() - 0.5) * 0.3;
+          const jitterY = (Math.random() - 0.5) * 0.05;
+
+          data.push({
+            x: hour + jitterX,
+            y: result + jitterY,
+          });
+        }
+      }
+
+      return data;
+    }
+
+    // S-커브 데이터 생성
+    function generateCurve() {
+      const curveData = [];
+      const beta0 = -5;
+      const beta1 = 1;
+
+      for (let x = 0; x <= 11; x += 0.1) {
+        curveData.push({
+          x: x,
+          y: sigmoid(x, beta0, beta1),
+        });
+      }
+
+      return curveData;
+    }
+
+    // 결정 경계 찾기 (확률 0.5인 지점)
+    function findDecisionBoundary() {
+      const beta0 = -5;
+      const beta1 = 1;
+      // p = 0.5일 때, z = 0
+      // beta0 + beta1 * x = 0
+      // x = -beta0 / beta1
+      return -beta0 / beta1;
+    }
+
+    // 통계 정보 업데이트
+    function updateStats(data) {
+      const totalSamples = data.length;
+      const passedSamples = data.filter((d) => Math.round(d.y) === 1).length;
+      const failedSamples = totalSamples - passedSamples;
+      const passRate = ((passedSamples / totalSamples) * 100).toFixed(1);
+      const decisionBoundary = findDecisionBoundary();
+
+      const avgStudyTimePassed =
+        data
+          .filter((d) => Math.round(d.y) === 1)
+          .reduce((sum, d) => sum + d.x, 0) / passedSamples;
+      const avgStudyTimeFailed =
+        data
+          .filter((d) => Math.round(d.y) === 0)
+          .reduce((sum, d) => sum + d.x, 0) / failedSamples;
+
+      document.getElementById("statsContent").innerHTML = `
+                <p><strong>총 샘플 수:</strong> ${totalSamples}개</p>
+                <p><strong>합격:</strong> ${passedSamples}개 (${passRate}%) | <strong>불합격:</strong> ${failedSamples}개 (${(
+          100 - passRate
+        ).toFixed(1)}%)</p>
+                <p><strong>결정 경계:</strong> ${decisionBoundary.toFixed(
+          2
+        )}시간 (확률 50% 지점)</p>
+                <p><strong>합격자 평균 공부 시간:</strong> ${avgStudyTimePassed.toFixed(
+          2
+        )}시간</p>
+                <p><strong>불합격자 평균 공부 시간:</strong> ${avgStudyTimeFailed.toFixed(
+          2
+        )}시간</p>
+            `;
+    }
+
+    // 차트 생성
+    function createChart() {
+      const ctx = document.getElementById("logisticChart").getContext("2d");
+      const data = generateData();
+      const curveData = generateCurve();
+      const decisionBoundary = findDecisionBoundary();
+
+      updateStats(data);
+
+      if (chart) {
+        chart.destroy();
+      }
+
+      chart = new Chart(ctx, {
+        type: "scatter",
+        data: {
+          datasets: [
+            {
+              label: "실제 데이터 (합격/불합격)",
+              data: data,
+              backgroundColor: "#ff6384",
+              borderColor: "#ff6384",
+              pointRadius: 6,
+              pointHoverRadius: 8,
+            },
+            {
+              label: "로지스틱 회귀 곡선 (S-Curve)",
+              data: curveData,
+              type: "line",
+              borderColor: "#36a2eb",
+              backgroundColor: "rgba(54, 162, 235, 0.1)",
+              borderWidth: 3,
+              pointRadius: 0,
+              fill: false,
+              tension: 0.4,
+            },
+            {
+              label: "임계값 (p = 0.5)",
+              data: [
+                { x: 0, y: 0.5 },
+                { x: 11, y: 0.5 },
+              ],
+              type: "line",
+              borderColor: "#4bc0c0",
+              borderWidth: 2,
+              borderDash: [10, 5],
+              pointRadius: 0,
+              fill: false,
+            },
+            {
+              label: "결정 경계",
+              data: [
+                { x: decisionBoundary, y: 0 },
+                { x: decisionBoundary, y: 1 },
+              ],
+              type: "line",
+              borderColor: "#9966ff",
+              borderWidth: 2,
+              borderDash: [5, 5],
+              pointRadius: 0,
+              fill: false,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              display: true,
+              position: "top",
+              labels: {
+                font: {
+                  size: 12,
+                },
+                usePointStyle: true,
+                padding: 15,
+              },
+            },
+            tooltip: {
+              callbacks: {
+                label: function (context) {
+                  const label = context.dataset.label || "";
+                  const x = context.parsed.x.toFixed(2);
+                  const y = context.parsed.y.toFixed(3);
+
+                  if (label.includes("실제 데이터")) {
+                    const result =
+                      Math.round(context.parsed.y) === 1 ? "합격" : "불합격";
+                    return `${x}시간 → ${result}`;
+                  } else if (label.includes("로지스틱")) {
+                    return `${x}시간 → 합격 확률 ${(y * 100).toFixed(1)}%`;
+                  }
+                  return `${label}: (${x}, ${y})`;
+                },
+              },
+            },
+          },
+          scales: {
+            x: {
+              title: {
+                display: true,
+                text: "공부 시간 (hours)",
+                font: {
+                  size: 14,
+                  weight: "bold",
+                },
+              },
+              min: 0,
+              max: 11,
+              ticks: {
+                stepSize: 1,
+              },
+              grid: {
+                color: "rgba(0, 0, 0, 0.05)",
+              },
+            },
+            y: {
+              title: {
+                display: true,
+                text: "합격 확률 / 합격 여부",
+                font: {
+                  size: 14,
+                  weight: "bold",
+                },
+              },
+              min: -0.1,
+              max: 1.1,
+              ticks: {
+                stepSize: 0.2,
+                callback: function (value) {
+                  if (value === 0) return "불합격 (0)";
+                  if (value === 0.5) return "0.5";
+                  if (value === 1) return "합격 (1)";
+                  return value.toFixed(1);
+                },
+              },
+              grid: {
+                color: "rgba(0, 0, 0, 0.05)",
+              },
+            },
+          },
+        },
+      });
+    }
+
+    // 데이터 재생성
+    function regenerateData() {
+      createChart();
+    }
+
+    // 페이지 로드 시 차트 생성
+    window.addEventListener("load", createChart);
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>3축 로봇 팔 시뮬레이터</title>
+  <link rel="canonical" href="https://jinjw27.github.io/Webpage/robot.html" />
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      overflow: hidden;
+    }
+
+    #container {
+      display: flex;
+      height: 100vh;
+    }
+
+    #canvas-container {
+      flex: 1;
+      position: relative;
+    }
+
+    #controls {
+      width: 350px;
+      background: rgba(255, 255, 255, 0.95);
+      padding: 25px;
+      overflow-y: auto;
+      box-shadow: -5px 0 20px rgba(0, 0, 0, 0.2);
+    }
+
+    h1 {
+      margin: 0 0 10px 0;
+      font-size: 24px;
+      color: #2d3748;
+      border-bottom: 3px solid #667eea;
+      padding-bottom: 10px;
+    }
+
+    h2 {
+      margin: 25px 0 15px 0;
+      font-size: 18px;
+      color: #4a5568;
+      border-left: 4px solid #667eea;
+      padding-left: 10px;
+    }
+
+    .mode-toggle {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .mode-btn {
+      flex: 1;
+      padding: 12px;
+      background: #e2e8f0;
+      color: #4a5568;
+      border: 2px solid #cbd5e0;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      transition: all 0.3s;
+    }
+
+    .mode-btn.active {
+      background: #667eea;
+      color: white;
+      border-color: #667eea;
+      box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
+    }
+
+    .mode-btn:hover {
+      transform: translateY(-2px);
+    }
+
+    .slider-group {
+      margin-bottom: 20px;
+      background: #f7fafc;
+      padding: 15px;
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: #2d3748;
+      font-size: 14px;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      height: 6px;
+      border-radius: 3px;
+      background: #cbd5e0;
+      outline: none;
+      -webkit-appearance: none;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #667eea;
+      cursor: pointer;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    input[type="range"]::-moz-range-thumb {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #667eea;
+      cursor: pointer;
+      border: none;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    .value-display {
+      display: inline-block;
+      background: #667eea;
+      color: white;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: bold;
+      margin-left: 10px;
+    }
+
+    .position-info {
+      background: #edf2f7;
+      padding: 12px;
+      border-radius: 6px;
+      margin-top: 15px;
+      font-size: 13px;
+      line-height: 1.6;
+      color: #2d3748;
+    }
+
+    .position-info strong {
+      color: #667eea;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 15px;
+      background: #667eea;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      transition: all 0.3s;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    button:hover {
+      background: #5568d3;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    .matrix-display {
+      background: #2d3748;
+      color: #e2e8f0;
+      padding: 12px;
+      border-radius: 6px;
+      font-family: "Courier New", monospace;
+      font-size: 11px;
+      margin-top: 10px;
+      overflow-x: auto;
+      line-height: 1.4;
+    }
+
+    .info-text {
+      font-size: 12px;
+      color: #718096;
+      margin-top: 8px;
+      line-height: 1.5;
+    }
+
+    #info-panel {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      background: rgba(255, 255, 255, 0.95);
+      padding: 15px 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      max-width: 300px;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    #info-panel h3 {
+      margin: 0 0 10px 0;
+      color: #667eea;
+      font-size: 16px;
+    }
+
+    .legend {
+      margin-top: 10px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      margin: 5px 0;
+    }
+
+    .legend-color {
+      width: 30px;
+      height: 3px;
+      margin-right: 10px;
+      border-radius: 2px;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .singularity-warning {
+      background: #fff5f5;
+      border: 2px solid #fc8181;
+      padding: 12px;
+      border-radius: 6px;
+      margin-top: 15px;
+      font-size: 13px;
+      line-height: 1.6;
+      color: #c53030;
+    }
+
+    .singularity-warning.normal {
+      background: #f0fff4;
+      border-color: #68d391;
+      color: #22543d;
+    }
+
+    .singularity-warning.caution {
+      background: #fffaf0;
+      border-color: #f6ad55;
+      color: #744210;
+    }
+
+    .jacobian-display {
+      background: #2d3748;
+      color: #e2e8f0;
+      padding: 12px;
+      border-radius: 6px;
+      font-family: "Courier New", monospace;
+      font-size: 10px;
+      margin-top: 10px;
+      overflow-x: auto;
+      line-height: 1.4;
+    }
+
+    .metric-box {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #edf2f7;
+      padding: 10px 15px;
+      border-radius: 6px;
+      margin-top: 10px;
+    }
+
+    .metric-label {
+      font-size: 13px;
+      color: #4a5568;
+      font-weight: 600;
+    }
+
+    .metric-value {
+      font-size: 18px;
+      font-weight: bold;
+      color: #667eea;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="container">
+    <div id="canvas-container">
+      <div id="info-panel">
+        <h3>좌표축 범례</h3>
+        <div class="legend">
+          <div class="legend-item">
+            <div class="legend-color" style="background: #ff0000"></div>
+            <span>X축 (빨강)</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-color" style="background: #00ff00"></div>
+            <span>Y축 (초록)</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-color" style="background: #0000ff"></div>
+            <span>Z축 (파랑)</span>
+          </div>
+        </div>
+        <div style="margin-top: 12px; font-size: 11px; color: #718096">
+          마우스로 드래그하여 시점을 회전할 수 있습니다.
+        </div>
+      </div>
+    </div>
+    <div id="controls">
+      <h1>🦾 로봇 팔 시뮬레이터</h1>
+
+      <div class="mode-toggle">
+        <button class="mode-btn active" onclick="switchMode('forward')">
+          정기구학
+        </button>
+        <button class="mode-btn" onclick="switchMode('singularity')">
+          특이점 분석
+        </button>
+      </div>
+
+      <h2>관절 각도 조절</h2>
+      <div class="slider-group">
+        <label>θ₁ (Base Joint)<span class="value-display" id="theta1-value">0°</span></label>
+        <input type="range" id="theta1" min="-180" max="180" value="0" step="1" />
+        <div class="info-text">베이스 회전 (Z축 기준)</div>
+      </div>
+
+      <div class="slider-group">
+        <label>θ₂ (Shoulder Joint)<span class="value-display" id="theta2-value">45°</span></label>
+        <input type="range" id="theta2" min="-180" max="180" value="45" step="1" />
+        <div class="info-text">어깨 관절 (Y축 기준)</div>
+      </div>
+
+      <div class="slider-group">
+        <label>θ₃ (Elbow Joint)<span class="value-display" id="theta3-value">-90°</span></label>
+        <input type="range" id="theta3" min="-180" max="180" value="-90" step="1" />
+        <div class="info-text">팔꿈치 관절 (Y축 기준)</div>
+      </div>
+
+      <button onclick="resetAngles()">각도 초기화</button>
+      <button onclick="clearTrace()">경로 추적 지우기</button>
+
+      <!-- 정기구학 모드 콘텐츠 -->
+      <div id="forward-content">
+        <h2>말단 위치 (End-Effector)</h2>
+        <div class="position-info" id="end-position">
+          <strong>X:</strong> <span id="pos-x">0.00</span><br />
+          <strong>Y:</strong> <span id="pos-y">0.00</span><br />
+          <strong>Z:</strong> <span id="pos-z">0.00</span>
+        </div>
+
+        <h2>변환 행렬 T</h2>
+        <div class="matrix-display" id="matrix-display">행렬 계산 중...</div>
+        <div class="info-text">
+          T = T₁(θ₁) · T₂(θ₂) · T₃(θ₃)<br />
+          DH 파라미터 기반 동차 변환 행렬
+        </div>
+      </div>
+
+      <!-- 특이점 분석 모드 콘텐츠 -->
+      <div id="singularity-content" class="hidden">
+        <h2>자코비안 행렬 J(θ)</h2>
+        <div class="jacobian-display" id="jacobian-display">계산 중...</div>
+        <div class="info-text">
+          v = J(θ) · θ'<br />
+          말단 속도와 관절 속도의 관계
+        </div>
+
+        <h2>조작성 지수</h2>
+        <div class="metric-box">
+          <span class="metric-label">w = √det(JJ<sup>T</sup>)</span>
+          <span class="metric-value" id="manipulability-value">0.000</span>
+        </div>
+        <div class="info-text">
+          조작성 타원체의 부피에 비례하는 지수<br />
+          값이 클수록 로봇이 모든 방향으로 움직이기 쉬운 상태
+        </div>
+
+        <h2>DLS 감쇠 계수</h2>
+        <div class="metric-box">
+          <span class="metric-label">λ (Lambda)</span>
+          <span class="metric-value" id="lambda-value">0.000</span>
+        </div>
+        <div class="info-text">
+          J* = J<sup>T</sup>(JJ<sup>T</sup> + λ²I)<sup>-1</sup><br />
+          특이점 근처에서 자동으로 증가하여 수치적 안정성 보장
+        </div>
+
+        <h2>로봇 상태</h2>
+        <div class="singularity-warning normal" id="status-box">
+          <strong>✓ 정상 작동 범위</strong><br />
+          로봇이 모든 방향으로 원활히 움직일 수 있습니다.
+        </div>
+
+        <h2>말단 위치</h2>
+        <div class="position-info">
+          <strong>X:</strong> <span id="pos-x-sing">0.00</span><br />
+          <strong>Y:</strong> <span id="pos-y-sing">0.00</span><br />
+          <strong>Z:</strong> <span id="pos-z-sing">0.00</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script>
+    // Three.js 씬 설정
+    let scene, camera, renderer;
+    let frames = [];
+    let links = [];
+    let tracePoints = [];
+    let traceLine;
+    let currentMode = "forward";
+
+    // DH 파라미터
+    const linkLengths = [0, 2, 1.5];
+
+    function init() {
+      scene = new THREE.Scene();
+      scene.background = new THREE.Color(0xf0f4f8);
+
+      camera = new THREE.PerspectiveCamera(
+        60,
+        (window.innerWidth - 350) / window.innerHeight,
+        0.1,
+        1000
+      );
+      camera.position.set(6, 6, 6);
+      camera.lookAt(0, 0, 0);
+
+      renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setSize(window.innerWidth - 350, window.innerHeight);
+      document
+        .getElementById("canvas-container")
+        .appendChild(renderer.domElement);
+
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+      scene.add(ambientLight);
+
+      const directionalLight = new THREE.DirectionalLight(0xffffff, 0.6);
+      directionalLight.position.set(5, 10, 5);
+      scene.add(directionalLight);
+
+      const gridHelper = new THREE.GridHelper(10, 20, 0xcccccc, 0xe0e0e0);
+      scene.add(gridHelper);
+
+      const axesHelper = new THREE.AxesHelper(1.5);
+      scene.add(axesHelper);
+
+      const traceGeometry = new THREE.BufferGeometry();
+      const traceMaterial = new THREE.LineBasicMaterial({
+        color: 0xff00ff,
+        linewidth: 2,
+        transparent: true,
+        opacity: 0.6,
+      });
+      traceLine = new THREE.Line(traceGeometry, traceMaterial);
+      scene.add(traceLine);
+
+      setupMouseControls();
+      createRobotArm();
+
+      document
+        .getElementById("theta1")
+        .addEventListener("input", updateRobot);
+      document
+        .getElementById("theta2")
+        .addEventListener("input", updateRobot);
+      document
+        .getElementById("theta3")
+        .addEventListener("input", updateRobot);
+
+      window.addEventListener("resize", onWindowResize);
+
+      updateRobot();
+      animate();
+    }
+
+    function createRobotArm() {
+      for (let i = 0; i < 3; i++) {
+        const frame = new THREE.Group();
+
+        const axisLength = 0.8;
+        const headLength = 0.15;
+        const headWidth = 0.1;
+
+        const xArrow = new THREE.ArrowHelper(
+          new THREE.Vector3(1, 0, 0),
+          new THREE.Vector3(0, 0, 0),
+          axisLength,
+          0xff0000,
+          headLength,
+          headWidth
+        );
+        frame.add(xArrow);
+
+        const yArrow = new THREE.ArrowHelper(
+          new THREE.Vector3(0, 1, 0),
+          new THREE.Vector3(0, 0, 0),
+          axisLength,
+          0x00ff00,
+          headLength,
+          headWidth
+        );
+        frame.add(yArrow);
+
+        const zArrow = new THREE.ArrowHelper(
+          new THREE.Vector3(0, 0, 1),
+          new THREE.Vector3(0, 0, 0),
+          axisLength,
+          0x0000ff,
+          headLength,
+          headWidth
+        );
+        frame.add(zArrow);
+
+        const jointGeometry = new THREE.SphereGeometry(0.15, 16, 16);
+        const jointMaterial = new THREE.MeshPhongMaterial({
+          color: 0x333333,
+          shininess: 100,
+        });
+        const joint = new THREE.Mesh(jointGeometry, jointMaterial);
+        frame.add(joint);
+
+        scene.add(frame);
+        frames.push(frame);
+      }
+
+      for (let i = 0; i < 2; i++) {
+        const linkGeometry = new THREE.CylinderGeometry(0.08, 0.08, 1, 12);
+        const linkMaterial = new THREE.MeshPhongMaterial({
+          color: 0x4299e1,
+          shininess: 80,
+        });
+        const link = new THREE.Mesh(linkGeometry, linkMaterial);
+        scene.add(link);
+        links.push(link);
+      }
+
+      const endEffectorGeometry = new THREE.BoxGeometry(0.3, 0.3, 0.3);
+      const endEffectorMaterial = new THREE.MeshPhongMaterial({
+        color: 0xf56565,
+        shininess: 100,
+      });
+      const endEffector = new THREE.Mesh(
+        endEffectorGeometry,
+        endEffectorMaterial
+      );
+      scene.add(endEffector);
+      links.push(endEffector);
+    }
+
+    function degToRad(deg) {
+      return (deg * Math.PI) / 180;
+    }
+
+    function createDHMatrix(theta, d, a, alpha) {
+      const ct = Math.cos(theta);
+      const st = Math.sin(theta);
+      const ca = Math.cos(alpha);
+      const sa = Math.sin(alpha);
+
+      return new THREE.Matrix4().set(
+        ct,
+        -st * ca,
+        st * sa,
+        a * ct,
+        st,
+        ct * ca,
+        -ct * sa,
+        a * st,
+        0,
+        sa,
+        ca,
+        d,
+        0,
+        0,
+        0,
+        1
+      );
+    }
+
+    function updateRobot() {
+      const theta1 = degToRad(
+        parseFloat(document.getElementById("theta1").value)
+      );
+      const theta2 = degToRad(
+        parseFloat(document.getElementById("theta2").value)
+      );
+      const theta3 = degToRad(
+        parseFloat(document.getElementById("theta3").value)
+      );
+
+      document.getElementById("theta1-value").textContent =
+        Math.round((theta1 * 180) / Math.PI) + "°";
+      document.getElementById("theta2-value").textContent =
+        Math.round((theta2 * 180) / Math.PI) + "°";
+      document.getElementById("theta3-value").textContent =
+        Math.round((theta3 * 180) / Math.PI) + "°";
+
+      const T1 = createDHMatrix(theta1, 0, 0, Math.PI / 2);
+      const T2 = createDHMatrix(theta2, 0, linkLengths[1], 0);
+      const T3 = createDHMatrix(theta3, 0, linkLengths[2], 0);
+
+      const T01 = T1.clone();
+      const T02 = T01.clone().multiply(T2);
+      const T03 = T02.clone().multiply(T3);
+
+      frames[0].position.set(0, 0, 0);
+      frames[0].rotation.setFromRotationMatrix(T01);
+
+      const pos1 = new THREE.Vector3();
+      pos1.setFromMatrixPosition(T02);
+      frames[1].position.copy(pos1);
+      frames[1].rotation.setFromRotationMatrix(T02);
+
+      const pos2 = new THREE.Vector3();
+      pos2.setFromMatrixPosition(T03);
+      frames[2].position.copy(pos2);
+      frames[2].rotation.setFromRotationMatrix(T03);
+
+      updateLink(links[0], new THREE.Vector3(0, 0, 0), pos1);
+      updateLink(links[1], pos1, pos2);
+
+      links[2].position.copy(pos2);
+
+      tracePoints.push(pos2.clone());
+      if (tracePoints.length > 500) {
+        tracePoints.shift();
+      }
+      updateTraceLine();
+
+      document.getElementById("pos-x").textContent = pos2.x.toFixed(2);
+      document.getElementById("pos-y").textContent = pos2.y.toFixed(2);
+      document.getElementById("pos-z").textContent = pos2.z.toFixed(2);
+
+      document.getElementById("pos-x-sing").textContent = pos2.x.toFixed(2);
+      document.getElementById("pos-y-sing").textContent = pos2.y.toFixed(2);
+      document.getElementById("pos-z-sing").textContent = pos2.z.toFixed(2);
+
+      if (currentMode === "forward") {
+        displayMatrix(T03);
+      } else {
+        calculateSingularityAnalysis(theta1, theta2, theta3);
+      }
+    }
+
+    function calculateSingularityAnalysis(theta1, theta2, theta3) {
+      const l1 = linkLengths[1];
+      const l2 = linkLengths[2];
+
+      const c1 = Math.cos(theta1);
+      const s1 = Math.sin(theta1);
+      const c2 = Math.cos(theta2);
+      const s2 = Math.sin(theta2);
+      const c23 = Math.cos(theta2 + theta3);
+      const s23 = Math.sin(theta2 + theta3);
+
+      // 자코비안 행렬 J (3x3)
+      const J = [
+        [
+          -s1 * (l1 * c2 + l2 * c23),
+          c1 * (-l1 * s2 - l2 * s23),
+          -c1 * l2 * s23,
+        ],
+        [
+          c1 * (l1 * c2 + l2 * c23),
+          s1 * (-l1 * s2 - l2 * s23),
+          -s1 * l2 * s23,
+        ],
+        [0, l1 * c2 + l2 * c23, l2 * c23],
+      ];
+
+      // J * J^T 계산
+      const JJT = [
+        [0, 0, 0],
+        [0, 0, 0],
+        [0, 0, 0],
+      ];
+
+      for (let i = 0; i < 3; i++) {
+        for (let j = 0; j < 3; j++) {
+          for (let k = 0; k < 3; k++) {
+            JJT[i][j] += J[i][k] * J[j][k];
+          }
+        }
+      }
+
+      // det(J * J^T) 계산
+      const det =
+        JJT[0][0] * (JJT[1][1] * JJT[2][2] - JJT[1][2] * JJT[2][1]) -
+        JJT[0][1] * (JJT[1][0] * JJT[2][2] - JJT[1][2] * JJT[2][0]) +
+        JJT[0][2] * (JJT[1][0] * JJT[2][1] - JJT[1][1] * JJT[2][0]);
+
+      // 조작성 지수
+      const w = Math.sqrt(Math.abs(det));
+
+      // 감쇠 계수 계산
+      const w_threshold = 0.5;
+      const lambda_max = 0.5;
+      let lambda = 0;
+
+      if (w < w_threshold) {
+        lambda = lambda_max * Math.pow(1 - w / w_threshold, 2);
+      }
+
+      // UI 업데이트
+      document.getElementById("manipulability-value").textContent =
+        w.toFixed(3);
+      document.getElementById("lambda-value").textContent = lambda.toFixed(3);
+
+      // 자코비안 행렬 표시
+      displayJacobian(J);
+
+      // 상태 박스 업데이트
+      updateStatusBox(w);
+    }
+
+    function displayJacobian(J) {
+      const text = `
+┌                                           ┐
+│ ${J[0][0].toFixed(3)}  ${J[0][1].toFixed(3)}  ${J[0][2].toFixed(3)} │
+│ ${J[1][0].toFixed(3)}  ${J[1][1].toFixed(3)}  ${J[1][2].toFixed(3)} │
+│ ${J[2][0].toFixed(3)}  ${J[2][1].toFixed(3)}  ${J[2][2].toFixed(3)} │
+└                                           ┘
+            `.trim();
+      document.getElementById("jacobian-display").textContent = text;
+    }
+
+    function updateStatusBox(w) {
+      const statusBox = document.getElementById("status-box");
+      statusBox.className = "singularity-warning";
+
+      if (w < 0.1) {
+        statusBox.classList.add("singularity-warning");
+        statusBox.innerHTML = `
+            <strong>⚠️ 특이점 근처 (위험)</strong><br />
+            조작성 지수가 매우 낮습니다. 특정 방향으로 움직임이 불가능하며,<br />
+            역기구학 계산 시 관절 속도가 무한대로 발산할 수 있습니다.
+          `;
+      } else if (w < 0.3) {
+        statusBox.classList.add("caution");
+        statusBox.innerHTML = `
+            <strong>⚡ 조작성 낮음 (주의)</strong><br />
+            조작성 타원체가 찌그러져 있습니다. 일부 방향으로의<br />
+            움직임이 제한되며 DLS 감쇠 계수가 활성화됩니다.
+          `;
+      } else if (w < 0.5) {
+        statusBox.classList.add("caution");
+        statusBox.innerHTML = `
+            <strong>⚠️ 조작성 보통</strong><br />
+            로봇이 작동 가능하나 일부 방향에서 조작성이 제한됩니다.<br />
+            안전한 작동을 위해 감쇠 계수가 적용됩니다.
+          `;
+      } else {
+        statusBox.classList.add("normal");
+        statusBox.innerHTML = `
+            <strong>✓ 정상 작동 범위</strong><br />
+            로봇이 모든 방향으로 원활히 움직일 수 있습니다.<br />
+            조작성 타원체가 균형잡힌 형태입니다.
+          `;
+      }
+    }
+
+    function switchMode(mode) {
+      currentMode = mode;
+
+      const modeButtons = document.querySelectorAll(".mode-btn");
+      modeButtons.forEach((btn) => btn.classList.remove("active"));
+
+      if (mode === "forward") {
+        modeButtons[0].classList.add("active");
+        document.getElementById("forward-content").classList.remove("hidden");
+        document
+          .getElementById("singularity-content")
+          .classList.add("hidden");
+      } else {
+        modeButtons[1].classList.add("active");
+        document.getElementById("forward-content").classList.add("hidden");
+        document
+          .getElementById("singularity-content")
+          .classList.remove("hidden");
+      }
+
+      updateRobot();
+    }
+
+    function updateLink(link, start, end) {
+      const direction = new THREE.Vector3().subVectors(end, start);
+      const length = direction.length();
+      const center = new THREE.Vector3()
+        .addVectors(start, end)
+        .multiplyScalar(0.5);
+
+      link.position.copy(center);
+      link.scale.y = length;
+
+      const quaternion = new THREE.Quaternion();
+      quaternion.setFromUnitVectors(
+        new THREE.Vector3(0, 1, 0),
+        direction.normalize()
+      );
+      link.quaternion.copy(quaternion);
+    }
+
+    function updateTraceLine() {
+      const positions = new Float32Array(tracePoints.length * 3);
+      for (let i = 0; i < tracePoints.length; i++) {
+        positions[i * 3] = tracePoints[i].x;
+        positions[i * 3 + 1] = tracePoints[i].y;
+        positions[i * 3 + 2] = tracePoints[i].z;
+      }
+      traceLine.geometry.setAttribute(
+        "position",
+        new THREE.BufferAttribute(positions, 3)
+      );
+    }
+
+    function displayMatrix(matrix) {
+      const m = matrix.elements;
+      const text = `
+┌                               ┐
+│ ${m[0].toFixed(3)}  ${m[4].toFixed(3)}  ${m[8].toFixed(3)}  ${m[12].toFixed(
+        3
+      )} │
+│ ${m[1].toFixed(3)}  ${m[5].toFixed(3)}  ${m[9].toFixed(3)}  ${m[13].toFixed(
+        3
+      )} │
+│ ${m[2].toFixed(3)}  ${m[6].toFixed(3)}  ${m[10].toFixed(3)}  ${m[14].toFixed(
+        3
+      )} │
+│ ${m[3].toFixed(3)}  ${m[7].toFixed(3)}  ${m[11].toFixed(3)}  ${m[15].toFixed(
+        3
+      )} │
+└                               ┘
+            `.trim();
+      document.getElementById("matrix-display").textContent = text;
+    }
+
+    function clearTrace() {
+      tracePoints = [];
+      updateTraceLine();
+    }
+
+    function resetAngles() {
+      document.getElementById("theta1").value = 0;
+      document.getElementById("theta2").value = 45;
+      document.getElementById("theta3").value = -90;
+      clearTrace();
+      updateRobot();
+    }
+
+    // 마우스 컨트롤
+    let isDragging = false;
+    let previousMousePosition = { x: 0, y: 0 };
+    let cameraAngleX = Math.PI / 4;
+    let cameraAngleY = Math.PI / 4;
+    let cameraDistance = 8;
+
+    function setupMouseControls() {
+      const canvas = renderer.domElement;
+
+      canvas.addEventListener("mousedown", (e) => {
+        isDragging = true;
+        previousMousePosition = { x: e.clientX, y: e.clientY };
+      });
+
+      canvas.addEventListener("mousemove", (e) => {
+        if (isDragging) {
+          const deltaX = e.clientX - previousMousePosition.x;
+          const deltaY = e.clientY - previousMousePosition.y;
+
+          cameraAngleY += deltaX * 0.01;
+          cameraAngleX += deltaY * 0.01;
+          cameraAngleX = Math.max(
+            -Math.PI / 2,
+            Math.min(Math.PI / 2, cameraAngleX)
+          );
+
+          updateCameraPosition();
+          previousMousePosition = { x: e.clientX, y: e.clientY };
+        }
+      });
+
+      canvas.addEventListener("mouseup", () => {
+        isDragging = false;
+      });
+
+      canvas.addEventListener("wheel", (e) => {
+        e.preventDefault();
+        cameraDistance += e.deltaY * 0.01;
+        cameraDistance = Math.max(3, Math.min(15, cameraDistance));
+        updateCameraPosition();
+      });
+    }
+
+    function updateCameraPosition() {
+      camera.position.x =
+        cameraDistance * Math.cos(cameraAngleX) * Math.sin(cameraAngleY);
+      camera.position.y = cameraDistance * Math.sin(cameraAngleX);
+      camera.position.z =
+        cameraDistance * Math.cos(cameraAngleX) * Math.cos(cameraAngleY);
+      camera.lookAt(0, 1, 0);
+    }
+
+    function onWindowResize() {
+      camera.aspect = (window.innerWidth - 350) / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth - 350, window.innerHeight);
+    }
+
+    function animate() {
+      requestAnimationFrame(animate);
+      renderer.render(scene, camera);
+    }
+
+    init();
+  </script>
+</body>
+
+</html>
