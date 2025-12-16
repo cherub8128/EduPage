@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>3D 프린터 곡선 경로 최적화 시뮬레이터</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px;
+      }
+
+      .container {
+        max-width: 1400px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        overflow: hidden;
+      }
+
+      .header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 30px;
+        text-align: center;
+      }
+
+      .header h1 {
+        font-size: 2em;
+        margin-bottom: 10px;
+      }
+
+      .header p {
+        opacity: 0.9;
+        font-size: 1.1em;
+      }
+
+      .content {
+        display: grid;
+        grid-template-columns: 300px 1fr 350px;
+        gap: 20px;
+        padding: 30px;
+      }
+
+      .control-panel {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 12px;
+      }
+
+      .control-group {
+        margin-bottom: 20px;
+      }
+
+      .control-group label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: #333;
+      }
+
+      .control-group select,
+      .control-group input[type="range"],
+      .control-group input[type="number"] {
+        width: 100%;
+        padding: 8px;
+        border: 2px solid #ddd;
+        border-radius: 6px;
+        font-size: 14px;
+      }
+
+      .control-group input[type="range"] {
+        padding: 0;
+      }
+
+      .value-display {
+        text-align: right;
+        color: #667eea;
+        font-weight: 600;
+        margin-top: 5px;
+      }
+
+      button {
+        width: 100%;
+        padding: 12px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        margin-top: 10px;
+        transition: transform 0.2s;
+      }
+
+      button:hover {
+        transform: translateY(-2px);
+      }
+
+      button:active {
+        transform: translateY(0);
+      }
+
+      .canvas-container {
+        position: relative;
+        background: white;
+        border-radius: 12px;
+        border: 2px solid #e0e0e0;
+        overflow: hidden;
+      }
+
+      canvas {
+        display: block;
+        width: 100%;
+        height: 600px;
+      }
+
+      .stats-panel {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 12px;
+      }
+
+      .stat-card {
+        background: white;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 15px;
+        border-left: 4px solid #667eea;
+      }
+
+      .stat-card h3 {
+        font-size: 0.9em;
+        color: #666;
+        margin-bottom: 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .stat-value {
+        font-size: 1.8em;
+        font-weight: 700;
+        color: #333;
+      }
+
+      .stat-unit {
+        font-size: 0.9em;
+        color: #999;
+        margin-left: 5px;
+      }
+
+      .gcode-preview {
+        background: #1e1e1e;
+        color: #d4d4d4;
+        padding: 15px;
+        border-radius: 8px;
+        font-family: "Courier New", monospace;
+        font-size: 12px;
+        max-height: 300px;
+        overflow-y: auto;
+        line-height: 1.6;
+      }
+
+      .gcode-comment {
+        color: #6a9955;
+      }
+
+      .gcode-command {
+        color: #4ec9b0;
+      }
+
+      .legend {
+        display: flex;
+        gap: 20px;
+        justify-content: center;
+        margin-top: 15px;
+        padding: 15px;
+        background: #f8f9fa;
+        border-radius: 8px;
+      }
+
+      .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .legend-color {
+        width: 20px;
+        height: 20px;
+        border-radius: 4px;
+      }
+
+      .progress-bar {
+        width: 100%;
+        height: 8px;
+        background: #e0e0e0;
+        border-radius: 4px;
+        overflow: hidden;
+        margin-top: 10px;
+      }
+
+      .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+        transition: width 0.3s;
+      }
+
+      @media (max-width: 1200px) {
+        .content {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+    <link
+      rel="canonical"
+      href="https://hoodinga.github.io/Silhumsil/curve_path_optimizer_sim.html"
+    />
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>🖨️ 곡선 경로 최적화 시뮬레이터</h1>
+        <p>베지어 곡선의 선형 근사와 적분 기반 길이 계산</p>
+      </div>
+
+      <div class="content">
+        <div class="control-panel">
+          <h2 style="margin-bottom: 20px; color: #333">제어 패널</h2>
+
+          <div class="control-group">
+            <label>곡선 타입</label>
+            <select id="curveType">
+              <option value="quadratic">2차 베지어 (3점)</option>
+              <option value="cubic" selected>3차 베지어 (4점)</option>
+              <option value="circle">원호</option>
+            </select>
+          </div>
+
+          <div class="control-group">
+            <label>허용 오차 (ε)</label>
+            <input
+              type="range"
+              id="tolerance"
+              min="0.5"
+              max="20"
+              step="0.5"
+              value="5"
+            />
+            <div class="value-display">
+              <span id="toleranceValue">5</span> mm
+            </div>
+          </div>
+
+          <div class="control-group">
+            <label>적분 분할 수 (n)</label>
+            <input
+              type="range"
+              id="segments"
+              min="10"
+              max="200"
+              step="10"
+              value="100"
+            />
+            <div class="value-display">
+              <span id="segmentsValue">100</span> 구간
+            </div>
+          </div>
+
+          <div class="control-group">
+            <label>노즐 지름</label>
+            <input
+              type="number"
+              id="nozzle"
+              min="0.1"
+              max="1.0"
+              step="0.1"
+              value="0.4"
+            />
+            <div class="value-display">mm</div>
+          </div>
+
+          <button onclick="randomizeCurve()">🎲 랜덤 곡선</button>
+          <button onclick="startAnimation()">▶️ 애니메이션 시작</button>
+          <button onclick="stopAnimation()">⏸️ 정지</button>
+          <button onclick="downloadGCode()">💾 G-code 다운로드</button>
+
+          <div class="legend">
+            <div class="legend-item">
+              <div class="legend-color" style="background: #667eea"></div>
+              <span>원본 곡선</span>
+            </div>
+            <div class="legend-item">
+              <div class="legend-color" style="background: #ff6b6b"></div>
+              <span>근사 직선</span>
+            </div>
+            <div class="legend-item">
+              <div class="legend-color" style="background: #51cf66"></div>
+              <span>제어점</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="canvas-container">
+          <canvas id="canvas"></canvas>
+        </div>
+
+        <div class="stats-panel">
+          <h2 style="margin-bottom: 20px; color: #333">통계</h2>
+
+          <div class="stat-card">
+            <h3>곡선 길이 (적분)</h3>
+            <div class="stat-value" id="curveLength">
+              0<span class="stat-unit">mm</span>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <h3>근사 길이 (선분 합)</h3>
+            <div class="stat-value" id="approxLength">
+              0<span class="stat-unit">mm</span>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <h3>오차율</h3>
+            <div class="stat-value" id="error">
+              0<span class="stat-unit">%</span>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <h3>선분 개수</h3>
+            <div class="stat-value" id="lineCount">
+              0<span class="stat-unit">개</span>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <h3>필라멘트 소요량</h3>
+            <div class="stat-value" id="filament">
+              0<span class="stat-unit">mm³</span>
+            </div>
+          </div>
+
+          <h3 style="margin: 20px 0 10px; color: #333">G-code 미리보기</h3>
+          <div class="gcode-preview" id="gcodePreview">
+            <span class="gcode-comment">; G-code will appear here</span>
+          </div>
+
+          <div class="progress-bar">
+            <div class="progress-fill" id="progress" style="width: 0%"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const canvas = document.getElementById("canvas");
+      const ctx = canvas.getContext("2d");
+      let animationId = null;
+      let animationProgress = 0;
+
+      // Control points - initialize first
+      let controlPoints = [
+        { x: 100, y: 300 },
+        { x: 200, y: 100 },
+        { x: 400, y: 100 },
+        { x: 500, y: 300 },
+      ];
+
+      let draggingPoint = null;
+
+      // Canvas setup
+      function resizeCanvas() {
+        canvas.width = canvas.offsetWidth;
+        canvas.height = canvas.offsetHeight;
+        draw();
+      }
+
+      // Wait for DOM to be ready
+      window.addEventListener("load", () => {
+        resizeCanvas();
+      });
+      window.addEventListener("resize", resizeCanvas);
+
+      // Mouse handling
+      canvas.addEventListener("mousedown", (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+
+        for (let point of controlPoints) {
+          const dx = x - point.x;
+          const dy = y - point.y;
+          if (dx * dx + dy * dy < 100) {
+            draggingPoint = point;
+            break;
+          }
+        }
+      });
+
+      canvas.addEventListener("mousemove", (e) => {
+        if (draggingPoint) {
+          const rect = canvas.getBoundingClientRect();
+          draggingPoint.x = e.clientX - rect.left;
+          draggingPoint.y = e.clientY - rect.top;
+          draw();
+        }
+      });
+
+      canvas.addEventListener("mouseup", () => {
+        draggingPoint = null;
+      });
+
+      // Bezier curve functions
+      function cubicBezier(t, p0, p1, p2, p3) {
+        const mt = 1 - t;
+        return {
+          x:
+            mt * mt * mt * p0.x +
+            3 * mt * mt * t * p1.x +
+            3 * mt * t * t * p2.x +
+            t * t * t * p3.x,
+          y:
+            mt * mt * mt * p0.y +
+            3 * mt * mt * t * p1.y +
+            3 * mt * t * t * p2.y +
+            t * t * t * p3.y,
+        };
+      }
+
+      function cubicBezierDerivative(t, p0, p1, p2, p3) {
+        const mt = 1 - t;
+        return {
+          x:
+            3 * mt * mt * (p1.x - p0.x) +
+            6 * mt * t * (p2.x - p1.x) +
+            3 * t * t * (p3.x - p2.x),
+          y:
+            3 * mt * mt * (p1.y - p0.y) +
+            6 * mt * t * (p2.y - p1.y) +
+            3 * t * t * (p3.y - p2.y),
+        };
+      }
+
+      function quadraticBezier(t, p0, p1, p2) {
+        const mt = 1 - t;
+        return {
+          x: mt * mt * p0.x + 2 * mt * t * p1.x + t * t * p2.x,
+          y: mt * mt * p0.y + 2 * mt * t * p1.y + t * t * p2.y,
+        };
+      }
+
+      function quadraticBezierDerivative(t, p0, p1, p2) {
+        const mt = 1 - t;
+        return {
+          x: 2 * mt * (p1.x - p0.x) + 2 * t * (p2.x - p1.x),
+          y: 2 * mt * (p1.y - p0.y) + 2 * t * (p2.y - p1.y),
+        };
+      }
+
+      function circleArc(t, center, radius, startAngle, endAngle) {
+        const angle = startAngle + t * (endAngle - startAngle);
+        return {
+          x: center.x + radius * Math.cos(angle),
+          y: center.y + radius * Math.sin(angle),
+        };
+      }
+
+      function circleArcDerivative(t, center, radius, startAngle, endAngle) {
+        const angle = startAngle + t * (endAngle - startAngle);
+        const angleRange = endAngle - startAngle;
+        return {
+          x: -radius * angleRange * Math.sin(angle),
+          y: radius * angleRange * Math.cos(angle),
+        };
+      }
+
+      // Calculate curve length using numerical integration
+      function calculateCurveLength() {
+        const n = parseInt(document.getElementById("segments").value);
+        const curveType = document.getElementById("curveType").value;
+        let length = 0;
+
+        for (let i = 0; i < n; i++) {
+          const t = i / n;
+          const dt = 1 / n;
+          let derivative;
+
+          if (curveType === "cubic") {
+            derivative = cubicBezierDerivative(t, ...controlPoints);
+          } else if (curveType === "quadratic") {
+            derivative = quadraticBezierDerivative(
+              t,
+              controlPoints[0],
+              controlPoints[1],
+              controlPoints[2]
+            );
+          } else {
+            const center = { x: canvas.width / 2, y: canvas.height / 2 };
+            derivative = circleArcDerivative(t, center, 150, 0, Math.PI);
+          }
+
+          const speed = Math.sqrt(
+            derivative.x * derivative.x + derivative.y * derivative.y
+          );
+          length += speed * dt;
+        }
+
+        return length;
+      }
+
+      // Adaptive subdivision
+      function subdivide(p0, p1, p2, p3, tolerance, curveType) {
+        let points = [p0];
+
+        function distance(p, line) {
+          const dx = line.x2 - line.x1;
+          const dy = line.y2 - line.y1;
+          const len = Math.sqrt(dx * dx + dy * dy);
+          if (len === 0)
+            return Math.sqrt((p.x - line.x1) ** 2 + (p.y - line.y1) ** 2);
+
+          const t = Math.max(
+            0,
+            Math.min(
+              1,
+              ((p.x - line.x1) * dx + (p.y - line.y1) * dy) / (len * len)
+            )
+          );
+          const projX = line.x1 + t * dx;
+          const projY = line.y1 + t * dy;
+          return Math.sqrt((p.x - projX) ** 2 + (p.y - projY) ** 2);
+        }
+
+        function subdivideRecursive(t0, t1) {
+          let maxDist = 0;
+          let maxT = t0;
+          const samples = 10;
+
+          const start = getPoint(t0);
+          const end = getPoint(t1);
+          const line = { x1: start.x, y1: start.y, x2: end.x, y2: end.y };
+
+          for (let i = 1; i < samples; i++) {
+            const t = t0 + ((t1 - t0) * i) / samples;
+            const p = getPoint(t);
+            const dist = distance(p, line);
+            if (dist > maxDist) {
+              maxDist = dist;
+              maxT = t;
+            }
+          }
+
+          if (maxDist > tolerance) {
+            subdivideRecursive(t0, maxT);
+            subdivideRecursive(maxT, t1);
+          } else {
+            points.push(end);
+          }
+        }
+
+        function getPoint(t) {
+          if (curveType === "cubic") {
+            return cubicBezier(t, p0, p1, p2, p3);
+          } else if (curveType === "quadratic") {
+            return quadraticBezier(t, p0, p1, p2);
+          } else {
+            const center = { x: canvas.width / 2, y: canvas.height / 2 };
+            return circleArc(t, center, 150, 0, Math.PI);
+          }
+        }
+
+        subdivideRecursive(0, 1);
+        return points;
+      }
+
+      // Generate G-code
+      function generateGCode(points) {
+        const nozzle = parseFloat(document.getElementById("nozzle").value);
+        let gcode = [];
+
+        gcode.push("; Generated by Curve Path Optimizer");
+        gcode.push("; Date: " + new Date().toLocaleString());
+        gcode.push("G28 ; Home all axes");
+        gcode.push("G1 Z0.2 F300 ; First layer height");
+        gcode.push("M109 S200 ; Set hotend temperature");
+        gcode.push("G92 E0 ; Reset extruder");
+        gcode.push("");
+
+        let e = 0;
+        for (let i = 0; i < points.length; i++) {
+          const p = points[i];
+          const x = (p.x / 10).toFixed(3);
+          const y = (p.y / 10).toFixed(3);
+
+          if (i > 0) {
+            const prev = points[i - 1];
+            const dist =
+              Math.sqrt((p.x - prev.x) ** 2 + (p.y - prev.y) ** 2) / 10;
+            e += dist * 0.04; // Extrusion multiplier
+          }
+
+          gcode.push(`G1 X${x} Y${y} E${e.toFixed(4)} F1500`);
+        }
+
+        gcode.push("");
+        gcode.push("G92 E0 ; Reset extruder");
+        gcode.push("M104 S0 ; Turn off hotend");
+        gcode.push("M140 S0 ; Turn off bed");
+        gcode.push("G28 X Y ; Home X and Y");
+        gcode.push("M84 ; Disable motors");
+
+        return gcode;
+      }
+
+      // Draw everything
+      function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        const curveType = document.getElementById("curveType").value;
+        const tolerance = parseFloat(
+          document.getElementById("tolerance").value
+        );
+
+        // Draw original curve
+        ctx.strokeStyle = "#667eea";
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+
+        for (let i = 0; i <= 100; i++) {
+          const t = i / 100;
+          let p;
+
+          if (curveType === "cubic") {
+            p = cubicBezier(t, ...controlPoints);
+          } else if (curveType === "quadratic") {
+            p = quadraticBezier(
+              t,
+              controlPoints[0],
+              controlPoints[1],
+              controlPoints[2]
+            );
+          } else {
+            const center = { x: canvas.width / 2, y: canvas.height / 2 };
+            p = circleArc(t, center, 150, 0, Math.PI);
+          }
+
+          if (i === 0) ctx.moveTo(p.x, p.y);
+          else ctx.lineTo(p.x, p.y);
+        }
+        ctx.stroke();
+
+        // Calculate subdivided points
+        let points;
+        if (curveType === "cubic") {
+          points = subdivide(
+            controlPoints[0],
+            controlPoints[1],
+            controlPoints[2],
+            controlPoints[3],
+            tolerance,
+            curveType
+          );
+        } else if (curveType === "quadratic") {
+          points = subdivide(
+            controlPoints[0],
+            controlPoints[1],
+            controlPoints[2],
+            null,
+            tolerance,
+            curveType
+          );
+        } else {
+          const center = { x: canvas.width / 2, y: canvas.height / 2 };
+          const start = circleArc(0, center, 150, 0, Math.PI);
+          points = subdivide(start, null, null, null, tolerance, curveType);
+        }
+
+        // Draw approximation
+        ctx.strokeStyle = "#ff6b6b";
+        ctx.lineWidth = 2;
+        ctx.setLineDash([5, 5]);
+        ctx.beginPath();
+        for (let i = 0; i < points.length; i++) {
+          if (i === 0) ctx.moveTo(points[i].x, points[i].y);
+          else {
+            if (
+              animationProgress === 0 ||
+              i / points.length <= animationProgress
+            ) {
+              ctx.lineTo(points[i].x, points[i].y);
+            }
+          }
+        }
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Draw approximation points
+        ctx.fillStyle = "#ff6b6b";
+        for (let i = 0; i < points.length; i++) {
+          if (
+            animationProgress === 0 ||
+            i / points.length <= animationProgress
+          ) {
+            ctx.beginPath();
+            ctx.arc(points[i].x, points[i].y, 4, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
+
+        // Draw control points
+        if (curveType !== "circle") {
+          ctx.strokeStyle = "#aaa";
+          ctx.lineWidth = 1;
+          ctx.setLineDash([3, 3]);
+          ctx.beginPath();
+          for (let i = 0; i < controlPoints.length; i++) {
+            if (i === 0) ctx.moveTo(controlPoints[i].x, controlPoints[i].y);
+            else ctx.lineTo(controlPoints[i].x, controlPoints[i].y);
+          }
+          ctx.stroke();
+          ctx.setLineDash([]);
+
+          ctx.fillStyle = "#51cf66";
+          ctx.strokeStyle = "#2f9e44";
+          ctx.lineWidth = 2;
+          const numPoints = curveType === "quadratic" ? 3 : 4;
+          for (let i = 0; i < numPoints; i++) {
+            ctx.beginPath();
+            ctx.arc(controlPoints[i].x, controlPoints[i].y, 8, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.fillStyle = "#000";
+            ctx.font = "12px sans-serif";
+            ctx.fillText(
+              `P${i}`,
+              controlPoints[i].x + 12,
+              controlPoints[i].y - 12
+            );
+            ctx.fillStyle = "#51cf66";
+          }
+        }
+
+        // Update statistics
+        const curveLength = calculateCurveLength();
+        let approxLength = 0;
+        for (let i = 1; i < points.length; i++) {
+          const dx = points[i].x - points[i - 1].x;
+          const dy = points[i].y - points[i - 1].y;
+          approxLength += Math.sqrt(dx * dx + dy * dy);
+        }
+
+        const error = Math.abs(
+          ((approxLength - curveLength) / curveLength) * 100
+        );
+        const nozzle = parseFloat(document.getElementById("nozzle").value);
+        const filament = approxLength * Math.PI * (nozzle / 2) ** 2;
+
+        document.getElementById("curveLength").innerHTML =
+          curveLength.toFixed(2) + '<span class="stat-unit">mm</span>';
+        document.getElementById("approxLength").innerHTML =
+          approxLength.toFixed(2) + '<span class="stat-unit">mm</span>';
+        document.getElementById("error").innerHTML =
+          error.toFixed(3) + '<span class="stat-unit">%</span>';
+        document.getElementById("lineCount").innerHTML =
+          points.length - 1 + '<span class="stat-unit">개</span>';
+        document.getElementById("filament").innerHTML =
+          filament.toFixed(2) + '<span class="stat-unit">mm³</span>';
+
+        // Generate and display G-code
+        const gcode = generateGCode(points);
+        const preview = gcode
+          .slice(0, 20)
+          .map((line) => {
+            if (line.startsWith(";")) {
+              return `<span class="gcode-comment">${line}</span>`;
+            } else if (line.startsWith("G") || line.startsWith("M")) {
+              return `<span class="gcode-command">${line}</span>`;
+            }
+            return line;
+          })
+          .join("\n");
+
+        document.getElementById("gcodePreview").innerHTML =
+          preview +
+          '\n<span class="gcode-comment">; ... (총 ' +
+          gcode.length +
+          "줄)</span>";
+
+        // Store for download
+        window.currentGCode = gcode;
+      }
+
+      // Animation
+      function startAnimation() {
+        stopAnimation();
+        animationProgress = 0;
+
+        function animate() {
+          animationProgress += 0.005;
+          if (animationProgress > 1) animationProgress = 1;
+
+          document.getElementById("progress").style.width =
+            animationProgress * 100 + "%";
+          draw();
+
+          if (animationProgress < 1) {
+            animationId = requestAnimationFrame(animate);
+          }
+        }
+
+        animate();
+      }
+
+      function stopAnimation() {
+        if (animationId) {
+          cancelAnimationFrame(animationId);
+          animationId = null;
+        }
+        animationProgress = 0;
+        document.getElementById("progress").style.width = "0%";
+        draw();
+      }
+
+      // Random curve
+      function randomizeCurve() {
+        const margin = 50;
+        for (let i = 0; i < 4; i++) {
+          controlPoints[i] = {
+            x: margin + Math.random() * (canvas.width - 2 * margin),
+            y: margin + Math.random() * (canvas.height - 2 * margin),
+          };
+        }
+        draw();
+      }
+
+      // Download G-code
+      function downloadGCode() {
+        if (!window.currentGCode) return;
+
+        const blob = new Blob([window.currentGCode.join("\n")], {
+          type: "text/plain",
+        });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "curve_path.gcode";
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+
+      // Event listeners - wait for DOM
+      window.addEventListener("load", () => {
+        document.getElementById("curveType").addEventListener("change", draw);
+        document.getElementById("tolerance").addEventListener("input", (e) => {
+          document.getElementById("toleranceValue").textContent =
+            e.target.value;
+          draw();
+        });
+        document.getElementById("segments").addEventListener("input", (e) => {
+          document.getElementById("segmentsValue").textContent = e.target.value;
+          draw();
+        });
+        document.getElementById("nozzle").addEventListener("input", draw);
+
+        // Initial draw
+        draw();
+      });
+    </script>
+  </body>
+</html>
