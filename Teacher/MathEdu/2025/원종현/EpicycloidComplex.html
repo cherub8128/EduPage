@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>에피사이클로이드의 복소 매개화 - 고급 시뮬레이션</title>
+    
+    <!-- KaTeX CSS for LaTeX rendering -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Apple SD Gothic Neo', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            color: #333;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+            animation: fadeInDown 0.8s ease-out;
+        }
+
+        .header h1 {
+            font-size: 2.8em;
+            margin-bottom: 15px;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.3);
+            letter-spacing: -1px;
+        }
+
+        .equation-box {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+            margin-top: 15px;
+            backdrop-filter: blur(10px);
+        }
+
+        .equation-box .katex {
+            font-size: 1.4em;
+        }
+
+        .main-container {
+            display: flex;
+            gap: 30px;
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 1600px;
+            width: 100%;
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        .canvas-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .canvas-container {
+            position: relative;
+            background: #fafafa;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: inset 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        canvas {
+            display: block;
+            border-radius: 15px;
+            cursor: crosshair;
+        }
+
+        .canvas-info {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 12px 16px;
+            border-radius: 10px;
+            font-size: 0.85em;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            font-family: 'Courier New', monospace;
+            pointer-events: none;
+            backdrop-filter: blur(10px);
+        }
+
+        .canvas-info div {
+            margin: 4px 0;
+        }
+
+        .canvas-info strong {
+            color: #667eea;
+        }
+
+        .canvas-controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .controls-panel {
+            width: 400px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .control-section {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 20px;
+            border-radius: 15px;
+            border: 1px solid #dee2e6;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            transition: transform 0.3s ease;
+        }
+
+        .control-section:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+        }
+
+        .control-section h3 {
+            margin-bottom: 15px;
+            color: #495057;
+            font-size: 1.15em;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .icon {
+            font-size: 1.3em;
+        }
+
+        .slider-group {
+            margin-bottom: 18px;
+        }
+
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #495057;
+            align-items: center;
+        }
+
+        .slider-value {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.95em;
+            min-width: 50px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            border-radius: 5px;
+            background: linear-gradient(to right, #667eea 0%, #764ba2 100%);
+            outline: none;
+            -webkit-appearance: none;
+            opacity: 0.7;
+            transition: opacity 0.3s;
+        }
+
+        input[type="range"]:hover {
+            opacity: 1;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: white;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.5);
+            border: 3px solid #667eea;
+            transition: all 0.3s;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.7);
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: white;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.5);
+            border: 3px solid #667eea;
+        }
+
+        .button-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        button {
+            padding: 14px;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.95em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(108, 117, 125, 0.4);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+            color: white;
+        }
+
+        .btn-info:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(23, 162, 184, 0.4);
+        }
+
+        .btn-full {
+            grid-column: 1 / -1;
+        }
+
+        .preset-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+        }
+
+        .btn-preset {
+            padding: 12px 8px;
+            background: white;
+            border: 2px solid #667eea;
+            color: #667eea;
+            font-size: 0.85em;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+
+        .btn-preset:hover {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .info-panel {
+            background: linear-gradient(135deg, #e7f3ff 0%, #cfe2ff 100%);
+            padding: 18px;
+            border-radius: 12px;
+            border-left: 5px solid #667eea;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+
+        .info-panel h4 {
+            margin-bottom: 12px;
+            color: #495057;
+            font-size: 1.05em;
+        }
+
+        .info-panel .stat {
+            display: flex;
+            justify-content: space-between;
+            margin: 8px 0;
+            font-size: 0.95em;
+            padding: 6px 0;
+            border-bottom: 1px solid rgba(102, 126, 234, 0.2);
+        }
+
+        .info-panel .stat:last-child {
+            border-bottom: none;
+        }
+
+        .info-panel .stat-value {
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .color-picker-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .color-picker-group label {
+            font-size: 0.9em;
+            color: #495057;
+        }
+
+        input[type="color"] {
+            width: 50px;
+            height: 35px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 10px 0;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .checkbox-group label {
+            font-size: 0.95em;
+            color: #495057;
+            cursor: pointer;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 1400px) {
+            .main-container {
+                flex-direction: column;
+            }
+            .controls-panel {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🌀 에피사이클로이드의 복소 매개화</h1>
+        <div class="equation-box">
+            <div id="main-equation"></div>
+        </div>
+    </div>
+
+    <div class="main-container">
+        <!-- 캔버스 섹션 -->
+        <div class="canvas-section">
+            <div class="canvas-container">
+                <canvas id="epicycloidCanvas" width="800" height="800"></canvas>
+                <div class="canvas-info">
+                    <div><strong>θ:</strong> <span id="info_theta">0.00</span> rad</div>
+                    <div><strong>진행:</strong> <span id="info_progress">0.0</span>%</div>
+                    <div><strong>점 P:</strong> (<span id="info_x">0</span>, <span id="info_y">0</span>)</div>
+                    <div><strong>|z|:</strong> <span id="info_magnitude">0</span></div>
+                </div>
+            </div>
+            
+            <div class="canvas-controls">
+                <button class="btn-success" onclick="screenshot()">📸 스크린샷</button>
+                <button class="btn-info" onclick="clearCanvas()">🗑️ 경로 초기화</button>
+            </div>
+        </div>
+
+        <!-- 컨트롤 패널 -->
+        <div class="controls-panel">
+            <!-- 매개변수 조절 -->
+            <div class="control-section">
+                <h3><span class="icon">⚙️</span> 매개변수 조절</h3>
+                <div class="slider-group">
+                    <div class="slider-label">
+                        <span>기본원 반지름 (R)</span>
+                        <span class="slider-value" id="R_value">120</span>
+                    </div>
+                    <input type="range" id="R_slider" min="20" max="250" value="120" step="5">
+                </div>
+                <div class="slider-group">
+                    <div class="slider-label">
+                        <span>회전원 반지름 (r)</span>
+                        <span class="slider-value" id="r_value">40</span>
+                    </div>
+                    <input type="range" id="r_slider" min="5" max="120" value="40" step="5">
+                </div>
+                <div class="slider-group">
+                    <div class="slider-label">
+                        <span>애니메이션 속도</span>
+                        <span class="slider-value" id="speed_value">1.0×</span>
+                    </div>
+                    <input type="range" id="speed_slider" min="0.1" max="5" value="1" step="0.1">
+                </div>
+                
+                <div class="color-picker-group">
+                    <label>궤적 색상:</label>
+                    <input type="color" id="path_color" value="#4070f4">
+                </div>
+                
+                <div class="checkbox-group">
+                    <input type="checkbox" id="show_vectors" checked>
+                    <label for="show_vectors">벡터 표시</label>
+                </div>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="show_grid" checked>
+                    <label for="show_grid">격자 표시</label>
+                </div>
+            </div>
+
+            <!-- 프리셋 -->
+            <div class="control-section">
+                <h3><span class="icon">🎨</span> 프리셋 패턴</h3>
+                <div class="preset-grid">
+                    <button class="btn-preset" onclick="setPreset(120, 120)">카디오이드<br>(k=1)</button>
+                    <button class="btn-preset" onclick="setPreset(120, 60)">네프로이드<br>(k=2)</button>
+                    <button class="btn-preset" onclick="setPreset(120, 40)">3-cusp<br>(k=3)</button>
+                    <button class="btn-preset" onclick="setPreset(120, 30)">4-cusp<br>(k=4)</button>
+                    <button class="btn-preset" onclick="setPreset(120, 24)">5-cusp<br>(k=5)</button>
+                    <button class="btn-preset" onclick="setPreset(150, 25)">6-cusp<br>(k=6)</button>
+                </div>
+            </div>
+
+            <!-- 컨트롤 버튼 -->
+            <div class="control-section">
+                <h3><span class="icon">🎮</span> 컨트롤</h3>
+                <div class="button-group">
+                    <button class="btn-primary btn-full" onclick="toggleAnimation()">
+                        <span id="playPauseText">⏸️ 일시정지</span>
+                    </button>
+                    <button class="btn-secondary" onclick="resetSimulation()">🔄 다시 그리기</button>
+                    <button class="btn-secondary" onclick="stepForward()">⏭️ 한 스텝</button>
+                </div>
+            </div>
+
+            <!-- 정보 패널 -->
+            <div class="info-panel">
+                <h4>📊 곡선 특성</h4>
+                <div class="stat">
+                    <span>비율 (k = R/r)</span>
+                    <span class="stat-value" id="info_ratio">3.00</span>
+                </div>
+                <div class="stat">
+                    <span>뾰족점 개수</span>
+                    <span class="stat-value" id="info_cusps">3</span>
+                </div>
+                <div class="stat">
+                    <span>주기</span>
+                    <span class="stat-value" id="info_period">2π</span>
+                </div>
+                <div class="stat">
+                    <span>최대 거리</span>
+                    <span class="stat-value" id="info_max_dist">160</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script>
+    // LaTeX 수식 렌더링
+    document.addEventListener("DOMContentLoaded", function() {
+        katex.render("z(\\theta) = (R+r)e^{i\\theta} - re^{i\\frac{R+r}{r}\\theta}", 
+                     document.getElementById("main-equation"), 
+                     {displayMode: true, throwOnError: false});
+    });
+
+    // Canvas 설정
+    const canvas = document.getElementById('epicycloidCanvas');
+    const ctx = canvas.getContext('2d');
+    const width = canvas.width;
+    const height = canvas.height;
+    const centerX = width / 2;
+    const centerY = height / 2;
+
+    // UI 요소
+    const R_slider = document.getElementById('R_slider');
+    const r_slider = document.getElementById('r_slider');
+    const speed_slider = document.getElementById('speed_slider');
+    const path_color_picker = document.getElementById('path_color');
+    const show_vectors_checkbox = document.getElementById('show_vectors');
+    const show_grid_checkbox = document.getElementById('show_grid');
+
+    // 상태 변수
+    let R, r, theta, path, animationFrameId;
+    let speed = 1.0;
+    let isPlaying = true;
+    let pathColor = '#4070f4';
+    let showVectors = true;
+    let showGrid = true;
+
+    // GCD 계산
+    function gcd(a, b) {
+        return b === 0 ? a : gcd(b, a % b);
+    }
+
+    // 정보 업데이트
+    function updateInfo() {
+        const ratio = R / r;
+        const cusps = R / gcd(R, r);
+        const period_multiplier = r / gcd(R, r);
+        const theta_max = 2 * Math.PI * period_multiplier;
+        const max_dist = R + r + r;
+        
+        document.getElementById('info_ratio').textContent = ratio.toFixed(2);
+        document.getElementById('info_cusps').textContent = cusps;
+        document.getElementById('info_period').textContent = period_multiplier === 1 ? '2π' : period_multiplier + 'π';
+        document.getElementById('info_max_dist').textContent = max_dist.toFixed(0);
+        
+        const progress = ((theta / theta_max) * 100).toFixed(1);
+        document.getElementById('info_progress').textContent = progress;
+        document.getElementById('info_theta').textContent = theta.toFixed(2);
+    }
+
+    // 캔버스 초기화
+    function clearCanvas() {
+        path = [];
+    }
+
+    // 스크린샷 저장
+    function screenshot() {
+        const link = document.createElement('a');
+        link.download = `epicycloid_R${R}_r${r}.png`;
+        link.href = canvas.toDataURL();
+        link.click();
+    }
+
+    // 한 스텝 전진
+    function stepForward() {
+        if (!isPlaying) {
+            animate();
+        }
+    }
+
+    // 시뮬레이션 리셋
+    function resetSimulation() {
+        R = parseInt(R_slider.value);
+        r = parseInt(r_slider.value);
+        speed = parseFloat(speed_slider.value);
+        
+        document.getElementById('R_value').textContent = R;
+        document.getElementById('r_value').textContent = r;
+        document.getElementById('speed_value').textContent = speed.toFixed(1) + '×';
+        
+        theta = 0;
+        path = [];
+        isPlaying = true;
+        document.getElementById('playPauseText').innerHTML = '⏸️ 일시정지';
+        
+        if (animationFrameId) {
+            cancelAnimationFrame(animationFrameId);
+        }
+        animate();
+    }
+
+    // 애니메이션 토글
+    function toggleAnimation() {
+        isPlaying = !isPlaying;
+        document.getElementById('playPauseText').innerHTML = isPlaying ? '⏸️ 일시정지' : '▶️ 재생';
+        if (isPlaying) {
+            animate();
+        }
+    }
+
+    // 프리셋 설정
+    function setPreset(newR, newR_r) {
+        R_slider.value = newR;
+        r_slider.value = newR_r;
+        resetSimulation();
+    }
+
+    // 그리드 그리기
+    function drawGrid() {
+        if (!showGrid) return;
+        
+        ctx.strokeStyle = 'rgba(200, 200, 220, 0.3)';
+        ctx.lineWidth = 0.5;
+        
+        const gridSize = 40;
+        
+        // 세로선
+        for (let x = 0; x < width; x += gridSize) {
+            ctx.beginPath();
+            ctx.moveTo(x, 0);
+            ctx.lineTo(x, height);
+            ctx.stroke();
+        }
+        
+        // 가로선
+        for (let y = 0; y < height; y += gridSize) {
+            ctx.beginPath();
+            ctx.moveTo(0, y);
+            ctx.lineTo(width, y);
+            ctx.stroke();
+        }
+        
+        // 중심 축
+        ctx.strokeStyle = 'rgba(100, 100, 120, 0.4)';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(centerX, 0);
+        ctx.lineTo(centerX, height);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(0, centerY);
+        ctx.lineTo(width, centerY);
+        ctx.stroke();
+    }
+
+    // 화살표 그리기
+    function drawArrow(fromX, fromY, toX, toY, color, label) {
+        if (!showVectors) return;
+        
+        const headlen = 10;
+        const dx = toX - fromX;
+        const dy = toY - fromY;
+        const angle = Math.atan2(dy, dx);
+        
+        ctx.strokeStyle = color;
+        ctx.fillStyle = color;
+        ctx.lineWidth = 2;
+        
+        // 선
+        ctx.beginPath();
+        ctx.moveTo(fromX, fromY);
+        ctx.lineTo(toX, toY);
+        ctx.stroke();
+        
+        // 화살표 머리
+        ctx.beginPath();
+        ctx.moveTo(toX, toY);
+        ctx.lineTo(toX - headlen * Math.cos(angle - Math.PI / 6), toY - headlen * Math.sin(angle - Math.PI / 6));
+        ctx.lineTo(toX - headlen * Math.cos(angle + Math.PI / 6), toY - headlen * Math.sin(angle + Math.PI / 6));
+        ctx.closePath();
+        ctx.fill();
+        
+        // 레이블
+        if (label) {
+            ctx.fillStyle = color;
+            ctx.font = 'bold 12px Arial';
+            ctx.fillText(label, (fromX + toX) / 2 + 10, (fromY + toY) / 2 - 5);
+        }
+    }
+
+    // 애니메이션 루프
+    function animate() {
+        if (!isPlaying) return;
+
+        const R_plus_r = R + r;
+        
+        // 복소 매개변수 방정식: z = (R+r)e^(iθ) - re^(i(R+r)/r·θ)
+        const rolling_center_x = centerX + R_plus_r * Math.cos(theta);
+        const rolling_center_y = centerY - R_plus_r * Math.sin(theta);
+
+        const point_angle = (R_plus_r / r) * theta;
+        const point_x = rolling_center_x - r * Math.cos(point_angle);
+        const point_y = rolling_center_y + r * Math.sin(point_angle);
+        
+        if (path.length < 50000) {
+            path.push({ x: point_x, y: point_y });
+        }
+
+        // 그리기
+        ctx.clearRect(0, 0, width, height);
+        
+        // 그리드
+        drawGrid();
+        
+        // 기본원
+        ctx.beginPath();
+        ctx.strokeStyle = 'rgba(120, 120, 140, 0.6)';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([8, 4]);
+        ctx.arc(centerX, centerY, R, 0, 2 * Math.PI);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // 에피사이클로이드 자취 (그라디언트 효과)
+        if (path.length > 1) {
+            const gradient = ctx.createLinearGradient(0, 0, width, height);
+            gradient.addColorStop(0, pathColor);
+            gradient.addColorStop(1, adjustColor(pathColor, 40));
+            
+            ctx.beginPath();
+            ctx.strokeStyle = gradient;
+            ctx.lineWidth = 3.5;
+            ctx.shadowBlur = 8;
+            ctx.shadowColor = pathColor;
+            
+            path.forEach((p, i) => (i === 0) ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y));
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+        }
+
+        // 회전원
+        ctx.beginPath();
+        ctx.strokeStyle = '#e74c3c';
+        ctx.lineWidth = 2.5;
+        ctx.arc(rolling_center_x, rolling_center_y, r, 0, 2 * Math.PI);
+        ctx.stroke();
+        
+        // 회전원 채우기
+        ctx.fillStyle = 'rgba(231, 76, 60, 0.08)';
+        ctx.fill();
+
+        // 벡터 화살표
+        drawArrow(centerX, centerY, rolling_center_x, rolling_center_y, 
+                  'rgba(100, 100, 120, 0.7)', 'z_c');
+        drawArrow(rolling_center_x, rolling_center_y, point_x, point_y, 
+                  'rgba(231, 76, 60, 0.8)', 'z_p');
+
+        // 중심점
+        ctx.beginPath();
+        ctx.fillStyle = '#495057';
+        ctx.arc(centerX, centerY, 5, 0, 2 * Math.PI);
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.fillStyle = '#e74c3c';
+        ctx.arc(rolling_center_x, rolling_center_y, 5, 0, 2 * Math.PI);
+        ctx.fill();
+
+        // 점 P (글로우 효과)
+        ctx.beginPath();
+        ctx.fillStyle = 'rgba(255, 200, 50, 0.3)';
+        ctx.arc(point_x, point_y, 15, 0, 2 * Math.PI);
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.fillStyle = '#fff';
+        ctx.strokeStyle = '#e74c3c';
+        ctx.lineWidth = 3;
+        ctx.arc(point_x, point_y, 7, 0, 2 * Math.PI);
+        ctx.fill();
+        ctx.stroke();
+
+        // 좌표 정보 업데이트
+        const relX = (point_x - centerX).toFixed(1);
+        const relY = (centerY - point_y).toFixed(1);
+        const magnitude = Math.sqrt(relX*relX + relY*relY).toFixed(1);
+        
+        document.getElementById('info_x').textContent = relX;
+        document.getElementById('info_y').textContent = relY;
+        document.getElementById('info_magnitude').textContent = magnitude;
+
+        // 각도 증가
+        theta += 0.015 * speed;
+
+        // 정보 업데이트
+        updateInfo();
+
+        // 루프
+        const theta_max = 2 * Math.PI * r / gcd(R, r);
+        if (theta < theta_max) {
+            animationFrameId = requestAnimationFrame(animate);
+        } else {
+            isPlaying = false;
+            document.getElementById('playPauseText').innerHTML = '🔄 완료! 다시 시작';
+        }
+    }
+    
+    // 색상 조정 함수
+    function adjustColor(color, amount) {
+        return '#' + color.replace(/^#/, '').replace(/../g, 
+            color => ('0' + Math.min(255, Math.max(0, parseInt(color, 16) + amount)).toString(16)).substr(-2));
+    }
+    
+    // 이벤트 리스너
+    R_slider.oninput = () => {
+        document.getElementById('R_value').textContent = R_slider.value;
+    };
+    
+    r_slider.oninput = () => {
+        document.getElementById('r_value').textContent = r_slider.value;
+    };
+    
+    speed_slider.oninput = () => {
+        speed = parseFloat(speed_slider.value);
+        document.getElementById('speed_value').textContent = speed.toFixed(1) + '×';
+    };
+    
+    path_color_picker.oninput = () => {
+        pathColor = path_color_picker.value;
+    };
+    
+    show_vectors_checkbox.onchange = () => {
+        showVectors = show_vectors_checkbox.checked;
+    };
+    
+    show_grid_checkbox.onchange = () => {
+        showGrid = show_grid_checkbox.checked;
+    };
+
+    // 초기화
+    resetSimulation();
+</script>
+</body>
+</html>

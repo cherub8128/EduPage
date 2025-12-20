@@ -1,0 +1,1018 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Corner Reflector | 3D Interactive Simulation</title>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet">
+    
+    <!-- MathJax for beautiful math equations -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #00f7ff;
+            --secondary-color: #ff00ff;
+            --accent-color: #ffaa00;
+            --bg-dark: #0a0a0f;
+            --bg-card: rgba(20, 20, 35, 0.7);
+            --text-light: #e0e0e0;
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background: linear-gradient(135deg, #0a0a0f 0%, #1a0a2e 50%, #0a0a0f 100%);
+            color: var(--text-light);
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        /* Animated Background */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            opacity: 0.3;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(0, 247, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(255, 0, 255, 0.1) 0%, transparent 50%);
+            animation: bgPulse 10s ease-in-out infinite;
+        }
+
+        @keyframes bgPulse {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Header */
+        header {
+            position: relative;
+            z-index: 100;
+            padding: 2rem 4rem;
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--glass-border);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.5rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            text-shadow: 0 0 30px rgba(0, 247, 255, 0.5);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            color: var(--text-light);
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--primary-color);
+            transition: width 0.3s;
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        /* Main Container */
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 1600px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 2rem;
+        }
+
+        /* 3D Viewer */
+        .viewer-container {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            border: 1px solid var(--glass-border);
+            padding: 1.5rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .viewer-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--primary-color), transparent);
+        }
+
+        #canvas-container {
+            width: 100%;
+            height: 700px;
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .viewer-overlay {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            padding: 1rem 1.5rem;
+            border-radius: 10px;
+            border: 1px solid var(--glass-border);
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .viewer-overlay h3 {
+            font-family: 'Orbitron', sans-serif;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        /* Control Panel */
+        .control-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            border: 1px solid var(--glass-border);
+            padding: 1.5rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0, 247, 255, 0.2);
+        }
+
+        .card-title {
+            font-family: 'Orbitron', sans-serif;
+            color: var(--primary-color);
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .card-title::before {
+            content: '▸';
+            color: var(--secondary-color);
+        }
+
+        /* Controls */
+        .control-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .control-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-light);
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .slider-container {
+            position: relative;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 6px;
+            border-radius: 5px;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            outline: none;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]:hover {
+            opacity: 1;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            cursor: pointer;
+            box-shadow: 0 0 10px var(--primary-color);
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            cursor: pointer;
+            box-shadow: 0 0 10px var(--primary-color);
+        }
+
+        .value-display {
+            display: inline-block;
+            float: right;
+            color: var(--primary-color);
+            font-family: 'Orbitron', monospace;
+            font-size: 0.9rem;
+        }
+
+        /* Buttons */
+        .btn-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+        }
+
+        .btn {
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: var(--bg-dark);
+        }
+
+        .btn-secondary {
+            background: var(--glass-bg);
+            color: var(--primary-color);
+            border: 1px solid var(--primary-color);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 247, 255, 0.4);
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.5s, height 0.5s;
+        }
+
+        .btn:active::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        /* Vector Display */
+        .vector-display {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-top: 1rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+        }
+
+        .vector-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 0.5rem 0;
+            padding: 0.5rem;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+
+        .vector-row:hover {
+            background: rgba(0, 247, 255, 0.1);
+        }
+
+        .vector-label {
+            color: var(--accent-color);
+            font-weight: 600;
+        }
+
+        .vector-value {
+            color: var(--primary-color);
+        }
+
+        /* Math Section */
+        .math-section {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-top: 1rem;
+            border-left: 3px solid var(--secondary-color);
+        }
+
+        .math-section h4 {
+            color: var(--secondary-color);
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        /* Info Section */
+        .info-section {
+            grid-column: 1 / -1;
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            border: 1px solid var(--glass-border);
+            padding: 3rem;
+            margin-top: 2rem;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .info-card {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 2rem;
+            border-radius: 15px;
+            border: 1px solid var(--glass-border);
+            transition: all 0.3s;
+        }
+
+        .info-card:hover {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 20px rgba(0, 247, 255, 0.2);
+        }
+
+        .info-card h3 {
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        .info-card p {
+            line-height: 1.6;
+            color: var(--text-light);
+        }
+
+        /* Footer */
+        footer {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            padding: 2rem;
+            margin-top: 4rem;
+            border-top: 1px solid var(--glass-border);
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+        }
+
+        /* Loading Animation */
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            z-index: 5;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid var(--glass-border);
+            border-top: 3px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            header {
+                padding: 1rem 2rem;
+            }
+
+            h1 {
+                font-size: 1.8rem;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            #canvas-container {
+                height: 500px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-animation"></div>
+
+    <header>
+        <div class="header-content">
+            <h1>Corner Reflector</h1>
+            <nav class="nav-links">
+                <a href="#simulation">Simulation</a>
+                <a href="#theory">Theory</a>
+                <a href="#applications">Applications</a>
+            </nav>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- 3D Viewer -->
+        <div class="viewer-container">
+            <div class="viewer-overlay">
+                <h3>REAL-TIME 3D SIMULATION</h3>
+                <p style="font-size: 0.8rem; color: var(--text-light);">Interactive Ray Tracing</p>
+            </div>
+            <div id="canvas-container">
+                <div class="loading" id="loadingScreen">
+                    <div class="spinner"></div>
+                    <p style="margin-top: 1rem; color: var(--primary-color);">Loading 3D Scene...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Control Panel -->
+        <div class="control-panel">
+            <!-- Position Controls -->
+            <div class="card">
+                <div class="card-title">광원 위치 제어</div>
+                <div class="control-group">
+                    <label>X 좌표 <span class="value-display" id="xValue">5</span></label>
+                    <input type="range" id="sourceX" min="-8" max="8" step="0.1" value="5">
+                </div>
+                <div class="control-group">
+                    <label>Y 좌표 <span class="value-display" id="yValue">4</span></label>
+                    <input type="range" id="sourceY" min="-8" max="8" step="0.1" value="4">
+                </div>
+                <div class="control-group">
+                    <label>Z 좌표 <span class="value-display" id="zValue">6</span></label>
+                    <input type="range" id="sourceZ" min="-8" max="8" step="0.1" value="6">
+                </div>
+            </div>
+
+            <!-- Animation Controls -->
+            <div class="card">
+                <div class="card-title">애니메이션</div>
+                <div class="btn-group">
+                    <button class="btn btn-primary" id="playBtn">▶ Play</button>
+                    <button class="btn btn-secondary" id="pauseBtn">⏸ Pause</button>
+                    <button class="btn btn-secondary" id="resetBtn">⟲ Reset</button>
+                    <button class="btn btn-secondary" id="randomBtn">🎲 Random</button>
+                </div>
+            </div>
+
+            <!-- Presets -->
+            <div class="card">
+                <div class="card-title">프리셋 시나리오</div>
+                <div class="btn-group">
+                    <button class="btn btn-secondary preset-btn" data-preset="1">시나리오 1</button>
+                    <button class="btn btn-secondary preset-btn" data-preset="2">시나리오 2</button>
+                    <button class="btn btn-secondary preset-btn" data-preset="3">시나리오 3</button>
+                    <button class="btn btn-secondary preset-btn" data-preset="4">시나리오 4</button>
+                </div>
+            </div>
+
+            <!-- Vector Display -->
+            <div class="card">
+                <div class="card-title">벡터 정보</div>
+                <div class="vector-display">
+                    <div class="vector-row">
+                        <span class="vector-label">입사 벡터 (v̄ᵢₙ):</span>
+                        <span class="vector-value" id="vecIn">(0, 0, 0)</span>
+                    </div>
+                    <div class="vector-row">
+                        <span class="vector-label">반사 벡터 (v̄ₒᵤₜ):</span>
+                        <span class="vector-value" id="vecOut">(0, 0, 0)</span>
+                    </div>
+                    <div class="vector-row">
+                        <span class="vector-label">평행도:</span>
+                        <span class="vector-value" id="parallelism">0°</span>
+                    </div>
+                </div>
+
+                <div class="math-section">
+                    <h4>수학적 검증</h4>
+                    <div id="mathFormula" style="font-size: 0.85rem; color: var(--text-light);">
+                        \[ \vec{v}_{out} = -\vec{v}_{in} \]
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Info Section -->
+        <div class="info-section" id="theory">
+            <h2 style="font-family: 'Orbitron', sans-serif; color: var(--primary-color); margin-bottom: 1rem;">
+                수학적 원리
+            </h2>
+            <p style="font-size: 1.1rem; line-height: 1.8; margin-bottom: 2rem;">
+                코너 리플렉터(Corner Reflector)는 서로 수직인 세 개의 평면 거울로 구성된 광학 장치입니다. 
+                입사한 빛은 세 번의 연속적인 반사를 거쳐 입사 방향과 정확히 평행하지만 반대 방향으로 되돌아갑니다.
+            </p>
+
+            <div class="info-grid">
+                <div class="info-card">
+                    <h3>1. 반사 법칙</h3>
+                    <p>각 평면에서 빛은 다음 공식에 따라 반사됩니다:</p>
+                    <div style="margin: 1rem 0; font-size: 0.95rem;">
+                        \[ \vec{r} = \vec{d} - 2(\vec{d} \cdot \vec{n})\vec{n} \]
+                    </div>
+                    <p style="font-size: 0.9rem;">
+                        여기서 \(\vec{r}\)은 반사 벡터, \(\vec{d}\)는 입사 벡터, \(\vec{n}\)은 법선 벡터입니다.
+                    </p>
+                </div>
+
+                <div class="info-card">
+                    <h3>2. 3단 반사 과정</h3>
+                    <p>입사 벡터 \(\vec{v} = (v_x, v_y, v_z)\)가 세 평면을 거치면:</p>
+                    <ul style="margin: 1rem 0; line-height: 1.8; font-size: 0.9rem;">
+                        <li>YZ평면(x=0) 반사: \((-v_x, v_y, v_z)\)</li>
+                        <li>ZX평면(y=0) 반사: \((-v_x, -v_y, v_z)\)</li>
+                        <li>XY평면(z=0) 반사: \((-v_x, -v_y, -v_z)\)</li>
+                    </ul>
+                </div>
+
+                <div class="info-card" id="applications">
+                    <h3>3. 실생활 응용</h3>
+                    <ul style="margin: 1rem 0; line-height: 1.8; font-size: 0.9rem;">
+                        <li><strong>아폴로 달 탐사:</strong> 레이저 거리 측정</li>
+                        <li><strong>자전거 반사판:</strong> 야간 안전 장치</li>
+                        <li><strong>레이더 반사기:</strong> 선박 탐지</li>
+                        <li><strong>도로 표지판:</strong> 재귀반사 소재</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2024 Corner Reflector Simulation | Mathematical Modeling & Visualization</p>
+        <p style="margin-top: 0.5rem; font-size: 0.9rem; color: #666;">
+            Built with Three.js, MathJax, and ❤️
+        </p>
+    </footer>
+
+    <!-- Three.js 라이브러리 직접 로드 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
+
+    <script>
+        // 에러 핸들링
+        window.addEventListener('error', function(e) {
+            console.error('Error:', e.message);
+            const loadingScreen = document.getElementById('loadingScreen');
+            if (loadingScreen) {
+                loadingScreen.innerHTML = '<p style="color: #ff0055;">오류가 발생했습니다. 페이지를 새로고침해주세요.</p>';
+            }
+        });
+
+        // 초기화 대기
+        window.addEventListener('load', function() {
+            try {
+                initScene();
+            } catch(error) {
+                console.error('Initialization error:', error);
+                const loadingScreen = document.getElementById('loadingScreen');
+                if (loadingScreen) {
+                    loadingScreen.innerHTML = '<p style="color: #ff0055;">3D 엔진 로딩 실패. 브라우저를 업데이트해주세요.</p>';
+                }
+            }
+        });
+
+        function initScene() {
+            // Scene setup
+            const scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x0a0a0f);
+            scene.fog = new THREE.FogExp2(0x0a0a0f, 0.015);
+
+            const container = document.getElementById('canvas-container');
+            const camera = new THREE.PerspectiveCamera(50, container.clientWidth / container.clientHeight, 0.1, 1000);
+            camera.position.set(10, 8, 10);
+
+            const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            
+            // 로딩 화면 제거 및 캔버스 추가
+            const loadingScreen = document.getElementById('loadingScreen');
+            if (loadingScreen) {
+                loadingScreen.style.display = 'none';
+            }
+            container.appendChild(renderer.domElement);
+
+            // Controls
+            const controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.minDistance = 5;
+            controls.maxDistance = 30;
+
+            // Lighting
+            const ambientLight = new THREE.AmbientLight(0x404040, 0.5);
+            scene.add(ambientLight);
+
+            const pointLight1 = new THREE.PointLight(0x00f7ff, 1, 50);
+            pointLight1.position.set(5, 5, 5);
+            scene.add(pointLight1);
+
+            const pointLight2 = new THREE.PointLight(0xff00ff, 1, 50);
+            pointLight2.position.set(-5, 5, -5);
+            scene.add(pointLight2);
+
+            // Mirrors (Corner Cube)
+            const mirrorSize = 6;
+            const mirrorGeometry = new THREE.PlaneGeometry(mirrorSize, mirrorSize);
+
+            function createMirror(color, position, rotation) {
+                const material = new THREE.MeshPhysicalMaterial({
+                    color: color,
+                    metalness: 0.9,
+                    roughness: 0.1,
+                    transparent: true,
+                    opacity: 0.2,
+                    side: THREE.DoubleSide
+                });
+
+                const mesh = new THREE.Mesh(mirrorGeometry, material);
+                mesh.position.set(...position);
+                mesh.rotation.set(...rotation);
+
+                // Edge lines
+                const edges = new THREE.EdgesGeometry(mirrorGeometry);
+                const lineMaterial = new THREE.LineBasicMaterial({ 
+                    color: color,
+                    transparent: true,
+                    opacity: 0.8
+                });
+                const line = new THREE.LineSegments(edges, lineMaterial);
+                line.position.set(...position);
+                line.rotation.set(...rotation);
+
+                const group = new THREE.Group();
+                group.add(mesh);
+                group.add(line);
+
+                return group;
+            }
+
+            const mirrorXY = createMirror(0x0088ff, [mirrorSize/2, mirrorSize/2, 0], [0, 0, 0]);
+            const mirrorYZ = createMirror(0xff0088, [0, mirrorSize/2, mirrorSize/2], [0, Math.PI/2, 0]);
+            const mirrorZX = createMirror(0x00ff88, [mirrorSize/2, 0, mirrorSize/2], [Math.PI/2, 0, 0]);
+
+            scene.add(mirrorXY, mirrorYZ, mirrorZX);
+
+            // Grid and Axes
+            const gridHelper = new THREE.GridHelper(20, 20, 0x00f7ff, 0x333333);
+            gridHelper.material.transparent = true;
+            gridHelper.material.opacity = 0.2;
+            scene.add(gridHelper);
+
+            const axesHelper = new THREE.AxesHelper(8);
+            scene.add(axesHelper);
+
+            // Light source
+            const sourceGeometry = new THREE.SphereGeometry(0.3, 32, 32);
+            const sourceMaterial = new THREE.MeshStandardMaterial({
+                color: 0x00f7ff,
+                emissive: 0x00f7ff,
+                emissiveIntensity: 2
+            });
+            const sourceMesh = new THREE.Mesh(sourceGeometry, sourceMaterial);
+            scene.add(sourceMesh);
+
+            // Glow effect for source
+            const glowGeometry = new THREE.SphereGeometry(0.5, 32, 32);
+            const glowMaterial = new THREE.MeshBasicMaterial({
+                color: 0x00f7ff,
+                transparent: true,
+                opacity: 0.3
+            });
+            const glowMesh = new THREE.Mesh(glowGeometry, glowMaterial);
+            sourceMesh.add(glowMesh);
+
+            // Laser path
+            const laserMaterial = new THREE.LineBasicMaterial({
+                color: 0x00f7ff,
+                transparent: true,
+                opacity: 0.8
+            });
+
+            let laserLine = null;
+            const hitSpheres = [];
+
+            // Ray-plane intersection
+            function rayPlaneIntersection(rayOrigin, rayDir, planeNormal, planePoint) {
+                const denom = rayDir.dot(planeNormal);
+                if (Math.abs(denom) < 0.0001) return null;
+
+                const t = planePoint.clone().sub(rayOrigin).dot(planeNormal) / denom;
+                if (t < 0) return null;
+
+                return rayOrigin.clone().add(rayDir.clone().multiplyScalar(t));
+            }
+
+            // Reflection
+            function reflect(incident, normal) {
+                return incident.clone().sub(
+                    normal.clone().multiplyScalar(2 * incident.dot(normal))
+                );
+            }
+
+            // Update laser path
+            function updateLaser() {
+                const sourcePos = sourceMesh.position.clone();
+                const target = new THREE.Vector3(1, 1, 1);
+                let direction = target.clone().sub(sourcePos).normalize();
+
+                const planes = [
+                    { normal: new THREE.Vector3(1, 0, 0), point: new THREE.Vector3(0, 0, 0) },
+                    { normal: new THREE.Vector3(0, 1, 0), point: new THREE.Vector3(0, 0, 0) },
+                    { normal: new THREE.Vector3(0, 0, 1), point: new THREE.Vector3(0, 0, 0) }
+                ];
+
+                const points = [sourcePos.clone()];
+                let currentPos = sourcePos.clone();
+                let currentDir = direction.clone();
+                const initialDir = direction.clone();
+
+                const hitPlanesIndices = [];
+
+                for (let i = 0; i < 3; i++) {
+                    let minT = Infinity;
+                    let hitPlaneIdx = -1;
+                    let hitPoint = null;
+
+                    for (let j = 0; j < planes.length; j++) {
+                        if (hitPlanesIndices.includes(j)) continue;
+
+                        const intersection = rayPlaneIntersection(
+                            currentPos,
+                            currentDir,
+                            planes[j].normal,
+                            planes[j].point
+                        );
+
+                        if (intersection) {
+                            const t = intersection.distanceTo(currentPos);
+                            if (t > 0.01 && t < minT) {
+                                minT = t;
+                                hitPlaneIdx = j;
+                                hitPoint = intersection;
+                            }
+                        }
+                    }
+
+                    if (hitPlaneIdx !== -1 && hitPoint) {
+                        points.push(hitPoint);
+                        currentPos = hitPoint;
+                        currentDir = reflect(currentDir, planes[hitPlaneIdx].normal);
+                        hitPlanesIndices.push(hitPlaneIdx);
+                    } else {
+                        break;
+                    }
+                }
+
+                const exitPoint = currentPos.clone().add(currentDir.clone().multiplyScalar(8));
+                points.push(exitPoint);
+
+                // Update line
+                if (laserLine) scene.remove(laserLine);
+                const geometry = new THREE.BufferGeometry().setFromPoints(points);
+                laserLine = new THREE.Line(geometry, laserMaterial);
+                scene.add(laserLine);
+
+                // Update hit spheres
+                hitSpheres.forEach(sphere => scene.remove(sphere));
+                hitSpheres.length = 0;
+
+                for (let i = 1; i < points.length - 1; i++) {
+                    const sphereGeo = new THREE.SphereGeometry(0.1, 16, 16);
+                    const sphereMat = new THREE.MeshBasicMaterial({
+                        color: 0xffff00,
+                        transparent: true,
+                        opacity: 0.8
+                    });
+                    const sphere = new THREE.Mesh(sphereGeo, sphereMat);
+                    sphere.position.copy(points[i]);
+                    scene.add(sphere);
+                    hitSpheres.push(sphere);
+                }
+
+                // Update UI
+                const finalDir = currentDir;
+                document.getElementById('vecIn').textContent = 
+                    `(${initialDir.x.toFixed(2)}, ${initialDir.y.toFixed(2)}, ${initialDir.z.toFixed(2)})`;
+                document.getElementById('vecOut').textContent = 
+                    `(${finalDir.x.toFixed(2)}, ${finalDir.y.toFixed(2)}, ${finalDir.z.toFixed(2)})`;
+
+                const angle = Math.acos(Math.max(-1, Math.min(1, initialDir.dot(finalDir) / (initialDir.length() * finalDir.length())))) * 180 / Math.PI;
+                document.getElementById('parallelism').textContent = `${angle.toFixed(1)}°`;
+            }
+
+            // Controls
+            let isAnimating = false;
+            let animationAngle = 0;
+
+            document.getElementById('sourceX').addEventListener('input', (e) => {
+                sourceMesh.position.x = parseFloat(e.target.value);
+                document.getElementById('xValue').textContent = e.target.value;
+                updateLaser();
+            });
+
+            document.getElementById('sourceY').addEventListener('input', (e) => {
+                sourceMesh.position.y = parseFloat(e.target.value);
+                document.getElementById('yValue').textContent = e.target.value;
+                updateLaser();
+            });
+
+            document.getElementById('sourceZ').addEventListener('input', (e) => {
+                sourceMesh.position.z = parseFloat(e.target.value);
+                document.getElementById('zValue').textContent = e.target.value;
+                updateLaser();
+            });
+
+            document.getElementById('playBtn').addEventListener('click', () => {
+                isAnimating = true;
+            });
+
+            document.getElementById('pauseBtn').addEventListener('click', () => {
+                isAnimating = false;
+            });
+
+            document.getElementById('resetBtn').addEventListener('click', () => {
+                isAnimating = false;
+                sourceMesh.position.set(5, 4, 6);
+                document.getElementById('sourceX').value = 5;
+                document.getElementById('sourceY').value = 4;
+                document.getElementById('sourceZ').value = 6;
+                document.getElementById('xValue').textContent = '5';
+                document.getElementById('yValue').textContent = '4';
+                document.getElementById('zValue').textContent = '6';
+                updateLaser();
+            });
+
+            document.getElementById('randomBtn').addEventListener('click', () => {
+                const x = Math.random() * 10 - 5;
+                const y = Math.random() * 10 - 5;
+                const z = Math.random() * 10 - 5;
+                sourceMesh.position.set(x, y, z);
+                document.getElementById('sourceX').value = x;
+                document.getElementById('sourceY').value = y;
+                document.getElementById('sourceZ').value = z;
+                document.getElementById('xValue').textContent = x.toFixed(1);
+                document.getElementById('yValue').textContent = y.toFixed(1);
+                document.getElementById('zValue').textContent = z.toFixed(1);
+                updateLaser();
+            });
+
+            // Presets
+            const presets = [
+                { x: 5, y: 4, z: 6 },
+                { x: -4, y: 5, z: 3 },
+                { x: 3, y: -3, z: 7 },
+                { x: -5, y: -4, z: -3 }
+            ];
+
+            document.querySelectorAll('.preset-btn').forEach((btn, idx) => {
+                btn.addEventListener('click', () => {
+                    const preset = presets[idx];
+                    sourceMesh.position.set(preset.x, preset.y, preset.z);
+                    document.getElementById('sourceX').value = preset.x;
+                    document.getElementById('sourceY').value = preset.y;
+                    document.getElementById('sourceZ').value = preset.z;
+                    document.getElementById('xValue').textContent = preset.x;
+                    document.getElementById('yValue').textContent = preset.y;
+                    document.getElementById('zValue').textContent = preset.z;
+                    updateLaser();
+                });
+            });
+
+            // Animation loop
+            function animate() {
+                requestAnimationFrame(animate);
+
+                if (isAnimating) {
+                    animationAngle += 0.01;
+                    const radius = 7;
+                    sourceMesh.position.x = Math.cos(animationAngle) * radius;
+                    sourceMesh.position.z = Math.sin(animationAngle) * radius;
+                    sourceMesh.position.y = 4 + Math.sin(animationAngle * 2) * 2;
+                    
+                    document.getElementById('xValue').textContent = sourceMesh.position.x.toFixed(1);
+                    document.getElementById('yValue').textContent = sourceMesh.position.y.toFixed(1);
+                    document.getElementById('zValue').textContent = sourceMesh.position.z.toFixed(1);
+                    
+                    updateLaser();
+                }
+
+                glowMesh.rotation.y += 0.02;
+                controls.update();
+                renderer.render(scene, camera);
+            }
+
+            // Resize handler
+            function resizeRenderer() {
+                const width = container.clientWidth;
+                const height = container.clientHeight;
+                camera.aspect = width / height;
+                camera.updateProjectionMatrix();
+                renderer.setSize(width, height);
+            }
+
+            window.addEventListener('resize', resizeRenderer);
+
+            // Initial setup
+            sourceMesh.position.set(5, 4, 6);
+            updateLaser();
+            animate();
+
+            console.log('3D Scene initialized successfully!');
+        }
+    </script>
+</body>
+</html>

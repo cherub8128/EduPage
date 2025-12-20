@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>회전체 슬라이싱 시뮬레이터</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px;
+      }
+
+      .container {
+        max-width: 1400px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        padding: 30px;
+      }
+
+      h1 {
+        text-align: center;
+        color: #667eea;
+        margin-bottom: 10px;
+        font-size: 2em;
+      }
+
+      .subtitle {
+        text-align: center;
+        color: #666;
+        margin-bottom: 30px;
+        font-size: 0.9em;
+      }
+
+      .main-layout {
+        display: grid;
+        grid-template-columns: 300px 1fr;
+        gap: 30px;
+      }
+
+      .controls {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 15px;
+        height: fit-content;
+      }
+
+      .control-group {
+        margin-bottom: 25px;
+      }
+
+      .control-group label {
+        display: block;
+        margin-bottom: 8px;
+        color: #333;
+        font-weight: 600;
+        font-size: 0.9em;
+      }
+
+      .control-group select,
+      .control-group input[type="range"] {
+        width: 100%;
+        padding: 8px;
+        border: 2px solid #ddd;
+        border-radius: 8px;
+        font-size: 0.9em;
+      }
+
+      .control-group input[type="range"] {
+        cursor: pointer;
+      }
+
+      .value-display {
+        display: inline-block;
+        background: #667eea;
+        color: white;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.85em;
+        margin-left: 10px;
+        font-weight: bold;
+      }
+
+      .canvas-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+      }
+
+      .canvas-wrapper {
+        background: #f8f9fa;
+        border-radius: 15px;
+        padding: 20px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      }
+
+      .canvas-wrapper h3 {
+        color: #667eea;
+        margin-bottom: 15px;
+        text-align: center;
+        font-size: 1.1em;
+      }
+
+      canvas {
+        display: block;
+        width: 100%;
+        border-radius: 10px;
+        background: white;
+        box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.05);
+      }
+
+      .info-panel {
+        margin-top: 20px;
+        padding: 20px;
+        background: #e3f2fd;
+        border-radius: 15px;
+        border-left: 5px solid #667eea;
+      }
+
+      .info-panel h4 {
+        color: #667eea;
+        margin-bottom: 10px;
+      }
+
+      .info-panel p {
+        margin: 5px 0;
+        color: #555;
+        font-size: 0.9em;
+      }
+
+      .formula {
+        background: white;
+        padding: 10px;
+        border-radius: 8px;
+        font-family: "Courier New", monospace;
+        margin: 10px 0;
+        font-size: 0.85em;
+      }
+
+      button {
+        width: 100%;
+        padding: 12px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-size: 1em;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 0.2s;
+      }
+
+      button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+      }
+
+      .layer-info {
+        background: white;
+        padding: 10px;
+        border-radius: 8px;
+        margin-top: 10px;
+        font-size: 0.85em;
+        color: #555;
+      }
+    </style>
+    <link
+      rel="canonical"
+      href="https://hoodinga.github.io/Silhumsil/rotation_slicer_sim.html"
+    />
+  </head>
+  <body>
+    <div class="container">
+      <h1>🔄 회전체 슬라이싱 시뮬레이터</h1>
+      <p class="subtitle">3D 프린팅을 위한 회전체 단면 분석 도구</p>
+
+      <div class="main-layout">
+        <div class="controls">
+          <div class="control-group">
+            <label>함수 선택</label>
+            <select id="functionSelect">
+              <option value="linear">선형 (컵)</option>
+              <option value="parabola">포물선 (볼)</option>
+              <option value="sine">사인 (화병)</option>
+              <option value="exponential">지수 (나팔)</option>
+            </select>
+          </div>
+
+          <div class="control-group">
+            <label>
+              슬라이스 높이 (z)
+              <span class="value-display" id="heightValue">50</span>
+            </label>
+            <input
+              type="range"
+              id="sliceHeight"
+              min="0"
+              max="100"
+              value="50"
+              step="1"
+            />
+          </div>
+
+          <div class="control-group">
+            <label>
+              레이어 개수
+              <span class="value-display" id="layerValue">20</span>
+            </label>
+            <input
+              type="range"
+              id="layerCount"
+              min="5"
+              max="50"
+              value="20"
+              step="1"
+            />
+          </div>
+
+          <div class="control-group">
+            <label>
+              회전 각도
+              <span class="value-display" id="rotationValue">45°</span>
+            </label>
+            <input
+              type="range"
+              id="rotation"
+              min="0"
+              max="360"
+              value="45"
+              step="1"
+            />
+          </div>
+
+          <button onclick="startAnimation()">🎬 애니메이션 시작</button>
+
+          <div class="info-panel">
+            <h4>📊 계산 결과</h4>
+            <p><strong>현재 높이:</strong> <span id="currentZ">50</span> mm</p>
+            <p>
+              <strong>단면 반지름:</strong> <span id="currentRadius">0</span> mm
+            </p>
+            <p>
+              <strong>단면 넓이:</strong> <span id="currentArea">0</span> mm²
+            </p>
+            <p>
+              <strong>누적 부피:</strong> <span id="totalVolume">0</span> mm³
+            </p>
+            <div class="formula" id="formulaDisplay"></div>
+          </div>
+
+          <div class="layer-info">
+            <strong>G-code 정보:</strong><br />
+            레이어 <span id="currentLayer">1</span> /
+            <span id="totalLayers">20</span><br />
+            출력 시간: 약 <span id="printTime">0</span>분
+          </div>
+        </div>
+
+        <div class="canvas-container">
+          <div class="canvas-wrapper">
+            <h3>🌀 3D 회전체 뷰</h3>
+            <canvas id="canvas3D" width="500" height="500"></canvas>
+          </div>
+
+          <div class="canvas-wrapper">
+            <h3>⭕ 2D 단면 뷰 (z축에서 본 모습)</h3>
+            <canvas id="canvas2D" width="500" height="500"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const canvas3D = document.getElementById("canvas3D");
+      const ctx3D = canvas3D.getContext("2d");
+      const canvas2D = document.getElementById("canvas2D");
+      const ctx2D = canvas2D.getContext("2d");
+
+      let animationId = null;
+      let currentAnimationHeight = 0;
+
+      // 함수 정의
+      const functions = {
+        linear: {
+          name: "선형 함수",
+          func: (z) => 30 + z * 0.2,
+          formula: "r(z) = 30 + 0.2z",
+        },
+        parabola: {
+          name: "포물선",
+          func: (z) => 20 + ((z - 50) * (z - 50)) / 100,
+          formula: "r(z) = 20 + (z-50)²/100",
+        },
+        sine: {
+          name: "사인 함수",
+          func: (z) => 35 + 15 * Math.sin((z * Math.PI) / 50),
+          formula: "r(z) = 35 + 15sin(πz/50)",
+        },
+        exponential: {
+          name: "지수 함수",
+          func: (z) => 25 + Math.exp(z / 50) * 5,
+          formula: "r(z) = 25 + 5e^(z/50)",
+        },
+      };
+
+      function draw3DRotation() {
+        const funcType = document.getElementById("functionSelect").value;
+        const sliceHeight = parseInt(
+          document.getElementById("sliceHeight").value
+        );
+        const layerCount = parseInt(
+          document.getElementById("layerCount").value
+        );
+        const rotation = parseInt(document.getElementById("rotation").value);
+        const func = functions[funcType].func;
+
+        ctx3D.clearRect(0, 0, canvas3D.width, canvas3D.height);
+        ctx3D.save();
+        ctx3D.translate(canvas3D.width / 2, canvas3D.height / 2);
+
+        // 회전 변환 (45도 기울여서 항상 입체감 유지)
+        const rotRad = (rotation * Math.PI) / 180;
+        const tiltAngle = Math.PI / 6; // 30도 고정 기울임
+
+        // 레이어 그리기
+        const height = 100;
+        const layerHeight = height / layerCount;
+
+        for (let i = 0; i <= layerCount; i++) {
+          const z = i * layerHeight;
+          const r = func(z);
+          const y = -150 + z * 3;
+
+          // 타원으로 원을 3D처럼 표현
+          ctx3D.strokeStyle = z === sliceHeight ? "#ff4757" : "#ddd";
+          ctx3D.lineWidth = z === sliceHeight ? 3 : 1;
+
+          ctx3D.beginPath();
+          for (let angle = 0; angle <= Math.PI * 2; angle += 0.1) {
+            // 3D 회전 변환 적용
+            const x3d = r * Math.cos(angle);
+            const y3d = r * Math.sin(angle);
+
+            // Y축 회전 (사용자 제어)
+            const x_rot = x3d * Math.cos(rotRad) + y3d * Math.sin(rotRad);
+            const z_rot = -x3d * Math.sin(rotRad) + y3d * Math.cos(rotRad);
+
+            // X축 기울임 (고정)
+            const y_tilt = z_rot * Math.sin(tiltAngle);
+            const z_tilt = z_rot * Math.cos(tiltAngle);
+
+            // 원근 투영
+            const perspective = 1000;
+            const scale = perspective / (perspective + z_tilt);
+
+            const x_screen = x_rot * scale;
+            const y_screen = y + y_tilt * scale * 0.5;
+
+            if (angle === 0) {
+              ctx3D.moveTo(x_screen, y_screen);
+            } else {
+              ctx3D.lineTo(x_screen, y_screen);
+            }
+          }
+          ctx3D.closePath();
+          ctx3D.stroke();
+
+          if (z === sliceHeight) {
+            ctx3D.fillStyle = "rgba(255, 71, 87, 0.1)";
+            ctx3D.fill();
+          }
+        }
+
+        // 외곽선 그리기 (앞면)
+        ctx3D.strokeStyle = "#667eea";
+        ctx3D.lineWidth = 3;
+        ctx3D.beginPath();
+        for (let z = 0; z <= height; z += 1) {
+          const r = func(z);
+          const y = -150 + z * 3;
+
+          // 앞면 외곽선
+          const angle = 0; // 정면
+          const x3d = r * Math.cos(angle);
+          const y3d = r * Math.sin(angle);
+
+          const x_rot = x3d * Math.cos(rotRad) + y3d * Math.sin(rotRad);
+          const z_rot = -x3d * Math.sin(rotRad) + y3d * Math.cos(rotRad);
+
+          const y_tilt = z_rot * Math.sin(tiltAngle);
+          const z_tilt = z_rot * Math.cos(tiltAngle);
+
+          const perspective = 1000;
+          const scale = perspective / (perspective + z_tilt);
+
+          const x_screen = x_rot * scale;
+          const y_screen = y + y_tilt * scale * 0.5;
+
+          if (z === 0) {
+            ctx3D.moveTo(x_screen, y_screen);
+          } else {
+            ctx3D.lineTo(x_screen, y_screen);
+          }
+        }
+        ctx3D.stroke();
+
+        // 외곽선 그리기 (뒷면)
+        ctx3D.beginPath();
+        for (let z = 0; z <= height; z += 1) {
+          const r = func(z);
+          const y = -150 + z * 3;
+
+          const angle = Math.PI; // 뒷면
+          const x3d = r * Math.cos(angle);
+          const y3d = r * Math.sin(angle);
+
+          const x_rot = x3d * Math.cos(rotRad) + y3d * Math.sin(rotRad);
+          const z_rot = -x3d * Math.sin(rotRad) + y3d * Math.cos(rotRad);
+
+          const y_tilt = z_rot * Math.sin(tiltAngle);
+          const z_tilt = z_rot * Math.cos(tiltAngle);
+
+          const perspective = 1000;
+          const scale = perspective / (perspective + z_tilt);
+
+          const x_screen = x_rot * scale;
+          const y_screen = y + y_tilt * scale * 0.5;
+
+          if (z === 0) {
+            ctx3D.moveTo(x_screen, y_screen);
+          } else {
+            ctx3D.lineTo(x_screen, y_screen);
+          }
+        }
+        ctx3D.stroke();
+
+        ctx3D.restore();
+      }
+
+      function draw2DCrossSection() {
+        const funcType = document.getElementById("functionSelect").value;
+        const sliceHeight = parseInt(
+          document.getElementById("sliceHeight").value
+        );
+        const func = functions[funcType].func;
+
+        ctx2D.clearRect(0, 0, canvas2D.width, canvas2D.height);
+        ctx2D.save();
+        ctx2D.translate(canvas2D.width / 2, canvas2D.height / 2);
+
+        const r = func(sliceHeight);
+        const scale = 3;
+
+        // 그리드 그리기
+        ctx2D.strokeStyle = "#eee";
+        ctx2D.lineWidth = 1;
+        for (let i = -80; i <= 80; i += 20) {
+          ctx2D.beginPath();
+          ctx2D.moveTo(i * scale, -240);
+          ctx2D.lineTo(i * scale, 240);
+          ctx2D.stroke();
+
+          ctx2D.beginPath();
+          ctx2D.moveTo(-240, i * scale);
+          ctx2D.lineTo(240, i * scale);
+          ctx2D.stroke();
+        }
+
+        // 축 그리기
+        ctx2D.strokeStyle = "#333";
+        ctx2D.lineWidth = 2;
+        ctx2D.beginPath();
+        ctx2D.moveTo(-240, 0);
+        ctx2D.lineTo(240, 0);
+        ctx2D.moveTo(0, -240);
+        ctx2D.lineTo(0, 240);
+        ctx2D.stroke();
+
+        // 원 그리기
+        ctx2D.beginPath();
+        ctx2D.arc(0, 0, r * scale, 0, Math.PI * 2);
+        ctx2D.fillStyle = "rgba(102, 126, 234, 0.2)";
+        ctx2D.fill();
+        ctx2D.strokeStyle = "#667eea";
+        ctx2D.lineWidth = 3;
+        ctx2D.stroke();
+
+        // 반지름 표시
+        ctx2D.strokeStyle = "#ff4757";
+        ctx2D.lineWidth = 2;
+        ctx2D.beginPath();
+        ctx2D.moveTo(0, 0);
+        ctx2D.lineTo(r * scale, 0);
+        ctx2D.stroke();
+
+        // 반지름 값 표시
+        ctx2D.fillStyle = "#ff4757";
+        ctx2D.font = "bold 14px Arial";
+        ctx2D.fillText(`r = ${r.toFixed(2)} mm`, (r * scale) / 2 - 30, -10);
+
+        // 좌표 표시
+        ctx2D.fillStyle = "#333";
+        ctx2D.font = "12px Arial";
+        ctx2D.fillText("x", 230, -10);
+        ctx2D.fillText("y", 10, -230);
+
+        ctx2D.restore();
+      }
+
+      function updateInfo() {
+        const funcType = document.getElementById("functionSelect").value;
+        const sliceHeight = parseInt(
+          document.getElementById("sliceHeight").value
+        );
+        const layerCount = parseInt(
+          document.getElementById("layerCount").value
+        );
+        const func = functions[funcType].func;
+
+        const r = func(sliceHeight);
+        const area = Math.PI * r * r;
+
+        // 부피 계산 (적분 근사)
+        let volume = 0;
+        const steps = 100;
+        for (let i = 0; i <= steps; i++) {
+          const z = (i / steps) * 100;
+          const r_i = func(z);
+          volume += Math.PI * r_i * r_i * (100 / steps);
+        }
+
+        document.getElementById("currentZ").textContent = sliceHeight;
+        document.getElementById("currentRadius").textContent = r.toFixed(2);
+        document.getElementById("currentArea").textContent = area.toFixed(2);
+        document.getElementById("totalVolume").textContent = volume.toFixed(2);
+        document.getElementById("formulaDisplay").textContent =
+          functions[funcType].formula;
+        document.getElementById("currentLayer").textContent =
+          Math.floor(sliceHeight / (100 / layerCount)) + 1;
+        document.getElementById("totalLayers").textContent = layerCount;
+        document.getElementById("printTime").textContent = Math.floor(
+          layerCount * 0.5
+        );
+      }
+
+      function render() {
+        draw3DRotation();
+        draw2DCrossSection();
+        updateInfo();
+      }
+
+      function startAnimation() {
+        if (animationId) {
+          cancelAnimationFrame(animationId);
+          animationId = null;
+          return;
+        }
+
+        currentAnimationHeight = 0;
+        const slider = document.getElementById("sliceHeight");
+
+        function step() {
+          currentAnimationHeight += 0.5;
+          if (currentAnimationHeight > 100) {
+            currentAnimationHeight = 0;
+          }
+          slider.value = currentAnimationHeight;
+          document.getElementById("heightValue").textContent = Math.round(
+            currentAnimationHeight
+          );
+          render();
+          animationId = requestAnimationFrame(step);
+        }
+
+        step();
+      }
+
+      // 이벤트 리스너
+      document
+        .getElementById("functionSelect")
+        .addEventListener("change", render);
+      document.getElementById("sliceHeight").addEventListener("input", (e) => {
+        document.getElementById("heightValue").textContent = e.target.value;
+        render();
+      });
+      document.getElementById("layerCount").addEventListener("input", (e) => {
+        document.getElementById("layerValue").textContent = e.target.value;
+        render();
+      });
+      document.getElementById("rotation").addEventListener("input", (e) => {
+        document.getElementById("rotationValue").textContent =
+          e.target.value + "°";
+        render();
+      });
+
+      // 초기 렌더링
+      render();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>3D Gear Simulation</title>
+    <link rel="stylesheet" href="style.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap"
+      rel="stylesheet"
+    />
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+          "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+        }
+      }
+    </script>
+    <link
+      rel="canonical"
+      href="https://hoodinga.github.io/Silhumsil/gears/index.html"
+    />
+  </head>
+
+  <body>
+    <div id="canvas-container"></div>
+
+    <!-- 3D Labels Overlay -->
+    <div
+      id="labels-container"
+      style="
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+      "
+    ></div>
+
+    <div id="ui-container">
+      <!-- Mode Selector -->
+      <div
+        class="mode-selector"
+        style="margin-bottom: 20px; text-align: center"
+      >
+        <label
+          id="mode-label"
+          for="mode-select"
+          style="
+            display: block;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+            color: #aaa;
+          "
+          >시뮬레이션 모드</label
+        >
+        <select
+          id="mode-select"
+          style="
+            width: 100%;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            color: white;
+            font-size: 1rem;
+            cursor: pointer;
+          "
+        >
+          <option value="planetary">유성 기어 (Planetary)</option>
+          <option value="harmonic">하모닉 드라이브 (Harmonic)</option>
+          <option value="cycloidal">사이클로이드 (Cycloidal)</option>
+        </select>
+      </div>
+
+      <!-- Language Buttons -->
+      <div
+        style="
+          margin-bottom: 15px;
+          text-align: center;
+          display: flex;
+          gap: 8px;
+          justify-content: center;
+        "
+      >
+        <button
+          id="lang-ko"
+          style="
+            padding: 8px 16px;
+            background: rgba(100, 100, 255, 0.3);
+            border: 2px solid rgba(100, 100, 255, 0.8);
+            border-radius: 6px;
+            color: white;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-family: Inter, sans-serif;
+            font-weight: 600;
+          "
+        >
+          🇰🇷 한국어
+        </button>
+        <button
+          id="lang-en"
+          style="
+            padding: 8px 16px;
+            background: rgba(100, 100, 255, 0.1);
+            border: 1px solid rgba(100, 100, 255, 0.3);
+            border-radius: 6px;
+            color: #aaf;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-family: Inter, sans-serif;
+          "
+        >
+          🇺🇸 English
+        </button>
+      </div>
+
+      <h1 id="title">유성 기어 계산기</h1>
+
+      <!-- Description Panel -->
+      <div
+        id="description-panel"
+        style="
+          margin: 15px 0;
+          padding: 12px;
+          background: rgba(100, 100, 255, 0.1);
+          border-left: 3px solid #4f8aff;
+          border-radius: 8px;
+        "
+      >
+        <h3
+          id="principle-title"
+          style="margin: 0 0 8px 0; font-size: 0.9rem; color: #aaf"
+        >
+          💡 작동 원리
+        </h3>
+        <p
+          id="description-text"
+          style="margin: 0; font-size: 0.82rem; line-height: 1.6; color: #ccc"
+        ></p>
+      </div>
+
+      <div class="input-group">
+        <label id="unit-label" for="unit-select">단위 (Unit)</label>
+        <select id="unit-select">
+          <option value="Nm">Nm</option>
+          <option value="kgcm">kg·cm</option>
+          <option value="lbft">lb·ft</option>
+        </select>
+      </div>
+
+      <!-- Dynamic Config Panel -->
+      <div id="config-panel"></div>
+
+      <!-- Dynamic Gear Inputs -->
+      <div id="gear-inputs"></div>
+
+      <!-- Info Box -->
+      <div class="info-box" id="info-box"></div>
+    </div>
+
+    <script type="module" src="main.js?v=14"></script>
+  </body>
+</html>

@@ -1,0 +1,1848 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>상트페테르부르크 게임 시뮬레이션</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --bg-card: rgba(255, 255, 255, 0.03);
+            --bg-card-hover: rgba(255, 255, 255, 0.06);
+            --glass: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text-primary: #ffffff;
+            --text-secondary: rgba(255, 255, 255, 0.7);
+            --text-muted: rgba(255, 255, 255, 0.4);
+            --accent-gold: #f0b90b;
+            --accent-gold-light: #fcd535;
+            --accent-purple: #8b5cf6;
+            --accent-blue: #3b82f6;
+            --accent-cyan: #06b6d4;
+            --accent-pink: #ec4899;
+            --accent-green: #10b981;
+            --accent-red: #ef4444;
+            --gradient-gold: linear-gradient(135deg, #f0b90b 0%, #fcd535 50%, #f0b90b 100%);
+            --gradient-purple: linear-gradient(135deg, #8b5cf6 0%, #a78bfa 100%);
+            --gradient-blue: linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%);
+            --gradient-cosmic: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --shadow-gold: 0 0 40px rgba(240, 185, 11, 0.3);
+            --shadow-purple: 0 0 40px rgba(139, 92, 246, 0.3);
+            --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.4);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans KR', 'Outfit', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* 배경 효과 */
+        .bg-effects {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .bg-orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.5;
+            animation: float 20s ease-in-out infinite;
+        }
+
+        .bg-orb-1 {
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(139, 92, 246, 0.3) 0%, transparent 70%);
+            top: -200px;
+            right: -200px;
+            animation-delay: 0s;
+        }
+
+        .bg-orb-2 {
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(240, 185, 11, 0.2) 0%, transparent 70%);
+            bottom: -150px;
+            left: -150px;
+            animation-delay: -7s;
+        }
+
+        .bg-orb-3 {
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(6, 182, 212, 0.2) 0%, transparent 70%);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            animation-delay: -14s;
+        }
+
+        .bg-grid {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+            background-size: 50px 50px;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            25% { transform: translate(30px, -30px) scale(1.05); }
+            50% { transform: translate(-20px, 20px) scale(0.95); }
+            75% { transform: translate(-30px, -20px) scale(1.02); }
+        }
+
+        /* 메인 컨테이너 */
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        /* 헤더 */
+        .header {
+            text-align: center;
+            margin-bottom: 60px;
+            animation: fadeInDown 1s ease-out;
+        }
+
+        .header-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 50px;
+            font-size: 0.85rem;
+            color: var(--accent-gold);
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .header-badge::before {
+            content: '🎲';
+            font-size: 1rem;
+        }
+
+        .header h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: clamp(2.5rem, 6vw, 4rem);
+            font-weight: 800;
+            background: var(--gradient-gold);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 16px;
+            letter-spacing: -0.02em;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            max-width: 700px;
+            margin: 0 auto;
+            line-height: 1.7;
+        }
+
+        /* 카드 공통 스타일 */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 32px;
+            backdrop-filter: blur(20px);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .card:hover {
+            background: var(--bg-card-hover);
+            border-color: rgba(255, 255, 255, 0.15);
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-card);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+        }
+
+        .card-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .card-icon {
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            font-size: 1.3rem;
+        }
+
+        .card-icon.gold { background: rgba(240, 185, 11, 0.15); }
+        .card-icon.purple { background: rgba(139, 92, 246, 0.15); }
+        .card-icon.blue { background: rgba(59, 130, 246, 0.15); }
+        .card-icon.cyan { background: rgba(6, 182, 212, 0.15); }
+        .card-icon.green { background: rgba(16, 185, 129, 0.15); }
+
+        /* 그리드 레이아웃 */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        .full-width {
+            grid-column: 1 / -1;
+        }
+
+        /* 게임 플레이 섹션 */
+        .game-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 30px;
+            padding: 40px;
+        }
+
+        .coin-container {
+            perspective: 1000px;
+        }
+
+        .coin {
+            width: 140px;
+            height: 140px;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.1s ease-out;
+        }
+
+        .coin.flipping {
+            animation: coinFlip 0.15s ease-in-out;
+        }
+
+        @keyframes coinFlip {
+            0% { transform: rotateY(0deg) rotateX(0deg); }
+            100% { transform: rotateY(180deg) rotateX(360deg); }
+        }
+
+        .coin-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            font-weight: 800;
+            backface-visibility: hidden;
+            box-shadow: 
+                inset 0 0 30px rgba(0,0,0,0.3),
+                0 10px 40px rgba(0,0,0,0.4),
+                0 0 60px rgba(240, 185, 11, 0.3);
+        }
+
+        .coin-head {
+            background: var(--gradient-gold);
+            color: #1a1a1a;
+        }
+
+        .coin-tail {
+            background: linear-gradient(135deg, #374151 0%, #1f2937 100%);
+            color: var(--text-secondary);
+            transform: rotateY(180deg);
+        }
+
+        .coin.heads .coin-head { z-index: 2; }
+        .coin.tails { transform: rotateY(180deg); }
+        .coin.tails .coin-tail { z-index: 2; }
+
+        .flip-sequence {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px;
+            min-height: 50px;
+            max-width: 400px;
+        }
+
+        .flip-result {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.85rem;
+            animation: popIn 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        .flip-result.head {
+            background: var(--gradient-gold);
+            color: #1a1a1a;
+            box-shadow: 0 0 20px rgba(240, 185, 11, 0.5);
+        }
+
+        .flip-result.tail {
+            background: linear-gradient(135deg, #4b5563 0%, #374151 100%);
+            color: var(--text-secondary);
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0) rotate(-180deg); opacity: 0; }
+            100% { transform: scale(1) rotate(0); opacity: 1; }
+        }
+
+        .prize-display {
+            text-align: center;
+        }
+
+        .prize-label {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+
+        .prize-amount {
+            font-family: 'Outfit', sans-serif;
+            font-size: 3.5rem;
+            font-weight: 800;
+            background: var(--gradient-gold);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 60px rgba(240, 185, 11, 0.5);
+        }
+
+        .prize-formula {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            margin-top: 8px;
+        }
+
+        .prize-formula span {
+            color: var(--accent-purple);
+            font-weight: 600;
+        }
+
+        /* 버튼 스타일 */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 14px 28px;
+            border: none;
+            border-radius: 14px;
+            font-family: inherit;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary {
+            background: var(--gradient-gold);
+            color: #1a1a1a;
+            box-shadow: 0 4px 20px rgba(240, 185, 11, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(240, 185, 11, 0.5);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: var(--glass);
+            color: var(--text-primary);
+            border: 1px solid var(--glass-border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-card-hover);
+            border-color: var(--accent-purple);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        /* 통계 카드 */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+        }
+
+        .stat-card {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            border-color: var(--accent-gold);
+            box-shadow: 0 0 30px rgba(240, 185, 11, 0.1);
+        }
+
+        .stat-value {
+            font-family: 'Outfit', sans-serif;
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .stat-value.gold { color: var(--accent-gold); }
+        .stat-value.purple { color: var(--accent-purple); }
+        .stat-value.cyan { color: var(--accent-cyan); }
+        .stat-value.green { color: var(--accent-green); }
+        .stat-value.pink { color: var(--accent-pink); }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        /* 시뮬레이션 컨트롤 */
+        .sim-controls {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .input-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .input-group label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .input-field {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
+            padding: 12px 16px;
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 1rem;
+            width: 140px;
+            transition: all 0.3s ease;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: var(--accent-gold);
+            box-shadow: 0 0 20px rgba(240, 185, 11, 0.2);
+        }
+
+        /* 차트 컨테이너 */
+        .chart-container {
+            position: relative;
+            height: 350px;
+            margin-top: 20px;
+        }
+
+        /* 분포 바 차트 */
+        .distribution-bars {
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            gap: 8px;
+            height: 200px;
+            padding: 20px 0;
+        }
+
+        .dist-bar-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .dist-bar {
+            width: 50px;
+            background: var(--gradient-purple);
+            border-radius: 8px 8px 0 0;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            min-height: 4px;
+        }
+
+        .dist-bar::after {
+            content: attr(data-count);
+            position: absolute;
+            top: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            white-space: nowrap;
+        }
+
+        .dist-bar-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        /* 효용함수 비교 */
+        .utility-comparison {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+            margin-top: 20px;
+        }
+
+        .utility-card {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 24px;
+            transition: all 0.3s ease;
+        }
+
+        .utility-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-card);
+        }
+
+        .utility-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .utility-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        .utility-name {
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .utility-formula {
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            background: rgba(0,0,0,0.3);
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+        }
+
+        .utility-result {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .utility-result-label {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .utility-result-value {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        /* 수학 공식 박스 */
+        .math-box {
+            background: rgba(139, 92, 246, 0.1);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 16px;
+            padding: 24px;
+            margin-top: 20px;
+        }
+
+        .math-box h4 {
+            color: var(--accent-purple);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .math-formula {
+            font-family: 'Courier New', monospace;
+            font-size: 1.1rem;
+            color: var(--text-primary);
+            text-align: center;
+            padding: 16px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 8px;
+            overflow-x: auto;
+        }
+
+        /* 프로그레스 바 */
+        .progress-container {
+            margin-top: 20px;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: var(--glass);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--gradient-gold);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+            box-shadow: 0 0 20px rgba(240, 185, 11, 0.5);
+        }
+
+        .progress-text {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 8px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        /* 테이블 */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 14px 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .data-table th {
+            font-weight: 600;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .data-table tr:hover td {
+            background: var(--glass);
+        }
+
+        .data-table .highlight {
+            color: var(--accent-gold);
+            font-weight: 600;
+        }
+
+        /* 탭 네비게이션 */
+        .tabs {
+            display: flex;
+            gap: 4px;
+            background: var(--glass);
+            padding: 4px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            font-family: inherit;
+            font-size: 0.95rem;
+            font-weight: 500;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .tab:hover {
+            color: var(--text-primary);
+        }
+
+        .tab.active {
+            background: var(--gradient-gold);
+            color: #1a1a1a;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.4s ease;
+        }
+
+        /* 애니메이션 */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        @keyframes shimmer {
+            0% { background-position: -200% center; }
+            100% { background-position: 200% center; }
+        }
+
+        .shimmer {
+            background: linear-gradient(90deg, 
+                var(--accent-gold) 0%, 
+                var(--accent-gold-light) 50%, 
+                var(--accent-gold) 100%);
+            background-size: 200% auto;
+            animation: shimmer 3s linear infinite;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* 툴팁 */
+        .tooltip {
+            position: relative;
+            cursor: help;
+        }
+
+        .tooltip::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%) translateY(-8px);
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            border: 1px solid var(--glass-border);
+            z-index: 100;
+        }
+
+        .tooltip:hover::after {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(-50%) translateY(-4px);
+        }
+
+        /* 인피니티 심볼 */
+        .infinity {
+            font-size: 1.5em;
+            vertical-align: middle;
+        }
+
+        /* 로딩 스피너 */
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid transparent;
+            border-top-color: currentColor;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* 반응형 */
+        @media (max-width: 1024px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px 16px;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .card {
+                padding: 20px;
+            }
+
+            .game-area {
+                padding: 24px;
+            }
+
+            .coin {
+                width: 100px;
+                height: 100px;
+            }
+
+            .coin-face {
+                font-size: 2rem;
+            }
+
+            .prize-amount {
+                font-size: 2.5rem;
+            }
+
+            .sim-controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .btn-group {
+                flex-direction: column;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .tabs {
+                flex-wrap: wrap;
+            }
+
+            .tab {
+                flex: 1 1 45%;
+            }
+        }
+
+        /* 스크롤바 커스텀 */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-secondary);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--glass-border);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+    <!-- 배경 효과 -->
+    <div class="bg-effects">
+        <div class="bg-orb bg-orb-1"></div>
+        <div class="bg-orb bg-orb-2"></div>
+        <div class="bg-orb bg-orb-3"></div>
+        <div class="bg-grid"></div>
+    </div>
+
+    <div class="container">
+        <!-- 헤더 -->
+        <header class="header">
+            <div class="header-badge">확률과 통계 수학 탐구</div>
+            <h1>상트페테르부르크 게임</h1>
+            <p>기대값이 무한대인 게임에서 인간은 왜 적은 돈만 지불하려 하는가?<br>
+            시뮬레이션과 기대효용 이론을 통해 역설을 탐구합니다.</p>
+        </header>
+
+        <!-- 메인 그리드 -->
+        <div class="main-grid">
+            <!-- 게임 플레이 카드 -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <div class="card-icon gold">🎯</div>
+                        <span>게임 플레이</span>
+                    </div>
+                </div>
+                
+                <div class="game-area">
+                    <div class="coin-container">
+                        <div class="coin heads" id="coin">
+                            <div class="coin-face coin-head">H</div>
+                            <div class="coin-face coin-tail">T</div>
+                        </div>
+                    </div>
+
+                    <div class="flip-sequence" id="flipSequence"></div>
+
+                    <div class="prize-display">
+                        <div class="prize-label">현재 상금</div>
+                        <div class="prize-amount" id="currentPrize">0원</div>
+                        <div class="prize-formula">
+                            2<sup><span id="flipCount">0</span></sup> = <span id="prizeCalc">0</span>원
+                        </div>
+                    </div>
+
+                    <div class="btn-group">
+                        <button class="btn btn-primary" id="playBtn" onclick="playGame()">
+                            🎲 게임 시작
+                        </button>
+                        <button class="btn btn-secondary" id="resetBtn" onclick="resetGame()">
+                            ↺ 초기화
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 게임 규칙 카드 -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">
+                        <div class="card-icon purple">📜</div>
+                        <span>게임 규칙</span>
+                    </div>
+                </div>
+
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>시행 횟수 (n)</th>
+                            <th>결과 예시</th>
+                            <th>확률</th>
+                            <th>상금</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>1</td>
+                            <td>H</td>
+                            <td>1/2 = 50%</td>
+                            <td class="highlight">2원</td>
+                        </tr>
+                        <tr>
+                            <td>2</td>
+                            <td>TH</td>
+                            <td>1/4 = 25%</td>
+                            <td class="highlight">4원</td>
+                        </tr>
+                        <tr>
+                            <td>3</td>
+                            <td>TTH</td>
+                            <td>1/8 = 12.5%</td>
+                            <td class="highlight">8원</td>
+                        </tr>
+                        <tr>
+                            <td>4</td>
+                            <td>TTTH</td>
+                            <td>1/16 = 6.25%</td>
+                            <td class="highlight">16원</td>
+                        </tr>
+                        <tr>
+                            <td>n</td>
+                            <td>T<sup>n-1</sup>H</td>
+                            <td>(1/2)<sup>n</sup></td>
+                            <td class="highlight">2<sup>n</sup>원</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="math-box">
+                    <h4>📐 기대값 계산</h4>
+                    <div class="math-formula">
+                        E[X] = Σ (2ⁿ × 1/2ⁿ) = Σ 1 = 1 + 1 + 1 + ... = <span class="infinity">∞</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 대규모 시뮬레이션 카드 -->
+            <div class="card full-width">
+                <div class="card-header">
+                    <div class="card-title">
+                        <div class="card-icon cyan">⚡</div>
+                        <span>대규모 시뮬레이션</span>
+                    </div>
+                </div>
+
+                <div class="sim-controls">
+                    <div class="input-group">
+                        <label for="simCount">시행 횟수:</label>
+                        <input type="number" id="simCount" class="input-field" 
+                               value="10000" min="100" max="100000" step="100">
+                    </div>
+                    <button class="btn btn-primary" id="simBtn" onclick="runSimulation()">
+                        🚀 시뮬레이션 실행
+                    </button>
+                    <button class="btn btn-secondary" onclick="runSimulation(1000)">
+                        1,000회
+                    </button>
+                    <button class="btn btn-secondary" onclick="runSimulation(10000)">
+                        10,000회
+                    </button>
+                    <button class="btn btn-secondary" onclick="runSimulation(50000)">
+                        50,000회
+                    </button>
+                </div>
+
+                <div class="progress-container" id="progressContainer" style="display: none;">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+                    </div>
+                    <div class="progress-text">
+                        <span id="progressText">진행 중...</span>
+                        <span id="progressPercent">0%</span>
+                    </div>
+                </div>
+
+                <!-- 통계 결과 -->
+                <div class="stats-grid" style="margin-top: 24px;">
+                    <div class="stat-card">
+                        <div class="stat-value gold" id="statTotal">0</div>
+                        <div class="stat-label">총 시행 횟수</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value purple" id="statMean">0</div>
+                        <div class="stat-label">평균 상금</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value cyan" id="statMedian">0</div>
+                        <div class="stat-label">중앙값</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value green" id="statMax">0</div>
+                        <div class="stat-label">최대 상금</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value pink" id="statTheory">∞</div>
+                        <div class="stat-label">이론적 기대값</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 차트 탭 섹션 -->
+            <div class="card full-width">
+                <div class="card-header">
+                    <div class="card-title">
+                        <div class="card-icon blue">📊</div>
+                        <span>시뮬레이션 결과 분석</span>
+                    </div>
+                </div>
+
+                <div class="tabs">
+                    <button class="tab active" onclick="switchTab('distribution')">상금 분포</button>
+                    <button class="tab" onclick="switchTab('cumulative')">누적 평균</button>
+                    <button class="tab" onclick="switchTab('probability')">확률 비교</button>
+                </div>
+
+                <div id="distributionTab" class="tab-content active">
+                    <div class="chart-container">
+                        <canvas id="distributionChart"></canvas>
+                    </div>
+                </div>
+
+                <div id="cumulativeTab" class="tab-content">
+                    <div class="chart-container">
+                        <canvas id="cumulativeChart"></canvas>
+                    </div>
+                </div>
+
+                <div id="probabilityTab" class="tab-content">
+                    <div class="chart-container">
+                        <canvas id="probabilityChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 기대효용 분석 카드 -->
+            <div class="card full-width">
+                <div class="card-header">
+                    <div class="card-title">
+                        <div class="card-icon green">🧮</div>
+                        <span>기대효용 이론: 역설의 해결</span>
+                    </div>
+                </div>
+
+                <p style="color: var(--text-secondary); margin-bottom: 24px; line-height: 1.7;">
+                    다니엘 베르누이는 사람들이 <strong style="color: var(--accent-gold);">금액의 절대값</strong>이 아닌 
+                    <strong style="color: var(--accent-purple);">효용(Utility)</strong>을 기준으로 의사결정한다고 제안했습니다.
+                    효용함수를 적용하면 무한한 기대값이 유한한 "공정 가격"으로 바뀝니다.
+                </p>
+
+                <div class="utility-comparison">
+                    <div class="utility-card" style="border-color: var(--accent-gold);">
+                        <div class="utility-header">
+                            <div class="utility-icon" style="background: rgba(240, 185, 11, 0.2);">📈</div>
+                            <div class="utility-name" style="color: var(--accent-gold);">위험 중립</div>
+                        </div>
+                        <div class="utility-formula">u(x) = x</div>
+                        <div class="utility-result">
+                            <span class="utility-result-label">공정 가격</span>
+                            <span class="utility-result-value" style="color: var(--accent-gold);">∞</span>
+                        </div>
+                    </div>
+
+                    <div class="utility-card" style="border-color: var(--accent-purple);">
+                        <div class="utility-header">
+                            <div class="utility-icon" style="background: rgba(139, 92, 246, 0.2);">📉</div>
+                            <div class="utility-name" style="color: var(--accent-purple);">로그 효용 (베르누이)</div>
+                        </div>
+                        <div class="utility-formula">u(x) = ln(x)</div>
+                        <div class="utility-result">
+                            <span class="utility-result-label">공정 가격</span>
+                            <span class="utility-result-value" style="color: var(--accent-purple);" id="logUtilityPrice">4.00원</span>
+                        </div>
+                    </div>
+
+                    <div class="utility-card" style="border-color: var(--accent-cyan);">
+                        <div class="utility-header">
+                            <div class="utility-icon" style="background: rgba(6, 182, 212, 0.2);">📊</div>
+                            <div class="utility-name" style="color: var(--accent-cyan);">제곱근 효용</div>
+                        </div>
+                        <div class="utility-formula">u(x) = √x</div>
+                        <div class="utility-result">
+                            <span class="utility-result-label">공정 가격</span>
+                            <span class="utility-result-value" style="color: var(--accent-cyan);" id="sqrtUtilityPrice">5.83원</span>
+                        </div>
+                    </div>
+
+                    <div class="utility-card" style="border-color: var(--accent-pink);">
+                        <div class="utility-header">
+                            <div class="utility-icon" style="background: rgba(236, 72, 153, 0.2);">🎯</div>
+                            <div class="utility-name" style="color: var(--accent-pink);">거듭제곱 효용</div>
+                        </div>
+                        <div class="utility-formula">u(x) = x<sup>0.5</sup></div>
+                        <div class="utility-result">
+                            <span class="utility-result-label">공정 가격</span>
+                            <span class="utility-result-value" style="color: var(--accent-pink);" id="powerUtilityPrice">5.83원</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="math-box" style="margin-top: 24px; background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.3);">
+                    <h4 style="color: var(--accent-green);">🔢 로그 효용 기대값 증명</h4>
+                    <div class="math-formula">
+                        E[ln(X)] = Σ ln(2ⁿ) × (1/2)ⁿ = ln(2) × Σ n/2ⁿ = ln(2) × 2 = 2ln(2) ≈ 1.386
+                    </div>
+                    <p style="color: var(--text-secondary); margin-top: 16px; text-align: center;">
+                        확실성 등가: e<sup>2ln(2)</sup> = e<sup>ln(4)</sup> = <strong style="color: var(--accent-green);">4원</strong>
+                    </p>
+                </div>
+            </div>
+
+            <!-- 효용함수 차트 -->
+            <div class="card full-width">
+                <div class="card-header">
+                    <div class="card-title">
+                        <div class="card-icon purple">📈</div>
+                        <span>효용함수 시각화</span>
+                    </div>
+                </div>
+                <div class="chart-container" style="height: 400px;">
+                    <canvas id="utilityChart"></canvas>
+                </div>
+            </div>
+
+            <!-- 결론 카드 -->
+            <div class="card full-width" style="background: linear-gradient(135deg, rgba(240, 185, 11, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);">
+                <div class="card-header">
+                    <div class="card-title">
+                        <div class="card-icon gold">💡</div>
+                        <span>탐구 결론</span>
+                    </div>
+                </div>
+                
+                <div style="display: grid; gap: 20px;">
+                    <div style="display: flex; gap: 16px; align-items: flex-start;">
+                        <div style="background: var(--accent-gold); color: #1a1a1a; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0;">1</div>
+                        <div>
+                            <h4 style="margin-bottom: 8px;">기대값의 한계</h4>
+                            <p style="color: var(--text-secondary); line-height: 1.6;">
+                                수학적 기대값(무한대)만으로는 인간의 실제 의사결정을 설명할 수 없습니다.
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; gap: 16px; align-items: flex-start;">
+                        <div style="background: var(--accent-purple); color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0;">2</div>
+                        <div>
+                            <h4 style="margin-bottom: 8px;">효용 이론의 유효성</h4>
+                            <p style="color: var(--text-secondary); line-height: 1.6;">
+                                로그 효용함수를 적용하면 공정 가격이 약 4원으로 도출되어 현실적인 지불 의사와 유사해집니다.
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; gap: 16px; align-items: flex-start;">
+                        <div style="background: var(--accent-cyan); color: #1a1a1a; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0;">3</div>
+                        <div>
+                            <h4 style="margin-bottom: 8px;">시뮬레이션의 통찰</h4>
+                            <p style="color: var(--text-secondary); line-height: 1.6;">
+                                대부분의 결과(75%)가 4원 이하에 집중되며, 천문학적 상금은 극히 드뭅니다. 
+                                누적 평균은 수렴하지 않고 계속 증가합니다.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 푸터 -->
+        <footer style="text-align: center; padding: 40px 0; color: var(--text-muted);">
+            <p>확률과 통계 수학 탐구 보고서 | 상트페테르부르크 게임 시뮬레이션</p>
+            <p style="margin-top: 8px; font-size: 0.85rem;">© 2024 Mathematics Exploration</p>
+        </footer>
+    </div>
+
+    <script>
+        // ============================================
+        // 전역 변수 및 상태
+        // ============================================
+        let simulationResults = [];
+        let isPlaying = false;
+        let charts = {};
+
+        // ============================================
+        // 게임 로직
+        // ============================================
+        function flipCoin() {
+            return Math.random() < 0.5; // true = heads, false = tails
+        }
+
+        function playOneGame() {
+            let n = 1;
+            while (!flipCoin()) {
+                n++;
+            }
+            return { flips: n, prize: Math.pow(2, n) };
+        }
+
+        // ============================================
+        // 단일 게임 플레이 (애니메이션)
+        // ============================================
+        async function playGame() {
+            if (isPlaying) return;
+            isPlaying = true;
+            
+            const playBtn = document.getElementById('playBtn');
+            const coin = document.getElementById('coin');
+            const flipSequence = document.getElementById('flipSequence');
+            
+            playBtn.disabled = true;
+            flipSequence.innerHTML = '';
+            
+            let n = 0;
+            let isHead = false;
+            
+            while (!isHead) {
+                n++;
+                isHead = flipCoin();
+                
+                // 동전 애니메이션
+                coin.classList.add('flipping');
+                await sleep(150);
+                coin.classList.remove('flipping');
+                
+                // 결과 표시
+                if (isHead) {
+                    coin.classList.remove('tails');
+                    coin.classList.add('heads');
+                } else {
+                    coin.classList.remove('heads');
+                    coin.classList.add('tails');
+                }
+                
+                // 시퀀스에 결과 추가
+                const resultEl = document.createElement('div');
+                resultEl.className = `flip-result ${isHead ? 'head' : 'tail'}`;
+                resultEl.textContent = isHead ? 'H' : 'T';
+                flipSequence.appendChild(resultEl);
+                
+                // 상금 업데이트
+                const prize = Math.pow(2, n);
+                document.getElementById('flipCount').textContent = n;
+                document.getElementById('prizeCalc').textContent = prize.toLocaleString();
+                document.getElementById('currentPrize').textContent = prize.toLocaleString() + '원';
+                
+                await sleep(isHead ? 100 : 400);
+            }
+            
+            // 최종 상금 강조 효과
+            document.getElementById('currentPrize').style.animation = 'pulse 0.5s ease-in-out 3';
+            
+            playBtn.disabled = false;
+            isPlaying = false;
+        }
+
+        function resetGame() {
+            document.getElementById('flipSequence').innerHTML = '';
+            document.getElementById('flipCount').textContent = '0';
+            document.getElementById('prizeCalc').textContent = '0';
+            document.getElementById('currentPrize').textContent = '0원';
+            document.getElementById('coin').classList.remove('tails');
+            document.getElementById('coin').classList.add('heads');
+        }
+
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        // ============================================
+        // 대규모 시뮬레이션
+        // ============================================
+        async function runSimulation(count = null) {
+            const numSimulations = count || parseInt(document.getElementById('simCount').value);
+            const simBtn = document.getElementById('simBtn');
+            const progressContainer = document.getElementById('progressContainer');
+            
+            simBtn.disabled = true;
+            progressContainer.style.display = 'block';
+            
+            simulationResults = [];
+            const batchSize = 1000;
+            const batches = Math.ceil(numSimulations / batchSize);
+            
+            for (let i = 0; i < batches; i++) {
+                const currentBatch = Math.min(batchSize, numSimulations - i * batchSize);
+                
+                for (let j = 0; j < currentBatch; j++) {
+                    const result = playOneGame();
+                    simulationResults.push(result.prize);
+                }
+                
+                // 진행률 업데이트
+                const progress = ((i + 1) / batches) * 100;
+                document.getElementById('progressFill').style.width = progress + '%';
+                document.getElementById('progressPercent').textContent = Math.round(progress) + '%';
+                document.getElementById('progressText').textContent = 
+                    `${simulationResults.length.toLocaleString()} / ${numSimulations.toLocaleString()} 완료`;
+                
+                // UI 업데이트를 위한 짧은 대기
+                if (i % 10 === 0) await sleep(1);
+            }
+            
+            // 통계 계산 및 표시
+            updateStatistics();
+            updateCharts();
+            
+            simBtn.disabled = false;
+            setTimeout(() => {
+                progressContainer.style.display = 'none';
+            }, 1000);
+        }
+
+        function updateStatistics() {
+            const sorted = [...simulationResults].sort((a, b) => a - b);
+            const sum = simulationResults.reduce((a, b) => a + b, 0);
+            const mean = sum / simulationResults.length;
+            const median = sorted[Math.floor(sorted.length / 2)];
+            const max = Math.max(...simulationResults);
+            
+            document.getElementById('statTotal').textContent = simulationResults.length.toLocaleString();
+            document.getElementById('statMean').textContent = mean.toFixed(2) + '원';
+            document.getElementById('statMedian').textContent = median.toLocaleString() + '원';
+            document.getElementById('statMax').textContent = max.toLocaleString() + '원';
+        }
+
+        // ============================================
+        // 차트 업데이트
+        // ============================================
+        function updateCharts() {
+            updateDistributionChart();
+            updateCumulativeChart();
+            updateProbabilityChart();
+        }
+
+        function updateDistributionChart() {
+            const ctx = document.getElementById('distributionChart').getContext('2d');
+            
+            // 분포 계산
+            const distribution = {};
+            simulationResults.forEach(prize => {
+                const n = Math.log2(prize);
+                distribution[n] = (distribution[n] || 0) + 1;
+            });
+            
+            const labels = Object.keys(distribution).sort((a, b) => a - b).slice(0, 15);
+            const data = labels.map(n => distribution[n]);
+            const percentages = data.map(d => (d / simulationResults.length * 100).toFixed(1));
+            
+            if (charts.distribution) {
+                charts.distribution.destroy();
+            }
+            
+            charts.distribution = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels.map(n => `2^${n} = ${Math.pow(2, n)}원`),
+                    datasets: [{
+                        label: '빈도',
+                        data: data,
+                        backgroundColor: labels.map((_, i) => {
+                            const hue = 270 - (i * 15);
+                            return `hsla(${hue}, 70%, 60%, 0.8)`;
+                        }),
+                        borderColor: labels.map((_, i) => {
+                            const hue = 270 - (i * 15);
+                            return `hsla(${hue}, 70%, 60%, 1)`;
+                        }),
+                        borderWidth: 2,
+                        borderRadius: 8,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            titleColor: '#f0b90b',
+                            bodyColor: '#fff',
+                            borderColor: 'rgba(255, 255, 255, 0.1)',
+                            borderWidth: 1,
+                            cornerRadius: 8,
+                            callbacks: {
+                                label: function(context) {
+                                    const pct = (context.raw / simulationResults.length * 100).toFixed(2);
+                                    return `${context.raw.toLocaleString()}회 (${pct}%)`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: { color: 'rgba(255,255,255,0.6)', maxRotation: 45 },
+                            grid: { color: 'rgba(255,255,255,0.05)' }
+                        },
+                        y: {
+                            ticks: { color: 'rgba(255,255,255,0.6)' },
+                            grid: { color: 'rgba(255,255,255,0.05)' }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateCumulativeChart() {
+            const ctx = document.getElementById('cumulativeChart').getContext('2d');
+            
+            // 누적 평균 계산 (샘플링)
+            const sampleSize = Math.min(1000, simulationResults.length);
+            const step = Math.max(1, Math.floor(simulationResults.length / sampleSize));
+            
+            const labels = [];
+            const cumulativeAvg = [];
+            let sum = 0;
+            
+            for (let i = 0; i < simulationResults.length; i++) {
+                sum += simulationResults[i];
+                if (i % step === 0 || i === simulationResults.length - 1) {
+                    labels.push(i + 1);
+                    cumulativeAvg.push(sum / (i + 1));
+                }
+            }
+            
+            if (charts.cumulative) {
+                charts.cumulative.destroy();
+            }
+            
+            charts.cumulative = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: '누적 평균',
+                        data: cumulativeAvg,
+                        borderColor: '#f0b90b',
+                        backgroundColor: 'rgba(240, 185, 11, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 0,
+                        pointHoverRadius: 6,
+                        pointHoverBackgroundColor: '#f0b90b'
+                    }, {
+                        label: '중앙값 (4원)',
+                        data: labels.map(() => 4),
+                        borderColor: '#10b981',
+                        borderWidth: 2,
+                        borderDash: [10, 5],
+                        pointRadius: 0,
+                        fill: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        intersect: false,
+                        mode: 'index'
+                    },
+                    plugins: {
+                        legend: {
+                            labels: { color: 'rgba(255,255,255,0.8)' }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            titleColor: '#f0b90b',
+                            bodyColor: '#fff',
+                            borderColor: 'rgba(255, 255, 255, 0.1)',
+                            borderWidth: 1,
+                            cornerRadius: 8
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: { display: true, text: '시행 횟수', color: 'rgba(255,255,255,0.6)' },
+                            ticks: { color: 'rgba(255,255,255,0.6)' },
+                            grid: { color: 'rgba(255,255,255,0.05)' }
+                        },
+                        y: {
+                            title: { display: true, text: '누적 평균 상금', color: 'rgba(255,255,255,0.6)' },
+                            ticks: { color: 'rgba(255,255,255,0.6)' },
+                            grid: { color: 'rgba(255,255,255,0.05)' }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateProbabilityChart() {
+            const ctx = document.getElementById('probabilityChart').getContext('2d');
+            
+            // 이론적 확률 vs 실제 확률
+            const maxN = 12;
+            const labels = [];
+            const theoretical = [];
+            const actual = [];
+            
+            const distribution = {};
+            simulationResults.forEach(prize => {
+                const n = Math.log2(prize);
+                distribution[n] = (distribution[n] || 0) + 1;
+            });
+            
+            for (let n = 1; n <= maxN; n++) {
+                labels.push(`n=${n}`);
+                theoretical.push(Math.pow(0.5, n) * 100);
+                actual.push((distribution[n] || 0) / simulationResults.length * 100);
+            }
+            
+            if (charts.probability) {
+                charts.probability.destroy();
+            }
+            
+            charts.probability = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: '이론적 확률 (%)',
+                        data: theoretical,
+                        backgroundColor: 'rgba(139, 92, 246, 0.7)',
+                        borderColor: 'rgba(139, 92, 246, 1)',
+                        borderWidth: 2,
+                        borderRadius: 6,
+                    }, {
+                        label: '시뮬레이션 결과 (%)',
+                        data: actual,
+                        backgroundColor: 'rgba(6, 182, 212, 0.7)',
+                        borderColor: 'rgba(6, 182, 212, 1)',
+                        borderWidth: 2,
+                        borderRadius: 6,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: { color: 'rgba(255,255,255,0.8)' }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.dataset.label}: ${context.raw.toFixed(2)}%`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: { color: 'rgba(255,255,255,0.6)' },
+                            grid: { color: 'rgba(255,255,255,0.05)' }
+                        },
+                        y: {
+                            title: { display: true, text: '확률 (%)', color: 'rgba(255,255,255,0.6)' },
+                            ticks: { color: 'rgba(255,255,255,0.6)' },
+                            grid: { color: 'rgba(255,255,255,0.05)' }
+                        }
+                    }
+                }
+            });
+        }
+
+        // ============================================
+        // 탭 전환
+        // ============================================
+        function switchTab(tabName) {
+            // 모든 탭 버튼과 컨텐츠 비활성화
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            // 선택된 탭 활성화
+            event.target.classList.add('active');
+            document.getElementById(tabName + 'Tab').classList.add('active');
+        }
+
+        // ============================================
+        // 효용함수 차트
+        // ============================================
+        function initUtilityChart() {
+            const ctx = document.getElementById('utilityChart').getContext('2d');
+            
+            const xValues = [];
+            const linearData = [];
+            const logData = [];
+            const sqrtData = [];
+            
+            for (let x = 1; x <= 100; x += 1) {
+                xValues.push(x);
+                linearData.push(x);
+                logData.push(Math.log(x) * 20); // 스케일 조정
+                sqrtData.push(Math.sqrt(x) * 10); // 스케일 조정
+            }
+            
+            charts.utility = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: xValues,
+                    datasets: [{
+                        label: 'u(x) = x (위험 중립)',
+                        data: linearData,
+                        borderColor: '#f0b90b',
+                        backgroundColor: 'rgba(240, 185, 11, 0.1)',
+                        borderWidth: 3,
+                        fill: false,
+                        tension: 0,
+                        pointRadius: 0
+                    }, {
+                        label: 'u(x) = ln(x) × 20 (로그 효용)',
+                        data: logData,
+                        borderColor: '#8b5cf6',
+                        backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                        borderWidth: 3,
+                        fill: false,
+                        tension: 0.4,
+                        pointRadius: 0
+                    }, {
+                        label: 'u(x) = √x × 10 (제곱근 효용)',
+                        data: sqrtData,
+                        borderColor: '#06b6d4',
+                        backgroundColor: 'rgba(6, 182, 212, 0.1)',
+                        borderWidth: 3,
+                        fill: false,
+                        tension: 0.4,
+                        pointRadius: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        intersect: false,
+                        mode: 'index'
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: { 
+                                color: 'rgba(255,255,255,0.8)',
+                                usePointStyle: true,
+                                padding: 20
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            titleColor: '#f0b90b',
+                            bodyColor: '#fff'
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: { display: true, text: '금액 (x)', color: 'rgba(255,255,255,0.6)' },
+                            ticks: { color: 'rgba(255,255,255,0.6)' },
+                            grid: { color: 'rgba(255,255,255,0.05)' }
+                        },
+                        y: {
+                            title: { display: true, text: '효용 u(x)', color: 'rgba(255,255,255,0.6)' },
+                            ticks: { color: 'rgba(255,255,255,0.6)' },
+                            grid: { color: 'rgba(255,255,255,0.05)' }
+                        }
+                    }
+                }
+            });
+        }
+
+        // ============================================
+        // 기대효용 계산
+        // ============================================
+        function calculateExpectedUtility() {
+            // 로그 효용
+            let logEU = 0;
+            for (let n = 1; n <= 100; n++) {
+                const prob = Math.pow(0.5, n);
+                const prize = Math.pow(2, n);
+                logEU += prob * Math.log(prize);
+            }
+            const logCE = Math.exp(logEU);
+            document.getElementById('logUtilityPrice').textContent = logCE.toFixed(2) + '원';
+            
+            // 제곱근 효용
+            let sqrtEU = 0;
+            for (let n = 1; n <= 100; n++) {
+                const prob = Math.pow(0.5, n);
+                const prize = Math.pow(2, n);
+                sqrtEU += prob * Math.sqrt(prize);
+            }
+            const sqrtCE = sqrtEU * sqrtEU;
+            document.getElementById('sqrtUtilityPrice').textContent = sqrtCE.toFixed(2) + '원';
+            document.getElementById('powerUtilityPrice').textContent = sqrtCE.toFixed(2) + '원';
+        }
+
+        // ============================================
+        // 초기화
+        // ============================================
+        document.addEventListener('DOMContentLoaded', function() {
+            // 빈 차트 초기화
+            initEmptyCharts();
+            initUtilityChart();
+            calculateExpectedUtility();
+            
+            // 초기 시뮬레이션 실행
+            setTimeout(() => {
+                runSimulation(5000);
+            }, 500);
+        });
+
+        function initEmptyCharts() {
+            const emptyConfig = {
+                type: 'bar',
+                data: { labels: [], datasets: [] },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: { ticks: { color: 'rgba(255,255,255,0.6)' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+                        y: { ticks: { color: 'rgba(255,255,255,0.6)' }, grid: { color: 'rgba(255,255,255,0.05)' } }
+                    }
+                }
+            };
+            
+            charts.distribution = new Chart(
+                document.getElementById('distributionChart').getContext('2d'),
+                JSON.parse(JSON.stringify(emptyConfig))
+            );
+            
+            emptyConfig.type = 'line';
+            charts.cumulative = new Chart(
+                document.getElementById('cumulativeChart').getContext('2d'),
+                JSON.parse(JSON.stringify(emptyConfig))
+            );
+            
+            emptyConfig.type = 'bar';
+            charts.probability = new Chart(
+                document.getElementById('probabilityChart').getContext('2d'),
+                JSON.parse(JSON.stringify(emptyConfig))
+            );
+        }
+    </script>
+</body>
+</html>

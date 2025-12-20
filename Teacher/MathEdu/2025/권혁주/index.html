@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Simulation Hub - Pour to Navigate</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding: 20px 0;
+      }
+
+      .container {
+        width: 90%;
+        max-width: 1200px;
+        display: flex;
+        gap: 60px;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        margin: auto;
+      }
+
+      .left-section {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 30px;
+      }
+
+      .title {
+        color: white;
+        font-size: 2.5rem;
+        font-weight: 700;
+        text-align: center;
+        text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        margin-bottom: 10px;
+      }
+
+      .instruction {
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 1.1rem;
+        text-align: center;
+        background: rgba(255, 255, 255, 0.15);
+        padding: 15px 30px;
+        border-radius: 20px;
+        backdrop-filter: blur(10px);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+      }
+
+      .milk-bottle {
+        position: relative;
+        cursor: pointer;
+        user-select: none;
+        transition: transform 0.2s ease;
+      }
+
+      .milk-bottle:active {
+        transform: scale(0.95) rotate(-15deg);
+        transform-origin: bottom right;
+      }
+
+      .milk-bottle svg {
+        width: 180px;
+        height: 280px;
+        filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.3));
+      }
+
+      .pouring-milk {
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        width: 8px;
+        height: 0;
+        background: linear-gradient(to bottom, #ffffff, #f0f0f0);
+        opacity: 0;
+        transition: opacity 0.2s;
+        border-radius: 4px;
+        transform-origin: top center;
+      }
+
+      .pouring-milk.active {
+        opacity: 1;
+      }
+
+      .right-section {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 30px;
+      }
+
+      .glass-container {
+        position: relative;
+        width: 200px;
+        height: 300px;
+      }
+
+      .glass {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+          to bottom,
+          rgba(255, 255, 255, 0.1),
+          rgba(255, 255, 255, 0.05)
+        );
+        border: 3px solid rgba(255, 255, 255, 0.3);
+        border-radius: 0 0 20px 20px;
+        overflow: hidden;
+        backdrop-filter: blur(10px);
+        box-shadow: inset 0 2px 10px rgba(255, 255, 255, 0.3),
+          0 10px 30px rgba(0, 0, 0, 0.3);
+      }
+
+      .milk-level {
+        position: absolute;
+        bottom: 0;
+        width: 100%;
+        height: 0%;
+        background: linear-gradient(to top, #ffffff, #f5f5f5);
+        transition: height 0.1s ease-out;
+        border-radius: 0 0 17px 17px;
+        box-shadow: 0 -5px 20px rgba(255, 255, 255, 0.5);
+      }
+
+      .milk-level::before {
+        content: "";
+        position: absolute;
+        top: -10px;
+        left: 0;
+        right: 0;
+        height: 20px;
+        background: radial-gradient(
+          ellipse at center,
+          rgba(255, 255, 255, 0.8) 0%,
+          transparent 70%
+        );
+        animation: wave 2s ease-in-out infinite;
+      }
+
+      @keyframes wave {
+        0%,
+        100% {
+          transform: translateY(0);
+        }
+
+        50% {
+          transform: translateY(-3px);
+        }
+      }
+
+      .percentage {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 3rem;
+        font-weight: 700;
+        color: rgba(255, 255, 255, 0.9);
+        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+        z-index: 10;
+      }
+
+      .links-container {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        width: 100%;
+        max-width: 400px;
+      }
+
+      .link-item {
+        position: relative;
+        padding: 18px 25px;
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border-radius: 15px;
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        color: rgba(255, 255, 255, 0.5);
+        text-decoration: none;
+        font-size: 1.05rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        pointer-events: none;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+      }
+
+      .link-item .range {
+        font-size: 0.8rem;
+        opacity: 0.7;
+        font-weight: 400;
+      }
+
+      .link-item.active {
+        background: rgba(255, 255, 255, 0.95);
+        color: #667eea;
+        border-color: white;
+        pointer-events: auto;
+        cursor: pointer;
+        transform: scale(1.05);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      }
+
+      .link-item.active:hover {
+        background: white;
+        transform: scale(1.08);
+      }
+
+      .link-item::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 4px;
+        background: linear-gradient(to bottom, #667eea, #764ba2);
+        border-radius: 15px 0 0 15px;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+      }
+
+      .link-item.active::before {
+        opacity: 1;
+      }
+
+      .reset-btn {
+        margin-top: 15px;
+        padding: 15px 40px;
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-radius: 30px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        backdrop-filter: blur(10px);
+      }
+
+      .reset-btn:hover {
+        background: rgba(255, 255, 255, 0.3);
+        transform: scale(1.05);
+      }
+
+      @media (max-width: 968px) {
+        .container {
+          flex-direction: column;
+          gap: 40px;
+        }
+
+        .title {
+          font-size: 2rem;
+        }
+      }
+
+      /* 반짝이는 파티클 효과 */
+      .particle {
+        position: absolute;
+        width: 4px;
+        height: 4px;
+        background: white;
+        border-radius: 50%;
+        pointer-events: none;
+        animation: float 3s ease-in-out infinite;
+      }
+
+      @keyframes float {
+        0%,
+        100% {
+          transform: translateY(0) translateX(0);
+          opacity: 0;
+        }
+
+        10% {
+          opacity: 1;
+        }
+
+        90% {
+          opacity: 1;
+        }
+
+        100% {
+          transform: translateY(-100px) translateX(20px);
+          opacity: 0;
+        }
+      }
+    </style>
+    <link
+      rel="canonical"
+      href="https://hoodinga.github.io/Silhumsil/index.html"
+    />
+  </head>
+
+  <body>
+    <div class="container">
+      <div class="left-section">
+        <div>
+          <h1 class="title">🥛 Simulation Hub</h1>
+          <p class="instruction">
+            우유병을 길게 눌러 원하는 높이까지 따라보세요!
+          </p>
+        </div>
+
+        <div class="milk-bottle" id="milkBottle">
+          <svg viewBox="0 0 100 150" xmlns="http://www.w3.org/2000/svg">
+            <!-- 뚜껑 -->
+            <rect x="35" y="0" width="30" height="15" fill="#e74c3c" rx="3" />
+            <rect x="30" y="12" width="40" height="8" fill="#c0392b" rx="2" />
+
+            <!-- 병목 -->
+            <path
+              d="M 35 20 L 30 35 L 70 35 L 65 20 Z"
+              fill="#ffffff"
+              stroke="#e0e0e0"
+              stroke-width="1"
+            />
+
+            <!-- 병 몸통 -->
+            <rect
+              x="20"
+              y="35"
+              width="60"
+              height="100"
+              fill="#ffffff"
+              stroke="#e0e0e0"
+              stroke-width="1"
+              rx="5"
+            />
+
+            <!-- 우유 -->
+            <rect x="22" y="40" width="56" height="90" fill="#f0f0f0" rx="3" />
+
+            <!-- 라벨 -->
+            <rect
+              x="25"
+              y="60"
+              width="50"
+              height="40"
+              fill="#3498db"
+              opacity="0.7"
+              rx="3"
+            />
+            <text
+              x="50"
+              y="78"
+              text-anchor="middle"
+              fill="white"
+              font-size="10"
+              font-weight="bold"
+            >
+              MILK
+            </text>
+            <text x="50" y="92" text-anchor="middle" fill="white" font-size="6">
+              100% Fresh
+            </text>
+
+            <!-- 하이라이트 -->
+            <ellipse
+              cx="30"
+              cy="55"
+              rx="8"
+              ry="15"
+              fill="white"
+              opacity="0.4"
+            />
+          </svg>
+          <div class="pouring-milk" id="pouringMilk"></div>
+        </div>
+
+        <button class="reset-btn" id="resetBtn">🔄 다시 시작</button>
+      </div>
+
+      <div class="right-section">
+        <div class="glass-container">
+          <div class="glass">
+            <div class="milk-level" id="milkLevel"></div>
+          </div>
+          <div class="percentage" id="percentage">0%</div>
+        </div>
+
+        <div class="links-container">
+          <a
+            href="gears/index.html"
+            class="link-item"
+            data-min="0"
+            data-max="20"
+          >
+            <span>⚙️ Gears Simulation</span>
+            <span class="range">0-20%</span>
+          </a>
+          <a
+            href="3d_path_optimizer.html"
+            class="link-item"
+            data-min="20"
+            data-max="40"
+          >
+            <span>📐 3D Path Optimizer</span>
+            <span class="range">20-40%</span>
+          </a>
+          <a
+            href="curve_path_optimizer_sim.html"
+            class="link-item"
+            data-min="40"
+            data-max="60"
+          >
+            <span>📈 Curve Path Optimizer</span>
+            <span class="range">40-60%</span>
+          </a>
+          <a
+            href="rotation_slicer_sim.html"
+            class="link-item"
+            data-min="60"
+            data-max="80"
+          >
+            <span>🔄 Rotation Slicer</span>
+            <span class="range">60-80%</span>
+          </a>
+          <a
+            href="logistic_regression_viz.html"
+            class="link-item"
+            data-min="80"
+            data-max="100"
+          >
+            <span>📊 Logistic Regression</span>
+            <span class="range">80-100%</span>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const milkBottle = document.getElementById("milkBottle");
+      const milkLevel = document.getElementById("milkLevel");
+      const percentage = document.getElementById("percentage");
+      const pouringMilk = document.getElementById("pouringMilk");
+      const resetBtn = document.getElementById("resetBtn");
+      const linkItems = document.querySelectorAll(".link-item");
+
+      let currentLevel = 0;
+      let isPouring = false;
+      let pourInterval = null;
+
+      // 우유 따르기 시작
+      function startPouring() {
+        if (currentLevel >= 100) return;
+
+        isPouring = true;
+        pouringMilk.classList.add("active");
+
+        // 우유가 컵에 닿을 때까지의 높이 계산
+        const bottleRect = milkBottle.getBoundingClientRect();
+        const glassRect = document
+          .querySelector(".glass")
+          .getBoundingClientRect();
+        const distance = glassRect.top - bottleRect.bottom;
+        pouringMilk.style.height = distance + "px";
+
+        pourInterval = setInterval(() => {
+          if (currentLevel < 100) {
+            currentLevel += 0.5;
+            updateMilkLevel();
+            createParticle();
+          } else {
+            stopPouring();
+          }
+        }, 30);
+      }
+
+      // 우유 따르기 중지 및 자동 이동
+      function stopPouring() {
+        isPouring = false;
+        pouringMilk.classList.remove("active");
+        if (pourInterval) {
+          clearInterval(pourInterval);
+          pourInterval = null;
+        }
+
+        // 활성화된 링크가 있으면 자동으로 이동
+        const activeLink = document.querySelector(".link-item.active");
+        if (activeLink && currentLevel > 0) {
+          // 부드러운 전환 효과를 위해 약간의 지연 후 이동
+          setTimeout(() => {
+            window.location.href = activeLink.href;
+          }, 300);
+        }
+      }
+
+      // 우유 레벨 업데이트
+      function updateMilkLevel() {
+        milkLevel.style.height = currentLevel + "%";
+        percentage.textContent = Math.round(currentLevel) + "%";
+        updateActiveLinks();
+      }
+
+      // 활성 링크 업데이트
+      function updateActiveLinks() {
+        linkItems.forEach((link) => {
+          const min = parseFloat(link.dataset.min);
+          const max = parseFloat(link.dataset.max);
+
+          if (currentLevel >= min && currentLevel < max) {
+            link.classList.add("active");
+          } else if (currentLevel >= 80 && max === 100 && currentLevel <= 100) {
+            // 마지막 링크는 80-100% 범위
+            link.classList.add("active");
+          } else {
+            link.classList.remove("active");
+          }
+        });
+      }
+
+      // 파티클 효과
+      function createParticle() {
+        if (Math.random() > 0.7) {
+          const particle = document.createElement("div");
+          particle.classList.add("particle");
+          particle.style.left = Math.random() * 100 + "%";
+          particle.style.bottom = "0";
+          particle.style.animationDelay = Math.random() + "s";
+          document.querySelector(".glass").appendChild(particle);
+
+          setTimeout(() => particle.remove(), 3000);
+        }
+      }
+
+      // 리셋
+      function reset() {
+        currentLevel = 0;
+        updateMilkLevel();
+        stopPouring();
+      }
+
+      // 이벤트 리스너
+      milkBottle.addEventListener("mousedown", startPouring);
+      milkBottle.addEventListener("touchstart", (e) => {
+        e.preventDefault();
+        startPouring();
+      });
+
+      document.addEventListener("mouseup", stopPouring);
+      document.addEventListener("touchend", stopPouring);
+
+      resetBtn.addEventListener("click", reset);
+
+      // 링크 클릭 시 애니메이션 (수동 클릭용)
+      linkItems.forEach((link) => {
+        link.addEventListener("click", (e) => {
+          if (!link.classList.contains("active")) {
+            e.preventDefault();
+          }
+        });
+      });
+
+      // 초기 상태
+      updateActiveLinks();
+    </script>
+  </body>
+</html>

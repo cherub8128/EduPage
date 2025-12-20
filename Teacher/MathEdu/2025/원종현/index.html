@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>원종현 - 수학 탐구 프로젝트</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg-primary: #f1f5f9;
+        --bg-secondary: #ffffff;
+        --text-primary: #1e293b;
+        --text-secondary: #475569;
+      }
+      body {
+        font-family: "Inter", "Noto Sans KR", sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        background-color: var(--bg-primary);
+        color: var(--text-secondary);
+      }
+      .card-button {
+        transition: all 0.3s ease;
+      }
+      .btn-primary {
+        background-color: #3b82f6;
+      }
+      .btn-primary:hover {
+        background-color: #2563eb;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+      }
+    </style>
+  </head>
+  <body>
+    <a
+      href="../index.html"
+      class="absolute top-4 left-4 text-slate-600 hover:text-slate-900 transition-colors"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        class="h-6 w-6"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M10 19l-7-7m0 0l7-7m-7 7h18"
+        />
+      </svg>
+    </a>
+    <div class="container mx-auto max-w-5xl px-4 py-16 sm:py-24">
+      <header class="text-center mb-12">
+        <h1
+          class="text-4xl sm:text-5xl font-bold tracking-tight text-slate-900"
+        >
+          원종현
+        </h1>
+        <p class="mt-4 text-lg text-slate-600">수학 탐구 프로젝트 모음</p>
+      </header>
+
+      <main class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <!-- Corner Reflector -->
+        <div
+          class="bg-white rounded-xl shadow-lg overflow-hidden transform hover:-translate-y-1 transition-transform duration-300"
+        >
+          <div class="p-8">
+            <h2 class="text-xl font-bold text-slate-900 mb-3">
+              Corner Reflector
+            </h2>
+            <p class="text-slate-600 mb-6 text-sm">코너 리플렉터 시뮬레이션</p>
+            <a
+              href="CornerReflector.html"
+              class="card-button btn-primary text-white font-semibold py-2 px-5 rounded-lg inline-block"
+              >보러가기</a
+            >
+          </div>
+        </div>
+
+        <!-- Corner Reflector 2 -->
+        <div
+          class="bg-white rounded-xl shadow-lg overflow-hidden transform hover:-translate-y-1 transition-transform duration-300"
+        >
+          <div class="p-8">
+            <h2 class="text-xl font-bold text-slate-900 mb-3">
+              Corner Reflector 2
+            </h2>
+            <p class="text-slate-600 mb-6 text-sm">
+              코너 리플렉터 시뮬레이션 2
+            </p>
+            <a
+              href="CornerReflector2.html"
+              class="card-button btn-primary text-white font-semibold py-2 px-5 rounded-lg inline-block"
+              >보러가기</a
+            >
+          </div>
+        </div>
+
+        <!-- Molniya Orbit -->
+        <div
+          class="bg-white rounded-xl shadow-lg overflow-hidden transform hover:-translate-y-1 transition-transform duration-300"
+        >
+          <div class="p-8">
+            <h2 class="text-xl font-bold text-slate-900 mb-3">Molniya Orbit</h2>
+            <p class="text-slate-600 mb-6 text-sm">몰니야 궤도 시뮬레이션</p>
+            <a
+              href="Molniya.html"
+              class="card-button btn-primary text-white font-semibold py-2 px-5 rounded-lg inline-block"
+              >보러가기</a
+            >
+          </div>
+        </div>
+
+        <!-- Molniya Orbit Advanced -->
+        <div
+          class="bg-white rounded-xl shadow-lg overflow-hidden transform hover:-translate-y-1 transition-transform duration-300"
+        >
+          <div class="p-8">
+            <h2 class="text-xl font-bold text-slate-900 mb-3">
+              Molniya Orbit (심화)
+            </h2>
+            <p class="text-slate-600 mb-6 text-sm">몰니야 궤도 심화 탐구</p>
+            <a
+              href="MolniyaAdvanced.html"
+              class="card-button btn-primary text-white font-semibold py-2 px-5 rounded-lg inline-block"
+              >보러가기</a
+            >
+          </div>
+        </div>
+
+        <!-- Homogeneous & Affine -->
+        <div
+          class="bg-white rounded-xl shadow-lg overflow-hidden transform hover:-translate-y-1 transition-transform duration-300"
+        >
+          <div class="p-8">
+            <h2 class="text-xl font-bold text-slate-900 mb-3">
+              Homogeneous & Affine
+            </h2>
+            <p class="text-slate-600 mb-6 text-sm">
+              동차 좌표와 아핀 변환 시뮬레이터
+            </p>
+            <a
+              href="HomogeneousAffine.html"
+              class="card-button btn-primary text-white font-semibold py-2 px-5 rounded-lg inline-block"
+              >보러가기</a
+            >
+          </div>
+        </div>
+
+        <!-- St. Petersburg Game -->
+        <div
+          class="bg-white rounded-xl shadow-lg overflow-hidden transform hover:-translate-y-1 transition-transform duration-300"
+        >
+          <div class="p-8">
+            <h2 class="text-xl font-bold text-slate-900 mb-3">
+              St. Petersburg Game
+            </h2>
+            <p class="text-slate-600 mb-6 text-sm">
+              상트페테르부르크 역설 게임
+            </p>
+            <a
+              href="StPetersburgGame.html"
+              class="card-button btn-primary text-white font-semibold py-2 px-5 rounded-lg inline-block"
+              >보러가기</a
+            >
+          </div>
+        </div>
+
+        <!-- Numerical Integration -->
+        <div
+          class="bg-white rounded-xl shadow-lg overflow-hidden transform hover:-translate-y-1 transition-transform duration-300"
+        >
+          <div class="p-8">
+            <h2 class="text-xl font-bold text-slate-900 mb-3">
+              Numerical Integration
+            </h2>
+            <p class="text-slate-600 mb-6 text-sm">수치적분 탐구</p>
+            <a
+              href="NumericalIntegration.html"
+              class="card-button btn-primary text-white font-semibold py-2 px-5 rounded-lg inline-block"
+              >보러가기</a
+            >
+          </div>
+        </div>
+
+        <!-- Epicycloid Complex Parametrization -->
+        <div
+          class="bg-white rounded-xl shadow-lg overflow-hidden transform hover:-translate-y-1 transition-transform duration-300"
+        >
+          <div class="p-8">
+            <h2 class="text-xl font-bold text-slate-900 mb-3">
+              Epicycloid (Complex)
+            </h2>
+            <p class="text-slate-600 mb-6 text-sm">
+              에피사이클로이드의 복소 매개화
+            </p>
+            <a
+              href="EpicycloidComplex.html"
+              class="card-button btn-primary text-white font-semibold py-2 px-5 rounded-lg inline-block"
+              >보러가기</a
+            >
+          </div>
+        </div>
+
+        <!-- Perspective Projection -->
+        <div
+          class="bg-white rounded-xl shadow-lg overflow-hidden transform hover:-translate-y-1 transition-transform duration-300"
+        >
+          <div class="p-8">
+            <h2 class="text-xl font-bold text-slate-900 mb-3">
+              Perspective Projection
+            </h2>
+            <p class="text-slate-600 mb-6 text-sm">
+              원근 투영 및 역변환 안정성
+            </p>
+            <a
+              href="PerspectiveProjection.html"
+              class="card-button btn-primary text-white font-semibold py-2 px-5 rounded-lg inline-block"
+              >보러가기</a
+            >
+          </div>
+        </div>
+
+        <!-- Torus Graph Embedding -->
+        <div
+          class="bg-white rounded-xl shadow-lg overflow-hidden transform hover:-translate-y-1 transition-transform duration-300"
+        >
+          <div class="p-8">
+            <h2 class="text-xl font-bold text-slate-900 mb-3">
+              Torus Graph Embedding
+            </h2>
+            <p class="text-slate-600 mb-6 text-sm">토러스 위 그래프 임베딩</p>
+            <a
+              href="TorusGraphEmbedding.html"
+              class="card-button btn-primary text-white font-semibold py-2 px-5 rounded-lg inline-block"
+              >보러가기</a
+            >
+          </div>
+        </div>
+      </main>
+    </div>
+  </body>
+</html>

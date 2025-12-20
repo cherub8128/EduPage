@@ -1,0 +1,1546 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orbital Design Lab: High-Latitude Coverage Challenge</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        .header {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 20px;
+            text-align: center;
+            border-bottom: 2px solid #00d4ff;
+            backdrop-filter: blur(10px);
+        }
+
+        .header h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #00d4ff, #7b2ff7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            color: #aaa;
+        }
+
+        .tab-navigation {
+            display: flex;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            padding: 15px 30px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid #00d4ff;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 1em;
+            border-radius: 5px;
+        }
+
+        .tab-btn:hover {
+            background: rgba(0, 212, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(45deg, #00d4ff, #7b2ff7);
+            border-color: #7b2ff7;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 20px;
+            animation: fadeIn 0.5s;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .panel {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .panel h2 {
+            color: #00d4ff;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+            border-bottom: 2px solid #00d4ff;
+            padding-bottom: 10px;
+        }
+
+        .control-group {
+            margin-bottom: 20px;
+        }
+
+        .control-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #aaa;
+            font-size: 0.95em;
+        }
+
+        .control-group label .value {
+            float: right;
+            color: #00d4ff;
+            font-weight: bold;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.1);
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #00d4ff, #7b2ff7);
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #00d4ff, #7b2ff7);
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+        }
+
+        .canvas-container {
+            width: 100%;
+            height: 400px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(0, 212, 255, 0.3);
+        }
+
+        .canvas-container canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        .info-box {
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.1), rgba(123, 47, 247, 0.1));
+            border-left: 4px solid #00d4ff;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+
+        .info-box.warning {
+            border-left-color: #ff9800;
+            background: linear-gradient(135deg, rgba(255, 152, 0, 0.1), rgba(255, 193, 7, 0.1));
+        }
+
+        .info-box.success {
+            border-left-color: #4caf50;
+            background: linear-gradient(135deg, rgba(76, 175, 80, 0.1), rgba(139, 195, 74, 0.1));
+        }
+
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 15px 0;
+        }
+
+        .metric-card {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            text-align: center;
+        }
+
+        .metric-card .label {
+            color: #aaa;
+            font-size: 0.9em;
+            margin-bottom: 5px;
+        }
+
+        .metric-card .value {
+            color: #00d4ff;
+            font-size: 1.8em;
+            font-weight: bold;
+        }
+
+        .metric-card .unit {
+            color: #888;
+            font-size: 0.8em;
+        }
+
+        .critical-angle-indicator {
+            display: none;
+            background: linear-gradient(45deg, #4caf50, #8bc34a);
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-align: center;
+            font-weight: bold;
+            animation: pulse 1s infinite;
+        }
+
+        .critical-angle-indicator.active {
+            display: block;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin: 20px 0;
+        }
+
+        .full-width {
+            grid-column: 1 / -1;
+        }
+
+        .play-btn {
+            background: linear-gradient(45deg, #00d4ff, #7b2ff7);
+            border: none;
+            color: #fff;
+            padding: 12px 30px;
+            font-size: 1em;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin: 10px 5px;
+        }
+
+        .play-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(0, 212, 255, 0.4);
+        }
+
+        .play-btn.stop {
+            background: linear-gradient(45deg, #ff5722, #f44336);
+        }
+
+        .gauge-container {
+            position: relative;
+            height: 150px;
+            margin: 20px 0;
+        }
+
+        .gauge-bar {
+            height: 30px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .gauge-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4caf50, #00d4ff, #ff9800);
+            transition: width 0.3s;
+            border-radius: 15px;
+        }
+
+        .gauge-label {
+            text-align: center;
+            margin-top: 10px;
+            font-size: 1.2em;
+            color: #00d4ff;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        .comparison-table th,
+        .comparison-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .comparison-table th {
+            background: rgba(0, 212, 255, 0.2);
+            color: #00d4ff;
+        }
+
+        .comparison-table tr:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 1.5em;
+            }
+            
+            .tab-btn {
+                padding: 10px 15px;
+                font-size: 0.9em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🛰️ Orbital Design Lab</h1>
+        <p>High-Latitude Coverage Challenge: 궤도 설계 엔지니어가 되어보세요</p>
+    </div>
+
+    <div class="tab-navigation">
+        <button class="tab-btn active" onclick="switchTab(0)">Part 1: Orbit Fundamentals</button>
+        <button class="tab-btn" onclick="switchTab(1)">Part 2: HEO Design Space</button>
+        <button class="tab-btn" onclick="switchTab(2)">Part 3: Trade-off Analysis</button>
+        <button class="tab-btn" onclick="switchTab(3)">Part 4: Constellation</button>
+    </div>
+
+    <div class="container">
+        <!-- Part 1: Orbit Fundamentals -->
+        <div class="tab-content active" id="tab-0">
+            <div class="grid">
+                <div class="panel">
+                    <h2>🎯 이차곡선과 궤도의 기초</h2>
+                    <div class="info-box">
+                        <strong>💡 학습 목표:</strong> 타원의 이심률과 장반경이 궤도의 형태를 어떻게 결정하는지 직관적으로 이해합니다.
+                    </div>
+                    
+                    <div class="control-group">
+                        <label>
+                            이심률 (Eccentricity): <span class="value" id="eccentricity-val">0.50</span>
+                        </label>
+                        <input type="range" id="eccentricity" min="0" max="0.99" step="0.01" value="0.50">
+                        <small style="color: #888;">0 = 원, 0.99 = 매우 찌그러진 타원</small>
+                    </div>
+
+                    <div class="control-group">
+                        <label>
+                            장반경 (Semi-major Axis): <span class="value" id="semi-major-val">26,554</span> km
+                        </label>
+                        <input type="range" id="semi-major" min="7000" max="40000" step="100" value="26554">
+                    </div>
+
+                    <div class="metric-grid">
+                        <div class="metric-card">
+                            <div class="label">원지점 고도</div>
+                            <div class="value" id="apogee-alt">0</div>
+                            <div class="unit">km</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="label">근지점 고도</div>
+                            <div class="value" id="perigee-alt">0</div>
+                            <div class="unit">km</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="label">궤도 주기</div>
+                            <div class="value" id="orbital-period-1">0</div>
+                            <div class="unit">시간</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <h2>📊 궤도 시각화</h2>
+                    <div class="canvas-container">
+                        <canvas id="canvas-part1"></canvas>
+                    </div>
+                    <div class="info-box" style="margin-top: 15px;">
+                        <strong>🔍 관찰하세요:</strong>
+                        <ul style="margin: 10px 0 0 20px; line-height: 1.8;">
+                            <li>이심률이 클수록 타원이 더 찌그러집니다</li>
+                            <li>장반경이 클수록 궤도가 커지고 주기가 길어집니다</li>
+                            <li>지구는 항상 타원의 한 초점에 위치합니다</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Part 2: HEO Design Space -->
+        <div class="tab-content" id="tab-1">
+            <div class="grid">
+                <div class="panel">
+                    <h2>🎛️ 궤도 설계 컨트롤</h2>
+                    
+                    <div class="info-box warning">
+                        <strong>⚠️ 미션 브리핑:</strong> 북극권 통신을 위한 최적의 고타원 궤도를 설계하세요!
+                    </div>
+
+                    <div class="control-group">
+                        <label>
+                            ⭐ 궤도 주기 (Orbital Period): <span class="value" id="orbital-period-master-val">12.0</span> h
+                        </label>
+                        <input type="range" id="orbital-period-master" min="6" max="24" step="0.5" value="12">
+                        <small style="color: #888;">마스터 슬라이더: 이 값이 모든 파라미터를 결정합니다</small>
+                    </div>
+
+                    <div class="control-group">
+                        <label>
+                            궤도 경사 (Inclination): <span class="value" id="inclination-val">63.4</span>°
+                        </label>
+                        <input type="range" id="inclination" min="0" max="90" step="0.1" value="63.4">
+                        <small style="color: #888;">63.4° = 임계 경사각 (Critical Inclination)</small>
+                    </div>
+
+                    <div class="critical-angle-indicator" id="critical-indicator">
+                        🎯 Critical Angle: Stable Orbit Achieved!
+                    </div>
+
+                    <div class="control-group">
+                        <label>
+                            근지점 인수 (Argument of Perigee): <span class="value" id="arg-perigee-val">270</span>°
+                        </label>
+                        <input type="range" id="arg-perigee" min="0" max="360" step="10" value="270">
+                        <small style="color: #888;">270° = 북반구 최적화, 90° = 남반구 최적화</small>
+                    </div>
+
+                    <div class="info-box success">
+                        <strong>📐 설계 파라미터 (Fig. 2 기반 자동 계산):</strong>
+                        <div style="margin-top: 10px; line-height: 2;">
+                            <div>• 이심률: <strong id="auto-eccentricity">0.74</strong></div>
+                            <div>• 원지점 고도: <strong id="auto-apogee">39,358</strong> km</div>
+                            <div>• 근지점 고도: <strong id="auto-perigee">533</strong> km</div>
+                            <div>• 장반경: <strong id="auto-semimajor">26,554</strong> km</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <h2>🌍 3D 궤도 뷰</h2>
+                    <div class="canvas-container">
+                        <canvas id="canvas-part2"></canvas>
+                    </div>
+                    <button class="play-btn" onclick="toggleAnimation(2)">▶️ 애니메이션 시작</button>
+                    <button class="play-btn stop" onclick="stopAnimation(2)">⏹️ 정지</button>
+                </div>
+
+                <div class="panel full-width">
+                    <h2>🗺️ Ground Track (지상 궤적)</h2>
+                    <div class="canvas-container" style="height: 300px;">
+                        <canvas id="canvas-groundtrack"></canvas>
+                    </div>
+                    <div class="info-box">
+                        <strong>💡 Tip:</strong> 궤도 경사가 63.4°일 때 지상 궤적이 안정적으로 유지됩니다. 이는 지구의 편평도에 의한 섭동을 상쇄하는 마법의 각도입니다!
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Part 3: Trade-off Analysis -->
+        <div class="tab-content" id="tab-2">
+            <div class="panel">
+                <h2>⚖️ 엔지니어의 선택: 체공시간 vs. 방사선</h2>
+                <div class="info-box warning">
+                    <strong>🎯 핵심 질문:</strong> 긴 체공시간을 원하지만, 방사선 피폭도 최소화해야 합니다. 어떤 궤도 주기를 선택하시겠습니까?
+                </div>
+
+                <div class="gauge-container">
+                    <div class="gauge-label">체공시간 효율 (60°N 이상): <strong id="dwell-efficiency">0</strong>%</div>
+                    <div class="gauge-bar">
+                        <div class="gauge-fill" id="dwell-gauge" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid">
+                <div class="panel">
+                    <h2>📈 이점: 체공시간 효율</h2>
+                    <div class="chart-container">
+                        <canvas id="chart-dwell"></canvas>
+                    </div>
+                    <div class="info-box success">
+                        <strong>✅ 장점:</strong> 궤도 주기가 길수록 북극권에 더 오래 머무를 수 있어 통신 품질이 향상됩니다.
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <h2>📉 비용: 필요 차폐 두께</h2>
+                    <div class="chart-container">
+                        <canvas id="chart-shielding"></canvas>
+                    </div>
+                    <div class="info-box warning">
+                        <strong>⚠️ 단점:</strong> 16-18시간 주기에서 반 알렌 벨트 통과 시간이 최대가 되어 가장 두꺼운 차폐가 필요합니다.
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel">
+                <h2>🎯 당신의 선택은?</h2>
+                <div class="metric-grid">
+                    <div class="metric-card">
+                        <div class="label">현재 궤도 주기</div>
+                        <div class="value" id="current-period">12.0</div>
+                        <div class="unit">시간</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="label">체공시간 효율</div>
+                        <div class="value" id="current-dwell">0</div>
+                        <div class="unit">%</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="label">필요 차폐 두께</div>
+                        <div class="value" id="current-shielding">0</div>
+                        <div class="unit">mm Al</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="label">위성 추가 질량</div>
+                        <div class="value" id="additional-mass">0</div>
+                        <div class="unit">kg</div>
+                    </div>
+                </div>
+
+                <div class="info-box" id="recommendation">
+                    <strong>💡 분석:</strong> <span id="recommendation-text"></span>
+                </div>
+
+                <div class="info-box success">
+                    <strong>🏆 왜 12시간 몰니야 궤도가 고전적 선택인가?</strong>
+                    <p style="margin-top: 10px; line-height: 1.8;">
+                        12시간 주기는 체공시간 효율(~60%)과 방사선 차폐 요구사항(~5mm) 사이의 최적의 균형점입니다. 
+                        또한 하루에 정확히 2번의 궤도를 돌아 지상국 운용이 편리하며, 
+                        위성 3개로 24시간 연속 커버리지가 가능합니다.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Part 4: Constellation -->
+        <div class="tab-content" id="tab-3">
+            <div class="grid">
+                <div class="panel">
+                    <h2>🛰️ 위성군 설정</h2>
+                    
+                    <div class="control-group">
+                        <label>위성군 유형:</label>
+                        <select id="constellation-type" style="width: 100%; padding: 10px; background: rgba(0,0,0,0.3); color: #fff; border: 1px solid #00d4ff; border-radius: 5px;">
+                            <option value="standard">Standard 3-Sat Molniya</option>
+                            <option value="symmetric">Symmetric 2-Sat Molniya</option>
+                        </select>
+                    </div>
+
+                    <div class="info-box">
+                        <strong>Standard 3-Sat Molniya:</strong>
+                        <p style="margin-top: 5px;">3개의 위성이 8시간 간격으로 배치되어 24시간 연속 커버리지 제공</p>
+                    </div>
+
+                    <div class="info-box">
+                        <strong>Symmetric 2-Sat Molniya:</strong>
+                        <p style="margin-top: 5px;">2개의 위성이 대칭적으로 배치. 비용은 절감되지만 커버리지에 짧은 갭 발생</p>
+                    </div>
+
+                    <button class="play-btn" onclick="toggleAnimation(4)">▶️ 시뮬레이션 시작</button>
+                    <button class="play-btn stop" onclick="stopAnimation(4)">⏹️ 정지</button>
+
+                    <div class="metric-grid" style="margin-top: 20px;">
+                        <div class="metric-card">
+                            <div class="label">위성 수</div>
+                            <div class="value" id="sat-count">3</div>
+                            <div class="unit">개</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="label">커버리지</div>
+                            <div class="value" id="coverage">100</div>
+                            <div class="unit">%</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <h2>🌍 위성군 시각화</h2>
+                    <div class="canvas-container">
+                        <canvas id="canvas-part4"></canvas>
+                    </div>
+                </div>
+
+                <div class="panel full-width">
+                    <h2>📊 위성군 비교</h2>
+                    <table class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>항목</th>
+                                <th>Standard 3-Sat</th>
+                                <th>Symmetric 2-Sat</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>위성 수</td>
+                                <td>3개</td>
+                                <td>2개</td>
+                            </tr>
+                            <tr>
+                                <td>위성 간 위상차</td>
+                                <td>120° (8시간)</td>
+                                <td>180° (12시간)</td>
+                            </tr>
+                            <tr>
+                                <td>24시간 커버리지</td>
+                                <td>✅ 연속적</td>
+                                <td>⚠️ 약간의 갭</td>
+                            </tr>
+                            <tr>
+                                <td>발사 비용</td>
+                                <td>높음</td>
+                                <td>33% 절감</td>
+                            </tr>
+                            <tr>
+                                <td>운용 복잡도</td>
+                                <td>중간</td>
+                                <td>낮음</td>
+                            </tr>
+                            <tr>
+                                <td>권장 용도</td>
+                                <td>연속 통신 필수</td>
+                                <td>비용 민감 프로젝트</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==================== 전역 변수 ====================
+        const EARTH_RADIUS = 6371; // km
+        let currentTab = 0;
+        let animations = {
+            part1: null,
+            part2: null,
+            part4: null
+        };
+        
+        // 논문 데이터 (Fig. 2 근사)
+        const orbitData = {
+            6: { e: 0.55, apogee: 20000, perigee: 500 },
+            8: { e: 0.65, apogee: 28000, perigee: 520 },
+            10: { e: 0.70, apogee: 34000, perigee: 530 },
+            12: { e: 0.74, apogee: 39358, perigee: 533 },
+            14: { e: 0.77, apogee: 44000, perigee: 540 },
+            16: { e: 0.80, apogee: 50000, perigee: 550 },
+            18: { e: 0.82, apogee: 56000, perigee: 560 },
+            20: { e: 0.84, apogee: 62000, perigee: 570 },
+            22: { e: 0.86, apogee: 68000, perigee: 580 },
+            24: { e: 0.88, apogee: 74000, perigee: 590 }
+        };
+
+        // 방사선 차폐 데이터 (Fig. 9 근사 - TID 10krad)
+        const shieldingData = {
+            6: 3.5, 8: 4.2, 10: 5.0, 12: 5.5, 14: 6.8,
+            16: 8.2, 18: 7.8, 20: 6.5, 22: 5.2, 24: 4.5
+        };
+
+        // ==================== 유틸리티 함수 ====================
+        function interpolateData(data, value) {
+            const keys = Object.keys(data).map(Number).sort((a, b) => a - b);
+            if (value <= keys[0]) return data[keys[0]];
+            if (value >= keys[keys.length - 1]) return data[keys[keys.length - 1]];
+            
+            for (let i = 0; i < keys.length - 1; i++) {
+                if (value >= keys[i] && value <= keys[i + 1]) {
+                    const t = (value - keys[i]) / (keys[i + 1] - keys[i]);
+                    if (typeof data[keys[i]] === 'object') {
+                        const result = {};
+                        for (let key in data[keys[i]]) {
+                            result[key] = data[keys[i]][key] + t * (data[keys[i + 1]][key] - data[keys[i]][key]);
+                        }
+                        return result;
+                    } else {
+                        return data[keys[i]] + t * (data[keys[i + 1]] - data[keys[i]]);
+                    }
+                }
+            }
+        }
+
+        function calculateOrbitalPeriod(semiMajorAxis) {
+            const GM = 398600.4418; // km^3/s^2
+            const a = semiMajorAxis;
+            const T = 2 * Math.PI * Math.sqrt(Math.pow(a, 3) / GM);
+            return T / 3600; // hours
+        }
+
+        function calculateDwellTime(eccentricity, inclination, latitude = 60) {
+            const e = eccentricity;
+            const i = inclination * Math.PI / 180;
+            const efficiency = Math.min(100, 30 + e * 70 + Math.abs(Math.cos(i - 63.4 * Math.PI / 180)) * 20);
+            return Math.round(efficiency);
+        }
+
+        // ==================== 탭 전환 ====================
+        function switchTab(index) {
+            const tabs = document.querySelectorAll('.tab-content');
+            const btns = document.querySelectorAll('.tab-btn');
+            
+            tabs.forEach(tab => tab.classList.remove('active'));
+            btns.forEach(btn => btn.classList.remove('active'));
+            
+            tabs[index].classList.add('active');
+            btns[index].classList.add('active');
+            
+            currentTab = index;
+            
+            // 해당 탭의 시각화 초기화
+            setTimeout(() => {
+                if (index === 0) initPart1();
+                if (index === 1) initPart2();
+                if (index === 2) initPart3();
+                if (index === 3) initPart4();
+            }, 50);
+        }
+
+        // ==================== Part 1: Orbit Fundamentals ====================
+        let canvas1, ctx1, animFrame1;
+        let rotation1 = 0;
+        
+        function initPart1() {
+            canvas1 = document.getElementById('canvas-part1');
+            if (!canvas1) return;
+            
+            ctx1 = canvas1.getContext('2d');
+            canvas1.width = canvas1.offsetWidth;
+            canvas1.height = canvas1.offsetHeight;
+            
+            updatePart1();
+            animatePart1();
+        }
+
+        function updatePart1() {
+            const e = parseFloat(document.getElementById('eccentricity').value);
+            const a = parseFloat(document.getElementById('semi-major').value);
+            
+            document.getElementById('eccentricity-val').textContent = e.toFixed(2);
+            document.getElementById('semi-major-val').textContent = a.toLocaleString();
+            
+            const apogee = a * (1 + e) - EARTH_RADIUS;
+            const perigee = a * (1 - e) - EARTH_RADIUS;
+            const period = calculateOrbitalPeriod(a);
+            
+            document.getElementById('apogee-alt').textContent = Math.round(apogee).toLocaleString();
+            document.getElementById('perigee-alt').textContent = Math.round(perigee).toLocaleString();
+            document.getElementById('orbital-period-1').textContent = period.toFixed(1);
+            
+            drawOrbit1(e, a);
+        }
+
+        function drawOrbit1(e, a) {
+            if (!ctx1 || !canvas1) return;
+            
+            const w = canvas1.width;
+            const h = canvas1.height;
+            const scale = Math.min(w, h) / (a * 2.5);
+            const centerX = w / 2 + (a * e * scale);
+            const centerY = h / 2;
+            
+            // Clear
+            ctx1.fillStyle = '#0a0a0a';
+            ctx1.fillRect(0, 0, w, h);
+            
+            // Grid
+            ctx1.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+            ctx1.lineWidth = 1;
+            for (let i = 0; i < w; i += 50) {
+                ctx1.beginPath();
+                ctx1.moveTo(i, 0);
+                ctx1.lineTo(i, h);
+                ctx1.stroke();
+            }
+            for (let i = 0; i < h; i += 50) {
+                ctx1.beginPath();
+                ctx1.moveTo(0, i);
+                ctx1.lineTo(w, i);
+                ctx1.stroke();
+            }
+            
+            // Orbit
+            const b = a * Math.sqrt(1 - e * e);
+            ctx1.strokeStyle = '#00d4ff';
+            ctx1.lineWidth = 3;
+            ctx1.beginPath();
+            ctx1.ellipse(centerX, centerY, a * scale, b * scale, 0, 0, 2 * Math.PI);
+            ctx1.stroke();
+            
+            // Earth (at focus)
+            const earthX = centerX - (a * e * scale);
+            const earthY = centerY;
+            const earthRadius = EARTH_RADIUS * scale;
+            
+            ctx1.fillStyle = '#2233ff';
+            ctx1.beginPath();
+            ctx1.arc(earthX, earthY, earthRadius, 0, 2 * Math.PI);
+            ctx1.fill();
+            
+            ctx1.strokeStyle = '#00d4ff';
+            ctx1.lineWidth = 2;
+            ctx1.stroke();
+            
+            // Earth glow
+            const gradient = ctx1.createRadialGradient(earthX, earthY, earthRadius, earthX, earthY, earthRadius * 1.5);
+            gradient.addColorStop(0, 'rgba(34, 51, 255, 0.3)');
+            gradient.addColorStop(1, 'rgba(34, 51, 255, 0)');
+            ctx1.fillStyle = gradient;
+            ctx1.beginPath();
+            ctx1.arc(earthX, earthY, earthRadius * 1.5, 0, 2 * Math.PI);
+            ctx1.fill();
+            
+            // Satellite
+            const satAngle = rotation1;
+            const r = a * (1 - e * e) / (1 + e * Math.cos(satAngle));
+            const satX = centerX + r * scale * Math.cos(satAngle);
+            const satY = centerY + r * scale * Math.sin(satAngle);
+            
+            ctx1.fillStyle = '#ff9800';
+            ctx1.beginPath();
+            ctx1.arc(satX, satY, 5, 0, 2 * Math.PI);
+            ctx1.fill();
+            
+            ctx1.strokeStyle = '#ff9800';
+            ctx1.lineWidth = 2;
+            ctx1.beginPath();
+            ctx1.arc(satX, satY, 8, 0, 2 * Math.PI);
+            ctx1.stroke();
+            
+            // Labels
+            ctx1.fillStyle = '#fff';
+            ctx1.font = '14px monospace';
+            ctx1.fillText('🌍 지구', earthX - 20, earthY + earthRadius + 20);
+            ctx1.fillText('🛰️', satX - 10, satY - 15);
+            
+            // Apogee and Perigee markers
+            ctx1.fillStyle = '#4caf50';
+            ctx1.fillText('원지점', centerX + a * scale - 30, centerY - 10);
+            ctx1.fillStyle = '#ff5722';
+            ctx1.fillText('근지점', centerX - a * scale - 30, centerY - 10);
+        }
+
+        function animatePart1() {
+            rotation1 += 0.01;
+            const e = parseFloat(document.getElementById('eccentricity').value);
+            const a = parseFloat(document.getElementById('semi-major').value);
+            drawOrbit1(e, a);
+            animFrame1 = requestAnimationFrame(animatePart1);
+        }
+
+        // ==================== Part 2: HEO Design Space ====================
+        let canvas2, ctx2, animFrame2;
+        let rotation2 = 0;
+        let animating2 = false;
+        
+        function initPart2() {
+            canvas2 = document.getElementById('canvas-part2');
+            if (!canvas2) return;
+            
+            ctx2 = canvas2.getContext('2d');
+            canvas2.width = canvas2.offsetWidth;
+            canvas2.height = canvas2.offsetHeight;
+            
+            updatePart2();
+            animatePart2();
+            initGroundTrack();
+        }
+
+        function updatePart2() {
+            const period = parseFloat(document.getElementById('orbital-period-master').value);
+            const inclination = parseFloat(document.getElementById('inclination').value);
+            const argPerigee = parseFloat(document.getElementById('arg-perigee').value);
+            
+            document.getElementById('orbital-period-master-val').textContent = period.toFixed(1);
+            document.getElementById('inclination-val').textContent = inclination.toFixed(1);
+            document.getElementById('arg-perigee-val').textContent = argPerigee.toFixed(0);
+            
+            // Check critical angle
+            const isCritical = Math.abs(inclination - 63.4) < 0.5 || Math.abs(inclination - 116.6) < 0.5;
+            document.getElementById('critical-indicator').classList.toggle('active', isCritical);
+            
+            // Get orbit parameters from data
+            const params = interpolateData(orbitData, period);
+            const e = params.e;
+            const apogee = params.apogee;
+            const perigee = params.perigee;
+            const a = (apogee + perigee) / 2 + EARTH_RADIUS;
+            
+            document.getElementById('auto-eccentricity').textContent = e.toFixed(3);
+            document.getElementById('auto-apogee').textContent = Math.round(apogee).toLocaleString();
+            document.getElementById('auto-perigee').textContent = Math.round(perigee).toLocaleString();
+            document.getElementById('auto-semimajor').textContent = Math.round(a).toLocaleString();
+            
+            drawOrbit2(e, a, inclination, argPerigee);
+            updatePart3();
+            updateGroundTrack();
+        }
+
+        function drawOrbit2(e, a, inclination, argPerigee) {
+            if (!ctx2 || !canvas2) return;
+            
+            const w = canvas2.width;
+            const h = canvas2.height;
+            const scale = Math.min(w, h) / (a * 2.5);
+            const centerX = w / 2;
+            const centerY = h / 2;
+            
+            // Clear
+            ctx2.fillStyle = '#0a0a0a';
+            ctx2.fillRect(0, 0, w, h);
+            
+            // Stars
+            ctx2.fillStyle = '#fff';
+            for (let i = 0; i < 100; i++) {
+                const x = Math.random() * w;
+                const y = Math.random() * h;
+                const size = Math.random() * 2;
+                ctx2.beginPath();
+                ctx2.arc(x, y, size, 0, 2 * Math.PI);
+                ctx2.fill();
+            }
+            
+            // 3D projection
+            const incRad = inclination * Math.PI / 180;
+            const argRad = argPerigee * Math.PI / 180;
+            
+            // Draw orbit
+            ctx2.strokeStyle = '#00d4ff';
+            ctx2.lineWidth = 3;
+            ctx2.beginPath();
+            
+            for (let i = 0; i <= 200; i++) {
+                const theta = (i / 200) * 2 * Math.PI;
+                const r = a * (1 - e * e) / (1 + e * Math.cos(theta));
+                
+                // 2D orbit coordinates
+                let x = r * Math.cos(theta);
+                let y = r * Math.sin(theta);
+                
+                // Apply inclination (rotate around x-axis)
+                const y3d = y * Math.cos(incRad);
+                const z3d = y * Math.sin(incRad);
+                
+                // Apply argument of perigee (rotate in orbital plane)
+                const xRot = x * Math.cos(argRad) - y3d * Math.sin(argRad);
+                const yRot = x * Math.sin(argRad) + y3d * Math.cos(argRad);
+                
+                // Simple perspective projection
+                const perspective = 1 / (1 + z3d / (a * 3));
+                const screenX = centerX + xRot * scale * perspective;
+                const screenY = centerY - yRot * scale * perspective * 0.5;
+                
+                if (i === 0) {
+                    ctx2.moveTo(screenX, screenY);
+                } else {
+                    ctx2.lineTo(screenX, screenY);
+                }
+            }
+            ctx2.closePath();
+            ctx2.stroke();
+            
+            // Earth
+            const earthRadius = EARTH_RADIUS * scale * 0.8;
+            ctx2.fillStyle = '#2233ff';
+            ctx2.beginPath();
+            ctx2.arc(centerX, centerY, earthRadius, 0, 2 * Math.PI);
+            ctx2.fill();
+            
+            ctx2.strokeStyle = '#00d4ff';
+            ctx2.lineWidth = 2;
+            ctx2.stroke();
+            
+            // Equator
+            ctx2.strokeStyle = 'rgba(255, 255, 0, 0.5)';
+            ctx2.lineWidth = 1;
+            ctx2.beginPath();
+            ctx2.ellipse(centerX, centerY, earthRadius * 1.1, earthRadius * 0.3, 0, 0, 2 * Math.PI);
+            ctx2.stroke();
+            
+            // Satellite
+            if (animating2) {
+                const theta = rotation2;
+                const r = a * (1 - e * e) / (1 + e * Math.cos(theta));
+                
+                let x = r * Math.cos(theta);
+                let y = r * Math.sin(theta);
+                
+                const y3d = y * Math.cos(incRad);
+                const z3d = y * Math.sin(incRad);
+                
+                const xRot = x * Math.cos(argRad) - y3d * Math.sin(argRad);
+                const yRot = x * Math.sin(argRad) + y3d * Math.cos(argRad);
+                
+                const perspective = 1 / (1 + z3d / (a * 3));
+                const satX = centerX + xRot * scale * perspective;
+                const satY = centerY - yRot * scale * perspective * 0.5;
+                
+                ctx2.fillStyle = '#ff0000';
+                ctx2.beginPath();
+                ctx2.arc(satX, satY, 6, 0, 2 * Math.PI);
+                ctx2.fill();
+                
+                ctx2.strokeStyle = '#ff9800';
+                ctx2.lineWidth = 2;
+                ctx2.beginPath();
+                ctx2.arc(satX, satY, 10, 0, 2 * Math.PI);
+                ctx2.stroke();
+            }
+            
+            // Labels
+            ctx2.fillStyle = '#fff';
+            ctx2.font = '16px monospace';
+            ctx2.fillText('🌍', centerX - 15, centerY + 5);
+            ctx2.font = '12px monospace';
+            ctx2.fillText(`경사: ${inclination.toFixed(1)}°`, 10, 20);
+            ctx2.fillText(`근지점 인수: ${argPerigee.toFixed(0)}°`, 10, 40);
+        }
+
+        function animatePart2() {
+            if (animating2) {
+                rotation2 += 0.02;
+                const period = parseFloat(document.getElementById('orbital-period-master').value);
+                const inclination = parseFloat(document.getElementById('inclination').value);
+                const argPerigee = parseFloat(document.getElementById('arg-perigee').value);
+                const params = interpolateData(orbitData, period);
+                const e = params.e;
+                const a = (params.apogee + params.perigee) / 2 + EARTH_RADIUS;
+                drawOrbit2(e, a, inclination, argPerigee);
+            }
+            animFrame2 = requestAnimationFrame(animatePart2);
+        }
+
+        // Ground Track
+        let canvasGround, ctxGround;
+        
+        function initGroundTrack() {
+            canvasGround = document.getElementById('canvas-groundtrack');
+            if (!canvasGround) return;
+            
+            ctxGround = canvasGround.getContext('2d');
+            canvasGround.width = canvasGround.offsetWidth;
+            canvasGround.height = canvasGround.offsetHeight;
+            
+            updateGroundTrack();
+        }
+
+        function updateGroundTrack() {
+            if (!ctxGround || !canvasGround) return;
+            
+            const w = canvasGround.width;
+            const h = canvasGround.height;
+            
+            // Clear
+            ctxGround.fillStyle = '#0a0a0a';
+            ctxGround.fillRect(0, 0, w, h);
+            
+            // Grid
+            ctxGround.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+            ctxGround.lineWidth = 1;
+            for (let i = 0; i <= 12; i++) {
+                ctxGround.beginPath();
+                ctxGround.moveTo((i / 12) * w, 0);
+                ctxGround.lineTo((i / 12) * w, h);
+                ctxGround.stroke();
+            }
+            for (let i = 0; i <= 6; i++) {
+                ctxGround.beginPath();
+                ctxGround.moveTo(0, (i / 6) * h);
+                ctxGround.lineTo(w, (i / 6) * h);
+                ctxGround.stroke();
+            }
+            
+            // Latitude lines
+            ctxGround.strokeStyle = 'rgba(0, 212, 255, 0.3)';
+            ctxGround.lineWidth = 2;
+            const lat60 = h * (1 - (90 + 60) / 180);
+            ctxGround.beginPath();
+            ctxGround.moveTo(0, lat60);
+            ctxGround.lineTo(w, lat60);
+            ctxGround.stroke();
+            
+            ctxGround.fillStyle = '#00d4ff';
+            ctxGround.font = '12px monospace';
+            ctxGround.fillText('60°N', 10, lat60 - 5);
+            
+            // Equator
+            const latEq = h / 2;
+            ctxGround.strokeStyle = 'rgba(255, 255, 0, 0.3)';
+            ctxGround.beginPath();
+            ctxGround.moveTo(0, latEq);
+            ctxGround.lineTo(w, latEq);
+            ctxGround.stroke();
+            ctxGround.fillStyle = '#ffff00';
+            ctxGround.fillText('0° (적도)', 10, latEq + 15);
+            
+            // Ground track
+            const inclination = parseFloat(document.getElementById('inclination').value);
+            
+            ctxGround.strokeStyle = '#00d4ff';
+            ctxGround.lineWidth = 2;
+            ctxGround.beginPath();
+            
+            const numPoints = 500;
+            for (let i = 0; i <= numPoints; i++) {
+                const t = i / numPoints;
+                const lat = inclination * Math.sin(t * 2 * Math.PI * 2); // 2 orbits
+                const lon = (t * 360 * 2) % 360;
+                
+                const x = (lon / 360) * w;
+                const y = h * (1 - (lat + 90) / 180);
+                
+                if (i === 0) ctxGround.moveTo(x, y);
+                else ctxGround.lineTo(x, y);
+            }
+            ctxGround.stroke();
+            
+            // Labels
+            ctxGround.fillStyle = '#fff';
+            ctxGround.font = '14px sans-serif';
+            ctxGround.fillText('경도 (Longitude)', w / 2 - 60, h - 10);
+            ctxGround.save();
+            ctxGround.translate(15, h / 2);
+            ctxGround.rotate(-Math.PI / 2);
+            ctxGround.fillText('위도 (Latitude)', -40, 0);
+            ctxGround.restore();
+        }
+
+        // ==================== Part 3: Trade-off Analysis ====================
+        let dwellChart, shieldingChart;
+        
+        function initPart3() {
+            if (dwellChart) return;
+            
+            // Dwell Time Chart
+            const ctxDwell = document.getElementById('chart-dwell').getContext('2d');
+            dwellChart = new Chart(ctxDwell, {
+                type: 'line',
+                data: {
+                    labels: [6, 8, 10, 12, 14, 16, 18, 20, 22, 24],
+                    datasets: [{
+                        label: '체공시간 효율 (%)',
+                        data: [45, 52, 58, 63, 67, 70, 72, 74, 75, 76],
+                        borderColor: '#4caf50',
+                        backgroundColor: 'rgba(76, 175, 80, 0.1)',
+                        tension: 0.4,
+                        fill: true,
+                        pointRadius: 6,
+                        pointHoverRadius: 8
+                    }, {
+                        label: '현재 선택',
+                        data: [],
+                        borderColor: '#ff9800',
+                        backgroundColor: '#ff9800',
+                        pointRadius: 10,
+                        pointStyle: 'star',
+                        showLine: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { labels: { color: '#fff' } },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + context.parsed.y.toFixed(1) + '%';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: { display: true, text: '궤도 주기 (시간)', color: '#fff' },
+                            ticks: { color: '#fff' },
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                        },
+                        y: {
+                            title: { display: true, text: '체공시간 효율 (%)', color: '#fff' },
+                            ticks: { color: '#fff' },
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                            min: 0,
+                            max: 100
+                        }
+                    }
+                }
+            });
+            
+            // Shielding Chart
+            const ctxShield = document.getElementById('chart-shielding').getContext('2d');
+            shieldingChart = new Chart(ctxShield, {
+                type: 'line',
+                data: {
+                    labels: [6, 8, 10, 12, 14, 16, 18, 20, 22, 24],
+                    datasets: [{
+                        label: '필요 차폐 두께 (mm)',
+                        data: [3.5, 4.2, 5.0, 5.5, 6.8, 8.2, 7.8, 6.5, 5.2, 4.5],
+                        borderColor: '#ff5722',
+                        backgroundColor: 'rgba(255, 87, 34, 0.1)',
+                        tension: 0.4,
+                        fill: true,
+                        pointRadius: 6,
+                        pointHoverRadius: 8
+                    }, {
+                        label: '현재 선택',
+                        data: [],
+                        borderColor: '#ff9800',
+                        backgroundColor: '#ff9800',
+                        pointRadius: 10,
+                        pointStyle: 'star',
+                        showLine: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { labels: { color: '#fff' } },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + context.parsed.y.toFixed(1) + 'mm';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: { display: true, text: '궤도 주기 (시간)', color: '#fff' },
+                            ticks: { color: '#fff' },
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                        },
+                        y: {
+                            title: { display: true, text: '차폐 두께 (mm Al)', color: '#fff' },
+                            ticks: { color: '#fff' },
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                            min: 0,
+                            max: 10
+                        }
+                    }
+                }
+            });
+            
+            updatePart3();
+        }
+
+        function updatePart3() {
+            const period = parseFloat(document.getElementById('orbital-period-master').value);
+            const params = interpolateData(orbitData, period);
+            const shielding = interpolateData(shieldingData, period);
+            const dwell = calculateDwellTime(params.e, parseFloat(document.getElementById('inclination').value));
+            
+            // Update gauge
+            document.getElementById('dwell-efficiency').textContent = dwell;
+            document.getElementById('dwell-gauge').style.width = dwell + '%';
+            
+            // Update metrics
+            document.getElementById('current-period').textContent = period.toFixed(1);
+            document.getElementById('current-dwell').textContent = dwell;
+            document.getElementById('current-shielding').textContent = shielding.toFixed(1);
+            
+            const additionalMass = Math.round(shielding * 2.7 * 10);
+            document.getElementById('additional-mass').textContent = additionalMass;
+            
+            // Update charts
+            if (dwellChart) {
+                dwellChart.data.datasets[1].data = [{x: period, y: dwell}];
+                dwellChart.update('none');
+            }
+            
+            if (shieldingChart) {
+                shieldingChart.data.datasets[1].data = [{x: period, y: shielding}];
+                shieldingChart.update('none');
+            }
+            
+            // Recommendation
+            let recommendation = '';
+            if (period < 10) {
+                recommendation = '짧은 주기는 체공시간이 부족합니다. 통신 창이 제한적입니다.';
+            } else if (period >= 10 && period < 14) {
+                recommendation = '✅ 우수한 선택! 적절한 체공시간과 합리적인 차폐 요구사항의 균형을 이룹니다.';
+            } else if (period >= 14 && period < 19) {
+                recommendation = '⚠️ 주의: 반 알렌 벨트 통과 시간이 증가하여 매우 두꺼운 차폐가 필요합니다. 위성 무게와 비용이 크게 증가합니다.';
+            } else {
+                recommendation = '체공시간은 우수하나, 궤도가 매우 커서 지연 시간이 길어집니다. 특수 목적용입니다.';
+            }
+            
+            document.getElementById('recommendation-text').textContent = recommendation;
+        }
+
+        // ==================== Part 4: Constellation ====================
+        let canvas4, ctx4, animFrame4;
+        let animating4 = false;
+        let satellites4 = [];
+        
+        function initPart4() {
+            canvas4 = document.getElementById('canvas-part4');
+            if (!canvas4) return;
+            
+            ctx4 = canvas4.getContext('2d');
+            canvas4.width = canvas4.offsetWidth;
+            canvas4.height = canvas4.offsetHeight;
+            
+            updateConstellation();
+            animatePart4();
+        }
+
+        function updateConstellation() {
+            const type = document.getElementById('constellation-type').value;
+            const numSats = type === 'standard' ? 3 : 2;
+            const phaseShift = type === 'standard' ? (2 * Math.PI / 3) : Math.PI;
+            
+            document.getElementById('sat-count').textContent = numSats;
+            document.getElementById('coverage').textContent = type === 'standard' ? '100' : '95';
+            
+            satellites4 = [];
+            for (let i = 0; i < numSats; i++) {
+                satellites4.push({
+                    angle: i * phaseShift,
+                    color: ['#ff0000', '#00ff00', '#0000ff'][i]
+                });
+            }
+        }
+
+        function drawConstellation() {
+            if (!ctx4 || !canvas4) return;
+            
+            const w = canvas4.width;
+            const h = canvas4.height;
+            const centerX = w / 2;
+            const centerY = h / 2;
+            
+            const params = orbitData[12]; // 12h Molniya
+            const e = params.e;
+            const a = (params.apogee + params.perigee) / 2 + EARTH_RADIUS;
+            const scale = Math.min(w, h) / (a * 2.5);
+            const incRad = 63.4 * Math.PI / 180;
+            const argRad = 270 * Math.PI / 180;
+            
+            // Clear
+            ctx4.fillStyle = '#0a0a0a';
+            ctx4.fillRect(0, 0, w, h);
+            
+            // Stars
+            ctx4.fillStyle = '#fff';
+            for (let i = 0; i < 150; i++) {
+                const x = Math.random() * w;
+                const y = Math.random() * h;
+                const size = Math.random() * 2;
+                ctx4.beginPath();
+                ctx4.arc(x, y, size, 0, 2 * Math.PI);
+                ctx4.fill();
+            }
+            
+            // Draw each satellite's orbit
+            satellites4.forEach((sat, idx) => {
+                ctx4.strokeStyle = sat.color;
+                ctx4.globalAlpha = 0.4;
+                ctx4.lineWidth = 2;
+                ctx4.beginPath();
+                
+                for (let i = 0; i <= 200; i++) {
+                    const theta = (i / 200) * 2 * Math.PI;
+                    const r = a * (1 - e * e) / (1 + e * Math.cos(theta));
+                    
+                    let x = r * Math.cos(theta);
+                    let y = r * Math.sin(theta);
+                    
+                    const y3d = y * Math.cos(incRad);
+                    const z3d = y * Math.sin(incRad);
+                    
+                    const xRot = x * Math.cos(argRad) - y3d * Math.sin(argRad);
+                    const yRot = x * Math.sin(argRad) + y3d * Math.cos(argRad);
+                    
+                    const perspective = 1 / (1 + z3d / (a * 3));
+                    const screenX = centerX + xRot * scale * perspective;
+                    const screenY = centerY - yRot * scale * perspective * 0.5;
+                    
+                    if (i === 0) ctx4.moveTo(screenX, screenY);
+                    else ctx4.lineTo(screenX, screenY);
+                }
+                ctx4.closePath();
+                ctx4.stroke();
+                ctx4.globalAlpha = 1;
+                
+                // Draw satellite
+                if (animating4) {
+                    const theta = sat.angle;
+                    const r = a * (1 - e * e) / (1 + e * Math.cos(theta));
+                    
+                    let x = r * Math.cos(theta);
+                    let y = r * Math.sin(theta);
+                    
+                    const y3d = y * Math.cos(incRad);
+                    const z3d = y * Math.sin(incRad);
+                    
+                    const xRot = x * Math.cos(argRad) - y3d * Math.sin(argRad);
+                    const yRot = x * Math.sin(argRad) + y3d * Math.cos(argRad);
+                    
+                    const perspective = 1 / (1 + z3d / (a * 3));
+                    const satX = centerX + xRot * scale * perspective;
+                    const satY = centerY - yRot * scale * perspective * 0.5;
+                    
+                    ctx4.fillStyle = sat.color;
+                    ctx4.beginPath();
+                    ctx4.arc(satX, satY, 8, 0, 2 * Math.PI);
+                    ctx4.fill();
+                    
+                    ctx4.strokeStyle = sat.color;
+                    ctx4.lineWidth = 2;
+                    ctx4.beginPath();
+                    ctx4.arc(satX, satY, 12, 0, 2 * Math.PI);
+                    ctx4.stroke();
+                    
+                    ctx4.fillStyle = '#fff';
+                    ctx4.font = '12px monospace';
+                    ctx4.fillText(`S${idx + 1}`, satX - 8, satY - 15);
+                }
+            });
+            
+            // Earth
+            const earthRadius = EARTH_RADIUS * scale * 0.8;
+            ctx4.fillStyle = '#2233ff';
+            ctx4.beginPath();
+            ctx4.arc(centerX, centerY, earthRadius, 0, 2 * Math.PI);
+            ctx4.fill();
+            
+            ctx4.strokeStyle = '#00d4ff';
+            ctx4.lineWidth = 2;
+            ctx4.stroke();
+            
+            ctx4.fillStyle = '#fff';
+            ctx4.font = '16px monospace';
+            ctx4.fillText('🌍', centerX - 15, centerY + 5);
+        }
+
+        function animatePart4() {
+            if (animating4) {
+                satellites4.forEach(sat => {
+                    sat.angle += 0.015;
+                });
+                drawConstellation();
+            }
+            animFrame4 = requestAnimationFrame(animatePart4);
+        }
+
+        // ==================== Animation Controls ====================
+        function toggleAnimation(part) {
+            if (part === 2) {
+                animating2 = !animating2;
+            } else if (part === 4) {
+                animating4 = !animating4;
+            }
+        }
+
+        function stopAnimation(part) {
+            if (part === 2) {
+                animating2 = false;
+                rotation2 = 0;
+            } else if (part === 4) {
+                animating4 = false;
+                updateConstellation();
+                drawConstellation();
+            }
+        }
+
+        // ==================== Event Listeners ====================
+        document.addEventListener('DOMContentLoaded', function() {
+            // Part 1 controls
+            document.getElementById('eccentricity').addEventListener('input', updatePart1);
+            document.getElementById('semi-major').addEventListener('input', updatePart1);
+            
+            // Part 2 controls
+            document.getElementById('orbital-period-master').addEventListener('input', updatePart2);
+            document.getElementById('inclination').addEventListener('input', updatePart2);
+            document.getElementById('arg-perigee').addEventListener('input', updatePart2);
+            
+            // Part 4 controls
+            document.getElementById('constellation-type').addEventListener('change', function() {
+                updateConstellation();
+                drawConstellation();
+            });
+            
+            // Initialize first tab
+            initPart1();
+        });
+
+        // Handle window resize
+        window.addEventListener('resize', function() {
+            if (canvas1) {
+                canvas1.width = canvas1.offsetWidth;
+                canvas1.height = canvas1.offsetHeight;
+                updatePart1();
+            }
+            if (canvas2) {
+                canvas2.width = canvas2.offsetWidth;
+                canvas2.height = canvas2.offsetHeight;
+                updatePart2();
+            }
+            if (canvasGround) {
+                canvasGround.width = canvasGround.offsetWidth;
+                canvasGround.height = canvasGround.offsetHeight;
+                updateGroundTrack();
+            }
+            if (canvas4) {
+                canvas4.width = canvas4.offsetWidth;
+                canvas4.height = canvas4.offsetHeight;
+                drawConstellation();
+            }
+        });
+    </script>
+</body>
+</html>

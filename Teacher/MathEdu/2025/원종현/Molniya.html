@@ -1,0 +1,1018 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Molniya 궤도 시뮬레이션 - 이차곡선 수학 탐구</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1d3a 100%);
+            color: #e0e0e0;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            color: #a0a0a0;
+            font-size: 1.1em;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .panel {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .panel h2 {
+            color: #4facfe;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            border-bottom: 2px solid rgba(79, 172, 254, 0.3);
+            padding-bottom: 10px;
+        }
+
+        #orbitCanvas {
+            width: 100%;
+            height: 500px;
+            background: radial-gradient(circle at center, #0f1535 0%, #050818 100%);
+            border-radius: 10px;
+            cursor: crosshair;
+            box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.5);
+        }
+
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .control-group label {
+            color: #4facfe;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .value-display {
+            color: #00f2fe;
+            font-family: 'Courier New', monospace;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.1);
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(79, 172, 254, 0.5);
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 0 10px rgba(79, 172, 254, 0.5);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        button {
+            flex: 1;
+            padding: 12px 24px;
+            font-size: 1em;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(79, 172, 254, 0.3);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(79, 172, 254, 0.5);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button.secondary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        button.secondary:hover {
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .stat-card {
+            background: rgba(79, 172, 254, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid rgba(79, 172, 254, 0.2);
+        }
+
+        .stat-label {
+            color: #a0a0a0;
+            font-size: 0.9em;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            color: #00f2fe;
+            font-size: 1.3em;
+            font-weight: bold;
+            font-family: 'Courier New', monospace;
+        }
+
+        .chart-container {
+            width: 100%;
+            height: 300px;
+            margin-top: 20px;
+            position: relative;
+        }
+
+        canvas.chart {
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+        }
+
+        .legend {
+            display: flex;
+            gap: 20px;
+            margin-top: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 3px;
+            border-radius: 2px;
+        }
+
+        .info-section {
+            background: rgba(79, 172, 254, 0.05);
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 4px solid #4facfe;
+            margin-top: 20px;
+        }
+
+        .info-section h3 {
+            color: #4facfe;
+            margin-bottom: 10px;
+        }
+
+        .info-section p {
+            line-height: 1.6;
+            color: #c0c0c0;
+        }
+
+        .formula-box {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            border-left: 3px solid #00f2fe;
+        }
+
+        .formula-box code {
+            color: #ffd93d;
+            font-family: 'Courier New', monospace;
+        }
+
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            h1 {
+                font-size: 2em;
+            }
+        }
+
+        .highlight {
+            color: #00f2fe;
+            font-weight: bold;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .satellite-marker {
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .equation {
+            text-align: center;
+            margin: 15px 0;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 5px;
+            font-family: 'Times New Roman', serif;
+            font-size: 1.1em;
+            color: #ffffff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🛰️ Molniya 궤도 시뮬레이션</h1>
+            <p class="subtitle">이차곡선(타원)과 케플러 법칙을 통한 고타원 궤도의 수학적 분석</p>
+        </header>
+
+        <div class="main-content">
+            <!-- 왼쪽: 궤도 시각화 -->
+            <div class="panel">
+                <h2>📊 궤도 시각화</h2>
+                <canvas id="orbitCanvas"></canvas>
+                
+                <div class="legend">
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #4facfe; width: 30px; height: 30px; border-radius: 50%;"></div>
+                        <span>지구 (초점)</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #ff6b6b; width: 20px; height: 20px; border-radius: 50%;"></div>
+                        <span>위성</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #00f2fe;"></div>
+                        <span>타원 궤도</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #ffd93d;"></div>
+                        <span>속도 벡터</span>
+                    </div>
+                </div>
+
+                <div class="info-section">
+                    <h3>💡 케플러 제2법칙 (면적 속도 일정)</h3>
+                    <p>위성과 지구를 잇는 선분은 같은 시간 동안 같은 넓이를 휩쓸고 지나갑니다.</p>
+                    <div class="equation">dA/dt = L/(2m) = 상수</div>
+                    <p style="margin-top: 10px;">
+                    따라서 <span class="highlight">원지점(먼 곳)</span>에서는 느리게, 
+                    <span class="highlight">근지점(가까운 곳)</span>에서는 빠르게 움직입니다.
+                    </p>
+                    <div class="formula-box">
+                        <code>각속도 ω ∝ 1/r²</code>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 오른쪽: 제어판 -->
+            <div class="panel">
+                <h2>🎮 제어판</h2>
+                
+                <div class="controls">
+                    <div class="control-group">
+                        <label>
+                            <span>이심률 (e)</span>
+                            <span class="value-display" id="eccentricityValue">0.74</span>
+                        </label>
+                        <input type="range" id="eccentricity" min="0" max="0.95" step="0.01" value="0.74">
+                        <small style="color: #a0a0a0;">
+                            e = 0: 원형 궤도 | e = 0.74: Molniya 궤도 | e → 1: 포물선 궤도
+                        </small>
+                    </div>
+
+                    <div class="control-group">
+                        <label>
+                            <span>애니메이션 속도</span>
+                            <span class="value-display" id="speedValue">1.0x</span>
+                        </label>
+                        <input type="range" id="animSpeed" min="0.1" max="5" step="0.1" value="1">
+                    </div>
+
+                    <div class="button-group">
+                        <button id="playPause">⏸️ 일시정지</button>
+                        <button id="reset" class="secondary">🔄 리셋</button>
+                    </div>
+
+                    <div class="button-group">
+                        <button id="showTrail" class="secondary">✨ 궤적 표시</button>
+                        <button id="showVectors" class="secondary">📐 벡터 표시</button>
+                    </div>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-label">원지점 속도 (v_a)</div>
+                        <div class="stat-value" id="apogeeSpeed">1.50 km/s</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">근지점 속도 (v_p)</div>
+                        <div class="stat-value" id="perigeeSpeed">10.01 km/s</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">현재 속도</div>
+                        <div class="stat-value" id="currentSpeed">0.00 km/s</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">현재 고도</div>
+                        <div class="stat-value" id="currentAltitude">0 km</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">진근점 이각 (ν)</div>
+                        <div class="stat-value" id="trueAnomaly">0°</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">궤도 주기 (T)</div>
+                        <div class="stat-value" id="orbitalPeriod">12.0 h</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">장반경 (a)</div>
+                        <div class="stat-value" id="semiMajorAxis">26,562 km</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">속도 비율 (v_p/v_a)</div>
+                        <div class="stat-value" id="speedRatio">6.69</div>
+                    </div>
+                </div>
+
+                <div class="info-section">
+                    <h3>📐 Vis-viva 방정식</h3>
+                    <div class="equation">v² = μ(2/r - 1/a)</div>
+                    <p style="margin-top: 10px;">
+                        각운동량 보존: <code>r_p × v_p = r_a × v_a</code><br>
+                        속도 비율: <code>v_p/v_a = (1+e)/(1-e)</code>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 그래프 섹션 -->
+        <div class="main-content">
+            <div class="panel">
+                <h2>📈 진근점 이각 변화 (시간 vs 각도)</h2>
+                <div class="chart-container">
+                    <canvas id="angleChart" class="chart"></canvas>
+                </div>
+                <p style="margin-top: 10px; color: #a0a0a0; text-align: center;">
+                    그래프가 평탄한 구간 = 각속도가 느린 구간 = <span class="highlight">체공시간이 긴 구간</span>
+                </p>
+                <div class="info-section">
+                    <h3>분석</h3>
+                    <p>원지점(180° 근처)에서 그래프의 기울기가 완만함 → 같은 시간 동안 각도 변화가 적음 → 긴 체공시간</p>
+                </div>
+            </div>
+
+            <div class="panel">
+                <h2>📉 속도 변화 (궤도 위치별)</h2>
+                <div class="chart-container">
+                    <canvas id="velocityChart" class="chart"></canvas>
+                </div>
+                <p style="margin-top: 10px; color: #a0a0a0; text-align: center;">
+                    원지점(180°) 근처에서 속도 최소, 근지점(0°)에서 속도 최대
+                </p>
+                <div class="info-section">
+                    <h3>분석</h3>
+                    <p>이심률 e = 0.74일 때, 근지점과 원지점의 속도 차이는 약 6.7배에 달합니다.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // 물리 상수 정의
+        // ============================================
+        const MU = 3.986e14;        // 지구 표준 중력 변수 (m³/s²)
+        const EARTH_RADIUS = 6371;  // 지구 반지름 (km)
+        const T_PERIOD = 12 * 3600; // 궤도 주기: 12시간을 초로 변환
+
+        // ============================================
+        // 케플러 제3법칙: T² = (4π²/μ) × a³
+        // ============================================
+        function calculateSemiMajorAxis(period) {
+            return Math.pow((MU * period * period) / (4 * Math.PI * Math.PI), 1/3) / 1000; // km
+        }
+
+        // ============================================
+        // 케플러 방정식 풀이: M = E - e·sin(E)
+        // Newton-Raphson 반복법 사용
+        // ============================================
+        function solveKeplerEquation(M, e, tolerance = 1e-8) {
+            let E = M; // 초기값
+            for (let i = 0; i < 30; i++) {
+                const dE = (E - e * Math.sin(E) - M) / (1 - e * Math.cos(E));
+                E -= dE;
+                if (Math.abs(dE) < tolerance) break;
+            }
+            return E;
+        }
+
+        // ============================================
+        // 이심 근점 이각 → 진근점 이각 변환
+        // ============================================
+        function eccentricToTrueAnomaly(E, e) {
+            return 2 * Math.atan2(
+                Math.sqrt(1 + e) * Math.sin(E / 2),
+                Math.sqrt(1 - e) * Math.cos(E / 2)
+            );
+        }
+
+        // ============================================
+        // Vis-viva 방정식: v² = μ(2/r - 1/a)
+        // ============================================
+        function calculateVelocity(r, a, mu = MU) {
+            return Math.sqrt(mu * (2 / (r * 1000) - 1 / (a * 1000))) / 1000; // km/s
+        }
+
+        // ============================================
+        // 메인 시뮬레이션 클래스
+        // ============================================
+        class OrbitSimulation {
+            constructor() {
+                this.canvas = document.getElementById('orbitCanvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.angleChartCanvas = document.getElementById('angleChart');
+                this.angleChartCtx = this.angleChartCanvas.getContext('2d');
+                this.velocityChartCanvas = document.getElementById('velocityChart');
+                this.velocityChartCtx = this.velocityChartCanvas.getContext('2d');
+                
+                this.setupCanvas();
+                
+                // 궤도 파라미터
+                this.e = 0.74;  // 이심률
+                this.a = calculateSemiMajorAxis(T_PERIOD); // 장반경 (km)
+                this.t = 0;     // 현재 시간 (초)
+                this.animSpeed = 1.0;
+                this.isPlaying = true;
+                this.showTrail = false;
+                this.showVectors = true;
+                this.trail = [];
+                
+                // 차트 데이터
+                this.angleData = [];
+                this.velocityData = [];
+                
+                this.initControls();
+                this.generateChartData();
+                this.animate();
+            }
+
+            setupCanvas() {
+                const resizeCanvas = () => {
+                    const rect = this.canvas.getBoundingClientRect();
+                    this.canvas.width = rect.width * window.devicePixelRatio;
+                    this.canvas.height = rect.height * window.devicePixelRatio;
+                    this.ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+                    this.canvasWidth = rect.width;
+                    this.canvasHeight = rect.height;
+
+                    // Angle chart
+                    const angleRect = this.angleChartCanvas.getBoundingClientRect();
+                    this.angleChartCanvas.width = angleRect.width * window.devicePixelRatio;
+                    this.angleChartCanvas.height = angleRect.height * window.devicePixelRatio;
+                    this.angleChartCtx.scale(window.devicePixelRatio, window.devicePixelRatio);
+
+                    // Velocity chart
+                    const velRect = this.velocityChartCanvas.getBoundingClientRect();
+                    this.velocityChartCanvas.width = velRect.width * window.devicePixelRatio;
+                    this.velocityChartCanvas.height = velRect.height * window.devicePixelRatio;
+                    this.velocityChartCtx.scale(window.devicePixelRatio, window.devicePixelRatio);
+                };
+                
+                resizeCanvas();
+                window.addEventListener('resize', resizeCanvas);
+            }
+
+            initControls() {
+                // 이심률 조절
+                document.getElementById('eccentricity').addEventListener('input', (e) => {
+                    this.e = parseFloat(e.target.value);
+                    document.getElementById('eccentricityValue').textContent = this.e.toFixed(2);
+                    this.updateStats();
+                    this.generateChartData();
+                    this.trail = [];
+                });
+
+                // 애니메이션 속도
+                document.getElementById('animSpeed').addEventListener('input', (e) => {
+                    this.animSpeed = parseFloat(e.target.value);
+                    document.getElementById('speedValue').textContent = this.animSpeed.toFixed(1) + 'x';
+                });
+
+                // 재생/일시정지
+                document.getElementById('playPause').addEventListener('click', (e) => {
+                    this.isPlaying = !this.isPlaying;
+                    e.target.textContent = this.isPlaying ? '⏸️ 일시정지' : '▶️ 재생';
+                });
+
+                // 리셋
+                document.getElementById('reset').addEventListener('click', () => {
+                    this.t = 0;
+                    this.trail = [];
+                });
+
+                // 궤적 표시
+                document.getElementById('showTrail').addEventListener('click', (e) => {
+                    this.showTrail = !this.showTrail;
+                    if (!this.showTrail) this.trail = [];
+                    e.target.textContent = this.showTrail ? '✨ 궤적 숨김' : '✨ 궤적 표시';
+                });
+
+                // 벡터 표시
+                document.getElementById('showVectors').addEventListener('click', (e) => {
+                    this.showVectors = !this.showVectors;
+                    e.target.textContent = this.showVectors ? '📐 벡터 숨김' : '📐 벡터 표시';
+                });
+            }
+
+            updateStats() {
+                const r_p = this.a * (1 - this.e);
+                const r_a = this.a * (1 + this.e);
+                const v_p = calculateVelocity(r_p, this.a);
+                const v_a = calculateVelocity(r_a, this.a);
+                const ratio = v_p / v_a;
+
+                document.getElementById('apogeeSpeed').textContent = v_a.toFixed(2) + ' km/s';
+                document.getElementById('perigeeSpeed').textContent = v_p.toFixed(2) + ' km/s';
+                document.getElementById('speedRatio').textContent = ratio.toFixed(2);
+                document.getElementById('orbitalPeriod').textContent = (T_PERIOD / 3600).toFixed(1) + ' h';
+                document.getElementById('semiMajorAxis').textContent = this.a.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ",") + ' km';
+            }
+
+            // ============================================
+            // 차트 데이터 생성
+            // ============================================
+            generateChartData() {
+                this.angleData = [];
+                this.velocityData = [];
+                
+                const steps = 200;
+                for (let i = 0; i <= steps; i++) {
+                    const t = (i / steps) * T_PERIOD;
+                    const M = (2 * Math.PI * t) / T_PERIOD;
+                    const E = solveKeplerEquation(M, this.e);
+                    const nu = eccentricToTrueAnomaly(E, this.e);
+                    const r = this.a * (1 - this.e * this.e) / (1 + this.e * Math.cos(nu));
+                    const v = calculateVelocity(r, this.a);
+                    
+                    this.angleData.push({ t: t / 3600, nu: nu * 180 / Math.PI });
+                    this.velocityData.push({ nu: nu * 180 / Math.PI, v: v });
+                }
+                
+                this.drawCharts();
+            }
+
+            drawCharts() {
+                this.drawAngleChart();
+                this.drawVelocityChart();
+            }
+
+            // ============================================
+            // 진근점 이각 vs 시간 차트
+            // ============================================
+            drawAngleChart() {
+                const ctx = this.angleChartCtx;
+                const rect = this.angleChartCanvas.getBoundingClientRect();
+                const width = rect.width;
+                const height = rect.height;
+                const padding = 50;
+
+                ctx.clearRect(0, 0, width, height);
+
+                // 배경 그리드
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+                ctx.lineWidth = 1;
+                for (let i = 0; i <= 5; i++) {
+                    const y = padding + (height - 2 * padding) * i / 5;
+                    ctx.beginPath();
+                    ctx.moveTo(padding, y);
+                    ctx.lineTo(width - padding, y);
+                    ctx.stroke();
+                }
+
+                // 축
+                ctx.strokeStyle = '#4facfe';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(padding, padding);
+                ctx.lineTo(padding, height - padding);
+                ctx.lineTo(width - padding, height - padding);
+                ctx.stroke();
+
+                // 레이블
+                ctx.fillStyle = '#a0a0a0';
+                ctx.font = '12px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('시간 (h)', width / 2, height - 10);
+                ctx.save();
+                ctx.translate(15, height / 2);
+                ctx.rotate(-Math.PI / 2);
+                ctx.fillText('진근점 이각 (°)', 0, 0);
+                ctx.restore();
+
+                // 눈금
+                ctx.font = '10px sans-serif';
+                ctx.fillStyle = '#808080';
+                for (let i = 0; i <= 12; i += 3) {
+                    const x = padding + (width - 2 * padding) * (i / 12);
+                    ctx.fillText(i + 'h', x, height - padding + 20);
+                }
+
+                // 데이터
+                if (this.angleData.length < 2) return;
+
+                const maxT = Math.max(...this.angleData.map(d => d.t));
+                const minNu = Math.min(...this.angleData.map(d => d.nu));
+                const maxNu = Math.max(...this.angleData.map(d => d.nu));
+
+                ctx.strokeStyle = '#00f2fe';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                
+                this.angleData.forEach((point, i) => {
+                    const x = padding + (width - 2 * padding) * (point.t / maxT);
+                    const y = height - padding - (height - 2 * padding) * ((point.nu - minNu) / (maxNu - minNu));
+                    
+                    if (i === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                });
+                
+                ctx.stroke();
+
+                // 현재 위치
+                const currentT = (this.t / T_PERIOD) * maxT;
+                const currentIdx = Math.floor((currentT / maxT) * this.angleData.length);
+                if (currentIdx < this.angleData.length) {
+                    const point = this.angleData[currentIdx];
+                    const x = padding + (width - 2 * padding) * (point.t / maxT);
+                    const y = height - padding - (height - 2 * padding) * ((point.nu - minNu) / (maxNu - minNu));
+                    
+                    ctx.fillStyle = '#ff6b6b';
+                    ctx.beginPath();
+                    ctx.arc(x, y, 5, 0, 2 * Math.PI);
+                    ctx.fill();
+                }
+            }
+
+            // ============================================
+            // 속도 vs 진근점 이각 차트
+            // ============================================
+            drawVelocityChart() {
+                const ctx = this.velocityChartCtx;
+                const rect = this.velocityChartCanvas.getBoundingClientRect();
+                const width = rect.width;
+                const height = rect.height;
+                const padding = 50;
+
+                ctx.clearRect(0, 0, width, height);
+
+                // 배경 그리드
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+                ctx.lineWidth = 1;
+                for (let i = 0; i <= 5; i++) {
+                    const y = padding + (height - 2 * padding) * i / 5;
+                    ctx.beginPath();
+                    ctx.moveTo(padding, y);
+                    ctx.lineTo(width - padding, y);
+                    ctx.stroke();
+                }
+
+                // 축
+                ctx.strokeStyle = '#4facfe';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(padding, padding);
+                ctx.lineTo(padding, height - padding);
+                ctx.lineTo(width - padding, height - padding);
+                ctx.stroke();
+
+                // 레이블
+                ctx.fillStyle = '#a0a0a0';
+                ctx.font = '12px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('진근점 이각 (°)', width / 2, height - 10);
+                ctx.save();
+                ctx.translate(15, height / 2);
+                ctx.rotate(-Math.PI / 2);
+                ctx.fillText('속도 (km/s)', 0, 0);
+                ctx.restore();
+
+                // 데이터
+                if (this.velocityData.length < 2) return;
+
+                const minNu = -180;
+                const maxNu = 180;
+                const maxV = Math.max(...this.velocityData.map(d => d.v));
+
+                ctx.strokeStyle = '#ffd93d';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                
+                this.velocityData.forEach((point, i) => {
+                    const x = padding + (width - 2 * padding) * ((point.nu - minNu) / (maxNu - minNu));
+                    const y = height - padding - (height - 2 * padding) * (point.v / maxV);
+                    
+                    if (i === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                });
+                
+                ctx.stroke();
+
+                // 원지점/근지점 표시
+                const apogeeIdx = Math.floor(this.velocityData.length / 2);
+                const perigeeIdx = 0;
+
+                // 원지점
+                let point = this.velocityData[apogeeIdx];
+                let x = padding + (width - 2 * padding) * ((point.nu - minNu) / (maxNu - minNu));
+                let y = height - padding - (height - 2 * padding) * (point.v / maxV);
+                ctx.fillStyle = '#4facfe';
+                ctx.beginPath();
+                ctx.arc(x, y, 6, 0, 2 * Math.PI);
+                ctx.fill();
+                ctx.fillText('원지점', x, y - 15);
+
+                // 근지점
+                point = this.velocityData[perigeeIdx];
+                x = padding + (width - 2 * padding) * ((point.nu - minNu) / (maxNu - minNu));
+                y = height - padding - (height - 2 * padding) * (point.v / maxV);
+                ctx.fillStyle = '#ff6b6b';
+                ctx.beginPath();
+                ctx.arc(x, y, 6, 0, 2 * Math.PI);
+                ctx.fill();
+                ctx.fillText('근지점', x, y - 15);
+            }
+
+            // ============================================
+            // 현재 위성 위치 계산
+            // ============================================
+            getCurrentPosition() {
+                const M = (2 * Math.PI * this.t) / T_PERIOD;
+                const E = solveKeplerEquation(M, this.e);
+                const nu = eccentricToTrueAnomaly(E, this.e);
+                const r = this.a * (1 - this.e * this.e) / (1 + this.e * Math.cos(nu));
+                const v = calculateVelocity(r, this.a);
+                
+                return { nu, r, v, E, M };
+            }
+
+            // ============================================
+            // 궤도 그리기 (메인 시각화)
+            // ============================================
+            drawOrbit() {
+                const ctx = this.ctx;
+                ctx.clearRect(0, 0, this.canvasWidth, this.canvasHeight);
+
+                const centerX = this.canvasWidth / 2;
+                const centerY = this.canvasHeight / 2;
+                const scale = Math.min(this.canvasWidth, this.canvasHeight) / (2.5 * this.a);
+
+                // 지구를 타원의 초점에 배치
+                const c = this.a * this.e; // 초점 거리
+                const earthX = centerX - c * scale;
+                const earthY = centerY;
+
+                // 타원 궤도 그리기
+                const b = this.a * Math.sqrt(1 - this.e * this.e); // 단반경
+                
+                ctx.strokeStyle = 'rgba(0, 242, 254, 0.3)';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.ellipse(centerX, centerY, this.a * scale, b * scale, 0, 0, 2 * Math.PI);
+                ctx.stroke();
+
+                // 궤적
+                if (this.showTrail && this.trail.length > 1) {
+                    ctx.strokeStyle = 'rgba(255, 107, 107, 0.3)';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    this.trail.forEach((point, i) => {
+                        const x = earthX + point.x;
+                        const y = earthY - point.y;
+                        if (i === 0) ctx.moveTo(x, y);
+                        else ctx.lineTo(x, y);
+                    });
+                    ctx.stroke();
+                }
+
+                // 지구 그리기
+                const earthDisplayRadius = Math.max(EARTH_RADIUS * scale, 15);
+                const gradient = ctx.createRadialGradient(earthX, earthY, 0, earthX, earthY, earthDisplayRadius);
+                gradient.addColorStop(0, '#4facfe');
+                gradient.addColorStop(0.7, '#2196f3');
+                gradient.addColorStop(1, '#1565c0');
+                
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.arc(earthX, earthY, earthDisplayRadius, 0, 2 * Math.PI);
+                ctx.fill();
+
+                // 대기 효과
+                ctx.strokeStyle = 'rgba(79, 172, 254, 0.3)';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(earthX, earthY, earthDisplayRadius * 1.2, 0, 2 * Math.PI);
+                ctx.stroke();
+
+                // 위성 위치 계산
+                const pos = this.getCurrentPosition();
+                const satX = pos.r * Math.cos(pos.nu) * scale;
+                const satY = pos.r * Math.sin(pos.nu) * scale;
+
+                // 궤적에 추가
+                if (this.showTrail) {
+                    this.trail.push({ x: satX, y: satY });
+                    if (this.trail.length > 500) this.trail.shift();
+                }
+
+                // 지구-위성 연결선
+                if (this.showVectors) {
+                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+                    ctx.lineWidth = 1;
+                    ctx.setLineDash([5, 5]);
+                    ctx.beginPath();
+                    ctx.moveTo(earthX, earthY);
+                    ctx.lineTo(earthX + satX, earthY - satY);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                }
+
+                // 속도 벡터
+                if (this.showVectors) {
+                    const vAngle = pos.nu + Math.PI / 2;
+                    const vScale = pos.v * 5;
+                    const vx = vScale * Math.cos(vAngle) * scale;
+                    const vy = vScale * Math.sin(vAngle) * scale;
+
+                    ctx.strokeStyle = '#ffd93d';
+                    ctx.lineWidth = 3;
+                    ctx.beginPath();
+                    ctx.moveTo(earthX + satX, earthY - satY);
+                    ctx.lineTo(earthX + satX + vx, earthY - satY - vy);
+                    ctx.stroke();
+
+                    // 화살표
+                    const arrowAngle = Math.atan2(-vy, vx);
+                    const arrowSize = 10;
+                    ctx.fillStyle = '#ffd93d';
+                    ctx.beginPath();
+                    ctx.moveTo(earthX + satX + vx, earthY - satY - vy);
+                    ctx.lineTo(
+                        earthX + satX + vx - arrowSize * Math.cos(arrowAngle - Math.PI / 6),
+                        earthY - satY - vy - arrowSize * Math.sin(arrowAngle - Math.PI / 6)
+                    );
+                    ctx.lineTo(
+                        earthX + satX + vx - arrowSize * Math.cos(arrowAngle + Math.PI / 6),
+                        earthY - satY - vy - arrowSize * Math.sin(arrowAngle + Math.PI / 6)
+                    );
+                    ctx.closePath();
+                    ctx.fill();
+                }
+
+                // 위성
+                ctx.fillStyle = '#ff6b6b';
+                ctx.shadowColor = '#ff6b6b';
+                ctx.shadowBlur = 20;
+                ctx.beginPath();
+                ctx.arc(earthX + satX, earthY - satY, 8, 0, 2 * Math.PI);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+
+                // 근지점/원지점 마커
+                const r_p = this.a * (1 - this.e);
+                const r_a = this.a * (1 + this.e);
+
+                // 근지점
+                ctx.fillStyle = 'rgba(255, 107, 107, 0.5)';
+                ctx.beginPath();
+                ctx.arc(earthX + r_p * scale, earthY, 5, 0, 2 * Math.PI);
+                ctx.fill();
+                ctx.fillStyle = '#ffffff';
+                ctx.font = '12px sans-serif';
+                ctx.textAlign = 'left';
+                ctx.fillText('근지점', earthX + r_p * scale + 10, earthY - 10);
+
+                // 원지점
+                ctx.fillStyle = 'rgba(79, 172, 254, 0.5)';
+                ctx.beginPath();
+                ctx.arc(earthX - r_a * scale, earthY, 5, 0, 2 * Math.PI);
+                ctx.fill();
+                ctx.fillStyle = '#ffffff';
+                ctx.textAlign = 'right';
+                ctx.fillText('원지점', earthX - r_a * scale - 10, earthY - 10);
+
+                // 통계 업데이트
+                document.getElementById('currentSpeed').textContent = pos.v.toFixed(2) + ' km/s';
+                document.getElementById('currentAltitude').textContent = (pos.r - EARTH_RADIUS).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ",") + ' km';
+                document.getElementById('trueAnomaly').textContent = (pos.nu * 180 / Math.PI).toFixed(1) + '°';
+
+                this.updateStats();
+            }
+
+            // ============================================
+            // 애니메이션 루프
+            // ============================================
+            animate() {
+                if (this.isPlaying) {
+                    this.t += 20 * this.animSpeed;
+                    if (this.t > T_PERIOD) this.t -= T_PERIOD;
+                }
+
+                this.drawOrbit();
+                requestAnimationFrame(() => this.animate());
+            }
+        }
+
+        // ============================================
+        // 시뮬레이션 시작
+        // ============================================
+        window.addEventListener('load', () => {
+            new OrbitSimulation();
+        });
+    </script>
+</body>
+</html>
