@@ -236,6 +236,65 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
 
+            const DB_NAME = 'PosterEditorDB';
+            const DB_VERSION = 1;
+            const STORE_NAME = 'posterData';
+            const DATA_KEY = 'academicPosterData';
+
+            // IndexedDB 헬퍼 함수
+            function openDB() {
+                return new Promise((resolve, reject) => {
+                    const request = indexedDB.open(DB_NAME, DB_VERSION);
+                    request.onerror = () => reject(request.error);
+                    request.onsuccess = () => resolve(request.result);
+                    request.onupgradeneeded = (event) => {
+                        const db = event.target.result;
+                        if (!db.objectStoreNames.contains(STORE_NAME)) {
+                            db.createObjectStore(STORE_NAME, { keyPath: 'id' });
+                        }
+                    };
+                });
+            }
+
+            async function getFromDB(key) {
+                const db = await openDB();
+                return new Promise((resolve, reject) => {
+                    const tx = db.transaction(STORE_NAME, 'readonly');
+                    const store = tx.objectStore(STORE_NAME);
+                    const request = store.get(key);
+                    request.onerror = () => reject(request.error);
+                    request.onsuccess = () => resolve(request.result?.data || null);
+                });
+            }
+
+            async function saveToDB(key, data) {
+                const db = await openDB();
+                return new Promise((resolve, reject) => {
+                    const tx = db.transaction(STORE_NAME, 'readwrite');
+                    const store = tx.objectStore(STORE_NAME);
+                    const request = store.put({ id: key, data: data });
+                    request.onerror = () => reject(request.error);
+                    request.onsuccess = () => resolve();
+                });
+            }
+
+            // localStorage → IndexedDB 마이그레이션
+            async function migrateFromLocalStorage() {
+                const localData = localStorage.getItem(DATA_KEY);
+                if (localData) {
+                    try {
+                        const parsed = JSON.parse(localData);
+                        await saveToDB(DATA_KEY, parsed);
+                        localStorage.removeItem(DATA_KEY); // 마이그레이션 후 삭제
+                        console.log('✅ localStorage → IndexedDB 마이그레이션 완료');
+                        return parsed;
+                    } catch (e) {
+                        console.error('마이그레이션 실패:', e);
+                    }
+                }
+                return null;
+            }
+
             const app = {
                 posterData: null,
                 saveTimeout: null,
@@ -275,30 +334,39 @@
                     };
                 },
 
-                init() {
-                    this.loadData();
+                async init() {
+                    await this.loadData();
                     this.renderEditor();
                     this.renderPreview();
                     this.attachEventListeners();
                 },
 
-                loadData() {
-                    const savedData = localStorage.getItem('academicPosterData');
-                    this.posterData = savedData ? JSON.parse(savedData) : this.getInitialData();
+                async loadData() {
+                    try {
+                        // 1. 먼저 localStorage에 데이터가 있으면 마이그레이션
+                        const migratedData = await migrateFromLocalStorage();
+                        if (migratedData) {
+                            this.posterData = migratedData;
+                            return;
+                        }
+                        // 2. IndexedDB에서 로드
+                        const dbData = await getFromDB(DATA_KEY);
+                        this.posterData = dbData || this.getInitialData();
+                    } catch (e) {
+                        console.error('데이터 로드 실패:', e);
+                        this.posterData = this.getInitialData();
+                    }
                 },
 
                 saveData() {
                     clearTimeout(this.saveTimeout);
                     this.updateSaveStatus('saving');
-                    this.saveTimeout = setTimeout(() => {
+                    this.saveTimeout = setTimeout(async () => {
                         try {
-                            localStorage.setItem('academicPosterData', JSON.stringify(this.posterData));
+                            await saveToDB(DATA_KEY, this.posterData);
                             this.updateSaveStatus('saved');
                         } catch (e) {
-                            console.error('localStorage 저장 실패:', e);
-                            if (e.name === 'QuotaExceededError') {
-                                alert('저장 공간이 부족합니다. 이미지 크기를 줄여주세요.');
-                            }
+                            console.error('IndexedDB 저장 실패:', e);
                             this.updateSaveStatus('saved');
                         }
                     }, 1000);
