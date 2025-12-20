@@ -1,0 +1,51 @@
+{
+    "challengeTitle": "",
+    "goalLabel": "목표",
+    "textColor": "#000000",
+    "cardColor": "#ffffff",
+    "lineColor": "#000000",
+    "titleColor": "#000000",
+    "headerColor": "#000000",
+    "projectTitle": "",
+    "projectGoal": "",
+    "authorName": "",
+    "instructorName": "",
+    "columns": [
+        [
+            {
+                "id": "c1_b1",
+                "type": "header",
+                "content": "제목 1"
+            },
+            {
+                "id": "c1_b2",
+                "type": "text",
+                "content": "내용을 입력하세요."
+            }
+        ],
+        [
+            {
+                "id": "c2_b1",
+                "type": "header",
+                "content": "제목 2"
+            },
+            {
+                "id": "c2_b2",
+                "type": "text",
+                "content": "내용을 입력하세요."
+            }
+        ],
+        [
+            {
+                "id": "c3_b1",
+                "type": "header",
+                "content": "제목 3"
+            },
+            {
+                "id": "c3_b2",
+                "type": "text",
+                "content": "내용을 입력하세요."
+            }
+        ]
+    ]
+}

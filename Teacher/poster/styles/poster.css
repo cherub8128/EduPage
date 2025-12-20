@@ -1,0 +1,53 @@
+/* Poster Editor Styles */
+
+/* Fonts */
+@import url('https://rsms.me/inter/inter.css');
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+
+body {
+    font-family: 'Pretendard', 'Inter', sans-serif;
+}
+
+/* Page Break Control */
+.break-inside-avoid {
+    break-inside: avoid;
+}
+
+/* Block Add Button Animation */
+.add-block-btn {
+    opacity: 0;
+    transition: all 0.2s ease-in-out;
+}
+
+.block-container:hover .add-block-btn {
+    opacity: 1;
+}
+
+.add-block-btn:hover {
+    transform: scale(1.1);
+}
+
+/* Textarea Scrollbar Hide */
+textarea {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+textarea::-webkit-scrollbar {
+    display: none;
+}
+
+/* Prose List Styles */
+.prose :where(ul):not(:where([class~="not-prose"] *)) {
+    padding-left: 1.2em;
+}
+
+.prose ul {
+    list-style-type: disc;
+    padding-left: 1.5em;
+}
+
+.prose ol {
+    list-style-type: decimal;
+    padding-left: 1.5em;
+}

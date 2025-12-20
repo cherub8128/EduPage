@@ -1,0 +1,78 @@
+{
+    "challengeTitle": "데이터 분석 프로젝트",
+    "goalLabel": "분석 목표",
+    "textColor": "#7c3aed",
+    "cardColor": "#faf5ff",
+    "lineColor": "#7c3aed",
+    "titleColor": "#4c1d95",
+    "headerColor": "#5b21b6",
+    "projectTitle": "공공데이터를 활용한 우리 동네 상권 분석",
+    "projectGoal": "공공데이터 포털의 데이터를 수집하고 분석하여 우리 동네의 상권 변화 추이를 시각화하고 인사이트를 도출합니다.",
+    "authorName": "김데이터",
+    "instructorName": "박교사",
+    "columns": [
+        [
+            {
+                "id": "c1_b1",
+                "type": "header",
+                "content": "분석 배경 및 필요성"
+            },
+            {
+                "id": "c1_b2",
+                "type": "text",
+                "content": "최근 젠트리피케이션 현상 등으로 인해 우리 동네의 상권이 급격하게 변화하고 있습니다. 이에 대한 객관적인 데이터 분석을 통해..."
+            },
+            {
+                "id": "c1_b3",
+                "type": "header",
+                "content": "데이터 수집 및 전처리"
+            },
+            {
+                "id": "c1_b4",
+                "type": "text",
+                "content": "- **데이터 출처**: 공공데이터포털(data.go.kr) 소상공인시장진흥공단 상가(상권)정보\n- **전처리 과정**: 결측치 제거, 이상치 처리..."
+            }
+        ],
+        [
+            {
+                "id": "c2_b1",
+                "type": "header",
+                "content": "분석 결과 (시각화)"
+            },
+            {
+                "id": "c2_b2",
+                "type": "image",
+                "content": "",
+                "caption": "연도별 점포 수 변화 그래프"
+            },
+            {
+                "id": "c2_b3",
+                "type": "image",
+                "content": "",
+                "caption": "업종별 분포 파이차트"
+            },
+            {
+                "id": "c2_b4",
+                "type": "text",
+                "content": "**해석**: 그래프 1을 보면 2020년 이후 점포 수가 감소세를 보이고 있으며, 특히..."
+            }
+        ],
+        [
+            {
+                "id": "c3_b1",
+                "type": "header",
+                "content": "결론 및 제언"
+            },
+            {
+                "id": "c3_b2",
+                "type": "text",
+                "content": "본 분석을 통해 우리 동네 상권은 요식업 위주로 재편되고 있음을 알 수 있었습니다. 향후에는..."
+            },
+            {
+                "id": "c3_b3",
+                "type": "header",
+                "content": "참고 문헌"
+            }
+        ]
+    ]
+}
