@@ -95,3 +95,121 @@
     background: color-mix(in srgb, var(--card) 68%, transparent);
     padding: 14px;
 }
+
+/* === Nintendo Style Card === */
+.n-card {
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(10px);
+    border-radius: var(--radius-xl);
+    padding: var(--space-xl);
+    box-shadow: var(--n-shadow-pop);
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    border: 2px solid transparent;
+    position: relative;
+    overflow: hidden;
+    text-decoration: none;
+    display: flex;
+    flex-direction: column;
+    cursor: pointer;
+}
+
+.n-card:hover {
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: var(--n-shadow-hover);
+    border-color: rgba(99, 179, 237, 0.3);
+    background: #ffffff;
+}
+
+.n-card .n-icon {
+    font-size: 3rem;
+    margin-bottom: 20px;
+    background: #f7fafc;
+    width: 80px;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 20px;
+    transition: transform 0.3s ease;
+}
+
+.n-card:hover .n-icon {
+    transform: rotate(10deg) scale(1.1);
+    background: #ebf8ff;
+}
+
+.n-card h3 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 10px;
+    color: var(--text);
+}
+
+.n-card p {
+    font-size: 1rem;
+    color: var(--muted);
+    line-height: 1.6;
+    margin-bottom: 20px;
+    flex-grow: 1;
+}
+
+.n-card .tag {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #fff;
+    background: #cbd5e0;
+    border: none;
+    align-self: flex-start;
+}
+
+/* Color Variants */
+.n-card.color-blue .n-icon {
+    color: #3182ce;
+}
+
+.n-card.color-blue .tag {
+    background: #4299e1;
+}
+
+.n-card.color-purple .n-icon {
+    color: #805ad5;
+}
+
+.n-card.color-purple .tag {
+    background: #9f7aea;
+}
+
+.n-card.color-green .n-icon {
+    color: #38a169;
+}
+
+.n-card.color-green .tag {
+    background: #48bb78;
+}
+
+.n-card.color-red .n-icon {
+    color: #e53e3e;
+}
+
+.n-card.color-red .tag {
+    background: #f56565;
+}
+
+.n-card.color-orange .n-icon {
+    color: #dd6b20;
+}
+
+.n-card.color-orange .tag {
+    background: #ed8936;
+}
+
+.n-card.color-teal .n-icon {
+    color: #319795;
+}
+
+.n-card.color-teal .tag {
+    background: #38b2ac;
+}

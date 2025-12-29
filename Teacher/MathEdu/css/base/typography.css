@@ -3,7 +3,9 @@
    ================================================== */
 
 /* Font Loading */
+/* Font Loading */
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600&display=swap');
 
 /* Headings */
 h1,
@@ -40,6 +42,30 @@ h5 {
 
 h6 {
     font-size: 0.875rem;
+}
+
+/* Hero Typography (Nintendo Style) */
+.hero-title {
+    text-align: center;
+    font-size: 3.5rem;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: -1px;
+    margin-bottom: 10px;
+    text-shadow: 2px 2px 0px #fff, 4px 4px 0px rgba(0, 0, 0, 0.05);
+}
+
+.hero-subtitle {
+    text-align: center;
+    font-size: 1.25rem;
+    color: var(--muted);
+    font-weight: 500;
+}
+
+@media (max-width: 640px) {
+    .hero-title {
+        font-size: 2.5rem;
+    }
 }
 
 /* Body Text */
@@ -101,4 +127,8 @@ a:hover {
 small,
 .small {
     font-size: 0.875rem;
+}
+
+.font-nintendo {
+    font-family: 'Fredoka', 'Noto Sans KR', sans-serif;
 }

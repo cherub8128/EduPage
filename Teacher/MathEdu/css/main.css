@@ -21,6 +21,9 @@
 /* Utilities */
 @import './utilities/prose.css';
 @import './utilities/print.css';
+@import './utilities/patterns.css';
+@import './utilities/animations.css';
+@import './utilities/spacing.css';
 
 /* Interactive Canvas */
 .interactive-canvas {

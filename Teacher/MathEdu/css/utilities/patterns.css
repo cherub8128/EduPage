@@ -1,0 +1,6 @@
+/* Background Patterns */
+.bg-dots {
+    background-color: var(--n-bg-pattern);
+    background-image: radial-gradient(var(--n-dot-color) 2px, transparent 2px);
+    background-size: 32px 32px;
+}
