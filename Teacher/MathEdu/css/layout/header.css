@@ -33,7 +33,7 @@
     width: 38px;
     height: 38px;
     border-radius: var(--radius-md);
-    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    background: var(--color-brand);
     box-shadow: var(--shadow);
     display: grid;
     place-items: center;

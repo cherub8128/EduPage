@@ -5,105 +5,58 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>수학 탐구 주제 추천</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap"
-        rel="stylesheet" />
-    <style>
-        :root {
-            --bg: #f7fafc;
-            --card: #fff;
-            --ink: #0f172a;
-            --muted: #475569;
-            --accent: #1d4ed8;
-            --pill: #eef2ff;
-        }
 
-        html,
-        body {
-            background: var(--bg);
-            color: var(--ink);
-            font-family: 'Noto Sans KR', system-ui, sans-serif;
-        }
+    <!-- CSS System -->
+    <link rel="stylesheet" href="../css/main.css">
 
-        .glass {
-            background: var(--card);
-        }
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap"
+        rel="stylesheet">
 
-        .ring-grad {
-            box-shadow: 0 0 0 1px rgba(15, 23, 42, .08), 0 2px 10px rgba(2, 6, 23, .06);
-        }
-
-        .tab-active {
-            background: var(--accent);
-            color: #fff;
-        }
-
-        .chip {
-            background: var(--pill);
-            color: var(--accent);
-        }
-
-        .grid-auto {
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-        }
-
-        .fade-in {
-            animation: fade .5s ease;
-        }
-
-        @keyframes fade {
-            from {
-                opacity: 0;
-                transform: translateY(4px)
-            }
-
-            to {
-                opacity: 1;
-                transform: none
-            }
-        }
-    </style>
+    <!-- KaTeX -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" />
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
 </head>
 
-<body class="min-h-screen">
-    <header class="max-w-7xl mx-auto px-4 pt-8 pb-4">
-        <div class="flex items-center justify-between gap-4 flex-wrap">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-blue-50 grid place-items-center ring-grad">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2">
+<body>
+
+    <a href="../index.html" class="m-back-btn" aria-label="Back">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+        </svg>
+    </a>
+
+    <div class="container pt-lg pb-lg">
+        <header class="modern-header flex items-center justify-between flex-wrap gap-6">
+            <div class="flex items-center gap-4">
+                <div class="icon-box"
+                    style="width: 56px; height: 56px; background: var(--primary-50); color: var(--primary-600); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M21 10a8.38 8.38 0 0 1-1.9 5.4A8.5 8.5 0 1 1 21 10Z" />
                         <path d="M22 22 19 19" />
                     </svg>
                 </div>
                 <div>
-                    <h1 class="text-2xl font-bold tracking-tight">수학 탐구 주제 추천</h1>
-                    <p class="text-sm text-[var(--muted)]">현상 → 단순화 → 시각화 → 수식화 → 심화 탐구</p>
+                    <h1 style="font-size: 2rem; margin-bottom: 4px;">수학 탐구 주제</h1>
+                    <p style="font-size: 1rem;">Process: 현상 → 단순화 → 시각화 → 수식화 → 심화</p>
                 </div>
             </div>
-            <a href="#howto" class="px-3 py-2 rounded-lg bg-blue-50 text-sm border border-blue-200">사용 가이드</a>
-        </div>
+            <a href="#howto" class="m-btn secondary small">사용 가이드</a>
+        </header>
 
-        <div class="mt-4 grid md:grid-cols-3 gap-3">
-            <div class="col-span-2">
-                <div class="relative">
-                    <input id="search" type="text"
-                        class="w-full glass ring-grad rounded-xl px-4 py-3 pr-10 placeholder:text-[var(--muted)]"
-                        placeholder="키워드 검색 (예: 벡터, 행렬, 포물선, 적분, 확률)" />
-                    <svg class="absolute right-3 top-3.5" width="20" height="20" viewBox="0 0 24 24" fill="none"
-                        stroke="#64748b" stroke-width="2">
-                        <circle cx="11" cy="11" r="8" />
-                        <path d="m21 21-4.3-4.3" />
-                    </svg>
-                </div>
+        <!-- Filters & Search -->
+        <div class="flex flex-wrap gap-4 mb-6">
+            <div style="flex: 2; min-width: 300px;">
+                <input id="search" type="text" class="m-input" placeholder="키워드 검색 (예: 벡터, 행렬, 포물선, 적분, 확률)" />
             </div>
-            <div class="flex gap-2 items-center">
-                <label class="text-sm text-[var(--muted)]">도구</label>
-                <select id="toolFilter" class="flex-1 glass ring-grad rounded-xl px-3 py-2">
+            <div class="flex items-center gap-2" style="flex: 1; min-width: 200px;">
+                <label class="text-sm font-bold text-muted" style="white-space: nowrap;">도구 필터</label>
+                <select id="toolFilter" class="m-select">
                     <option value="">전체</option>
                     <option>HTML/JS</option>
                     <option>GeoGebra</option>
@@ -113,41 +66,49 @@
             </div>
         </div>
 
-        <div id="stats" class="mt-4 flex flex-wrap gap-2 text-xs"></div>
-    </header>
+        <!-- Stats -->
+        <div id="stats" class="flex flex-wrap gap-2 text-sm mb-6 text-muted"></div>
 
-    <main class="max-w-7xl mx-auto px-4 pb-24">
-        <div id="tabs" class="mt-2 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-2"></div>
-        <div id="list" class="mt-6 grid grid-auto gap-4"></div>
+        <!-- Tabs -->
+        <div id="tabs" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-2 mb-8"
+            style="display: flex; flex-wrap: wrap; gap: 8px;"></div>
 
-        <section id="howto" class="mt-12 glass ring-grad rounded-2xl p-6">
-            <h2 class="text-xl font-semibold mb-2">사용 가이드</h2>
-            <ol class="list-decimal list-inside text-[var(--muted)] leading-7">
-                <li>상단 탭에서 관심 영역을 선택합니다.</li>
-                <li><a href="https://scispace.com/ko"
-                        class="px-2 py-1 rounded bg-blue-50 text-sm border border-blue-200">사이스페이스</a>에서 관련 논문을 찾습니다.
-                </li>
-                <li>흐름(현상→단순화→시각화→수식→심화)을 따라 탐구합니다.</li>
+        <!-- List -->
+        <main id="list" class="m-grid" style="grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 24px;">
+        </main>
+
+        <!-- Guide Section -->
+        <section id="howto" class="m-card mt-8 bg-gray-50 border-none">
+            <h2 class="font-bold text-lg mb-4">사용 가이드</h2>
+            <ol class="list-decimal pl-5 text-body leading-7">
+                <li>상단 탭에서 관심 영역을 선택합니다. (벡터, 행렬 등)</li>
+                <li><a href="https://scispace.com/ko" class="text-primary font-bold underline">SciSpace</a> 등을 활용하여 관련
+                    논문을 리서치합니다.</li>
+                <li>탐구 흐름(Flow)을 따라 자신만의 보고서를 작성합니다.</li>
             </ol>
         </section>
-    </main>
+    </div>
 
+    <!-- Card Template (Hidden) -->
     <template id="cardTpl">
-        <article class="glass ring-grad rounded-2xl p-5 fade-in">
-            <div class="flex items-start justify-between gap-3">
-                <div>
-                    <h3 class="font-semibold text-lg leading-snug"></h3>
-                    <p class="mt-1 text-sm text-[var(--muted)]"></p>
-                </div>
-                <span class="px-2 py-1 text-xs rounded-md bg-blue-50 border border-blue-200 category"></span>
+        <article class="m-card h-full fade-in">
+            <div class="flex justify-between items-start gap-3 mb-3">
+                <h3 class="font-bold text-lg leading-snug m-0"></h3>
+                <span class="m-badge category"></span>
             </div>
-            <div class="mt-3 flex flex-wrap gap-2 text-xs tools"></div>
-            <ul class="mt-3 text-sm leading-7 list-disc pl-6 flow"></ul>
+            <p class="text-body text-sm mb-4 desc"></p>
+
+            <div class="mb-4 flex flex-wrap gap-2 tools"></div>
+
+            <div class="bg-gray-50 p-3 rounded text-sm text-body">
+                <strong class="block text-xs uppercase text-muted mb-2 font-bold">Inquiry Flow</strong>
+                <ul class="list-disc pl-4 flow space-y-1"></ul>
+            </div>
         </article>
     </template>
 
     <script>
-        // Category configuration - all merged categories
+        // Configuration
         const CATEGORIES = [
             { key: 'vector', label: '벡터' },
             { key: 'matrix', label: '행렬' },
@@ -159,10 +120,8 @@
             { key: 'stat', label: '확률통계' }
         ];
 
-        // Space-related subcategories (grouped under 'space')
         const SPACE_CATS = ['space', 'structure', 'architecture', 'astronomy', 'time', 'optics', 'symmetry', 'packing', 'design', 'origami', 'mechanism', 'sections', 'biology', 'geology', 'navigation', 'paths'];
 
-        // Category labels
         const CAT_LABELS = {
             vector: '벡터', matrix: '행렬', complex_polar: '복소수', graph: '그래프',
             conic: '이차곡선', integral: '적분', space: '공간도형', stat: '확률통계'
@@ -173,7 +132,6 @@
         const tabsEl = document.getElementById('tabs'), statsEl = document.getElementById('stats');
         const search = document.getElementById('search'), toolFilter = document.getElementById('toolFilter');
 
-        // Load and merge both JSON files
         async function loadTopics() {
             try {
                 const [res1, res2] = await Promise.all([
@@ -193,25 +151,31 @@
         function buildUI() {
             // Build tabs
             tabsEl.innerHTML = CATEGORIES.map(t =>
-                `<button data-tab="${t.key}" class="tab glass ring-grad rounded-xl px-4 py-3 text-center text-sm hover:bg-blue-50">${t.label}</button>`
+                `<button data-tab="${t.key}" class="m-btn secondary tab-btn" style="flex:1; min-width:80px;">${t.label}</button>`
             ).join('');
-            tabsEl.querySelectorAll('.tab').forEach(b => b.addEventListener('click', () => activateTab(b.dataset.tab)));
+            tabsEl.querySelectorAll('.tab-btn').forEach(b => b.addEventListener('click', () => activateTab(b.dataset.tab)));
 
             // Build stats
-            statsEl.innerHTML = `<span class="chip px-3 py-1 rounded-full">총 <span id="countTotal">0</span>개</span>` +
-                CATEGORIES.map(t => `<span class="chip px-3 py-1 rounded-full">${t.label} <span id="count-${t.key}">0</span></span>`).join('');
+            statsEl.innerHTML = `<span class="m-badge">Total <span id="countTotal">0</span></span>`;
         }
 
         function activateTab(key) {
             currentTab = key;
-            tabsEl.querySelectorAll('.tab').forEach(b => b.classList.toggle('tab-active', b.dataset.tab === key));
+            tabsEl.querySelectorAll('.tab-btn').forEach(b => {
+                const isActive = b.dataset.tab === key;
+                if (isActive) {
+                    b.classList.remove('secondary');
+                    b.classList.add('primary');
+                } else {
+                    b.classList.add('secondary');
+                    b.classList.remove('primary');
+                }
+            });
             render();
         }
 
         function getTopicsForCategory(cat) {
-            if (cat === 'space') {
-                return TOPICS.filter(x => SPACE_CATS.includes(x.cat));
-            }
+            if (cat === 'space') return TOPICS.filter(x => SPACE_CATS.includes(x.cat));
             return TOPICS.filter(x => x.cat === cat);
         }
 
@@ -222,34 +186,25 @@
             if (kw) items = items.filter(x => (x.title + x.desc).toLowerCase().includes(kw));
             if (tool) items = items.filter(x => x.tools?.includes(tool));
 
-            // Update stats
             document.getElementById('countTotal').textContent = items.length;
-            CATEGORIES.forEach(t => {
-                const count = getTopicsForCategory(t.key).length;
-                const el = document.getElementById(`count-${t.key}`);
-                if (el) el.textContent = count;
-            });
 
-            // Render cards
             listEl.innerHTML = '';
             items.forEach(d => {
                 const node = tpl.content.cloneNode(true);
                 node.querySelector('h3').textContent = d.title;
-                node.querySelector('p').textContent = d.desc;
+                node.querySelector('.desc').textContent = d.desc;
 
                 let catLabel = CAT_LABELS[d.cat];
                 if (!catLabel && SPACE_CATS.includes(d.cat)) catLabel = '공간도형';
                 node.querySelector('.category').textContent = catLabel || d.cat;
 
-                node.querySelector('.tools').innerHTML = (d.tools || []).map(t => `<span class="chip px-2 py-1 rounded-full">${t}</span>`).join('');
+                node.querySelector('.tools').innerHTML = (d.tools || []).map(t => `<span class="m-badge" style="background:#fff; border:1px solid var(--border-light);">${t}</span>`).join('');
 
                 const flowItems = [];
                 if (d.flow) {
-                    if (d.flow.observation) flowItems.push(`현상: ${d.flow.observation}`);
-                    if (d.flow.simplification) flowItems.push(`단순화: ${d.flow.simplification}`);
-                    if (d.flow.visualization) flowItems.push(`시각화: ${d.flow.visualization}`);
-                    if (d.flow.formulation) flowItems.push(`수식: ${d.flow.formulation}`);
-                    if (d.flow.advanced) flowItems.push(`심화: ${d.flow.advanced}`);
+                    if (d.flow.observation) flowItems.push(`<b>관찰:</b> ${d.flow.observation}`);
+                    if (d.flow.simplification) flowItems.push(`<b>단순화:</b> ${d.flow.simplification}`);
+                    if (d.flow.formulation) flowItems.push(`<b>수식:</b> ${d.flow.formulation}`);
                 }
                 node.querySelector('.flow').innerHTML = flowItems.map(x => `<li>${x}</li>`).join('');
                 listEl.appendChild(node);
@@ -260,11 +215,9 @@
             }
         }
 
-        // Event listeners
         search.addEventListener('input', render);
         toolFilter.addEventListener('change', render);
 
-        // Init
         async function init() {
             await loadTopics();
             buildUI();
@@ -277,6 +230,33 @@
             init();
         }
     </script>
+
+    <style>
+        .fade-in {
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Add some utility overrides if needed since we aren't using Tailwind */
+        .text-primary {
+            color: var(--color-brand);
+        }
+
+        .space-y-1>*+* {
+            margin-top: 0.25rem;
+        }
+    </style>
 </body>
 
 </html>

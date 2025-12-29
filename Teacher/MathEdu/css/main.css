@@ -22,6 +22,7 @@
 
 /* Utilities */
 @import './utilities/prose.css';
+@import './utilities/layout.css';
 @import './utilities/print.css';
 @import './utilities/patterns.css';
 @import './utilities/animations.css';
