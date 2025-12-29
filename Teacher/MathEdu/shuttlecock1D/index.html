@@ -1,0 +1,463 @@
+<!doctype html>
+<html lang="ko">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>셔틀콕 낙하 운동 탐구 보고서</title>
+    <meta name="description" content="Tracker로 측정한 데이터를 바탕으로 자유낙하와 셔틀콕(공기저항) 운동을 비교·모델링·시뮬레이션하는 학생용 탐구 보고서." />
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="../css/main.css" />
+
+    <!-- KaTeX for math rendering -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+        crossorigin="anonymous"></script>
+
+    <!-- PrismJS for code highlighting -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script
+        src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+
+    <!-- Showdown for Markdown -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/showdown/2.1.0/showdown.min.js"></script>
+
+    <!-- Chart.js + CSV parsing -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+
+    <!-- Atomic JS Modules -->
+    <script src="../js/theme.js"></script>
+    <script src="../js/storage.js"></script>
+    <script src="../js/math.js"></script>
+    <script src="../js/autosave.js"></script>
+    <script src="../js/markdown.js"></script>
+    <script src="../js/image-upload.js"></script>
+    <script src="../js/validation.js"></script>
+    <script src="../js/pdf-export.js"></script>
+    <script src="../js/charts.js"></script>
+    <script src="../js/common.js"></script>
+</head>
+
+<body data-theme="auto">
+    <!-- Header -->
+    <header class="topbar print-hidden">
+        <div class="topbar-inner">
+            <div class="brand" aria-label="브랜드">
+                <div class="logo" aria-hidden="true">🏸</div>
+                <div>
+                    <h1>셔틀콕 낙하 운동 탐구 보고서</h1>
+                    <p>자유낙하와 공기저항 모델 비교 분석</p>
+                </div>
+            </div>
+            <nav class="nav" aria-label="주요 섹션">
+                <a class="chip" href="#step1">Step 1: 관찰</a>
+                <a class="chip" href="#step2">Step 2: 모델링</a>
+                <a class="chip" href="#step3">Step 3: 검증</a>
+                <a class="chip" href="#step4">Step 4: 시뮬레이션</a>
+                <a class="chip" href="#step5">Step 5: 심화</a>
+                <button class="btn small" id="themeBtn" type="button" aria-label="테마 전환">🌓 테마</button>
+            </nav>
+        </div>
+        <nav id="mobile-menu" class="hidden">
+            <a href="#step1">Step 1</a>
+            <a href="#step2">Step 2</a>
+            <a href="#step3">Step 3</a>
+            <a href="#step4">Step 4</a>
+            <a href="#step5">Step 5</a>
+        </nav>
+    </header>
+
+    <main class="container" style="max-width:900px; padding:24px;">
+        <!-- Student Info -->
+        <section class="step-card" style="margin-bottom:24px;">
+            <div class="grid" style="margin-top:0;">
+                <div class="span-6">
+                    <label for="student-id" class="font-semibold">🔢 학번</label>
+                    <input type="text" id="student-id" placeholder="예: 30101" class="editable-field">
+                </div>
+                <div class="span-6">
+                    <label for="student-name" class="font-semibold">🆎 이름</label>
+                    <input type="text" id="student-name" placeholder="예: 홍길동" class="editable-field">
+                </div>
+            </div>
+        </section>
+
+        <!-- Step 1: Observation -->
+        <section id="step1" class="step-card" style="margin-bottom:24px;">
+            <h2 style="border-bottom:2px solid #3b82f6; padding-bottom:8px;">Step 1: 현상 관찰 및 문제 발견</h2>
+            <p style="color:var(--muted); margin-bottom:16px;">
+                스마트폰으로 자유낙하(작은 구)와 셔틀콕 낙하를 촬영하고, 두 물체의 운동 차이를 관찰해봅시다.
+                셔틀콕은 왜 일반 물체와 다르게 떨어질까요?
+            </p>
+
+            <div class="grid" style="margin-top:0;">
+                <div class="span-6">
+                    <h3 style="margin-bottom:8px;">📸 관찰 사진 (자유낙하 vs 셔틀콕)</h3>
+                    <div class="screenshot-container" style="min-height:200px;">
+                        <img id="screenshot-preview-1" alt="관찰 사진 미리보기" class="hidden">
+                        <span id="screenshot-placeholder-1" style="color:var(--muted);">관찰 사진 첨부</span>
+                    </div>
+                    <div class="print-hidden" style="text-align:center; margin-top:8px;">
+                        <input type="file" accept="image/*" onchange="previewImage(event, 1)" class="hidden"
+                            id="screenshot-input-1">
+                        <label for="screenshot-input-1" class="file-upload-label">이미지 선택</label>
+                    </div>
+                </div>
+
+                <div class="span-6">
+                    <label class="font-semibold">📝 관찰 내용 및 질문</label>
+                    <div class="editable-container">
+                        <textarea id="observations" class="markdown-input editable-field" style="min-height:200px;"
+                            placeholder="예시)
+- 자유낙하 물체는 계속 빨라지는 것 같다.
+- 셔틀콕은 어느 순간부터 속도가 일정해 보인다.
+- 왜 셔틀콕만 속도가 일정해질까?
+- 공기저항이 속도에 어떻게 영향을 줄까?"></textarea>
+                        <div class="markdown-preview prose max-w-none"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Step 2: Mathematical Modeling -->
+        <section id="step2" class="step-card" style="margin-bottom:24px;">
+            <h2 style="border-bottom:2px solid #10b981; padding-bottom:8px;">Step 2: 수학적 모델 유도</h2>
+
+            <div class="grid" style="margin-top:16px;">
+                <div class="span-6">
+                    <div class="mini">
+                        <div class="tag">자유낙하 모델 (무저항)</div>
+                        <p>가정: 공기저항 무시, \(g\) 일정, 수직 1차원, \(v_0=0\)</p>
+                        <div style="background:var(--card); padding:12px; border-radius:8px; margin-top:12px;">
+                            <p>\(y(t) = \frac{1}{2}gt^2\)</p>
+                            <p>\(v(t) = gt\)</p>
+                            <p>\(a(t) = g\) (일정)</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="span-6">
+                    <div class="mini">
+                        <div class="tag">셔틀콕 모델 (제곱저항)</div>
+                        <p>가정: 저항력 \(\propto v^2\), 운동방정식 \(ma = mg - kv^2\)</p>
+                        <div style="background:var(--card); padding:12px; border-radius:8px; margin-top:12px;">
+                            <p>\(a = g - kv^2\)</p>
+                            <p>종단속도: \(v_T = \sqrt{\frac{g}{k}}\) (when \(a=0\))</p>
+                            <p>검증: \(a\) vs \(v^2\) 그래프가 직선이면 모델 성립</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-top:24px;">
+                <label class="font-semibold">🔍 모델 유도 과정 서술</label>
+                <p style="color:var(--muted); margin-bottom:8px;">
+                    자유낙하 식 \(y(t)=\frac{1}{2}gt^2\)가 어떻게 유도되는지, 또는 셔틀콕의 \(a=g-kv^2\)에서 종단속도가 왜 \(v_T=\sqrt{g/k}\)인지
+                    설명해보세요.
+                </p>
+                <div class="editable-container">
+                    <textarea id="proof-writing" class="markdown-input editable-field" style="min-height:150px;"
+                        placeholder="예시)
+등차수열을 이용한 자유낙하 증명:
+- 시간을 Δt로 나누면 각 구간의 속도 변화량은 ΔV = gΔt로 일정
+- 따라서 v_n = ngΔt 는 등차수열
+- 이동거리를 합하면 y = (1/2)gt² 가 됨
+
+셔틀콕 종단속도 유도:
+- a = g - kv² 에서 a = 0이 되면 속도가 더 이상 증가하지 않음
+- 0 = g - kv_T² 를 풀면 v_T = √(g/k)"></textarea>
+                    <div class="markdown-preview prose max-w-none"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Step 3: Data Analysis & Verification -->
+        <section id="step3" class="step-card" style="margin-bottom:24px;">
+            <h2 style="border-bottom:2px solid #8b5cf6; padding-bottom:8px;">Step 3: 데이터 분석 및 모델 검증</h2>
+            <p style="color:var(--muted); margin-bottom:16px;">
+                Tracker에서 추출한 CSV 데이터를 업로드하고, 모델이 데이터와 얼마나 잘 맞는지 확인합니다.
+            </p>
+
+            <div class="grid" style="margin-top:0;">
+                <div class="span-6">
+                    <h3 style="margin-bottom:8px;">CSV 업로드 및 분석</h3>
+                    <div class="form" style="gap:8px;">
+                        <div class="field full">
+                            <label>CSV 파일 (Tracker 내보내기)</label>
+                            <input type="file" id="csvFile" accept=".csv,text/csv" />
+                        </div>
+                        <div class="field wide">
+                            <label>모델 선택</label>
+                            <select id="fitMode">
+                                <option value="freefall" selected>자유낙하: y(t) 이차 피팅 → g</option>
+                                <option value="shuttle">셔틀콕: a vs v² 선형 피팅 → k, vT</option>
+                            </select>
+                        </div>
+                        <div class="field">
+                            <label>좌표 부호</label>
+                            <select id="signMode">
+                                <option value="down" selected>아래가 + (권장)</option>
+                                <option value="up">위가 +</option>
+                            </select>
+                        </div>
+                        <div class="field">
+                            <button class="btn primary" type="button" id="runFit">분석 실행</button>
+                        </div>
+                    </div>
+
+                    <div class="mini" style="margin-top:12px;">
+                        <div class="tag">분석 결과</div>
+                        <div id="fitResult" style="font-family:var(--font-mono); font-size:12px; line-height:1.55;">
+                            아직 데이터가 없습니다.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="span-6">
+                    <h3 style="margin-bottom:8px;">그래프</h3>
+                    <div class="chartBox">
+                        <canvas id="chart1" aria-label="y, v 그래프" height="200"></canvas>
+                    </div>
+                    <div class="chartBox" style="margin-top:12px;">
+                        <canvas id="chart2" aria-label="a 또는 a vs v² 그래프" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-top:24px;">
+                <label class="font-semibold">📊 데이터 해석</label>
+                <p style="color:var(--muted); margin-bottom:8px;">
+                    추정한 \(g\) 또는 \(v_T\) 값이 이론값/논문값과 비교했을 때 어떤가요? 차이가 있다면 왜 그럴까요?
+                </p>
+                <div class="editable-container">
+                    <textarea id="data-interpretation" class="markdown-input editable-field" style="min-height:120px;"
+                        placeholder="예시)
+- 추정된 g = 9.65 m/s² (이론값 9.80 대비 약 1.5% 낮음)
+- 오차 원인: 스케일 보정 오류, 공기저항의 미미한 영향
+- 셔틀콕 v_T ≈ 6.5 m/s (논문값 6.8 m/s와 유사)
+- a vs v² 그래프가 거의 직선이므로 제곱저항 모델이 적합함"></textarea>
+                    <div class="markdown-preview prose max-w-none"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Step 4: Simulation -->
+        <section id="step4" class="step-card" style="margin-bottom:24px;">
+            <h2 style="border-bottom:2px solid #06b6d4; padding-bottom:8px;">Step 4: 시뮬레이션 활용</h2>
+            <p style="color:var(--muted); margin-bottom:16px;">
+                수치 적분(수열 반복)으로 모델의 예측 궤적을 계산하고, 실측 데이터와 비교합니다.
+            </p>
+
+            <div class="grid" style="margin-top:0;">
+                <div class="span-6">
+                    <h3 style="margin-bottom:8px;">시뮬레이션 파라미터</h3>
+                    <div class="form" style="gap:8px;">
+                        <div class="field wide">
+                            <label>저항 모델</label>
+                            <select id="simModel">
+                                <option value="none" selected>무저항 (자유낙하)</option>
+                                <option value="linear">선형저항: a = g - bv</option>
+                                <option value="quad">제곱저항: a = g - kv²</option>
+                            </select>
+                        </div>
+                        <div class="field">
+                            <label>g (m/s²)</label>
+                            <input type="number" id="simG" value="9.8" step="0.01" />
+                        </div>
+                        <div class="field">
+                            <label>높이 H (m)</label>
+                            <input type="number" id="simH" value="2.0" step="0.1" />
+                        </div>
+                        <div class="field">
+                            <label>Δt (s)</label>
+                            <input type="number" id="simDt" value="0.01" step="0.005" />
+                        </div>
+                        <div class="field">
+                            <label>b (1/s)</label>
+                            <input type="number" id="simB" value="0.7" step="0.05" />
+                        </div>
+                        <div class="field">
+                            <label>k (1/m)</label>
+                            <input type="number" id="simK" value="0.22" step="0.01" />
+                        </div>
+                        <div class="field full">
+                            <button class="btn primary" type="button" id="runSim">시뮬레이션 실행</button>
+                        </div>
+                    </div>
+
+                    <div class="mini" style="margin-top:12px;">
+                        <div class="tag">시뮬레이션 결과</div>
+                        <div id="simSummary" style="font-family:var(--font-mono); font-size:12px; line-height:1.55;">
+                            아직 실행하지 않았습니다.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="span-6">
+                    <h3 style="margin-bottom:8px;">시뮬레이션 그래프</h3>
+                    <div class="chartBox">
+                        <canvas id="simChart" aria-label="시뮬레이션 그래프" height="280"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-top:24px;">
+                <label class="font-semibold">⚙️ 시뮬레이션 코드 또는 GeoGebra 링크</label>
+                <p style="color:var(--muted); margin-bottom:8px;">
+                    직접 제작한 시뮬레이션 코드(Python/GeoGebra 등)가 있다면 아래에 첨부하세요.
+                </p>
+                <div class="editable-container">
+                    <textarea id="simulation-code" class="markdown-input editable-field font-mono"
+                        style="min-height:150px;" placeholder="Python 코드 예시:
+```python
+import numpy as np
+g, k, dt = 9.8, 0.22, 0.01
+v, y, t = 0, 0, 0
+while y < 2.0:
+    a = g - k * v**2
+    v += a * dt
+    y += v * dt
+    t += dt
+print(f'종단속도 추정: {v:.2f} m/s')
+```
+
+또는 GeoGebra 공유 링크:
+https://www.geogebra.org/m/..."></textarea>
+                    <div class="markdown-preview prose max-w-none"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Step 5: Deep Inquiry -->
+        <section id="step5" class="step-card" style="margin-bottom:24px;">
+            <h2 style="border-bottom:2px solid #f59e0b; padding-bottom:8px;">Step 5: 심화 탐구</h2>
+
+            <div style="margin-bottom:16px;">
+                <label class="font-semibold">1. 탐구 주제</label>
+                <input type="text" id="inquiry-title" class="editable-field"
+                    placeholder="예시) 셔틀콕 종류(깃털/나일론)에 따른 종단속도 비교" />
+            </div>
+
+            <div style="margin-bottom:16px;">
+                <label class="font-semibold">2. 탐구 질문</label>
+                <div class="editable-container">
+                    <textarea id="inquiry-question" class="markdown-input editable-field" style="min-height:80px;"
+                        placeholder="예시) 셔틀콕 재질이 다르면 저항계수 k가 어떻게 달라지고, 이것이 종단속도에 어떤 영향을 줄까?"></textarea>
+                    <div class="markdown-preview prose max-w-none"></div>
+                </div>
+            </div>
+
+            <div style="margin-bottom:16px;">
+                <label class="font-semibold">3. 탐구 동기 및 목적</label>
+                <div class="editable-container">
+                    <textarea id="inquiry-motivation" class="markdown-input editable-field" style="min-height:80px;"
+                        placeholder="왜 이 주제를 탐구하고 싶은가요? 무엇을 알아내는 것이 목적인가요?"></textarea>
+                    <div class="markdown-preview prose max-w-none"></div>
+                </div>
+            </div>
+
+            <div style="margin-bottom:16px;">
+                <label class="font-semibold">4. 탐구 내용 및 과정</label>
+                <div class="editable-container">
+                    <textarea id="inquiry-content" class="markdown-input editable-field" style="min-height:120px;"
+                        placeholder="가설, 변인 설정, 수식 유도, 시뮬레이션 설계 등 구체적인 탐구 과정을 서술하세요."></textarea>
+                    <div class="markdown-preview prose max-w-none"></div>
+                </div>
+            </div>
+
+            <div style="margin-bottom:16px;">
+                <h3 style="margin-bottom:8px;">5. 탐구 결과물</h3>
+                <div class="grid" style="margin-top:0;">
+                    <div class="span-6">
+                        <h4 style="font-size:14px; margin-bottom:8px;">사진 또는 캡처 자료</h4>
+                        <div class="screenshot-container" style="min-height:150px;">
+                            <img id="screenshot-preview-2" alt="결과물 사진" class="hidden">
+                            <span id="screenshot-placeholder-2" style="color:var(--muted);">결과물 사진 첨부</span>
+                        </div>
+                        <div class="print-hidden" style="text-align:center; margin-top:8px;">
+                            <input type="file" accept="image/*" onchange="previewImage(event, 2)" class="hidden"
+                                id="screenshot-input-2">
+                            <label for="screenshot-input-2" class="file-upload-label">이미지 선택</label>
+                        </div>
+                    </div>
+                    <div class="span-6">
+                        <h4 style="font-size:14px; margin-bottom:8px;">코드 또는 링크</h4>
+                        <div class="editable-container">
+                            <textarea id="inquiry-code" class="markdown-input editable-field font-mono"
+                                style="min-height:150px;" placeholder="결과물에 해당하는 코드나 링크를 입력하세요."></textarea>
+                            <div class="markdown-preview prose max-w-none"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-bottom:16px;">
+                <label class="font-semibold">6. 결론</label>
+                <div class="editable-container">
+                    <textarea id="inquiry-conclusion" class="markdown-input editable-field" style="min-height:100px;"
+                        placeholder="탐구 결과와 결론을 작성하세요. 초기 가설과 비교하고, 탐구의 의의와 한계점을 서술하세요."></textarea>
+                    <div class="markdown-preview prose max-w-none"></div>
+                </div>
+            </div>
+
+            <div style="margin-bottom:16px;">
+                <label class="font-semibold">7. 참고 문헌</label>
+                <div class="editable-container">
+                    <textarea id="inquiry-references" class="markdown-input editable-field" style="min-height:80px;"
+                        placeholder="참고한 논문, 책, 웹사이트 등의 출처를 기입하세요.
+예시)
+- Peastrel, M., Lynch, R., & Armenti Jr, A. (1980). Terminal velocity of a shuttlecock in vertical fall. American Journal of Physics, 48(7), 511-513."></textarea>
+                    <div class="markdown-preview prose max-w-none"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer with Save Button -->
+        <footer class="print-hidden" style="text-align:center; margin-top:24px;">
+            <div id="validation-message"
+                style="color:var(--color-error); font-weight:600; margin-bottom:16px; min-height:24px;"></div>
+            <button onclick="saveAsPdf()" class="btn primary" style="padding:12px 32px; font-size:16px;">
+                보고서 PDF로 저장
+            </button>
+        </footer>
+    </main>
+
+    <!-- Autosave Status Indicator -->
+    <div id="autosave-status" class="print-hidden">
+        <svg id="autosave-icon-saving" class="hidden"
+            style="animation:spin 1s linear infinite; width:20px; height:20px; margin-right:12px;"
+            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle style="opacity:0.25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path style="opacity:0.75" fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+            </path>
+        </svg>
+        <svg id="autosave-icon-saved" class="hidden" style="width:20px; height:20px; margin-right:12px;"
+            xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd"
+                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                clip-rule="evenodd" />
+        </svg>
+        <span id="autosave-text"></span>
+    </div>
+
+    <style>
+        @keyframes spin {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+
+    <script src="script.js"></script>
+</body>
+
+</html>

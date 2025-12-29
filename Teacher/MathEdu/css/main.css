@@ -1,0 +1,67 @@
+/* ==================================================
+   Main CSS - Import Aggregator
+   Teacher/MathEdu Design System
+   ================================================== */
+
+/* Base */
+@import './base/variables.css';
+@import './base/reset.css';
+@import './base/typography.css';
+
+/* Components */
+@import './components/buttons.css';
+@import './components/cards.css';
+@import './components/forms.css';
+@import './components/tabs.css';
+
+/* Layout */
+@import './layout/grid.css';
+@import './layout/header.css';
+
+/* Utilities */
+@import './utilities/prose.css';
+@import './utilities/print.css';
+
+/* Interactive Canvas */
+.interactive-canvas {
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    background-color: color-mix(in srgb, var(--card) 90%, var(--line));
+}
+
+/* Canvas default */
+canvas {
+    width: 100%;
+    height: 280px;
+}
+
+/* Teacher/Student Mode */
+.teacher-only {
+    display: none;
+}
+
+[data-mode="teacher"] .teacher-only {
+    display: block;
+}
+
+[data-mode="teacher"] .student-only {
+    display: none;
+}
+
+/* Autosave Status Indicator */
+#autosave-status {
+    position: fixed;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    display: flex;
+    align-items: center;
+    background: var(--card);
+    color: var(--text);
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow);
+    opacity: 0;
+    transition: opacity 0.5s;
+    z-index: 50;
+    border: 1px solid var(--line);
+}

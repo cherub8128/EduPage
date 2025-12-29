@@ -1,0 +1,1467 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>셔틀콕 vs 자유낙하 — 데이터로 검증하는 수학적 모델링 수업</title>
+  <meta name="description" content="Tracker로 측정한 데이터(위치·속도·가속도)를 바탕으로 자유낙하(포물선/이차함수)와 셔틀콕(공기저항 포함) 운동을 비교·모델링·시뮬레이션하는 프로젝트형 수업 웹페이지." />
+
+  <!-- Fonts (system-first) -->
+  <style>
+    :root{
+      --bg: #0b1020;
+      --bg2:#0a1635;
+      --card:#0f1b3a;
+      --card2:#0c1734;
+      --text:#e7ecff;
+      --muted:#b9c3ff;
+      --soft:#93a1ff;
+      --line: rgba(255,255,255,.10);
+      --line2: rgba(255,255,255,.14);
+      --accent:#7c5cff;
+      --accent2:#00d4ff;
+      --good:#4ade80;
+      --warn:#fbbf24;
+      --bad:#fb7185;
+      --shadow: 0 20px 60px rgba(0,0,0,.38);
+      --radius: 18px;
+      --radius2: 26px;
+      --max: 1160px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", Arial, sans-serif;
+    }
+
+    @media (prefers-color-scheme: light){
+      :root{
+        --bg:#f6f7fb;
+        --bg2:#eef1ff;
+        --card:#ffffff;
+        --card2:#ffffff;
+        --text:#0f172a;
+        --muted:#475569;
+        --soft:#64748b;
+        --line: rgba(2,6,23,.10);
+        --line2: rgba(2,6,23,.14);
+        --shadow: 0 18px 50px rgba(2,6,23,.10);
+      }
+    }
+
+    [data-theme="dark"]{
+      --bg: #0b1020;
+      --bg2:#0a1635;
+      --card:#0f1b3a;
+      --card2:#0c1734;
+      --text:#e7ecff;
+      --muted:#b9c3ff;
+      --soft:#93a1ff;
+      --line: rgba(255,255,255,.10);
+      --line2: rgba(255,255,255,.14);
+      --shadow: 0 20px 60px rgba(0,0,0,.38);
+    }
+    [data-theme="light"]{
+      --bg:#f6f7fb;
+      --bg2:#eef1ff;
+      --card:#ffffff;
+      --card2:#ffffff;
+      --text:#0f172a;
+      --muted:#475569;
+      --soft:#64748b;
+      --line: rgba(2,6,23,.10);
+      --line2: rgba(2,6,23,.14);
+      --shadow: 0 18px 50px rgba(2,6,23,.10);
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: var(--sans);
+      background:
+        radial-gradient(1200px 700px at 20% -10%, color-mix(in srgb, var(--accent) 25%, transparent), transparent 60%),
+        radial-gradient(1000px 700px at 90% 10%, color-mix(in srgb, var(--accent2) 18%, transparent), transparent 60%),
+        linear-gradient(180deg, var(--bg), var(--bg2));
+      color: var(--text);
+      letter-spacing: -0.2px;
+      overflow-x:hidden;
+    }
+
+    a{color:inherit; text-decoration:none}
+    a.link{color: color-mix(in srgb, var(--accent2) 70%, var(--text)); text-decoration: underline; text-underline-offset: 3px}
+
+    .wrap{max-width:var(--max); margin:0 auto; padding:28px 22px 80px}
+
+    /* Top nav */
+    .topbar{
+      position: sticky; top: 0; z-index: 50;
+      backdrop-filter: blur(10px);
+      background: color-mix(in srgb, var(--bg) 70%, transparent);
+      border-bottom: 1px solid var(--line);
+    }
+    .topbar-inner{max-width:var(--max); margin:0 auto; padding:14px 22px; display:flex; gap:14px; align-items:center; justify-content:space-between}
+    .brand{display:flex; align-items:center; gap:10px}
+    .logo{
+      width:38px; height:38px; border-radius: 12px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      box-shadow: var(--shadow);
+      display:grid; place-items:center; font-weight:800; color:white
+    }
+    .brand h1{font-size:14px; margin:0; line-height:1.2}
+    .brand p{margin:0; font-size:12px; color:var(--muted)}
+
+    .nav{
+      display:flex; gap:10px; flex-wrap:wrap;
+      align-items:center; justify-content:flex-end;
+    }
+    .chip{
+      padding:8px 10px; border-radius: 999px;
+      border: 1px solid var(--line);
+      background: color-mix(in srgb, var(--card) 55%, transparent);
+      font-size: 12px;
+      color: var(--muted);
+      transition: transform .12s ease, border-color .12s ease, background .12s ease;
+    }
+    .chip:hover{transform: translateY(-1px); border-color: var(--line2)}
+
+    .btn{
+      display:inline-flex; align-items:center; justify-content:center; gap:8px;
+      padding:10px 12px; border-radius: 12px;
+      border: 1px solid var(--line);
+      background: color-mix(in srgb, var(--card) 78%, transparent);
+      color: var(--text);
+      font-size: 13px;
+      cursor:pointer;
+      transition: transform .12s ease, border-color .12s ease, background .12s ease;
+      user-select:none;
+    }
+    .btn:hover{transform: translateY(-1px); border-color: var(--line2)}
+    .btn.primary{
+      border: 1px solid color-mix(in srgb, var(--accent) 65%, var(--line));
+      background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 85%, #0000), color-mix(in srgb, var(--accent2) 65%, #0000));
+      color: white;
+      box-shadow: var(--shadow);
+    }
+    .btn.ghost{background: transparent}
+    .btn.small{padding:8px 10px; border-radius: 10px; font-size:12px}
+
+    /* Hero */
+    .hero{
+      margin-top: 28px;
+      display:grid;
+      grid-template-columns: 1.1fr .9fr;
+      gap: 18px;
+      align-items: stretch;
+    }
+    @media (max-width: 980px){
+      .hero{grid-template-columns: 1fr;}
+    }
+
+    .card{
+      background: linear-gradient(180deg, color-mix(in srgb, var(--card) 92%, transparent), color-mix(in srgb, var(--card2) 92%, transparent));
+      border: 1px solid var(--line);
+      border-radius: var(--radius2);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .card.pad{padding: 22px}
+    .hero h2{margin:0 0 10px; font-size: 28px; letter-spacing: -0.8px}
+    .hero p{margin:0 0 16px; color: var(--muted); line-height:1.55}
+
+    .kpi{
+      display:grid; grid-template-columns: repeat(3,1fr); gap:10px;
+      margin-top: 16px;
+    }
+    @media (max-width: 560px){
+      .kpi{grid-template-columns: 1fr;}
+    }
+    .kpi .tile{
+      padding: 14px;
+      border-radius: 16px;
+      border: 1px solid var(--line);
+      background: color-mix(in srgb, var(--card) 65%, transparent);
+    }
+    .tile .num{font-weight: 800; font-size: 16px}
+    .tile .lab{font-size: 12px; color: var(--muted); margin-top: 4px}
+
+    .hero-actions{display:flex; gap:10px; flex-wrap:wrap; margin-top: 14px}
+
+    /* Feature grid */
+    .grid{
+      margin-top: 18px;
+      display:grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 12px;
+    }
+    .span-6{grid-column: span 6}
+    .span-4{grid-column: span 4}
+    .span-8{grid-column: span 8}
+    .span-12{grid-column: span 12}
+    @media (max-width: 980px){
+      .span-6,.span-4,.span-8{grid-column: span 12}
+    }
+
+    .mini{
+      padding: 16px;
+      border-radius: var(--radius);
+      border: 1px solid var(--line);
+      background: color-mix(in srgb, var(--card) 58%, transparent);
+      position: relative;
+      overflow:hidden;
+    }
+    .mini h3{margin:0 0 8px; font-size: 15px}
+    .mini p{margin:0; color: var(--muted); font-size: 13px; line-height:1.55}
+    .mini .tag{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:6px 10px; border-radius: 999px;
+      border: 1px solid var(--line);
+      background: color-mix(in srgb, var(--card) 75%, transparent);
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 10px;
+    }
+
+    /* Sections */
+    section{scroll-margin-top: 78px;}
+    .section-head{display:flex; align-items:flex-end; justify-content:space-between; gap:14px; margin: 34px 0 12px}
+    .section-head h2{margin:0; font-size: 20px}
+    .section-head p{margin:0; color: var(--muted); font-size: 13px}
+
+    /* Accordions */
+    details{
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: color-mix(in srgb, var(--card) 62%, transparent);
+      overflow:hidden;
+    }
+    details + details{margin-top:10px}
+    summary{
+      list-style:none;
+      cursor:pointer;
+      padding: 14px 16px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      font-weight: 700;
+    }
+    summary::-webkit-details-marker{display:none}
+    .details-body{padding: 0 16px 16px; color: var(--muted); line-height:1.65; font-size: 13px}
+
+    /* Two-column content */
+    .cols{display:grid; grid-template-columns: 1fr 1fr; gap:12px}
+    @media (max-width:980px){.cols{grid-template-columns:1fr}}
+
+    /* Checklists */
+    .checklist{display:flex; flex-direction:column; gap:10px}
+    .check{
+      display:flex; gap:10px; align-items:flex-start;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: color-mix(in srgb, var(--card) 70%, transparent);
+    }
+    .check input{margin-top: 2px}
+    .check b{display:block; color: var(--text)}
+    .check small{display:block; color: var(--muted); margin-top: 2px; line-height:1.45}
+
+    /* Tables */
+    table{width:100%; border-collapse: collapse; overflow:hidden; border-radius: 14px; border:1px solid var(--line)}
+    th,td{padding: 10px 10px; border-bottom: 1px solid var(--line); text-align:left; font-size: 13px}
+    th{font-size: 12px; color: var(--muted); background: color-mix(in srgb, var(--card) 75%, transparent)}
+    tr:last-child td{border-bottom:0}
+
+    /* Tabs */
+    .tabs{display:flex; flex-wrap:wrap; gap:8px; margin: 10px 0 14px}
+    .tab{padding:8px 10px; border-radius: 999px; border:1px solid var(--line); background: color-mix(in srgb, var(--card) 68%, transparent); color: var(--muted); cursor:pointer; font-size:12px}
+    .tab[aria-selected="true"]{color: var(--text); border-color: color-mix(in srgb, var(--accent) 60%, var(--line)); background: color-mix(in srgb, var(--accent) 18%, var(--card))}
+
+    .panel{display:none}
+    .panel.active{display:block}
+
+    /* Inputs */
+    .form{display:grid; grid-template-columns: repeat(12,1fr); gap:10px; align-items:end}
+    .field{grid-column: span 3}
+    .field.wide{grid-column: span 6}
+    .field.full{grid-column: span 12}
+    @media (max-width:980px){.field,.field.wide{grid-column: span 12}}
+
+    label{display:block; font-size:12px; color: var(--muted); margin:0 0 6px}
+    input[type="number"], input[type="text"], input[type="file"], select, textarea{
+      width:100%;
+      padding: 10px 12px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: color-mix(in srgb, var(--card) 72%, transparent);
+      color: var(--text);
+      outline:none;
+    }
+    textarea{min-height:92px; resize: vertical}
+
+    .hint{font-size: 12px; color: var(--muted); margin-top: 8px; line-height:1.5}
+
+    /* Charts */
+    .chartBox{border: 1px solid var(--line); border-radius: var(--radius); background: color-mix(in srgb, var(--card) 68%, transparent); padding: 14px}
+    canvas{width:100%; height: 280px}
+
+    /* Footer */
+    footer{margin-top: 34px; color: var(--muted); font-size: 12px; line-height:1.55}
+
+    /* Teacher/Student view */
+    .teacher-only{display:none}
+    [data-mode="teacher"] .teacher-only{display:block}
+    [data-mode="teacher"] .student-only{display:none}
+
+    /* Print */
+    @media print{
+      .topbar, .hero-actions, .nav, .btn, .chip, .tabs, .teacher-toggle, .download-row{display:none !important}
+      body{background:#fff}
+      .card{box-shadow:none}
+      .wrap{padding:0}
+      a{color:#000; text-decoration:none}
+    }
+  </style>
+
+  <!-- KaTeX for clean math rendering -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" crossorigin="anonymous"></script>
+
+  <!-- Chart.js + CSV parsing -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+</head>
+
+<body data-theme="auto" data-mode="student">
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand" aria-label="브랜드">
+        <div class="logo" aria-hidden="true">∫</div>
+        <div>
+          <h1>셔틀콕 vs 자유낙하</h1>
+          <p>Tracker 데이터로 검증하는 수학적 모델링 프로젝트</p>
+        </div>
+      </div>
+      <nav class="nav" aria-label="주요 섹션">
+        <a class="chip" href="#overview">개요</a>
+        <a class="chip" href="#design">실험 설계</a>
+        <a class="chip" href="#tracker">Tracker</a>
+        <a class="chip" href="#model">모델링</a>
+        <a class="chip" href="#sim">시뮬레이션</a>
+        <a class="chip" href="#extensions">확장</a>
+        <button class="btn small" id="themeBtn" type="button" aria-label="테마 전환">🌓 테마</button>
+        <button class="btn small teacher-toggle" id="modeBtn" type="button" aria-label="교사용 보기 전환">🎓 교사용</button>
+        <button class="btn small" type="button" onclick="window.print()">🖨️ 인쇄</button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div class="hero" id="overview">
+      <div class="card pad">
+        <h2>포물선으로 시작해서, 셔틀콕에서 모델을 ‘업그레이드’한다</h2>
+        <p>
+          일반 물체의 <b>자유낙하</b>를 촬영해 \(y(t), v(t), a(t)\)를 확인하고, 같은 방식으로 <b>셔틀콕</b>을 촬영해 비교합니다.
+          데이터가 “포물선/이차함수”에서 벗어나는 지점을 발견하면, 공기저항을 포함한 모델을 세우고 시뮬레이션으로 검증합니다.
+        </p>
+
+        <div class="hero-actions">
+          <a class="btn primary" href="#quickstart">🚀 빠른 시작</a>
+          <a class="btn" href="#data">📈 CSV 분석(Tracker)</a>
+          <a class="btn" href="#sim">🧪 시뮬레이터</a>
+        </div>
+
+        <div class="kpi" aria-label="핵심 학습 포인트">
+          <div class="tile">
+            <div class="num">관측 → 함수</div>
+            <div class="lab">그래프로 운동을 해석</div>
+          </div>
+          <div class="tile">
+            <div class="num">가정 → 모델</div>
+            <div class="lab">단순화된 조건(가설) 세우기</div>
+          </div>
+          <div class="tile">
+            <div class="num">검증 → 오차</div>
+            <div class="lab">잔차·오차 원인 분석</div>
+          </div>
+        </div>
+
+        <p class="hint" style="margin-top:14px">
+          참고 논문(수직낙하 실험 기반): <span style="font-family:var(--mono)">Peastrel, Lynch, Armenti Jr. (1980), AJP, doi:10.1119/1.12373</span>
+        </p>
+      </div>
+
+      <div class="card pad">
+        <h3 style="margin:0 0 10px">오늘의 ‘사용자’는 학생</h3>
+        <p style="margin:0 0 14px; color:var(--muted); line-height:1.6">
+          이 페이지는 학생이 <b>혼자 읽어도 길을 잃지 않게</b> 구성했습니다.
+          체크리스트는 자동 저장되고(브라우저 LocalStorage), CSV를 업로드하면 그래프/추정값이 바로 나옵니다.
+        </p>
+
+        <div class="mini" style="margin-bottom:12px">
+          <div class="tag">🎯 산출물</div>
+          <p><b>탐구 보고서</b>: 실험 설계(변인), 데이터 그래프, 모델 유도, 시뮬레이션, 오차·확장 탐구</p>
+        </div>
+
+        <div class="mini teacher-only">
+          <div class="tag">🧑‍🏫 교사용 팁</div>
+          <p>
+            “정답 맞히기”보다 <b>모델이 왜/어디서 틀리는지</b>를 설득력 있게 쓰게 하면 프로젝트 퀄리티가 확 뛰어요.
+          </p>
+        </div>
+
+        <div class="mini student-only">
+          <div class="tag">🧑‍🔬 학생용 가이드</div>
+          <p>
+            실험이 완벽할 필요는 없어요. 대신 <b>왜 어긋났는지</b>를 논리적으로 말할 수 있으면 점수는 올라갑니다.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <section id="quickstart">
+      <div class="section-head">
+        <div>
+          <h2>빠른 시작</h2>
+          <p>바로 수업 운영 가능한 4단계 루트</p>
+        </div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap">
+          <button class="btn" id="resetAll" type="button">♻️ 진행상태 초기화</button>
+          <a class="btn" href="#design">🧩 설계로 이동</a>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div class="mini span-4">
+          <div class="tag">1</div>
+          <h3>촬영</h3>
+          <p>자유낙하(작은 구) + 셔틀콕을 같은 높이/같은 장소에서 촬영</p>
+        </div>
+        <div class="mini span-4">
+          <div class="tag">2</div>
+          <h3>Tracker</h3>
+          <p>\(y(t)\) 추적 → \(v(t), a(t)\) 계산 → 그래프 비교</p>
+        </div>
+        <div class="mini span-4">
+          <div class="tag">3</div>
+          <h3>모델링</h3>
+          <p>자유낙하는 이차함수, 셔틀콕은 \(a=g-kv^2\) 가설로 업그레이드</p>
+        </div>
+        <div class="mini span-6">
+          <div class="tag">4</div>
+          <h3>시뮬레이션 & 검증</h3>
+          <p>수치 적분으로 궤적을 재현하고, 실측과 잔차를 비교해 오차 원인을 정리</p>
+        </div>
+        <div class="mini span-6">
+          <div class="tag">🧠</div>
+          <h3>확장</h3>
+          <p>변인 추가(셔틀 종류/질량/회전/높이) 또는 “문제 바꿔생각하기(역문제/최적화)”로 탐구 확장</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="design">
+      <div class="section-head">
+        <div>
+          <h2>1) 실험 설계 (과학 실험 표준)</h2>
+          <p>조작·종속·통제 변인을 명확히 정의하고, “같은 조건 비교”를 만든다</p>
+        </div>
+      </div>
+
+      <div class="cols">
+        <div class="card pad">
+          <h3 style="margin:0 0 12px">연구문제 템플릿</h3>
+          <details open>
+            <summary>RQ1. 자유낙하에서 \(a\)는 정말 일정한가?</summary>
+            <div class="details-body">Tracker로 \(y(t)\)를 측정하고, \(y\)를 이차함수로 피팅해 \(g\)를 추정한다.</div>
+          </details>
+          <details>
+            <summary>RQ2. 셔틀콕은 종단속도에 가까워지는가?</summary>
+            <div class="details-body">\(v(t)\) 그래프가 ‘포화’되는지 확인하고, \(v_T\)를 데이터로 추정한다.</div>
+          </details>
+          <details>
+            <summary>RQ3. 저항은 \(v\)에 비례? \(v^2\)에 비례?</summary>
+            <div class="details-body">가설 \(a=g-kv^2\)가 맞다면 \(a\) vs \(v^2\) 산점도가 직선에 가깝다.</div>
+          </details>
+
+          <div class="hint teacher-only">교사용: 여기서 “정답”을 미리 말하지 말고, 학생들이 데이터로 ‘모델 경쟁’을 하게 두면 몰입도가 올라갑니다.</div>
+        </div>
+
+        <div class="card pad">
+          <h3 style="margin:0 0 12px">변인 설계 빌더(자동 저장)</h3>
+          <p style="margin:0 0 12px; color:var(--muted); line-height:1.6">
+            아래 표를 채우고 <b>CSV로 내보내기</b>하면 보고서에 바로 붙일 수 있어요.
+          </p>
+
+          <div class="form">
+            <div class="field wide">
+              <label>추가할 변인(문장)</label>
+              <input id="varText" type="text" placeholder="예: 낙하 높이 H (1.5 m로 고정)" />
+            </div>
+            <div class="field">
+              <label>종류</label>
+              <select id="varType">
+                <option value="조작변인">조작변인(독립)</option>
+                <option value="종속변인">종속변인</option>
+                <option value="통제변인" selected>통제변인</option>
+              </select>
+            </div>
+            <div class="field">
+              <button class="btn primary" type="button" id="addVar">➕ 추가</button>
+            </div>
+          </div>
+
+          <div style="margin-top:12px" class="chartBox">
+            <table aria-label="변인 표" id="varTable">
+              <thead>
+                <tr>
+                  <th style="width:110px">종류</th>
+                  <th>내용</th>
+                  <th style="width:90px">작업</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+            <div class="download-row" style="display:flex; gap:10px; flex-wrap:wrap; margin-top:12px">
+              <button class="btn" type="button" id="exportVars">⬇️ CSV 내보내기</button>
+              <button class="btn ghost" type="button" id="seedVars">✨ 예시 채우기</button>
+            </div>
+          </div>
+
+          <p class="hint">팁: 셔틀콕 vs 일반 물체 비교는 “같은 조건에서 물체만 바꾼다”가 핵심입니다.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="tracker">
+      <div class="section-head">
+        <div>
+          <h2>2) 촬영 & Tracker 워크플로</h2>
+          <p>정확도는 ‘수학’보다 ‘카메라 세팅’에서 결정된다</p>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div class="card pad span-6">
+          <h3 style="margin:0 0 10px">촬영 체크리스트(자동 저장)</h3>
+          <div class="checklist" id="shootChecks"></div>
+          <p class="hint">팁: 줄자(스케일)는 반드시 <b>낙하 평면과 같은 평면</b>에 붙이기(패럴럭스 방지).</p>
+        </div>
+
+        <div class="card pad span-6">
+          <h3 style="margin:0 0 10px">Tracker 체크리스트(자동 저장)</h3>
+          <div class="checklist" id="trackerChecks"></div>
+          <details style="margin-top:12px">
+            <summary>가속도 \(a(t)\)가 흔들리는 이유</summary>
+            <div class="details-body">
+              속도·가속도는 “미분”이라 잡음에 민감합니다. \(y(t)\)를 먼저 피팅한 뒤 미분하거나, 이동평균으로 완화하면 그래프가 안정됩니다.
+            </div>
+          </details>
+        </div>
+
+        <div class="card pad span-12">
+          <h3 style="margin:0 0 10px">수업 운영(차시 탭)</h3>
+          <div class="tabs" role="tablist" aria-label="차시 선택">
+            <button class="tab" role="tab" aria-selected="true" data-tab="d1">1차시</button>
+            <button class="tab" role="tab" aria-selected="false" data-tab="d2">2차시</button>
+            <button class="tab" role="tab" aria-selected="false" data-tab="d3">3차시</button>
+            <button class="tab" role="tab" aria-selected="false" data-tab="d4">4차시</button>
+            <button class="tab" role="tab" aria-selected="false" data-tab="d5">5차시(선택)</button>
+          </div>
+
+          <div class="panel active" id="d1">
+            <div class="cols">
+              <div class="mini">
+                <div class="tag">목표</div>
+                <p>실험 설계(변인) + 촬영 조건 통일 + Tracker 기본 조작</p>
+              </div>
+              <div class="mini">
+                <div class="tag">활동</div>
+                <p>자유낙하 촬영(작은 구) → Tracker로 \(y(t)\) 확보</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel" id="d2">
+            <div class="cols">
+              <div class="mini"><div class="tag">목표</div><p>셔틀콕 낙하 촬영 & 데이터 추출</p></div>
+              <div class="mini"><div class="tag">활동</div><p>셔틀콕 \(y(t), v(t), a(t)\) → 자유낙하와 그래프 비교</p></div>
+            </div>
+          </div>
+
+          <div class="panel" id="d3">
+            <div class="cols">
+              <div class="mini"><div class="tag">목표</div><p>자유낙하 식 유도(고1 수준) + \(g\) 추정 + 오차 분석</p></div>
+              <div class="mini"><div class="tag">활동</div><p>\(y(t)=at^2+bt+c\) 회귀 → \(g\approx 2a\)</p></div>
+            </div>
+          </div>
+
+          <div class="panel" id="d4">
+            <div class="cols">
+              <div class="mini"><div class="tag">목표</div><p>셔틀콕 모델(제곱저항) 가설 설정 & 데이터로 검증</p></div>
+              <div class="mini"><div class="tag">활동</div><p>\(a\) vs \(v^2\) 산점도 → 직선 피팅 → \(v_T\) 추정</p></div>
+            </div>
+          </div>
+
+          <div class="panel" id="d5">
+            <div class="cols">
+              <div class="mini"><div class="tag">목표</div><p>GeoGebra/웹 시뮬레이터 제작 + 확장 탐구 발표</p></div>
+              <div class="mini"><div class="tag">활동</div><p>변인 추가/문제 재정의/실생활 연결(전술·장비)</p></div>
+            </div>
+          </div>
+
+          <p class="hint" style="margin-top:12px">차시 구성은 상황에 맞게 2~3차시로 압축해도 됩니다(핵심은 “같은 조건 비교 + 모델 검증”).</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="model">
+      <div class="section-head">
+        <div>
+          <h2>3) 가설 설정 → 수학적 모델링</h2>
+          <p>단순화(가정)가 모델을 만든다. 모델은 데이터 앞에서 겸손해진다.</p>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div class="card pad span-6">
+          <h3 style="margin:0 0 10px">자유낙하(무저항) — 고1 수준 유도</h3>
+          <p style="margin:0; color:var(--muted); line-height:1.65">
+            가정: 공기저항 무시, \(g\) 일정, 수직 1차원, \(v_0=0\).
+          </p>
+          <div class="mini" style="margin-top:12px">
+            <div class="tag">결론</div>
+            <p>
+              \(y(t)=\tfrac{1}{2}gt^2\), \(v(t)=gt\), \(a(t)=g\)
+            </p>
+          </div>
+          <details style="margin-top:12px">
+            <summary>등차수열로 증명(미적분 없이)</summary>
+            <div class="details-body">
+              시간을 \(\Delta t\)로 나누면 속도 변화량은 \(\Delta v=g\Delta t\)로 일정 → \(v_n\)은 등차수열.
+              각 구간 이동거리는 “평균속도×시간”이고, 이를 합하면 \(y(t)=\tfrac12gt^2\)가 된다.
+            </div>
+          </details>
+        </div>
+
+        <div class="card pad span-6">
+          <h3 style="margin:0 0 10px">셔틀콕(공기저항) — 제곱저항 가설</h3>
+          <p style="margin:0; color:var(--muted); line-height:1.65">
+            셔틀콕은 공기저항이 커서 가속도가 일정하지 않습니다.
+            단순화 가설: 저항력 \(\propto v^2\) → \(a=g-kv^2\).
+          </p>
+          <div class="mini" style="margin-top:12px">
+            <div class="tag">핵심 검증 포인트</div>
+            <p>
+              \(a\) vs \(v^2\) 그래프가 직선이면 가설이 설득력을 얻는다.
+              절편 \(\approx g\), 기울기 \(\approx -k\), 종단속도 \(v_T=\sqrt{g/k}\).
+            </p>
+          </div>
+
+          <details style="margin-top:12px" class="teacher-only">
+            <summary>심화(선택): \(v(t)=v_T\tanh(\cdot)\) 형태로 풀기</summary>
+            <div class="details-body">
+              미적분(변수분리)을 쓰면 \(\frac{dv}{dt}=g-kv^2\)를 닫힌형으로 풀 수 있습니다.
+              수학 동아리/심화 보고서용으로만 권장.
+            </div>
+          </details>
+        </div>
+
+        <div class="card pad span-12">
+          <h3 style="margin:0 0 10px">포물선 운동으로 확장(선택)</h3>
+          <p style="margin:0 0 12px; color:var(--muted); line-height:1.65">
+            ‘중력만’ 가정이면 투사체는 포물선입니다. 셔틀콕은 저항 때문에 \(x\)방향 속도도 감소하여 포물선이 깨집니다.
+            (이 페이지는 수직낙하 중심으로 설계했지만, 원하면 같은 방식으로 투사 운동까지 확장 가능)
+          </p>
+          <div class="mini">
+            <div class="tag">포물선</div>
+            <p>
+              \(x(t)=v_0\cos\theta\,t\), \(y(t)=v_0\sin\theta\,t-\tfrac12gt^2\)
+              → \(y(x)=x\tan\theta-\frac{g}{2v_0^2\cos^2\theta}x^2\)
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="data">
+      <div class="section-head">
+        <div>
+          <h2>4) Tracker CSV 업로드 → 그래프 & 추정값</h2>
+          <p>실측 데이터를 ‘모델 검증’에 바로 연결하기</p>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div class="card pad span-6">
+          <h3 style="margin:0 0 10px">CSV 업로드</h3>
+          <p style="margin:0 0 12px; color:var(--muted); line-height:1.65">
+            Tracker에서 내보낸 CSV를 업로드하세요.
+            <b>필수 열</b>: 시간 \(t\) (초), 수직 위치 \(y\) (m). 열 이름은 달라도 됩니다(자동 탐색).
+          </p>
+
+          <div class="form">
+            <div class="field full">
+              <label>CSV 파일</label>
+              <input type="file" id="csvFile" accept=".csv,text/csv" />
+            </div>
+            <div class="field">
+              <label>모델</label>
+              <select id="fitMode">
+                <option value="freefall" selected>자유낙하: y(t) 이차 피팅 → g</option>
+                <option value="shuttle">셔틀콕: a vs v^2 선형 피팅 → k, vT</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>좌표 부호</label>
+              <select id="signMode">
+                <option value="down" selected>아래가 + (권장)</option>
+                <option value="up">위가 +</option>
+              </select>
+            </div>
+            <div class="field">
+              <button class="btn primary" type="button" id="runFit">분석 실행</button>
+            </div>
+          </div>
+
+          <div class="mini" style="margin-top:12px">
+            <div class="tag">결과</div>
+            <div id="fitResult" style="font-family:var(--mono); color:var(--text); font-size:12px; line-height:1.55">
+              아직 데이터가 없습니다.
+            </div>
+          </div>
+
+          <details style="margin-top:12px">
+            <summary>CSV가 잘 안 읽힐 때 체크</summary>
+            <div class="details-body">
+              1) 시간과 위치 단위(초, 미터)를 확인하세요. 2) y가 픽셀이라면 Tracker에서 스케일 보정을 먼저 해야 합니다.
+              3) 샘플링이 너무 거칠면(낮은 fps) 가속도 계산이 요동칠 수 있어요.
+            </div>
+          </details>
+        </div>
+
+        <div class="card pad span-6">
+          <h3 style="margin:0 0 10px">그래프</h3>
+          <div class="chartBox">
+            <canvas id="chart1" aria-label="y, v 그래프"></canvas>
+          </div>
+          <div class="chartBox" style="margin-top:12px">
+            <canvas id="chart2" aria-label="a 또는 a vs v^2 그래프"></canvas>
+          </div>
+          <p class="hint">주의: \(v\), \(a\)는 유한차분(근사 미분)이라 노이즈가 생길 수 있어요. 큰 흐름을 보세요.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="sim">
+      <div class="section-head">
+        <div>
+          <h2>5) 시뮬레이션(수치 적분)</h2>
+          <p>미적분을 몰라도, 반복 계산(수열)로 모델을 ‘돌릴’ 수 있다</p>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div class="card pad span-6">
+          <h3 style="margin:0 0 10px">모델 선택 & 파라미터</h3>
+
+          <div class="form">
+            <div class="field">
+              <label>저항 모델</label>
+              <select id="simModel">
+                <option value="none" selected>무저항(자유낙하)</option>
+                <option value="linear">선형저항: a = g - b v</option>
+                <option value="quad">제곱저항: a = g - k v²</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>중력가속도 g (m/s²)</label>
+              <input type="number" id="simG" value="9.8" step="0.01" />
+            </div>
+            <div class="field">
+              <label>높이 H (m)</label>
+              <input type="number" id="simH" value="2.0" step="0.1" />
+            </div>
+            <div class="field">
+              <label>Δt (s)</label>
+              <input type="number" id="simDt" value="0.01" step="0.005" />
+            </div>
+
+            <div class="field">
+              <label>b (1/s)</label>
+              <input type="number" id="simB" value="0.7" step="0.05" />
+            </div>
+            <div class="field">
+              <label>k (1/m)</label>
+              <input type="number" id="simK" value="0.22" step="0.01" />
+            </div>
+            <div class="field">
+              <button class="btn primary" type="button" id="runSim">시뮬레이션</button>
+            </div>
+            <div class="field full">
+              <p class="hint" style="margin:0">
+                제곱저항 모델에서 종단속도: \(v_T=\sqrt{g/k}\)
+              </p>
+            </div>
+          </div>
+
+          <div class="mini" style="margin-top:12px">
+            <div class="tag">수열 업데이트(핵심)</div>
+            <p style="margin:0; color:var(--muted); line-height:1.65">
+              \(v_{n+1}=v_n+a(v_n)\Delta t\), \(y_{n+1}=y_n+v_{n+1}\Delta t\).
+              여기서 \(a(v)=g\), \(g-bv\), \(g-kv^2\) 중 하나를 선택합니다.
+            </p>
+          </div>
+        </div>
+
+        <div class="card pad span-6">
+          <h3 style="margin:0 0 10px">결과 그래프</h3>
+          <div class="chartBox">
+            <canvas id="simChart" aria-label="시뮬레이션 그래프"></canvas>
+          </div>
+          <div class="mini" style="margin-top:12px">
+            <div class="tag">요약</div>
+            <div id="simSummary" style="font-family:var(--mono); font-size:12px; color:var(--text); line-height:1.55">
+              아직 실행하지 않았습니다.
+            </div>
+          </div>
+        </div>
+
+        <div class="card pad span-12">
+          <h3 style="margin:0 0 10px">(선택) 기존 시뮬레이터 임베드</h3>
+          <p style="margin:0 0 12px; color:var(--muted); line-height:1.65">
+            같은 폴더에 <code style="font-family:var(--mono)">fall_simulator.html</code> 파일이 있으면 아래 iframe에서 바로 열립니다.
+          </p>
+          <div class="chartBox" style="padding:0; overflow:hidden">
+            <iframe title="낙하 시뮬레이터" src="fall_simulator.html" style="width:100%; height:560px; border:0"></iframe>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="extensions">
+      <div class="section-head">
+        <div>
+          <h2>6) 토의 · 확장 탐구(창의 파트)</h2>
+          <p>모델을 ‘진짜’로 만드는 건, 실패를 정직하게 설명하는 능력</p>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div class="card pad span-6">
+          <h3 style="margin:0 0 10px">오차 원인 체크리스트</h3>
+          <div class="checklist" id="errorChecks"></div>
+          <details style="margin-top:12px">
+            <summary>보고서 문장 템플릿(그대로 써도 됨)</summary>
+            <div class="details-body">
+              “우리의 데이터에서 \(a(t)\)가 일정하지 않게 나타난 이유는 (1) 미분에 의한 노이즈 증폭, (2) 촬영 각도에 따른 패럴럭스,
+              (3) 물체의 자세 변화(셔틀콕), (4) 공기 흐름 등으로 해석된다. 따라서 다음 실험에서는 (개선안)을 적용한다.”
+            </div>
+          </details>
+        </div>
+
+        <div class="card pad span-6">
+          <h3 style="margin:0 0 10px">확장 아이디어 카드</h3>
+          <div class="grid" style="margin-top:0">
+            <div class="mini span-6">
+              <div class="tag">변인 추가</div>
+              <p>셔틀콕 종류(깃털/나일론), 마모 정도, 초기 회전(스핀) 유무, 질량 변화(테이프) 등</p>
+            </div>
+            <div class="mini span-6">
+              <div class="tag">문제 바꿔 생각하기</div>
+              <p>역문제: \(v_T\)를 측정했을 때 \(k\)는? 최적화: “가장 늦게 떨어지게” 하려면?</p>
+            </div>
+            <div class="mini span-6">
+              <div class="tag">실생활 연결</div>
+              <p>왜 배드민턴은 공 대신 셔틀을 쓸까? 강한 저항이 경기 공간·반응 시간을 어떻게 바꾸나?</p>
+            </div>
+            <div class="mini span-6">
+              <div class="tag">모델 경쟁</div>
+              <p>무저항/선형/제곱저항 중 어떤 모델이 잔차가 가장 작은가? (R², 잔차 그래프)</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="card pad span-12">
+          <h3 style="margin:0 0 10px">평가 루브릭(샘플)</h3>
+          <table aria-label="평가 루브릭">
+            <thead>
+              <tr><th>영역</th><th>기준</th><th style="width:120px">비중</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>실험 설계</td><td>변인(조작/종속/통제) 정의, 통제 전략의 명확성</td><td>25%</td></tr>
+              <tr><td>데이터 분석</td><td>그래프/피팅/추정값, 단위·좌표 처리의 정확성</td><td>25%</td></tr>
+              <tr><td>수학적 모델링</td><td>가정→식→예측→검증 논리, 식의 해석 능력</td><td>25%</td></tr>
+              <tr><td>오차·확장</td><td>오차 원인 분석의 설득력, 확장 탐구의 창의성</td><td>25%</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <footer class="card pad">
+      <div class="cols">
+        <div>
+          <b>다운로드(수업 자료)</b>
+          <p class="hint" style="margin:8px 0 0">
+            이 페이지는 단일 HTML이라 학교 LMS/클래스룸/홈페이지에 그대로 올릴 수 있습니다.
+            같은 폴더에 <code style="font-family:var(--mono)">fall_simulator.html</code>를 두면 시뮬레이터가 자동 임베드됩니다.
+          </p>
+        </div>
+        <div>
+          <b>데이터/저작권 메모</b>
+          <p class="hint" style="margin:8px 0 0">
+            논문 원문은 인용 규정을 지켜 사용하세요(짧은 인용 + 출처 표기).
+            본 페이지는 수업 운영을 위한 활동 설계·UI 도구입니다.
+          </p>
+        </div>
+      </div>
+    </footer>
+  </main>
+
+  <script>
+    // ---------- Theme & Mode ----------
+    const root = document.body;
+    const themeBtn = document.getElementById('themeBtn');
+    const modeBtn = document.getElementById('modeBtn');
+
+    function getTheme(){ return localStorage.getItem('theme') || 'auto'; }
+    function setTheme(v){ localStorage.setItem('theme', v); applyTheme(); }
+    function applyTheme(){
+      const t = getTheme();
+      root.setAttribute('data-theme', t);
+      themeBtn.textContent = t === 'dark' ? '🌙 다크' : (t === 'light' ? '☀️ 라이트' : '🌓 자동');
+    }
+
+    themeBtn.addEventListener('click', () => {
+      const t = getTheme();
+      const next = t === 'auto' ? 'dark' : (t === 'dark' ? 'light' : 'auto');
+      setTheme(next);
+    });
+
+    function getMode(){ return localStorage.getItem('mode') || 'student'; }
+    function setMode(v){ localStorage.setItem('mode', v); applyMode(); }
+    function applyMode(){
+      const m = getMode();
+      root.setAttribute('data-mode', m);
+      modeBtn.textContent = m === 'teacher' ? '🎓 교사용 ON' : '🎓 교사용';
+    }
+
+    modeBtn.addEventListener('click', () => {
+      const m = getMode();
+      setMode(m === 'teacher' ? 'student' : 'teacher');
+    });
+
+    applyTheme();
+    applyMode();
+
+    // ---------- Tabs ----------
+    const tabs = [...document.querySelectorAll('.tab')];
+    tabs.forEach(btn => btn.addEventListener('click', () => {
+      const id = btn.getAttribute('data-tab');
+      tabs.forEach(b => b.setAttribute('aria-selected', b === btn ? 'true' : 'false'));
+      document.querySelectorAll('.panel').forEach(p => p.classList.toggle('active', p.id === id));
+    }));
+
+    // ---------- Checklists (autosave) ----------
+    function renderChecklist(containerId, items, key){
+      const box = document.getElementById(containerId);
+      const saved = JSON.parse(localStorage.getItem(key) || '{}');
+      box.innerHTML = '';
+      items.forEach((it, idx) => {
+        const row = document.createElement('label');
+        row.className = 'check';
+        const cb = document.createElement('input');
+        cb.type = 'checkbox';
+        cb.checked = !!saved[idx];
+        cb.addEventListener('change', () => {
+          const s = JSON.parse(localStorage.getItem(key) || '{}');
+          s[idx] = cb.checked;
+          localStorage.setItem(key, JSON.stringify(s));
+        });
+        const text = document.createElement('div');
+        text.innerHTML = `<b>${it.title}</b><small>${it.desc}</small>`;
+        row.appendChild(cb);
+        row.appendChild(text);
+        box.appendChild(row);
+      });
+    }
+
+    renderChecklist('shootChecks', [
+      {title:'60fps 이상(가능하면) + 삼각대 고정', desc:'프레임이 촘촘할수록 v, a 계산이 안정적입니다.'},
+      {title:'줄자/스케일을 낙하 평면과 같은 평면에', desc:'패럴럭스(원근) 오차를 크게 줄입니다.'},
+      {title:'카메라는 멀리서(줌 약간) 정면 촬영', desc:'왜곡을 줄이고 추적이 쉬워집니다.'},
+      {title:'초기속도 v0≈0로 떨어뜨리기', desc:'손으로 밀지 말고 동일한 방식으로 놓기.'},
+      {title:'실내 바람 최소화(창문/선풍기 OFF)', desc:'셔틀콕은 특히 공기흐름에 민감합니다.'},
+    ], 'checks_shoot');
+
+    renderChecklist('trackerChecks', [
+      {title:'Calibration(스케일) 설정', desc:'픽셀 → 미터 변환이 정확해야 합니다.'},
+      {title:'좌표축 설정(아래가 + 권장)', desc:'부호가 모델과 맞으면 실수가 줄어요.'},
+      {title:'질점(중심점) 추적', desc:'가능하면 자동추적 + 수동 보정.'},
+      {title:'y(t) 확인 후 v(t), a(t) 확인', desc:'가속도는 노이즈가 크니 큰 흐름에 집중.'},
+      {title:'CSV로 내보내기', desc:'이 페이지의 업로드 분석을 사용할 수 있습니다.'},
+    ], 'checks_tracker');
+
+    renderChecklist('errorChecks', [
+      {title:'스케일이 낙하 평면과 어긋남(패럴럭스)', desc:'가장 흔한 오차. 줄자/스케일 위치를 다시 확인.'},
+      {title:'프레임레이트 낮음/모션 블러', desc:'클릭 오차 증가 → v, a가 요동.'},
+      {title:'초기속도(손의 미는 힘) 존재', desc:'특히 수평/투사 운동에서 큰 영향.'},
+      {title:'공기 흐름(상승기류/바람)', desc:'셔틀콕은 작은 기류에도 민감.'},
+      {title:'셔틀콕 자세 변화(회전/흔들림)', desc:'저항계수가 시간에 따라 변하는 효과.'},
+    ], 'checks_error');
+
+    // ---------- Variable table (autosave + export) ----------
+    const varTableBody = document.querySelector('#varTable tbody');
+    const varText = document.getElementById('varText');
+    const varType = document.getElementById('varType');
+    const addVar = document.getElementById('addVar');
+    const exportVars = document.getElementById('exportVars');
+    const seedVars = document.getElementById('seedVars');
+
+    function loadVars(){
+      return JSON.parse(localStorage.getItem('vars_table') || '[]');
+    }
+    function saveVars(rows){
+      localStorage.setItem('vars_table', JSON.stringify(rows));
+      renderVars();
+    }
+    function renderVars(){
+      const rows = loadVars();
+      varTableBody.innerHTML = '';
+      rows.forEach((r, idx) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${r.type}</td>
+          <td>${escapeHtml(r.text)}</td>
+          <td><button class="btn small" type="button" data-del="${idx}">삭제</button></td>
+        `;
+        varTableBody.appendChild(tr);
+      });
+      varTableBody.querySelectorAll('button[data-del]').forEach(b => {
+        b.addEventListener('click', () => {
+          const i = Number(b.getAttribute('data-del'));
+          const rows = loadVars();
+          rows.splice(i,1);
+          saveVars(rows);
+        });
+      });
+    }
+
+    function escapeHtml(s){
+      return String(s)
+        .replaceAll('&','&amp;')
+        .replaceAll('<','&lt;')
+        .replaceAll('>','&gt;')
+        .replaceAll('"','&quot;')
+        .replaceAll("'",'&#039;');
+    }
+
+    addVar.addEventListener('click', () => {
+      const t = varText.value.trim();
+      if(!t) return;
+      const rows = loadVars();
+      rows.push({type: varType.value, text: t});
+      saveVars(rows);
+      varText.value = '';
+      varText.focus();
+    });
+
+    seedVars.addEventListener('click', () => {
+      const rows = [
+        {type:'조작변인', text:'물체 종류(일반 물체 vs 셔틀콕)'},
+        {type:'종속변인', text:'y(t), v(t), a(t), 추정 g 또는 v_T'},
+        {type:'통제변인', text:'낙하 높이 H(예: 2.0 m로 고정)'},
+        {type:'통제변인', text:'초기속도 v0≈0(놓는 방식 통일)'},
+        {type:'통제변인', text:'촬영 fps(가능하면 60fps 이상), 카메라 위치/각도 고정'},
+        {type:'통제변인', text:'실내 바람(창문 닫기, 선풍기 OFF), 같은 장소에서 측정'},
+      ];
+      saveVars(rows);
+    });
+
+    exportVars.addEventListener('click', () => {
+      const rows = loadVars();
+      const csv = ['type,text', ...rows.map(r => `${csvEsc(r.type)},${csvEsc(r.text)}`)].join('\n');
+      downloadText(csv, 'variables.csv', 'text/csv;charset=utf-8');
+    });
+
+    function csvEsc(s){
+      const t = String(s).replaceAll('"','""');
+      return `"${t}"`;
+    }
+
+    function downloadText(text, filename, mime){
+      const blob = new Blob([text], {type: mime});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    renderVars();
+
+    // ---------- Reset all progress ----------
+    document.getElementById('resetAll').addEventListener('click', () => {
+      if(!confirm('체크리스트/변인표 저장 내용을 초기화할까요?')) return;
+      ['checks_shoot','checks_tracker','checks_error','vars_table'].forEach(k => localStorage.removeItem(k));
+      renderVars();
+      renderChecklist('shootChecks', [
+        {title:'60fps 이상(가능하면) + 삼각대 고정', desc:'프레임이 촘촘할수록 v, a 계산이 안정적입니다.'},
+        {title:'줄자/스케일을 낙하 평면과 같은 평면에', desc:'패럴럭스(원근) 오차를 크게 줄입니다.'},
+        {title:'카메라는 멀리서(줌 약간) 정면 촬영', desc:'왜곡을 줄이고 추적이 쉬워집니다.'},
+        {title:'초기속도 v0≈0로 떨어뜨리기', desc:'손으로 밀지 말고 동일한 방식으로 놓기.'},
+        {title:'실내 바람 최소화(창문/선풍기 OFF)', desc:'셔틀콕은 특히 공기흐름에 민감합니다.'},
+      ], 'checks_shoot');
+      renderChecklist('trackerChecks', [
+        {title:'Calibration(스케일) 설정', desc:'픽셀 → 미터 변환이 정확해야 합니다.'},
+        {title:'좌표축 설정(아래가 + 권장)', desc:'부호가 모델과 맞으면 실수가 줄어요.'},
+        {title:'질점(중심점) 추적', desc:'가능하면 자동추적 + 수동 보정.'},
+        {title:'y(t) 확인 후 v(t), a(t) 확인', desc:'가속도는 노이즈가 크니 큰 흐름에 집중.'},
+        {title:'CSV로 내보내기', desc:'이 페이지의 업로드 분석을 사용할 수 있습니다.'},
+      ], 'checks_tracker');
+      renderChecklist('errorChecks', [
+        {title:'스케일이 낙하 평면과 어긋남(패럴럭스)', desc:'가장 흔한 오차. 줄자/스케일 위치를 다시 확인.'},
+        {title:'프레임레이트 낮음/모션 블러', desc:'클릭 오차 증가 → v, a가 요동.'},
+        {title:'초기속도(손의 미는 힘) 존재', desc:'특히 수평/투사 운동에서 큰 영향.'},
+        {title:'공기 흐름(상승기류/바람)', desc:'셔틀콕은 작은 기류에도 민감.'},
+        {title:'셔틀콕 자세 변화(회전/흔들림)', desc:'저항계수가 시간에 따라 변하는 효과.'},
+      ], 'checks_error');
+      alert('초기화 완료!');
+    });
+
+    // ---------- KaTeX render ----------
+    window.addEventListener('DOMContentLoaded', () => {
+      try{
+        renderMathInElement(document.body, {
+          delimiters: [
+            {left: "$$", right: "$$", display: true},
+            {left: "\\[", right: "\\]", display: true},
+            {left: "\\(", right: "\\)", display: false},
+          ],
+          throwOnError: false
+        });
+      }catch(e){/* ignore */}
+    });
+
+    // ---------- Charts helpers ----------
+    let chart1, chart2, simChart;
+
+    function mkLineChart(canvas, datasets, title){
+      return new Chart(canvas, {
+        type:'line',
+        data:{ datasets },
+        options:{
+          responsive:true,
+          maintainAspectRatio:false,
+          plugins:{
+            legend:{labels:{color:getComputedStyle(document.body).getPropertyValue('--muted')}},
+            title:{display:!!title, text:title, color:getComputedStyle(document.body).getPropertyValue('--text')},
+            tooltip:{mode:'nearest', intersect:false}
+          },
+          scales:{
+            x:{type:'linear', ticks:{color:getComputedStyle(document.body).getPropertyValue('--muted')}, grid:{color:getComputedStyle(document.body).getPropertyValue('--line')}},
+            y:{ticks:{color:getComputedStyle(document.body).getPropertyValue('--muted')}, grid:{color:getComputedStyle(document.body).getPropertyValue('--line')}}
+          }
+        }
+      });
+    }
+
+    function setChart(chart, datasets){
+      chart.data.datasets = datasets;
+      chart.update();
+    }
+
+    // init empty charts
+    chart1 = mkLineChart(document.getElementById('chart1'), [
+      {label:'y(t)', data:[], parsing:false, borderWidth:2, pointRadius:0},
+      {label:'v(t)', data:[], parsing:false, borderWidth:2, pointRadius:0},
+    ], '시간에 따른 y, v');
+
+    chart2 = mkLineChart(document.getElementById('chart2'), [
+      {label:'a(t)', data:[], parsing:false, borderWidth:2, pointRadius:0},
+    ], '가속도');
+
+    simChart = mkLineChart(document.getElementById('simChart'), [
+      {label:'y(t)', data:[], parsing:false, borderWidth:2, pointRadius:0},
+      {label:'v(t)', data:[], parsing:false, borderWidth:2, pointRadius:0},
+      {label:'a(t)', data:[], parsing:false, borderWidth:2, pointRadius:0},
+    ], '시뮬레이션 결과');
+
+    // ---------- CSV load + analysis ----------
+    const csvFile = document.getElementById('csvFile');
+    const runFit = document.getElementById('runFit');
+    const fitMode = document.getElementById('fitMode');
+    const signMode = document.getElementById('signMode');
+    const fitResult = document.getElementById('fitResult');
+
+    function findColumn(cols, candidates){
+      const lower = cols.map(c => String(c).trim().toLowerCase());
+      for(const cand of candidates){
+        const i = lower.findIndex(c => c === cand);
+        if(i !== -1) return cols[i];
+      }
+      // fuzzy contains
+      for(const cand of candidates){
+        const i = lower.findIndex(c => c.includes(cand));
+        if(i !== -1) return cols[i];
+      }
+      return null;
+    }
+
+    function finiteDiff(t, y){
+      // central differences for v and a
+      const n = t.length;
+      const v = new Array(n).fill(NaN);
+      const a = new Array(n).fill(NaN);
+      for(let i=1;i<n-1;i++){
+        const dt = t[i+1]-t[i-1];
+        if(dt===0) continue;
+        v[i] = (y[i+1]-y[i-1]) / dt;
+      }
+      for(let i=2;i<n-2;i++){
+        const dt = t[i+1]-t[i-1];
+        if(dt===0) continue;
+        a[i] = (v[i+1]-v[i-1]) / dt;
+      }
+      return {v,a};
+    }
+
+    function polyFit2(t, y){
+      // least squares for y = a t^2 + b t + c
+      // normal equations
+      let S0=0,S1=0,S2=0,S3=0,S4=0;
+      let T0=0,T1=0,T2=0;
+      const n = t.length;
+      for(let i=0;i<n;i++){
+        const ti=t[i];
+        const yi=y[i];
+        const t2=ti*ti;
+        S0+=1;
+        S1+=ti;
+        S2+=t2;
+        S3+=t2*ti;
+        S4+=t2*t2;
+        T0+=yi;
+        T1+=yi*ti;
+        T2+=yi*t2;
+      }
+      // Solve 3x3 using Cramer's rule / gaussian elimination
+      const A = [
+        [S4, S3, S2],
+        [S3, S2, S1],
+        [S2, S1, S0]
+      ];
+      const B = [T2, T1, T0];
+
+      // gaussian elimination
+      for(let i=0;i<3;i++){
+        // pivot
+        let max=i;
+        for(let r=i+1;r<3;r++) if(Math.abs(A[r][i])>Math.abs(A[max][i])) max=r;
+        if(max!==i){ [A[i],A[max]]=[A[max],A[i]]; [B[i],B[max]]=[B[max],B[i]]; }
+        const piv=A[i][i] || 1e-12;
+        for(let j=i;j<3;j++) A[i][j]/=piv;
+        B[i]/=piv;
+        for(let r=0;r<3;r++){
+          if(r===i) continue;
+          const f=A[r][i];
+          for(let j=i;j<3;j++) A[r][j]-=f*A[i][j];
+          B[r]-=f*B[i];
+        }
+      }
+      const [a,b,c]=B;
+      return {a,b,c};
+    }
+
+    function linFit(x, y){
+      // y = p + q x
+      let n=0, sx=0, sy=0, sxx=0, sxy=0;
+      for(let i=0;i<x.length;i++){
+        const xi=x[i], yi=y[i];
+        if(!isFinite(xi) || !isFinite(yi)) continue;
+        n++; sx+=xi; sy+=yi; sxx+=xi*xi; sxy+=xi*yi;
+      }
+      const denom = (n*sxx - sx*sx) || 1e-12;
+      const q = (n*sxy - sx*sy) / denom;
+      const p = (sy - q*sx) / (n || 1e-12);
+      return {p,q,n};
+    }
+
+    function toPoints(t, y){
+      const pts=[];
+      for(let i=0;i<t.length;i++) if(isFinite(t[i]) && isFinite(y[i])) pts.push({x:t[i], y:y[i]});
+      return pts;
+    }
+
+    runFit.addEventListener('click', () => {
+      const f = csvFile.files?.[0];
+      if(!f){ alert('CSV 파일을 선택하세요.'); return; }
+      Papa.parse(f, {
+        header:true,
+        dynamicTyping:true,
+        skipEmptyLines:true,
+        complete:(res)=>{
+          const rows = res.data;
+          if(!rows || !rows.length){ alert('CSV가 비어 있습니다.'); return; }
+          const cols = Object.keys(rows[0]);
+          const tCol = findColumn(cols, ['t','time','timestamp','seconds','sec']);
+          const yCol = findColumn(cols, ['y','posy','positiony','y(m)','y (m)','vertical','height']);
+          if(!tCol || !yCol){
+            alert('열을 찾지 못했습니다. 시간(t)과 위치(y) 열이 있는지 확인하세요.');
+            return;
+          }
+
+          let t = rows.map(r => Number(r[tCol]));
+          let y = rows.map(r => Number(r[yCol]));
+
+          // normalize sign if needed
+          if(signMode.value === 'up'){
+            // if up is +, flip to down+ for our internal convention
+            y = y.map(v => -v);
+          }
+
+          // remove NaNs
+          const filteredT=[], filteredY=[];
+          for(let i=0;i<t.length;i++){
+            if(isFinite(t[i]) && isFinite(y[i])){ filteredT.push(t[i]); filteredY.push(y[i]); }
+          }
+          t=filteredT; y=filteredY;
+
+          // shift t to start at 0
+          const t0=t[0];
+          t = t.map(v => v - t0);
+
+          const {v,a} = finiteDiff(t,y);
+
+          // charts y, v
+          setChart(chart1, [
+            {label:'y(t)', data: toPoints(t,y), parsing:false, borderWidth:2, pointRadius:0},
+            {label:'v(t) (근사)', data: toPoints(t,v), parsing:false, borderWidth:2, pointRadius:0},
+          ]);
+
+          if(fitMode.value === 'freefall'){
+            // quadratic fit: y = a t^2 + b t + c
+            const fit = polyFit2(t,y);
+            const gEst = 2*fit.a;
+            const yFit = t.map(tt => fit.a*tt*tt + fit.b*tt + fit.c);
+            setChart(chart2, [
+              {label:'a(t) (근사)', data: toPoints(t,a), parsing:false, borderWidth:2, pointRadius:0},
+              {label:'y_fit(t)', data: toPoints(t,yFit), parsing:false, borderWidth:2, pointRadius:0},
+            ]);
+
+            fitResult.innerHTML =
+              `model: y(t)=a t^2 + b t + c\n`+
+              `a=${fit.a.toFixed(6)}, b=${fit.b.toFixed(6)}, c=${fit.c.toFixed(6)}\n`+
+              `g ≈ 2a = ${gEst.toFixed(4)} m/s^2\n`+
+              `tip: 아래가 + 좌표일 때 g는 양수로 나와야 합니다.`;
+
+          }else{
+            // shuttle: a vs v^2
+            const v2 = v.map(x => x*x);
+            const fit = linFit(v2, a);
+            // a = p + q v^2  => q ≈ -k, p ≈ g
+            const gEst = fit.p;
+            const kEst = -fit.q;
+            const vT = kEst>0 ? Math.sqrt(gEst/kEst) : NaN;
+
+            // scatter a vs v^2
+            const pts=[];
+            for(let i=0;i<t.length;i++) if(isFinite(v2[i]) && isFinite(a[i])) pts.push({x:v2[i], y:a[i]});
+            const line=[];
+            const xmin = Math.min(...pts.map(p=>p.x));
+            const xmax = Math.max(...pts.map(p=>p.x));
+            if(isFinite(xmin) && isFinite(xmax)){
+              line.push({x:xmin, y: fit.p + fit.q*xmin});
+              line.push({x:xmax, y: fit.p + fit.q*xmax});
+            }
+
+            setChart(chart2, [
+              {label:'a vs v²', data: pts, parsing:false, showLine:false, pointRadius:2, borderWidth:0},
+              {label:'선형 피팅', data: line, parsing:false, borderWidth:2, pointRadius:0},
+            ]);
+
+            fitResult.innerHTML =
+              `model: a = p + q v^2\n`+
+              `p≈g=${gEst.toFixed(4)} , q=${fit.q.toFixed(6)}\n`+
+              `k≈-q=${kEst.toFixed(6)} (단위는 데이터 스케일에 의존)\n`+
+              `v_T≈sqrt(g/k)=${isFinite(vT)?vT.toFixed(4):'NaN'} m/s\n`+
+              `n=${fit.n} (유효 데이터 점)`;
+          }
+        }
+      });
+    });
+
+    // ---------- Simulation ----------
+    const simModel = document.getElementById('simModel');
+    const simG = document.getElementById('simG');
+    const simH = document.getElementById('simH');
+    const simDt = document.getElementById('simDt');
+    const simB = document.getElementById('simB');
+    const simK = document.getElementById('simK');
+    const runSim = document.getElementById('runSim');
+    const simSummary = document.getElementById('simSummary');
+
+    function accel(v, g, b, k, model){
+      if(model==='none') return g;
+      if(model==='linear') return g - b*v;
+      return g - k*v*v;
+    }
+
+    runSim.addEventListener('click', () => {
+      const g = Number(simG.value);
+      const H = Number(simH.value);
+      const dt = Number(simDt.value);
+      const b = Number(simB.value);
+      const k = Number(simK.value);
+      const model = simModel.value;
+
+      let t=0, y=0, v=0;
+      const T=[], Y=[], V=[], A=[];
+      const maxSteps = 200000;
+      let steps=0;
+      while(y < H && steps < maxSteps){
+        const a = accel(v,g,b,k,model);
+        v = v + a*dt;
+        y = y + v*dt;
+        t = t + dt;
+        T.push(t); Y.push(y); V.push(v); A.push(a);
+        steps++;
+        if(t>30) break;
+      }
+
+      setChart(simChart, [
+        {label:'y(t)', data: toPoints(T,Y), parsing:false, borderWidth:2, pointRadius:0},
+        {label:'v(t)', data: toPoints(T,V), parsing:false, borderWidth:2, pointRadius:0},
+        {label:'a(t)', data: toPoints(T,A), parsing:false, borderWidth:2, pointRadius:0},
+      ]);
+
+      let vT = NaN;
+      if(model==='quad' && k>0) vT = Math.sqrt(g/k);
+      if(model==='linear' && b>0) vT = g/b;
+
+      simSummary.innerHTML =
+        `model=${model}\n`+
+        `H=${H} m, dt=${dt} s\n`+
+        `time_to_hit≈${t.toFixed(3)} s\n`+
+        `v_end≈${v.toFixed(3)} m/s\n`+
+        `v_T≈${isFinite(vT)?vT.toFixed(3):'—'} (모델에 따라 정의)`;
+    });
+
+    // Theme changes should refresh chart label colors
+    const observer = new MutationObserver(() => {
+      // rebuild options colors
+      [chart1, chart2, simChart].forEach(c => {
+        c.options.plugins.legend.labels.color = getComputedStyle(document.body).getPropertyValue('--muted');
+        c.options.plugins.title.color = getComputedStyle(document.body).getPropertyValue('--text');
+        c.options.scales.x.ticks.color = getComputedStyle(document.body).getPropertyValue('--muted');
+        c.options.scales.y.ticks.color = getComputedStyle(document.body).getPropertyValue('--muted');
+        c.options.scales.x.grid.color = getComputedStyle(document.body).getPropertyValue('--line');
+        c.options.scales.y.grid.color = getComputedStyle(document.body).getPropertyValue('--line');
+        c.update();
+      });
+    });
+    observer.observe(document.body, {attributes:true, attributeFilter:['data-theme']});
+  </script>
+</body>
+</html>

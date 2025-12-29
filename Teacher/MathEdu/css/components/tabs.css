@@ -1,0 +1,88 @@
+/* ==================================================
+   Tab Components
+   ================================================== */
+
+/* Tab Container */
+.tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-sm);
+    margin: 10px 0 14px;
+}
+
+/* Tab Button */
+.tab {
+    padding: 8px 10px;
+    border-radius: var(--radius-full);
+    border: 1px solid var(--line);
+    background: color-mix(in srgb, var(--card) 68%, transparent);
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 0.75rem;
+    transition: color var(--transition-fast),
+        border-color var(--transition-fast),
+        background var(--transition-fast);
+}
+
+.tab:hover {
+    color: var(--text);
+    border-color: var(--line2);
+}
+
+.tab[aria-selected="true"] {
+    color: var(--text);
+    border-color: color-mix(in srgb, var(--accent) 60%, var(--line));
+    background: color-mix(in srgb, var(--accent) 18%, var(--card));
+}
+
+/* Tab Panel */
+.panel {
+    display: none;
+}
+
+.panel.active {
+    display: block;
+}
+
+/* Tab Content */
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* Accordion / Details */
+details {
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    background: color-mix(in srgb, var(--card) 62%, transparent);
+    overflow: hidden;
+}
+
+details+details {
+    margin-top: 10px;
+}
+
+summary {
+    list-style: none;
+    cursor: pointer;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    font-weight: 700;
+}
+
+summary::-webkit-details-marker {
+    display: none;
+}
+
+.details-body {
+    padding: 0 16px 16px;
+    color: var(--muted);
+    line-height: 1.65;
+    font-size: 0.8125rem;
+}

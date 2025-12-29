@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>낙하 운동 시뮬레이터 (무저항/선형저항/제곱저항)</title>
+<style>
+  body{font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans KR", Arial, sans-serif; line-height:1.35; margin:20px; max-width:980px}
+  h1{font-size:20px; margin:0 0 12px 0}
+  .row{display:flex; flex-wrap:wrap; gap:14px; align-items:flex-end}
+  .card{border:1px solid #ddd; border-radius:10px; padding:14px}
+  label{display:block; font-size:13px; margin-bottom:6px}
+  input, select{padding:8px 10px; font-size:14px; width:180px}
+  button{padding:10px 14px; font-size:14px; cursor:pointer}
+  .small{font-size:12px; color:#444}
+  canvas{width:100%; height:260px; border:1px solid #ddd; border-radius:10px}
+  .grid{display:grid; grid-template-columns:1fr; gap:12px}
+  @media(min-width:900px){ .grid{grid-template-columns:1fr 1fr} }
+  .out{font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; font-size:13px; white-space:pre-wrap}
+</style>
+</head>
+<body>
+<h1>낙하 운동 시뮬레이터 (무저항 / 선형 저항 / 제곱 저항)</h1>
+
+<div class="card">
+  <div class="row">
+    <div>
+      <label>모델</label>
+      <select id="model">
+        <option value="none">무저항 (자유낙하)</option>
+        <option value="linear">선형 저항 (F ∝ v)</option>
+        <option value="quad" selected>제곱 저항 (F ∝ v², 셔틀콕에 흔함)</option>
+      </select>
+      <div class="small">y축은 “아래쪽 +”로 둡니다.</div>
+    </div>
+    <div>
+      <label>낙하 높이 H (m)</label>
+      <input id="H" type="number" step="0.1" value="9.2">
+    </div>
+    <div>
+      <label>중력가속도 g (m/s²)</label>
+      <input id="g" type="number" step="0.01" value="9.80">
+    </div>
+    <div>
+      <label>종단속도 v<sub>T</sub> (m/s)</label>
+      <input id="vT" type="number" step="0.01" value="6.80">
+      <div class="small">선형/제곱 저항에서 사용</div>
+    </div>
+    <div>
+      <label>시간 간격 Δt (s)</label>
+      <input id="dt" type="number" step="0.001" value="0.005">
+    </div>
+    <div>
+      <button id="run">시뮬레이션</button>
+      <button id="csv">CSV 다운로드</button>
+    </div>
+  </div>
+</div>
+
+<div class="grid" style="margin-top:12px;">
+  <div>
+    <div class="small" style="margin:4px 0;">그래프 1: 위치 y(t) (m)</div>
+    <canvas id="pos" width="900" height="260"></canvas>
+  </div>
+  <div>
+    <div class="small" style="margin:4px 0;">그래프 2: 속도 v(t) (m/s)</div>
+    <canvas id="vel" width="900" height="260"></canvas>
+  </div>
+</div>
+
+<div class="card" style="margin-top:12px;">
+  <div class="small">출력</div>
+  <div class="out" id="out"></div>
+</div>
+
+<script>
+function simulate(){
+  const model = document.getElementById('model').value;
+  const H = parseFloat(document.getElementById('H').value);
+  const g = parseFloat(document.getElementById('g').value);
+  const vT = parseFloat(document.getElementById('vT').value);
+  const dt = parseFloat(document.getElementById('dt').value);
+
+  let t=0, y=0, v=0;
+  const TMAX = 30;
+  const data = [];
+  while (y < H && t < TMAX){
+    let a = g;
+    if (model === "linear"){
+      // dv/dt = g - (g/vT) v  -> terminal vT
+      a = g - (g/vT)*v;
+    } else if (model === "quad"){
+      // dv/dt = g - (g/vT^2) v^2  -> terminal vT
+      a = g - (g/(vT*vT))*v*v;
+    }
+    v = v + a*dt;
+    y = y + v*dt;
+    t = t + dt;
+    data.push({t,y,v,a});
+    // safety: if something went weird
+    if (!isFinite(v) || !isFinite(y)) break;
+  }
+  return {data, model, H, g, vT, dt};
+}
+
+function drawGraph(canvasId, data, key, yLabel){
+  const canvas = document.getElementById(canvasId);
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, Hh = canvas.height;
+
+  // Clear
+  ctx.clearRect(0,0,W,Hh);
+
+  if (data.length === 0) return;
+
+  const tMax = data[data.length-1].t;
+  let yMin = Infinity, yMax = -Infinity;
+  for (const p of data){
+    const val = p[key];
+    if (val < yMin) yMin = val;
+    if (val > yMax) yMax = val;
+  }
+  if (yMin === yMax){ yMin -= 1; yMax += 1; }
+
+  // Padding
+  const padL=55, padR=12, padT=12, padB=36;
+  const plotW = W - padL - padR;
+  const plotH = Hh - padT - padB;
+
+  function xScale(t){ return padL + (t/tMax)*plotW; }
+  function yScale(val){ return padT + (1 - (val - yMin)/(yMax - yMin))*plotH; }
+
+  // Axes
+  ctx.strokeStyle = "#333";
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(padL, padT);
+  ctx.lineTo(padL, padT+plotH);
+  ctx.lineTo(padL+plotW, padT+plotH);
+  ctx.stroke();
+
+  // Grid + ticks
+  ctx.fillStyle="#111";
+  ctx.font="12px system-ui, sans-serif";
+
+  const nt = 5, ny = 5;
+  ctx.strokeStyle="#eee";
+  for (let i=1;i<=nt;i++){
+    const tx = padL + (i/nt)*plotW;
+    ctx.beginPath();
+    ctx.moveTo(tx,padT);
+    ctx.lineTo(tx,padT+plotH);
+    ctx.stroke();
+    const tVal = (i/nt)*tMax;
+    ctx.fillText(tVal.toFixed(2), tx-10, padT+plotH+18);
+  }
+  for (let j=1;j<=ny;j++){
+    const ty = padT + (j/ny)*plotH;
+    ctx.beginPath();
+    ctx.moveTo(padL,ty);
+    ctx.lineTo(padL+plotW,ty);
+    ctx.stroke();
+    const yVal = yMax - (j/ny)*(yMax-yMin);
+    ctx.fillText(yVal.toFixed(2), 6, ty+4);
+  }
+
+  // Labels
+  ctx.fillStyle="#000";
+  ctx.fillText("t (s)", padL+plotW-30, padT+plotH+32);
+  ctx.fillText(yLabel, 6, padT+10);
+
+  // Curve
+  ctx.strokeStyle="#000";
+  ctx.lineWidth=2;
+  ctx.beginPath();
+  for (let i=0;i<data.length;i++){
+    const p=data[i];
+    const x=xScale(p.t);
+    const y=yScale(p[key]);
+    if (i===0) ctx.moveTo(x,y);
+    else ctx.lineTo(x,y);
+  }
+  ctx.stroke();
+}
+
+let latest = null;
+
+document.getElementById('run').addEventListener('click', () => {
+  latest = simulate();
+  const data = latest.data;
+  drawGraph("pos", data, "y", "y (m)");
+  drawGraph("vel", data, "v", "v (m/s)");
+
+  const last = data[data.length-1] || {t:0,y:0,v:0,a:0};
+  const out = document.getElementById('out');
+  out.textContent =
+    `모델: ${latest.model}\n`+
+    `H = ${latest.H} m, g = ${latest.g} m/s^2, vT = ${latest.vT} m/s, dt = ${latest.dt} s\n`+
+    `낙하 종료 시각 t ≈ ${last.t.toFixed(3)} s\n`+
+    `도착 직전 속도 v ≈ ${last.v.toFixed(3)} m/s\n`+
+    `도착 직전 가속도 a ≈ ${last.a.toFixed(3)} m/s^2\n`+
+    `마지막 위치 y ≈ ${last.y.toFixed(3)} m`;
+});
+
+document.getElementById('csv').addEventListener('click', () => {
+  if (!latest || !latest.data || latest.data.length===0){
+    alert("먼저 시뮬레이션을 실행하세요.");
+    return;
+  }
+  let csv = "t,y,v,a\n";
+  for (const p of latest.data){
+    csv += `${p.t},${p.y},${p.v},${p.a}\n`;
+  }
+  const blob = new Blob([csv], {type:"text/csv;charset=utf-8"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href=url;
+  a.download="fall_simulation.csv";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+});
+
+// Auto-run once
+document.getElementById('run').click();
+</script>
+</body>
+</html>

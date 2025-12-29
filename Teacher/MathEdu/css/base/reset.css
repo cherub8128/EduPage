@@ -1,0 +1,55 @@
+/* ==================================================
+   CSS Reset - Browser Normalization
+   ================================================== */
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    height: 100%;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: var(--font-sans);
+    color: var(--text);
+    background:
+        radial-gradient(1200px 700px at 20% -10%,
+            color-mix(in srgb, var(--accent) 25%, transparent),
+            transparent 60%),
+        radial-gradient(1000px 700px at 90% 10%,
+            color-mix(in srgb, var(--accent2) 18%, transparent),
+            transparent 60%),
+        linear-gradient(180deg, var(--bg), var(--bg2));
+    letter-spacing: -0.2px;
+    overflow-x: hidden;
+    line-height: 1.5;
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+a.link {
+    color: color-mix(in srgb, var(--accent2) 70%, var(--text));
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+img {
+    max-width: 100%;
+    height: auto;
+}
+
+button,
+input,
+select,
+textarea {
+    font-family: inherit;
+}

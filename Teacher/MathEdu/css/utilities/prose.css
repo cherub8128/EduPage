@@ -1,0 +1,226 @@
+/* ==================================================
+   Prose / Markdown Styles
+   ================================================== */
+
+.prose {
+    color: var(--text);
+    max-width: 65ch;
+    font-size: 1rem;
+    line-height: 1.75;
+}
+
+.prose p {
+    margin-top: 1.25em;
+    margin-bottom: 1.25em;
+}
+
+/* Headings */
+.prose h1,
+.prose h2,
+.prose h3,
+.prose h4,
+.prose h5,
+.prose h6 {
+    color: var(--text);
+    font-weight: 600;
+    line-height: 1.25;
+    margin-top: 2em;
+    margin-bottom: 1em;
+}
+
+.prose h1 {
+    font-size: 2.25em;
+}
+
+.prose h2 {
+    font-size: 1.5em;
+}
+
+.prose h3 {
+    font-size: 1.25em;
+}
+
+.prose h4 {
+    font-size: 1.125em;
+}
+
+/* Links */
+.prose a {
+    color: var(--color-primary);
+    text-decoration: underline;
+}
+
+.prose a:hover {
+    color: var(--color-primary-hover);
+}
+
+/* Text Emphasis */
+.prose strong,
+.prose b {
+    color: var(--text);
+    font-weight: 600;
+}
+
+.prose em,
+.prose i {
+    font-style: italic;
+}
+
+/* Code */
+.prose code {
+    color: #be185d;
+    font-family: var(--font-mono);
+    font-size: 0.875em;
+    padding: 0.2em 0.4em;
+    background-color: color-mix(in srgb, var(--card) 80%, var(--line));
+    border-radius: 0.25rem;
+}
+
+.prose pre {
+    background-color: color-mix(in srgb, var(--card) 80%, var(--line));
+    color: var(--text);
+    overflow-x: auto;
+    font-size: 0.875em;
+    line-height: 1.7142857;
+    margin-top: 1.7142857em;
+    margin-bottom: 1.7142857em;
+    border-radius: var(--radius-sm);
+    padding: 0.8571429em 1.1428571em;
+}
+
+.prose pre code {
+    background-color: transparent;
+    border-width: 0;
+    border-radius: 0;
+    padding: 0;
+    color: inherit;
+    font-size: inherit;
+    font-family: var(--font-mono);
+    line-height: inherit;
+}
+
+/* Lists */
+.prose ul,
+.prose ol {
+    margin-top: 1.25em;
+    margin-bottom: 1.25em;
+    padding-left: 1.625em;
+}
+
+.prose ul {
+    list-style-type: disc;
+}
+
+.prose ol {
+    list-style-type: decimal;
+}
+
+.prose li {
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+}
+
+.prose ul ul,
+.prose ul ol,
+.prose ol ul,
+.prose ol ol {
+    margin-top: 0.75em;
+    margin-bottom: 0.75em;
+}
+
+/* Blockquote */
+.prose blockquote {
+    font-style: italic;
+    color: var(--text);
+    border-left-width: 0.25rem;
+    border-left-color: var(--line);
+    margin-top: 1.6em;
+    margin-bottom: 1.6em;
+    padding-left: 1em;
+}
+
+/* Horizontal Rule */
+.prose hr {
+    border-color: var(--line);
+    border-top-width: 1px;
+    margin-top: 3em;
+    margin-bottom: 3em;
+}
+
+/* Tables */
+.prose table {
+    width: 100%;
+    table-layout: auto;
+    text-align: left;
+    margin-top: 2em;
+    margin-bottom: 2em;
+    font-size: 0.875em;
+    line-height: 1.7142857;
+}
+
+.prose thead {
+    border-bottom-width: 1px;
+    border-bottom-color: var(--line);
+}
+
+.prose thead th {
+    color: var(--text);
+    font-weight: 600;
+    vertical-align: bottom;
+    padding: 0.5714286em;
+}
+
+.prose tbody tr {
+    border-bottom-width: 1px;
+    border-bottom-color: var(--line);
+}
+
+.prose tbody td {
+    vertical-align: baseline;
+    padding: 0.5714286em;
+}
+
+/* Images & Figures */
+.prose img {
+    margin-top: 2em;
+    margin-bottom: 2em;
+}
+
+.prose figure {
+    margin-top: 2em;
+    margin-bottom: 2em;
+}
+
+.prose figcaption {
+    color: var(--muted);
+    font-size: 0.875em;
+    line-height: 1.4285714;
+    margin-top: 0.8571429em;
+}
+
+/* Table standalone */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    overflow: hidden;
+    border-radius: 14px;
+    border: 1px solid var(--line);
+}
+
+th,
+td {
+    padding: 10px;
+    border-bottom: 1px solid var(--line);
+    text-align: left;
+    font-size: 0.8125rem;
+}
+
+th {
+    font-size: 0.75rem;
+    color: var(--muted);
+    background: color-mix(in srgb, var(--card) 75%, transparent);
+}
+
+tr:last-child td {
+    border-bottom: 0;
+}

@@ -1,0 +1,93 @@
+/* ==================================================
+   CSS Variables - Design Tokens
+   Teacher/MathEdu Atomic Design System
+   ================================================== */
+
+:root {
+  /* Colors - Primary */
+  --color-primary: #3b82f6;
+  --color-primary-hover: #2563eb;
+  --color-primary-light: #dbeafe;
+  
+  /* Colors - Accent */
+  --accent: #7c5cff;
+  --accent2: #00d4ff;
+  
+  /* Colors - Semantic */
+  --color-success: #4ade80;
+  --color-warning: #fbbf24;
+  --color-error: #fb7185;
+  --color-invalid: #ef4444;
+  
+  /* Colors - Light Theme (default) */
+  --bg: #f6f7fb;
+  --bg2: #eef1ff;
+  --card: #ffffff;
+  --card2: #ffffff;
+  --text: #0f172a;
+  --muted: #475569;
+  --soft: #64748b;
+  --line: rgba(2, 6, 23, 0.10);
+  --line2: rgba(2, 6, 23, 0.14);
+  --shadow: 0 18px 50px rgba(2, 6, 23, 0.10);
+  
+  /* Font Families */
+  --font-sans: 'Noto Sans KR', ui-sans-serif, system-ui, -apple-system, 
+               "Segoe UI", Roboto, "Apple SD Gothic Neo", "Malgun Gothic", 
+               Arial, sans-serif;
+  --font-mono: 'D2Coding', ui-monospace, SFMono-Regular, Menlo, Monaco, 
+               Consolas, "Liberation Mono", "Courier New", monospace;
+  
+  /* Spacing */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-2xl: 48px;
+  
+  /* Border Radius */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --radius-xl: 26px;
+  --radius-full: 999px;
+  
+  /* Layout */
+  --max-width: 1160px;
+  
+  /* Transitions */
+  --transition-fast: 0.12s ease;
+  --transition-normal: 0.2s ease;
+  --transition-slow: 0.3s ease;
+}
+
+/* Dark Theme */
+[data-theme="dark"] {
+  --bg: #0b1020;
+  --bg2: #0a1635;
+  --card: #0f1b3a;
+  --card2: #0c1734;
+  --text: #e7ecff;
+  --muted: #b9c3ff;
+  --soft: #93a1ff;
+  --line: rgba(255, 255, 255, 0.10);
+  --line2: rgba(255, 255, 255, 0.14);
+  --shadow: 0 20px 60px rgba(0, 0, 0, 0.38);
+}
+
+/* System Preference Dark Mode */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0b1020;
+    --bg2: #0a1635;
+    --card: #0f1b3a;
+    --card2: #0c1734;
+    --text: #e7ecff;
+    --muted: #b9c3ff;
+    --soft: #93a1ff;
+    --line: rgba(255, 255, 255, 0.10);
+    --line2: rgba(255, 255, 255, 0.14);
+    --shadow: 0 20px 60px rgba(0, 0, 0, 0.38);
+  }
+}

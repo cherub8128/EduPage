@@ -1,0 +1,178 @@
+/* ==================================================
+   Form Components
+   ================================================== */
+
+/* Form Layout */
+.form {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 10px;
+    align-items: end;
+}
+
+.field {
+    grid-column: span 3;
+}
+
+.field.wide {
+    grid-column: span 6;
+}
+
+.field.full {
+    grid-column: span 12;
+}
+
+@media (max-width: 980px) {
+
+    .field,
+    .field.wide {
+        grid-column: span 12;
+    }
+}
+
+/* Labels */
+label {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--muted);
+    margin: 0 0 6px;
+}
+
+/* Input Fields */
+input[type="number"],
+input[type="text"],
+input[type="file"],
+select,
+textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 14px;
+    border: 1px solid var(--line);
+    background: color-mix(in srgb, var(--card) 72%, transparent);
+    color: var(--text);
+    outline: none;
+    font-size: 0.875rem;
+    transition: border-color var(--transition-normal),
+        box-shadow var(--transition-normal);
+}
+
+textarea {
+    min-height: 92px;
+    resize: vertical;
+}
+
+/* Focus State */
+input:focus,
+select:focus,
+textarea:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 25%, transparent);
+}
+
+/* Editable Field */
+.editable-field {
+    width: 100%;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    padding: 0.75rem 1rem;
+    transition: border-color var(--transition-normal),
+        box-shadow var(--transition-normal);
+    font-family: var(--font-sans);
+}
+
+.editable-field:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 25%, transparent);
+}
+
+/* Invalid State */
+.is-invalid {
+    border-color: var(--color-invalid) !important;
+}
+
+.is-invalid:focus {
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-invalid) 25%, transparent) !important;
+}
+
+/* Markdown Input/Preview Container */
+.editable-container .markdown-input {
+    display: none;
+}
+
+.editable-container .markdown-preview {
+    display: block;
+}
+
+.markdown-input {
+    width: 100%;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    padding: 0.75rem 1rem;
+    font-family: var(--font-sans);
+}
+
+.markdown-preview {
+    cursor: text;
+    padding: 1.25rem;
+    background-color: color-mix(in srgb, var(--card) 90%, var(--line));
+    border-radius: var(--radius-md);
+    border: 1px solid transparent;
+    min-height: 80px;
+    transition: background-color var(--transition-normal);
+}
+
+.markdown-preview:hover {
+    border-color: var(--line);
+}
+
+/* Screenshot Container */
+.screenshot-container {
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    padding: 1rem;
+    background: color-mix(in srgb, var(--card) 90%, var(--line));
+    min-height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.screenshot-container img {
+    max-width: 100%;
+    max-height: 16rem;
+    border-radius: var(--radius-md);
+}
+
+/* Checklist */
+.checklist {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.check {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: color-mix(in srgb, var(--card) 70%, transparent);
+}
+
+.check input {
+    margin-top: 2px;
+}
+
+.check b {
+    display: block;
+    color: var(--text);
+}
+
+.check small {
+    display: block;
+    color: var(--muted);
+    margin-top: 2px;
+    line-height: 1.45;
+}

@@ -1,0 +1,113 @@
+/* ==================================================
+   Header & Navigation Layout
+   ================================================== */
+
+/* Top Navigation Bar */
+.topbar {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    backdrop-filter: blur(10px);
+    background: color-mix(in srgb, var(--bg) 70%, transparent);
+    border-bottom: 1px solid var(--line);
+}
+
+.topbar-inner {
+    max-width: var(--max-width);
+    margin: 0 auto;
+    padding: 14px 22px;
+    display: flex;
+    gap: 14px;
+    align-items: center;
+    justify-content: space-between;
+}
+
+/* Brand / Logo */
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.logo {
+    width: 38px;
+    height: 38px;
+    border-radius: var(--radius-md);
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    box-shadow: var(--shadow);
+    display: grid;
+    place-items: center;
+    font-weight: 800;
+    color: white;
+}
+
+.brand h1 {
+    font-size: 0.875rem;
+    margin: 0;
+    line-height: 1.2;
+}
+
+.brand p {
+    margin: 0;
+    font-size: 0.75rem;
+    color: var(--muted);
+}
+
+/* Navigation */
+.nav {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+/* Header (alternate style) */
+header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    backdrop-filter: blur(12px);
+    background: color-mix(in srgb, var(--card) 90%, transparent);
+    border-bottom: 1px solid var(--line);
+    padding: 0.5rem 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+header h1 {
+    font-size: 1rem;
+    margin: 0;
+}
+
+header nav a {
+    margin-left: 0.75rem;
+    font-size: 0.85rem;
+    color: var(--muted);
+    transition: color var(--transition-normal);
+}
+
+header nav a:hover {
+    color: var(--text);
+    text-decoration: underline;
+}
+
+/* Mobile Menu */
+#mobile-menu {
+    background: var(--card);
+    padding: 0.5rem 1.5rem 1rem;
+}
+
+#mobile-menu a {
+    display: block;
+    padding: 0.5rem 0;
+}
+
+/* Footer */
+footer {
+    margin-top: 34px;
+    color: var(--muted);
+    font-size: 0.75rem;
+    line-height: 1.55;
+}

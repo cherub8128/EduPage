@@ -1,0 +1,111 @@
+/* ==================================================
+   Button Components
+   ================================================== */
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-sm);
+    padding: 10px 12px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--line);
+    background: color-mix(in srgb, var(--card) 78%, transparent);
+    color: var(--text);
+    font-size: 0.8125rem;
+    cursor: pointer;
+    transition: transform var(--transition-fast),
+        border-color var(--transition-fast),
+        background var(--transition-fast);
+    user-select: none;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+    border-color: var(--line2);
+}
+
+/* Primary Button */
+.btn.primary {
+    border: 1px solid color-mix(in srgb, var(--accent) 65%, var(--line));
+    background: linear-gradient(135deg,
+            color-mix(in srgb, var(--accent) 85%, transparent),
+            color-mix(in srgb, var(--accent2) 65%, transparent));
+    color: white;
+    box-shadow: var(--shadow);
+}
+
+.btn.primary:hover {
+    filter: brightness(1.1);
+}
+
+/* Ghost Button */
+.btn.ghost {
+    background: transparent;
+}
+
+/* Small Button */
+.btn.small {
+    padding: 8px 10px;
+    border-radius: 10px;
+    font-size: 0.75rem;
+}
+
+/* Chip / Pill Button */
+.chip {
+    padding: 8px 10px;
+    border-radius: var(--radius-full);
+    border: 1px solid var(--line);
+    background: color-mix(in srgb, var(--card) 55%, transparent);
+    font-size: 0.75rem;
+    color: var(--muted);
+    transition: transform var(--transition-fast),
+        border-color var(--transition-fast);
+}
+
+.chip:hover {
+    transform: translateY(-1px);
+    border-color: var(--line2);
+}
+
+/* Tab Button */
+.tab-button {
+    white-space: nowrap;
+    padding: 1rem 0.25rem;
+    border-bottom: 2px solid transparent;
+    font-weight: 500;
+    font-size: 0.875rem;
+    color: var(--muted);
+    cursor: pointer;
+    transition: color var(--transition-fast),
+        border-color var(--transition-fast);
+}
+
+.tab-button:hover {
+    color: var(--text);
+    border-color: color-mix(in srgb, var(--color-primary) 50%, transparent);
+}
+
+.tab-button.active {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+    font-weight: 600;
+}
+
+/* File Upload Label (styled as button) */
+.file-upload-label {
+    cursor: pointer;
+    background-color: color-mix(in srgb, var(--card) 90%, var(--line));
+    color: var(--muted);
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--line);
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all var(--transition-normal);
+}
+
+.file-upload-label:hover {
+    background-color: color-mix(in srgb, var(--card) 100%, var(--line));
+    border-color: var(--color-primary);
+}
