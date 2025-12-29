@@ -1,249 +1,270 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ko">
 
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>셔틀콕 낙하 운동 탐구 보고서</title>
 
-    <!-- CSS -->
+    <!-- Modern Design System -->
     <link rel="stylesheet" href="../css/main.css" />
+    <link rel="stylesheet" href="../css/components/report.css" />
 
-    <!-- KaTeX -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous">
-    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
-        crossorigin="anonymous"></script>
-
-    <!-- PrismJS -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" rel="stylesheet" />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
-    <script
-        src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/naen-nae/d2coding/d2coding-subset.css">
 
     <!-- Libs -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/showdown/2.1.0/showdown.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
-    <!-- Atomic JS -->
-    <script src="../js/storage.js"></script>
-    <script src="../js/math.js"></script>
-    <script src="../js/autosave.js"></script>
-    <script src="../js/markdown.js"></script>
-    <script src="../js/image-upload.js"></script>
-    <script src="../js/validation.js"></script>
-    <script src="../js/pdf-export.js"></script>
-    <script src="../js/charts.js"></script>
-    <script src="../js/common.js"></script>
+    <style>
+        .chart-container {
+            position: relative;
+            height: 300px;
+            background: white;
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-md);
+            padding: 1rem;
+        }
+    </style>
 </head>
 
 <body>
-    <!-- Header -->
-    <header class="topbar print-hidden">
-        <div class="topbar-inner">
-            <div class="brand">
-                <div class="logo">🏸</div>
-                <div>
-                    <h1>셔틀콕 낙하 운동</h1>
-                    <p>Physics Inquiry Lab</p>
-                </div>
+
+    <!-- Back Button -->
+    <a href="../index.html" class="m-back-btn" aria-label="Back">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+        </svg>
+    </a>
+
+    <div class="container pt-lg pb-lg">
+
+        <!-- Header -->
+        <header class="modern-header flex justify-between items-end flex-wrap gap-4">
+            <div>
+                <span class="m-badge mb-2" style="background:var(--grad-primary); color:white;">One-Page Report</span>
+                <h1>셔틀콕 낙하 운동</h1>
+                <p>종단속도와 공기저항 모델링</p>
             </div>
-            <nav class="nav">
-                <a class="m-badge" href="#step1" style="text-decoration:none;">Step 1</a>
-                <a class="m-badge" href="#step2" style="text-decoration:none;">Step 2</a>
-                <a class="m-badge" href="#step3" style="text-decoration:none;">Step 3</a>
-                <a class="m-badge" href="#step4" style="text-decoration:none;">Step 4</a>
-                <a class="m-badge" href="#step5" style="text-decoration:none;">Step 5</a>
+            <div class="flex gap-2 print-hidden">
+                <button id="export-pdf" class="m-btn primary small">
+                    <span>📄 PDF 저장</span>
+                </button>
+            </div>
+        </header>
+
+        <main class="flex flex-col gap-6">
+
+            <!-- Student Info -->
+            <section class="m-card">
+                <div class="m-grid" style="grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div>
+                        <label for="student-id" class="font-bold text-sm block mb-1">학번</label>
+                        <input id="student-id" class="m-input savable" placeholder="예: 30212">
+                    </div>
+                    <div>
+                        <label for="student-name" class="font-bold text-sm block mb-1">이름</label>
+                        <input id="student-name" class="m-input savable" placeholder="예: 홍길동">
+                    </div>
+                </div>
+            </section>
+
+            <!-- Navigation -->
+            <nav class="flex flex-wrap gap-2 print-hidden">
+                <a href="#step1" class="m-badge hover:bg-gray-200 cursor-pointer text-decoration-none">Step 1: 관찰</a>
+                <a href="#step2" class="m-badge hover:bg-gray-200 cursor-pointer text-decoration-none">Step 2: 모델링</a>
+                <a href="#step3" class="m-badge hover:bg-gray-200 cursor-pointer text-decoration-none">Step 3: 데이터
+                    분석</a>
+                <a href="#step4" class="m-badge hover:bg-gray-200 cursor-pointer text-decoration-none">Step 4: 시뮬레이션</a>
+                <a href="#step5" class="m-badge hover:bg-gray-200 cursor-pointer text-decoration-none">Step 5: 심화</a>
             </nav>
-        </div>
-    </header>
 
-    <main class="container" style="max-width:900px; padding: 40px 20px;">
-
-        <!-- Student Info -->
-        <section class="m-card mb-lg">
-            <div class="m-grid" style="grid-template-columns: 1fr 1fr; gap: 20px;">
-                <div>
-                    <label for="student-id" class="small font-bold mb-2 block">학번</label>
-                    <input type="text" id="student-id" placeholder="예: 30101" class="m-input">
-                </div>
-                <div>
-                    <label for="student-name" class="small font-bold mb-2 block">이름</label>
-                    <input type="text" id="student-name" placeholder="예: 홍길동" class="m-input">
-                </div>
-            </div>
-        </section>
-
-        <!-- Step 1: Observation -->
-        <section id="step1" class="m-card mb-lg">
-            <div class="modern-header" style="border:none; margin-bottom:20px; padding-bottom:0;">
-                <h2 style="font-size:1.5rem; color:var(--color-brand);">Step 1: 현상 관찰</h2>
-                <p>스마트폰으로 자유낙하와 셔틀콕 낙하를 촬영하고 비교해봅시다.</p>
-            </div>
-
-            <div class="m-grid" style="grid-template-columns: 1fr 1fr; gap:30px;">
-                <div>
-                    <h3 class="small font-bold mb-2">📸 관찰 사진</h3>
-                    <div class="screenshot-container"
-                        style="min-height:200px; border:1px dashed var(--border-medium); border-radius:12px; display:flex; align-items:center; justify-content:center;">
-                        <img id="screenshot-preview-1" alt="관찰 사진 미리보기" class="hidden">
-                        <span id="screenshot-placeholder-1" class="text-muted small">사진을 여기에 첨부하세요</span>
+            <!-- Step 1: Observation -->
+            <section id="step1" class="m-card">
+                <h2 class="text-xl font-bold mb-4">Step 1: 현상 관찰</h2>
+                <div class="m-grid" style="grid-template-columns: 1fr 1fr; gap: 2rem;">
+                    <div>
+                        <strong class="block mb-2 text-sm text-neutral-600">관찰 사진</strong>
+                        <div id="gallery1-drop" class="dropzone p-4">분석할 사진을 추가하세요.</div>
+                        <div class="flex gap-2 mt-2">
+                            <input id="gallery1-input" type="file" accept="image/*" multiple class="hidden">
+                            <button id="gallery1-add" class="m-btn small secondary"
+                                onclick="document.getElementById('gallery1-input').click()">+ 추가</button>
+                            <button id="gallery1-clear" class="m-btn small secondary"
+                                onclick="if(confirm('삭제?')) document.getElementById('gallery1').innerHTML=''">초기화</button>
+                        </div>
+                        <div id="gallery1" class="gallery-grid"></div>
                     </div>
-                    <div class="print-hidden mt-4 text-center">
-                        <input type="file" accept="image/*" onchange="previewImage(event, 1)" class="hidden"
-                            id="screenshot-input-1">
-                        <label for="screenshot-input-1" class="m-btn secondary small">이미지 업로드</label>
+                    <div>
+                        <label class="font-bold text-sm block mb-2">관찰 내용</label>
+                        <div class="editable-container">
+                            <textarea id="observations" class="savable markdown-input"
+                                placeholder="- 자유낙하와 달리 낙하 속도가 일정해지는 것을 발견함.&#10;- 추측: 공기저항 때문일 것임."></textarea>
+                            <div class="markdown-preview"></div>
+                        </div>
                     </div>
                 </div>
+            </section>
 
-                <div>
-                    <label class="small font-bold mb-2 block">📝 관찰 내용 및 질문</label>
-                    <div class="editable-container">
-                        <textarea id="observations" class="m-textarea" style="min-height:200px;"
-                            placeholder="- 자유낙하 물체는 계속 빨라지는 것 같다.&#13;&#10;- 셔틀콕은 어느 순간부터 속도가 일정해 보인다.&#13;&#10;- 왜 그럴까?"></textarea>
-                        <div class="markdown-preview prose"></div>
-                    </div>
-                </div>
-            </div>
-        </section>
+            <!-- Step 2: Modeling -->
+            <section id="step2" class="m-card">
+                <h2 class="text-xl font-bold mb-4">Step 2: 수학적 모델링</h2>
 
-        <!-- Step 2: Modeling -->
-        <section id="step2" class="m-card mb-lg">
-            <div class="modern-header" style="border:none; margin-bottom:20px; padding-bottom:0;">
-                <h2 style="font-size:1.5rem; color:var(--success-text);">Step 2: 수학적 모델링</h2>
-            </div>
-
-            <div class="m-grid" style="grid-template-columns: 1fr 1fr; gap:20px;">
-                <div class="m-card" style="background:var(--gray-50); padding:20px;">
-                    <div class="m-badge mb-2">자유낙하 (Gravity Only)</div>
-                    <p class="small text-muted">공기저항 무시, g 일정</p>
-                    <div class="prose small">
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <strong class="text-sm block mb-1">모델 A: 자유낙하</strong>
                         $$ y(t) = \frac{1}{2}gt^2 $$
-                        $$ v(t) = gt $$
+                        <span class="text-xs text-neutral-500">가정: 공기저항 무시, g 일정</span>
                     </div>
-                </div>
-
-                <div class="m-card" style="background:var(--gray-50); padding:20px;">
-                    <div class="m-badge mb-2">셔틀콕 (Air Resistance)</div>
-                    <p class="small text-muted">저항력 ∝ v², ma = mg - kv²</p>
-                    <div class="prose small">
-                        $$ a = g - kv^2 $$
+                    <div class="bg-blue-50 p-4 rounded-lg">
+                        <strong class="text-sm block mb-1">모델 B: 공기저항 (셔틀콕)</strong>
+                        $$ ma = mg - kv^2 $$
                         $$ v_T = \sqrt{g/k} $$
+                        <span class="text-xs text-neutral-500">가정: 저항력은 속력의 제곱에 비례</span>
                     </div>
                 </div>
-            </div>
 
-            <div class="mt-6">
-                <label class="small font-bold mb-2 block">🔍 모델 유도 과정 서술</label>
+                <label class="font-bold text-sm block mb-2">유도 과정 서술</label>
                 <div class="editable-container">
-                    <textarea id="proof-writing" class="m-textarea" style="min-height:150px;"
-                        placeholder="자유낙하 식이나 종단속도 유도 과정을 작성해보세요."></textarea>
-                    <div class="markdown-preview prose"></div>
+                    <textarea id="derivation" class="savable markdown-input"
+                        placeholder="모델 B의 미분방정식을 풀면..."></textarea>
+                    <div class="markdown-preview"></div>
                 </div>
-            </div>
-        </section>
+            </section>
 
-        <!-- Step 3: Analysis -->
-        <section id="step3" class="m-card mb-lg">
-            <div class="modern-header" style="border:none; margin-bottom:20px; padding-bottom:0;">
-                <h2 style="font-size:1.5rem; color:var(--info-text);">Step 3: 데이터 분석</h2>
-                <p>Tracker 데이터를 업로드하여 모델과 비교합니다.</p>
-            </div>
+            <!-- Step 3: Analysis -->
+            <section id="step3" class="m-card">
+                <h2 class="text-xl font-bold mb-4">Step 3: 데이터 분석</h2>
 
-            <div class="m-grid" style="grid-template-columns: 1fr 1fr; gap:30px;">
-                <div>
-                    <div class="form-group mb-4">
-                        <label class="small font-bold mb-2 block">CSV 파일</label>
-                        <input type="file" id="csvFile" accept=".csv,text/csv" class="m-input" style="padding:8px;" />
+                <div class="m-grid" style="grid-template-columns: 1fr 2fr; gap: 2rem;">
+                    <div class="flex flex-col gap-4">
+                        <div class="space-y-2">
+                            <label class="font-bold text-sm block">1. 데이터 업로드 (CSV)</label>
+                            <input type="file" id="csvFile" accept=".csv" class="m-input text-sm">
+                            <p class="text-xs text-muted">Tracker에서 내보낸 CSV 파일 (t, y 열 필수)</p>
+                        </div>
+
+                        <div class="space-y-2">
+                            <label class="font-bold text-sm block">2. 분석 모델 선택</label>
+                            <select id="fitMode" class="m-input">
+                                <option value="freefall">자유낙하 (y ~ t²)</option>
+                                <option value="shuttle">셔틀콕 (a ~ v²)</option>
+                            </select>
+                        </div>
+
+                        <button id="runFit" class="m-btn primary w-full">분석 실행</button>
+
+                        <div class="bg-gray-50 p-3 rounded border text-sm font-mono mt-2 min-h-[3rem]" id="fitResult">
+                            결과 대기 중...
+                        </div>
                     </div>
-                    <div class="form-group mb-4">
-                        <label class="small font-bold mb-2 block">분석 모델</label>
-                        <select id="fitMode" class="m-select">
-                            <option value="freefall">자유낙하 (y ~ t²)</option>
-                            <option value="shuttle">셔틀콕 (a ~ v²)</option>
-                        </select>
-                    </div>
-                    <button class="m-btn primary full-width" type="button" id="runFit">분석 실행</button>
 
-                    <div class="mt-4 p-4 rounded bg-gray-50 border border-gray-200">
-                        <span class="small font-bold text-muted uppercase">Result</span>
-                        <div id="fitResult" class="font-mono small mt-2">데이터 없음</div>
+                    <div class="flex flex-col gap-4">
+                        <div class="chart-container">
+                            <canvas id="chart1"></canvas>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="chart2"></canvas>
+                        </div>
                     </div>
                 </div>
 
-                <div class="flex flex-col gap-4">
-                    <div class="chartBox p-4 border border-gray-200 rounded">
-                        <canvas id="chart1" height="180"></canvas>
-                    </div>
-                    <div class="chartBox p-4 border border-gray-200 rounded">
-                        <canvas id="chart2" height="180"></canvas>
+                <div class="mt-4">
+                    <label class="font-bold text-sm block mb-2">데이터 해석</label>
+                    <div class="editable-container">
+                        <textarea id="analysis-text" class="savable markdown-input"
+                            placeholder="분석 결과, 종단 속도는 약 ... m/s로 측정되었다."></textarea>
+                        <div class="markdown-preview"></div>
                     </div>
                 </div>
-            </div>
+            </section>
 
-            <div class="mt-6">
-                <label class="small font-bold mb-2 block">📊 데이터 해석</label>
-                <textarea id="data-interpretation" class="m-textarea" style="min-height:100px;"
-                    placeholder="결과를 해석해보세요."></textarea>
-            </div>
-        </section>
+            <!-- Step 4: Simulation -->
+            <section id="step4" class="m-card">
+                <h2 class="text-xl font-bold mb-4">Step 4: 예측 및 시뮬레이션</h2>
 
-        <!-- Step 4: Simulation -->
-        <section id="step4" class="m-card mb-lg">
-            <div class="modern-header" style="border:none; margin-bottom:20px; padding-bottom:0;">
-                <h2 style="font-size:1.5rem; color:var(--warning-text);">Step 4: 시뮬레이션</h2>
-            </div>
-
-            <div class="m-grid" style="grid-template-columns: 1fr 1fr; gap:30px;">
-                <div class="flex flex-col gap-2">
-                    <select id="simModel" class="m-select mb-2">
-                        <option value="none">무저항</option>
-                        <option value="quad">제곱저항</option>
-                    </select>
-                    <div class="flex gap-2">
-                        <input type="number" id="simG" value="9.8" step="0.1" class="m-input" placeholder="g">
-                        <input type="number" id="simK" value="0.22" step="0.01" class="m-input" placeholder="k">
+                <div class="m-grid" style="grid-template-columns: 1fr 2fr; gap: 2rem;">
+                    <div class="space-y-4">
+                        <div>
+                            <label class="font-bold text-sm block mb-1">저항 모델</label>
+                            <select id="simModel" class="m-input">
+                                <option value="quad">제곱 저항 (-kv²)</option>
+                                <option value="none">무저항 (자유낙하)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="font-bold text-sm block mb-1">중력가속도 (g)</label>
+                            <input type="number" id="simG" class="m-input savable" value="9.8" step="0.1">
+                        </div>
+                        <div>
+                            <label class="font-bold text-sm block mb-1">저항계수 (k)</label>
+                            <input type="number" id="simK" class="m-input savable" value="0.22" step="0.01">
+                        </div>
+                        <button id="runSim" class="m-btn secondary w-full">시뮬레이션 시작</button>
+                        <div id="simSummary" class="text-xs font-mono text-muted"></div>
                     </div>
-                    <button class="m-btn primary mt-2" type="button" id="runSim">Simulate</button>
-                    <div id="simSummary" class="font-mono small mt-2 text-muted"></div>
+
+                    <div class="chart-container">
+                        <canvas id="simChart"></canvas>
+                    </div>
                 </div>
-                <div class="chartBox border border-gray-200 rounded p-2">
-                    <canvas id="simChart" height="200"></canvas>
+            </section>
+
+            <!-- Step 5: Advanced & Conclusion -->
+            <section id="step5" class="m-card">
+                <h2 class="text-xl font-bold mb-4">Step 5: 결론 및 심화 탐구</h2>
+                <div class="space-y-4">
+                    <div>
+                        <label class="font-bold text-sm block mb-1">심화 탐구 주제</label>
+                        <div class="editable-container">
+                            <textarea id="inquiry-content" class="savable markdown-input"
+                                placeholder="예: 셔틀콕의 회전이 낙하 속도에 미치는 영향은?"></textarea>
+                            <div class="markdown-preview"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="font-bold text-sm block mb-1">결론</label>
+                        <div class="editable-container">
+                            <textarea id="inquiry-conclusion" class="savable markdown-input"
+                                placeholder="실험과 모델링 결과를 종합하여 결론을 작성하세요."></textarea>
+                            <div class="markdown-preview"></div>
+                        </div>
+                    </div>
                 </div>
-            </div>
-        </section>
+            </section>
 
-        <!-- Step 5: Inquiry -->
-        <section id="step5" class="m-card mb-lg">
-            <div class="modern-header" style="border:none; margin-bottom:20px; padding-bottom:0;">
-                <h2 style="font-size:1.5rem; color:var(--error-text);">Step 5: 심화 탐구</h2>
-            </div>
+        </main>
 
-            <div class="flex flex-col gap-4">
-                <input type="text" id="inquiry-title" class="m-input font-bold" placeholder="탐구 주제 제목">
-                <textarea id="inquiry-content" class="m-textarea" style="min-height:150px;"
-                    placeholder="탐구 내용..."></textarea>
-                <textarea id="inquiry-conclusion" class="m-textarea" style="min-height:100px;"
-                    placeholder="결론..."></textarea>
+        <footer class="mt-8 text-center text-sm text-muted print-hidden">
+            <div id="autosave-status" class="flex items-center justify-center gap-2 opacity-0 transition-opacity">
+                <span id="autosave-icon-saving" class="hidden">💾 저장 중...</span>
+                <span id="autosave-icon-saved" class="text-green-600 hidden">✅ 저장됨</span>
+                <span id="autosave-text"></span>
             </div>
-        </section>
-
-        <footer class="print-hidden text-center mt-8 mb-8">
-            <div id="validation-message" class="text-error font-bold mb-4"></div>
-            <button onclick="saveAsPdf()" class="m-btn primary" style="padding: 14px 32px; font-size:1.1rem;">
-                PDF 보고서 저장
-            </button>
+            <p class="mt-4">MathEdu Project 2025.</p>
         </footer>
 
-    </main>
-
-    <!-- Autosave Status -->
-    <div id="autosave-status" class="print-hidden">
-        <span id="autosave-text" class="small">Saved</span>
     </div>
 
-    <script src="script.js"></script>
+    <!-- Logic -->
+    <script type="module" src="script.js"></script>
+
 </body>
 
 </html>

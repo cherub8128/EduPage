@@ -1,1097 +1,267 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Tractrix Curve 탐구 보고서</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Modern Design System -->
+    <link rel="stylesheet" href="../css/main.css" />
+    <link rel="stylesheet" href="../css/components/report.css" />
+
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/gh/sun-typeface/d2coding/d2coding.css" rel="stylesheet">
-    <!-- KaTeX for math rendering -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" crossorigin="anonymous">
-    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" crossorigin="anonymous"></script>
-    <!-- PrismJS for code highlighting (Light Theme) -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/naen-nae/d2coding/d2coding-subset.css">
+
+    <!-- Libs -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/showdown/2.1.0/showdown.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 
     <style>
-        :root { 
-            --accent-color: #16a34a; /* Green */
-            --invalid-color: #ef4444;
-            --font-sans: 'Noto Sans KR', sans-serif;
-            --font-mono: 'D2Coding', monospace;
+        .vis-container {
+            background: white;
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-lg);
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
-        body { font-family: var(--font-sans); scroll-behavior: smooth; }
-        .step-card { transition: transform 0.3s, box-shadow 0.3s; }
-        .step-card:hover { transform: translateY(-5px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); }
-        .interactive-canvas { 
-            border: 1px solid #e2e8f0; 
-            border-radius: 0.5rem; 
-            background-color: #f8fafc; 
-            cursor: grab; /* 드래그 가능 커서 */
-        }
-        .interactive-canvas.grabbing {
-            cursor: grabbing; /* 드래그 중 커서 */
-        }
-        .tab-button.active { border-color: var(--accent-color); color: var(--accent-color); font-weight: 600; }
-        .tab-content { display: none; } .tab-content.active { display: block; }
-        .editable-field, .markdown-input {
-            width: 100%;
-            border: 1px solid #cbd5e1;
-            border-radius: 0.5rem;
-            padding: 0.75rem 1rem;
-            transition: border-color 0.2s, box-shadow 0.2s;
-            font-family: var(--font-sans);
-            min-height: 120px;
-        }
-        input.editable-field { min-height: auto; }
-        .font-mono { font-family: var(--font-mono) !important; }
-        .editable-field:focus, .markdown-input:focus { outline: none; border-color: var(--accent-color); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-color) 25%, transparent); }
-        .is-invalid { border-color: var(--invalid-color) !important; }
-        .is-invalid:focus { box-shadow: 0 0 0 2px color-mix(in srgb, var(--invalid-color) 25%, transparent) !important; }
-        .file-upload-label { cursor: pointer; background-color: #f8fafc; color: #475569; padding: 0.5rem 1rem; border-radius: 0.375rem; border: 1px solid #cbd5e1; font-size: 0.875rem; font-weight: 500; transition: all 0.2s; }
-        .file-upload-label:hover { background-color: #f1f5f9; border-color: var(--accent-color); }
-        .markdown-preview { cursor: text; padding: 1.25rem; background-color: #f8fafc; border-radius: 0.5rem; border: 1px solid transparent; min-height: 120px; transition: background-color 0.2s; }
-        .markdown-preview:hover { background-color: #f8fafc; border-color: #e2e8f0; }
-        .editable-container .markdown-input { display: none; }
-        .editable-container .markdown-preview { display: block; }
 
-        /* Prose/Markdown 스타일 (CausticCurve.html에서 복사) */
-        .prose { color: #374151; max-width: 65ch; font-size: 1rem; line-height: 1.75; }
-        .prose p { margin-top: 1.25em; margin-bottom: 1.25em; }
-        .prose h1, .prose h2, .prose h3, .prose h4, .prose h5, .prose h6 { color: #111827; font-weight: 600; line-height: 1.25; margin-top: 2em; margin-bottom: 1em; }
-        .prose h1 { font-size: 2.25em; } .prose h2 { font-size: 1.5em; } .prose h3 { font-size: 1.25em; }
-        .prose a { color: var(--accent-color); text-decoration: underline; } .prose a:hover { color: #15803d; }
-        .prose strong, .prose b { color: #111827; font-weight: 600; }
-        .prose code { color: #be185d; font-family: var(--font-mono); font-size: 0.875em; padding: 0.2em 0.4em; background-color: #f3f4f6; border-radius: 0.25rem; }
-        .prose pre { background-color: #f3f4f6; color: #111827; overflow-x: auto; font-size: 0.875em; line-height: 1.7142857; margin-top: 1.7142857em; margin-bottom: 1.7142857em; border-radius: 0.375rem; padding: 0.8571429em 1.1428571em; }
-        .prose pre code { background-color: transparent; border-width: 0; border-radius: 0; padding: 0; color: inherit; font-size: inherit; font-family: var(--font-mono); line-height: inherit; }
-        .prose ul, .prose ol { margin-top: 1.25em; margin-bottom: 1.25em; padding-left: 1.625em; }
-        .prose ul { list-style-type: disc; } .prose ol { list-style-type: decimal; }
-        .prose li { margin-top: 0.5em; margin-bottom: 0.5em; }
-        .prose blockquote { font-style: italic; color: #111827; border-left-width: 0.25rem; border-left-color: #e5e7eb; quotes: "\201C""\201D""\2018""\2019"; margin-top: 1.6em; margin-bottom: 1.6em; padding-left: 1em; }
-        .prose hr { border-color: #e5e7eb; border-top-width: 1px; margin-top: 3em; margin-bottom: 3em; }
-        .prose table { width: 100%; table-layout: auto; text-align: left; margin-top: 2em; margin-bottom: 2em; font-size: 0.875em; line-height: 1.7142857; }
-        .prose thead { border-bottom-width: 1px; border-bottom-color: #d1d5db; }
-        .prose thead th { color: #111827; font-weight: 600; vertical-align: bottom; padding: 0.5714286em; }
-        .prose tbody tr { border-bottom-width: 1px; border-bottom-color: #e5e7eb; }
-        .prose tbody td { vertical-align: baseline; padding: 0.5714286em; }
-        .prose img { margin-top: 2em; margin-bottom: 2em; }
+        canvas {
+            cursor: grab;
+        }
 
-        /* 인쇄 스타일 (CausticCurve.html에서 복사) */
-        @media print {
-            @page { size: A4; margin: 10mm 8mm 10mm 8mm; }
-            body { background-color: #ffffff !important; margin: 0 !important; padding: 0 !important; }
-            .container { max-width: 100% !important; padding-left: 0 !important; padding-right: 0 !important; margin: 0 !important; }
-            main.container { padding: 0 !important; }
-            .print-hidden { display: none !important; }
-            .step-card { page-break-inside: avoid; break-inside: avoid; box-shadow: none !important; border: 1px solid #e2e8f0; margin-bottom: 1.5rem; padding: 1rem !important; }
-            .editable-container .markdown-input { display: none !important; }
-            .editable-container .markdown-preview { display: block !important; border: none !important; padding: 0 !important; background-color: transparent !important; margin-top: 0 !important; }
-            .screenshot-container img { max-width: 100% !important; display: block !important; }
-            #student-id, #student-name { display: block !important; border: none !important; padding: 0.5rem !important; background-color: transparent !important; }
-            pre { white-space: pre-wrap !important; word-wrap: break-word !important; overflow-wrap: break-word !important; max-width: 100% !important; overflow: visible !important; page-break-inside: avoid; font-size: 9pt !important; line-height: 1.3 !important; padding: 0.5rem !important; margin: 0.5rem 0 !important; }
-            pre code { white-space: pre-wrap !important; word-wrap: break-word !important; overflow-wrap: break-word !important; font-size: 9pt !important; }
-            code { word-break: break-word !important; overflow-wrap: break-word !important; }
-            .prose { max-width: 100% !important; }
-            .prose pre { background-color: #f5f5f5 !important; border: 1px solid #ddd !important; }
-            .tab-content { padding: 0 !important; }
-            .grid { gap: 0.5rem !important; }
-            canvas { max-width: 100% !important; height: auto !important; }
+        canvas:active {
+            cursor: grabbing;
         }
     </style>
 </head>
-<body class="bg-gray-50 text-gray-800">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
 
-    <!-- Header -->
-    <header class="bg-white shadow-md sticky top-0 z-20 print-hidden">
-        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
-            <h1 class="text-2xl font-bold text-green-700">Tractrix Curve 탐구 보고서</h1>
-            <nav class="hidden md:flex space-x-4">
-                <a href="#step1" class="text-gray-600 hover:text-green-600">Step 1: 실험</a>
-                <a href="#step2" class="text-gray-600 hover:text-green-600">Step 2: 가정</a>
-                <a href="#step3" class="text-gray-600 hover:text-green-600">Step 3: 시뮬레이션</a>
-                <a href="#step4" class="text-gray-600 hover:text-green-600">Step 4: 수식화</a>
-                <a href="#step5" class="text-gray-600 hover:text-green-600">Step 5: 심화 탐구</a>
-                <a href="#step6" class="text-gray-600 hover:text-green-600">Step 6: 참고 문헌</a>
+<body>
+
+    <!-- Back Button -->
+    <a href="../index.html" class="m-back-btn" aria-label="Back">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+        </svg>
+    </a>
+
+    <div class="container pt-lg pb-lg">
+
+        <!-- Header -->
+        <header class="modern-header flex justify-between items-end flex-wrap gap-4">
+            <div>
+                <span class="m-badge mb-2" style="background:var(--grad-primary); color:white;">One-Page Report</span>
+                <h1>Tractrix Curve 탐구</h1>
+                <p>끌려가는 물체의 자취: 견인 곡선 분석</p>
+            </div>
+            <div class="flex gap-2 print-hidden">
+                <button id="export-pdf" class="m-btn primary small">
+                    <span>📄 PDF 저장</span>
+                </button>
+            </div>
+        </header>
+
+        <main class="flex flex-col gap-6">
+
+            <!-- Student Info -->
+            <section class="m-card">
+                <div class="m-grid" style="grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div>
+                        <label for="student-id" class="font-bold text-sm block mb-1">학번</label>
+                        <input id="student-id" class="m-input savable" placeholder="예: 30212">
+                    </div>
+                    <div>
+                        <label for="student-name" class="font-bold text-sm block mb-1">이름</label>
+                        <input id="student-name" class="m-input savable" placeholder="예: 홍길동">
+                    </div>
+                </div>
+            </section>
+
+            <!-- Navigation -->
+            <nav class="flex flex-wrap gap-2 print-hidden">
+                <a href="#step1" class="m-badge hover:bg-gray-200 cursor-pointer text-decoration-none">Step 1: 실험</a>
+                <a href="#step2" class="m-badge hover:bg-gray-200 cursor-pointer text-decoration-none">Step 2: 모델링</a>
+                <a href="#step3" class="m-badge hover:bg-gray-200 cursor-pointer text-decoration-none">Step 3: 시뮬레이션</a>
+                <a href="#step4" class="m-badge hover:bg-gray-200 cursor-pointer text-decoration-none">Step 4: 수식화</a>
+                <a href="#step5" class="m-badge hover:bg-gray-200 cursor-pointer text-decoration-none">Step 5: 심화</a>
             </nav>
-            <div class="md:hidden"><button id="mobile-menu-button" class="text-gray-800 focus:outline-none"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg></button></div>
-        </div>
-        <nav id="mobile-menu" class="md:hidden hidden bg-white px-6 pt-2 pb-4">
-            <a href="#step1" class="block py-2">Step 1</a>
-            <a href="#step2" class="block py-2">Step 2</a>
-            <a href="#step3" class="block py-2">Step 3</a>
-            <a href="#step4" class="block py-2">Step 4</a>
-            <a href="#step5" class="block py-2">Step 5</a>
-            <a href="#step6" class="block py-2">Step 6</a>
-        </nav>
-    </header>
 
-    <main class="container mx-auto px-6 py-12">
-        <section class="bg-white p-6 sm:p-8 rounded-xl shadow-lg mb-8 step-card">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div><label for="student-id" class="font-semibold">🔢 학번</label><input type="text" id="student-id" placeholder="예: 30101" class="editable-field mt-1"></div>
-                <div><label for="student-name" class="font-semibold">🆎 이름</label><input type="text" id="student-name" placeholder="예: 홍길동" class="editable-field mt-1"></div>
-            </div>
-        </section>
-
-        <!-- Step 1: Experiment -->
-        <section id="step1" class="mb-16">
-            <div class="step-card bg-white p-8 rounded-xl shadow-lg">
-                <h2 class="text-3xl font-bold mb-4 border-b-2 border-green-200 pb-2">Step 1: Tractrix 실험 및 궤적 분석</h2>
-                <p class="mb-6 text-gray-600">
-                    지우개에 털실을 묶고, 털실의 다른 쪽 끝(손)을 책상 위에서 직선으로 당겨보세요. 이때 지우개가 그리는 궤적(Tractrix)을 스마트폰 등으로 촬영하고, 'Tracker'와 같은 물리 분석 프로그램으로 궤적을 분석해 봅시다.
-                    <a href="https://opensourcephysics.github.io/tracker-website/" target="_blank" class="underline text-green-600 hover:text-green-800">Tracker 프로그램 다운로드</a>
-                </p>
-                <div class="grid md:grid-cols-2 gap-8">
-                    <!-- Image Upload 1 -->
+            <!-- Step 1: Experiment -->
+            <section id="step1" class="m-card">
+                <h2 class="text-xl font-bold mb-4">Step 1: Tractrix 실험 및 궤적 분석</h2>
+                <div class="m-grid" style="grid-template-columns: 1fr 1fr; gap: 2rem;">
                     <div>
-                        <h3 class="block text-lg font-semibold mb-2">📸 실험 사진</h3>
-                        <div class="mt-4 border rounded-lg p-4 bg-gray-50 min-h-[200px] flex items-center justify-center screenshot-container">
-                             <img id="screenshot-preview-1" alt="실험 사진 미리보기" class="max-w-full max-h-64 rounded-md hidden"><span id="screenshot-placeholder-1" class="text-slate-500">실험 사진 첨부</span>
+                        <strong class="block mb-2 text-sm text-neutral-600">실험 사진</strong>
+                        <div id="gallery1-drop" class="dropzone p-4">드래그 & 드롭</div>
+                        <div class="flex gap-2 mt-2">
+                            <input id="gallery1-input" type="file" accept="image/*" multiple class="hidden">
+                            <button id="gallery1-add" class="m-btn small secondary"
+                                onclick="document.getElementById('gallery1-input').click()">+ 추가</button>
+                            <button id="gallery1-clear" class="m-btn small secondary"
+                                onclick="if(confirm('삭제?')) document.getElementById('gallery1').innerHTML=''">초기화</button>
                         </div>
-                        <div class="mt-2 image-upload-ui text-center print-hidden"><input type="file" accept="image/*" onchange="previewMedia(event, 1)" class="hidden" id="screenshot-input-1"><label for="screenshot-input-1" class="file-upload-label">이미지 선택</label></div>
+                        <div id="gallery1" class="gallery-grid"></div>
                     </div>
-                    <!-- Image Upload 2 -->
                     <div>
-                        <h3 class="block text-lg font-semibold mb-2">📈 Tracker 궤적 분석 결과</h3>
-                        <div class="mt-4 border rounded-lg p-4 bg-gray-50 min-h-[200px] flex items-center justify-center screenshot-container">
-                             <img id="screenshot-preview-2" alt="궤적 분석 미리보기" class="max-w-full max-h-64 rounded-md hidden"><span id="screenshot-placeholder-2" class="text-slate-500">분석 결과 캡처 첨부</span>
+                        <strong class="block mb-2 text-sm text-neutral-600">Tracker 분석 결과</strong>
+                        <div id="gallery2-drop" class="dropzone p-4">드래그 & 드롭</div>
+                        <div class="flex gap-2 mt-2">
+                            <input id="gallery2-input" type="file" accept="image/*" multiple class="hidden">
+                            <button id="gallery2-add" class="m-btn small secondary"
+                                onclick="document.getElementById('gallery2-input').click()">+ 추가</button>
+                            <button id="gallery2-clear" class="m-btn small secondary"
+                                onclick="if(confirm('삭제?')) document.getElementById('gallery2').innerHTML=''">초기화</button>
                         </div>
-                        <div class="mt-2 image-upload-ui text-center print-hidden"><input type="file" accept="image/*" onchange="previewMedia(event, 2)" class="hidden" id="screenshot-input-2"><label for="screenshot-input-2" class="file-upload-label">이미지 선택</label></div>
+                        <div id="gallery2" class="gallery-grid"></div>
                     </div>
                 </div>
-                <!-- Markdown Input -->
-                <div class="mt-8">
-                    <label for="observations" class="block text-lg font-semibold mb-2">📝 실험 결과 관찰 및 분석</label>
+                <div class="mt-4">
+                    <label class="font-bold text-sm block mb-2">실험 결과 관찰</label>
                     <div class="editable-container">
-                        <textarea id="observations" class="markdown-input editable-field" placeholder="실제 실험에서 관찰한 내용을 서술하세요.&#10;&#10;예시)&#10;- 손을 x축을 따라 오른쪽으로 당겼을 때, 지우개는 곡선을 그리며 따라왔다.&#10;- 지우개가 그린 궤적은 x축에 점점 가까워지지만 만나지는 않는 것처럼 보였다.&#10;- Tracker 프로그램으로 분석한 궤적의 모양은..."></textarea>
-                        <div class="markdown-preview prose max-w-none"></div>
+                        <textarea id="observations" class="savable markdown-input"
+                            placeholder="- 손을 x축 따라 당길 때 지우개 궤적 관찰..."></textarea>
+                        <div class="markdown-preview"></div>
                     </div>
                 </div>
-            </div>
-        </section>
+            </section>
 
-        <!-- Step 2: Hypothesis Setup -->
-        <section id="step2" class="mb-16">
-            <div class="step-card bg-white p-8 rounded-xl shadow-lg">
-                <h2 class="text-3xl font-bold mb-4 border-b-2 border-blue-200 pb-2">Step 2: 수학적 모델링을 위한 가정</h2>
-                <p class="mb-6 text-gray-600">
-                    실제 실험은 복잡한 요소(마찰, 줄의 탄성, 손의 불규칙한 속도 등)가 많습니다. 지우개의 궤적을 수학적으로 단순하게 분석하기 위해 어떤 가정을 세울 수 있을지 서술해 보세요.
-                </p>
+            <!-- Step 2: Hypothesis -->
+            <section id="step2" class="m-card">
+                <h2 class="text-xl font-bold mb-4">Step 2: 수학적 모델링을 위한 가정</h2>
                 <div class="editable-container">
-                    <textarea id="assumptions" class="markdown-input editable-field" placeholder="모델을 단순화하기 위한 가정을 나열해 보세요.&#10;&#10;예시)&#10;1.  **(필수)** 털실의 길이는 항상 $L$ 로 일정하다.&#10;2.  **(필수)** 지우개(물체)는 항상 털실이 당기는 방향(접선 방향)으로만 움직인다.&#10;3.  손(끄는 점)은 일정한 속도로 $y$축(또는 $x$축)을 따라 움직인다.&#10;4.  지우개와 바닥 사이의 마찰, 공기 저항 등 모든 저항력은 무시한다.&#10;5.  지우개와 털실의 질량은 무시한다."></textarea>
-                    <div class="markdown-preview prose max-w-none"></div>
+                    <textarea id="assumptions" class="savable markdown-input"
+                        placeholder="1. 털실 길이는 일정하다.&#10;2. 물체는 항상 접선 방향으로 움직인다."></textarea>
+                    <div class="markdown-preview"></div>
                 </div>
-            </div>
-        </section>
+            </section>
 
-        <!-- Step 3: Simulation Creation -->
-        <section id="step3" class="mb-16">
-            <div class="step-card bg-white p-8 rounded-xl shadow-lg">
-                <h2 class="text-3xl font-bold mb-4 border-b-2 border-purple-200 pb-2">Step 3: Tractrix 운동 시뮬레이션</h2>
-                <p class="mb-6 text-gray-600">
-                    Step 2에서 세운 가정을 바탕으로 Tractrix 운동을 시뮬레이션해 봅시다. 아래는 JavaScript로 구현된 인터랙티브 시뮬레이션 예시입니다.
-                </p>
-                <!-- Interactive Canvas -->
-                <div class="flex flex-col lg:flex-row items-center gap-8">
-                    <div class="w-full lg:w-2/3">
-                        <canvas id="tractrixCanvas" width="500" height="600" class="interactive-canvas mx-auto"></canvas>
+            <!-- Step 3: Simulation -->
+            <section id="step3" class="m-card">
+                <h2 class="text-xl font-bold mb-4">Step 3: 운동 시뮬레이션</h2>
+
+                <div class="m-grid" style="grid-template-columns: minmax(300px, 2fr) 1fr; gap: 2rem;">
+                    <div class="vis-container">
+                        <canvas id="tractrixCanvas" width="500" height="600"></canvas>
                     </div>
-                    <div class="w-full lg:w-1/3 space-y-4">
-                        <div class="flex items-center">
-                            <label for="l-slider" class="min-w-[100px] font-medium">줄 길이 (L):</label>
-                            <input type="range" id="l-slider" min="50" max="150" value="100" class="w-full h-2 bg-gray-200 rounded-lg cursor-pointer">
-                            <span id="l-value" class="ml-4 font-semibold w-16 text-center">100</span>
+                    <div class="flex flex-col gap-4">
+                        <div class="p-3 bg-blue-50 text-blue-900 rounded-lg text-sm mb-4">
+                            <strong>사용법:</strong> 캔버스 내 파란 점(끌개)을 위아래로 <strong>드래그</strong>하여 물체(빨간 점)가 따라오는 궤적을 확인하세요.
                         </div>
-                        <div class="flex items-center">
-                            <label for="t-slider" class="min-w-[100px] font-medium">진행 각도 (t):</label>
-                            <input type="range" id="t-slider" min="5" max="175" value="90" class="w-full h-2 bg-gray-200 rounded-lg cursor-pointer">
-                            <span id="t-value" class="ml-4 font-semibold w-16 text-center">90°</span>
-                        </div>
-                        <div class="bg-gray-100 p-4 rounded-lg">
-                            <h4 class="font-semibold text-lg mb-2">시뮬레이션 설명</h4>
-                            <p>▪️ <span class="text-red-500 font-bold">붉은 점</span>: 당겨지는 물체 (지우개)</p>
-                            <p>▪️ <span class="text-blue-500 font-bold">파란 점</span>: 끄는 점 (손)</p>
-                            <p>▪️ 끄는 점(손)을 $y$축을 따라 <strong>드래그</strong>해 보세요.</p>
-                            <p>▪️ 물체(지우개)의 궤적이 <span class="text-green-600">녹색 선</span>으로 표시됩니다.</p>
-                        </div>
-                    </div>
-                </div>
-                <!-- Code Tabs -->
-                <div class="mt-12 pt-8 border-t print-hidden">
-                    <h3 class="text-xl font-semibold mb-4">참고: 다양한 도구별 제작 과정</h3>
-                    <div class="mb-4 border-b border-gray-200"><nav class="-mb-px flex space-x-8"><button class="tab-button active whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" data-tab="geogebra">GeoGebra</button><button class="tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300" data-tab="python">Python</button><button class="tab-button whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300" data-tab="matlab">MATLAB</button></nav></div>
-                    <div>
-                        <div id="geogebra" class="tab-content active">
-                            <h4 class="text-lg font-semibold mb-2">GeoGebra (매개변수 곡선)</h4>
-                            <ol class="list-decimal list-inside space-y-2 text-sm">
-                                <li>계산기 시작하기 클릭</li>
-                                <li>대수 메뉴로 이동</li>
-                                <li>슬라이더 생성: <code>L = slider(1,10)</code> (줄의 길이)</li>
-                                <li>슬라이더 생성: <code>dx = slider(0.05, 0.1, 0.01)</code> (변화량)</li>
-                                <li>함수 생성: <code>xn(x) = L - dx * x</code> (물체의 x좌표, 왼쪽 동그라미를 눌러 안보이게 하기) </li>
-                                <li>함수 생성: <code>f(x) = sqrt(L^2 - xn^2)/xn(x)</code> (실의 기울기, 왼쪽 동그라미를 눌러 안보이게 하기)</li>
-                                <li>슬라이더 생성: <code>N = slider(0,L/dx)</code> </li>
-                                <li>슬라이더 생성: <code>yn = sequence(sum(f(t)*dx,t,0,m-1),m,0,N)</code> </li>
-                                <li>점들을 생성: <code>p = sequence(((xn(n),yn(n)),n,0,N)</code> </li>
-                                <li>선분들을 생성: <code>p = sequence(segment(p(n),p(n+1)),n,1,N-1)</code> </li>
-                                <li>움직여 봅시다!</li>
-                            </ol>
-                        </div>
-                        <div id="python" class="tab-content"><h4 class="text-lg font-semibold mb-2">Python (Matplotlib)</h4><pre><code class="language-python text-sm">import numpy as np
-import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib.animation import FuncAnimation
 
-# 한글 폰트 설정
-plt.rcParams['font.family'] = 'Malgun Gothic'  # Windows
-plt.rcParams['axes.unicode_minus'] = False  # 마이너스 기호 깨짐 방지
-
-L = 1.0  # 줄의 길이 (고정)
-
-# 애니메이션 설정
-fig, ax = plt.subplots(figsize=(8, 8))
-ax.set_xlim(-0.2, 1.2)
-ax.set_ylim(-0.5, 2.5)
-ax.set_xlabel('x')
-ax.set_ylabel('y')
-ax.set_title('고정된 줄로 끌려오는 물체 (Tractrix)', fontsize=14, fontweight='bold', color='#2C3E50')
-ax.grid(True, alpha=0.3, linestyle=':', color='#BDC3C7')
-ax.set_aspect('equal')
-ax.set_facecolor('#F8F9FA')  # 연한 회색 배경
-
-# 플롯 요소 초기화 (예쁜 색상 팔레트)
-tractrix_line, = ax.plot([], [], color='#9B59B6', linewidth=2.5, alpha=0.7, label='이동 경로')  # 보라색
-object_point, = ax.plot([], [], 'o', color='#E74C3C', markersize=22, label='끌려오는 물체', zorder=5, markeredgecolor='#C0392B', markeredgewidth=2)  # 빨간색
-puller_point, = ax.plot([], [], 's', color='#3498DB', markersize=18, label='끄는 사람', zorder=5, markeredgecolor='#2980B9', markeredgewidth=2)  # 파란색
-string_line, = ax.plot([], [], color='#F39C12', linewidth=4, alpha=0.85, label=f'줄 (길이={L}m)', zorder=4, linestyle='-')  # 주황색
-puller_path, = ax.plot([], [], color='#3498DB', linestyle='--', alpha=0.4, linewidth=1.5, label='끄는 사람 경로')  # 연한 파란색
-
-# 궤적을 저장할 변수
-trajectory_x = []
-trajectory_y = []
-
-ax.legend()
-ax.axhline(y=0, color='k', linestyle='-', linewidth=0.5)  # x축 표시
-
-# 애니메이션 함수
-def init():
-    global trajectory_x, trajectory_y
-    trajectory_x = []
-    trajectory_y = []
-    tractrix_line.set_data([], [])
-    object_point.set_data([], [])
-    puller_point.set_data([], [])
-    string_line.set_data([], [])
-    puller_path.set_data([], [])
-    return tractrix_line, object_point, puller_point, string_line, puller_path
-
-def animate(frame):
-    global trajectory_x, trajectory_y
-
-    # 프레임에 따라 t 값 설정 (0부터 시작해서 증가)
-    t = frame * 3.0 / 200  # 0부터 3까지
-
-    # Tractrix 표준 매개변수 방정식
-    # x = L * sech(t), y = L * (t - tanh(t))
-    obj_x = L / np.cosh(t)  # L * sech(t)
-    obj_y = L * (t - np.tanh(t))
-
-    # 끄는 점의 위치 (y축 위, 줄의 길이 L 유지)
-    # 끄는 점은 (0, L*t) 위치에 있음
-    puller_x = 0
-    puller_y = L * t
-
-    # 줄의 길이 확인 (항상 L이어야 함)
-    string_length = np.sqrt((obj_x - puller_x)**2 + (obj_y - puller_y)**2)
-
-    # 물체의 궤적 업데이트 (전체 경로 유지)
-    trajectory_x.append(obj_x)
-    trajectory_y.append(obj_y)
-
-    # 끄는 점의 경로 (y축, 0부터 시작)
-    puller_path_y = np.linspace(0, puller_y, 100)
-
-    # 데이터 업데이트
-    tractrix_line.set_data(trajectory_x, trajectory_y)
-    object_point.set_data([obj_x], [obj_y])
-    puller_point.set_data([puller_x], [puller_y])
-    string_line.set_data([obj_x, puller_x], [obj_y, puller_y])
-    puller_path.set_data(np.zeros_like(puller_path_y), puller_path_y)
-
-    # 제목에 줄의 길이와 위치 표시
-    ax.set_title(f'고정된 줄로 끌려오는 물체 | 줄 길이: {string_length:.3f}m = {L}m | 물체 위치: ({obj_x:.2f}, {obj_y:.2f})')
-
-    return tractrix_line, object_point, puller_point, string_line, puller_path
-
-# 애니메이션 생성
-anim = FuncAnimation(fig, animate, init_func=init, frames=200, 
-                     interval=50, blit=False, repeat=True)
-
-plt.show()</code></pre></div>
-                         <div id="matlab" class="tab-content"><h4 class="text-lg font-semibold mb-2">MATLAB</h4><pre><code class="language-matlab text-sm">L = 1.0; % 줄의 길이
-% 줄의 길이 (고정)
-L = 1.0;
-
-% Tractrix 표준 매개변수 방정식
-% x = L * sech(t), y = L * (t - tanh(t))
-t = linspace(0, 3, 500); % t 범위 (0부터 시작)
-
-% Tractrix 곡선 계산
-x_tractrix = L ./ cosh(t);  % L * sech(t)
-y_tractrix = L .* (t - tanh(t));
-
-% 끄는 점의 y 좌표
-puller_y = L .* t;
-
-% 그림 설정
-figure('Color', [0.97 0.98 0.98]);
-ax = axes('Color', [0.97 0.98 0.98]);
-hold on;
-
-% 이동 경로 (보라색)
-plot(x_tractrix, y_tractrix, 'Color', [0.61 0.35 0.71], 'LineWidth', 2.5);
-
-% 끄는 점의 경로 (연한 파란색 점선)
-plot(zeros(size(puller_y)), puller_y, '--', 'Color', [0.20 0.60 0.86], 'LineWidth', 1.5);
-
-% 특정 t값에서의 줄 표시 (예: t = 1.5)
-t_val = 1.5;
-obj_x = L / cosh(t_val);
-obj_y = L * (t_val - tanh(t_val));
-puller_y_val = L * t_val;
-
-% 줄 (주황색)
-plot([obj_x, 0], [obj_y, puller_y_val], '-', 'Color', [0.95 0.61 0.07], 'LineWidth', 4);
-
-% 끌려오는 물체 (빨간색)
-plot(obj_x, obj_y, 'o', 'MarkerSize', 12, 'MarkerFaceColor', [0.91 0.30 0.24], ...
-    'MarkerEdgeColor', [0.75 0.22 0.17], 'LineWidth', 2);
-
-% 끄는 사람 (파란색)
-plot(0, puller_y_val, 's', 'MarkerSize', 10, 'MarkerFaceColor', [0.20 0.60 0.86], ...
-    'MarkerEdgeColor', [0.16 0.50 0.73], 'LineWidth', 2);
-
-% 줄의 길이 확인
-string_length = sqrt(obj_x^2 + (obj_y - puller_y_val)^2);
-
-title(sprintf('고정된 줄로 끌려오는 물체 (Tractrix) | 줄 길이: %.3fm', string_length), ...
-    'FontSize', 14, 'FontWeight', 'bold', 'Color', [0.17 0.24 0.31]);
-xlabel('x', 'FontSize', 11);
-ylabel('y', 'FontSize', 11);
-legend('이동 경로', '끄는 사람 경로', '줄', '끌려오는 물체', '끄는 사람', ...
-    'Location', 'best');
-grid on;
-set(gca, 'GridAlpha', 0.3, 'GridLineStyle', ':');
-axis equal;
-xlim([-0.2 1.2]);
-ylim([-0.5 2.5]);
-hold off;</code></pre></div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Step 4: Formulation -->
-        <section id="step4" class="mb-16">
-            <div class="step-card bg-white p-8 rounded-xl shadow-lg">
-                <h2 class="text-3xl font-bold mb-4 border-b-2 border-yellow-200 pb-2">Step 4: Tractrix 곡선 수식화</h2>
-                <p class="mb-6 text-gray-600">
-                    Step 2의 가정을 바탕으로 Tractrix 곡선을 나타내는 방정식을 유도해 보세요.
-                    물체(지우개)가 점 $P(x, y)$에 있고, 끄는 점(손)이 $y$축 위의 점 $T(0, t_y)$에 있다고 가정해 봅시다.
-                </p>
-                <!-- Key Formulas -->
-                <div class="bg-gray-100 p-6 rounded-lg mb-8">
-                    <h4 class="font-semibold text-lg mb-2">Tractrix의 주요 속성 및 방정식</h4>
-                    <p class="mb-2">
-                        1. <strong>정의:</strong> 물체 $P(x, y)$에서 그은 접선이 $y$축과 만나는 점 $T(0, t_y)$까지의 거리($PT$)가 항상 줄의 길이 $L$로 일정합니다.
-                    </p>
-                    <p class="mb-2">
-                        2. <strong>피타고라스 정리:</strong> 점 $P(x, y)$, $T(0, t_y)$, 그리고 $S(x, t_y)$는 $\triangle PST$ 직각삼각형을 이룹니다. 빗변($PT$)은 $L$, 밑변($ST$)은 $x$, 높이($PS$)는 $y - t_y$ 이므로, $x^2 + (y - t_y)^2 = L^2$ 입니다.
-                    </p>
-                    <p class="mb-2">
-                        3. <strong>기울기:</strong> $P$에서의 접선의 기울기 $\frac{dy}{dx}$는 두 점 $P(x, y)$와 $T(0, t_y)$를 잇는 직선(줄)의 기울기와 같습니다. $\frac{dy}{dx} = \frac{y - t_y}{x - 0}$, 따라서 $y - t_y = x \frac{dy}{dx}$ 입니다.
-                    </p>
-                    <p class="mb-2">
-                        4. <strong>미분 방정식:</strong> '기울기' 식(3)을 '피타고라스 정리' 식(2)에 대입합니다. $x^2 + \left(x \frac{dy}{dx}\right)^2 = L^2$
-                    </p>
-                    <p class="mb-2">
-                        5. <strong>방정식 정리:</strong> 위 식(4)를 $\frac{dy}{dx}$에 대해 풀면 $\frac{dy}{dx} = \pm \frac{\sqrt{L^2 - x^2}}{x}$ 를 얻습니다.
-                    </p>
-                    <p class="font-semibold mt-4">
-                        ▪️ <strong>매개변수 방정식 (Parametric Equations)</strong> ( $t$는 $y$축과 줄이 이루는 각)
-                    </p>
-                    <p class="mb-2">
-                        6. <strong>적분 및 정리:</strong> 5번의 미분 방정식을 $x = L \sin(t)$로 치환 적분하고 초기조건 $(L, 0)$을 적용하면 다음 매개변수 방정식을 얻습니다.
-                    </p>
-                    <p class="mb-2" style="padding-left: 40px;">
-                        $x(t) = L \sin(t)$ <br>
-                        $y(t) = L \left( \ln\left(\cot\left(\frac{t}{2}\right)\right) - \cos(t) \right)$
-                    </p>
-                </div>
-                <!-- Markdown Input for Derivation -->
-                <label for="derivation" class="block text-lg font-semibold mb-2">🔍 수식 유도 과정</label>
-                <div class="editable-container">
-                    <textarea id="derivation" class="markdown-input editable-field" placeholder="Tractrix의 미분 방정식 또는 매개변수 방정식을 유도하는 과정을 서술하세요.&#10;&#10;예시)&#10;점 $P(x,y)$에서 접선의 방정식은 $Y - y = y'(X - x)$ 이다.&#10;이 접선이 $y$축과 만나는 점 $T$의 좌표는 $X=0$을 대입하여 $T(0, y - xy')$ 이다.&#10;두 점 $P$와 $T$ 사이의 거리가 $L$로 일정하므로,&#10;$\sqrt{(x-0)^2 + (y - (y-xy'))^2} = L$&#10;..."></textarea>
-                    <div class="markdown-preview prose max-w-none"></div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Step 5: Advanced Inquiry -->
-        <section id="step5" class="mb-16">
-            <div class="step-card bg-white p-8 rounded-xl shadow-lg">
-                <h2 class="text-3xl font-bold mb-4 border-b-2 border-red-200 pb-2">Step 5: 심화 탐구</h2>
-                <p class="mb-6 text-gray-600">
-                    기본적인 Tractrix 모델을 확장하여 새로운 탐구를 진행해 보세요. (예: 끄는 점이 원을 따라 움직이는 경우(Circular Tractrix), 마찰력을 고려하는 경우, 줄이 탄성을 갖는 경우 등)
-                    탐구 과정은 <span class="font-semibold">[실험(관찰) → 가정 → 시뮬레이션 → 수식화 → 결론 → 후속 연구]</span>의 단계를 따릅니다.
-                </p>
-                <div class="space-y-8">
-                    <div><label for="inquiry-title" class="block text-lg font-semibold mb-2">1. 심화 탐구 주제</label><input type="text" id="inquiry-title" class="editable-field" placeholder="예: 끄는 점이 원 궤도를 돌 때의 Tractrix (Circular Tractrix) 분석"></div>
-                    <div><label for="inquiry-question" class="block text-lg font-semibold mb-2">2. 탐구 질문 및 동기</label><div class="editable-container"><textarea id="inquiry-question" class="markdown-input editable-field" placeholder="예: 손이 직선이 아닌 원을 따라 움직일 때 지우개의 궤적은 어떠할까? (Circular Tractrix)&#10;만약 줄이 스프링처럼 탄성이 있다면 궤적은 어떻게 변할까?&#10;바닥의 마찰 계수가 위치마다 달라진다면?"></textarea><div class="markdown-preview prose max-w-none"></div></div></div>
-                    <div><label for="inquiry-hypothesis" class="block text-lg font-semibold mb-2">3. 가정 세우기</label><div class="editable-container"><textarea id="inquiry-hypothesis" class="markdown-input editable-field" placeholder="심화 탐구를 위한 새로운 가정이나 수정된 가정을 서술하세요."></textarea><div class="markdown-preview prose max-w-none"></div></div></div>
-                    <div><label for="inquiry-simulation" class="block text-lg font-semibold mb-2">4. 시뮬레이션 제작 및 수식화</label><div class="editable-container"><textarea id="inquiry-simulation" class="markdown-input editable-field" placeholder="새로운 모델을 시뮬레이션하는 코드(Python, Geogebra 등)나 수식 유도 과정을 작성하세요. (필요시 아래 결과물 란에 캡처 첨부)"></textarea><div class="markdown-preview prose max-w-none"></div></div></div>
-                    <div>
-                        <h3 class="block text-lg font-semibold mb-2">5. 탐구 결과물 (시뮬레이션 캡처 등)</h3>
-                        <div class="grid md:grid-cols-2 gap-6 bg-gray-50 p-4 rounded-lg">
-                            <div>
-                                <h4 class="font-medium mb-2 text-center">사진 또는 캡처 자료</h4>
-                                <div class="border rounded-lg p-2 bg-white min-h-[150px] flex items-center justify-center screenshot-container"><img id="screenshot-preview-3" alt="결과물 사진 미리보기" class="max-w-full max-h-64 rounded-md hidden"><span id="screenshot-placeholder-3" class="text-slate-500">결과물 사진 첨부</span></div>
-                                <div class="mt-2 image-upload-ui text-center print-hidden"><input type="file" accept="image/*" onchange="previewMedia(event, 3)" class="hidden" id="screenshot-input-3"><label for="screenshot-input-3" class="file-upload-label">이미지 선택</label></div>
+                        <div>
+                            <label class="font-bold text-sm block mb-1">줄 길이 (L)</label>
+                            <div class="flex items-center gap-2">
+                                <input id="l-slider" type="range" min="50" max="150" value="100" class="w-full savable">
+                                <span id="l-value" class="w-8 text-center font-mono">100</span>
                             </div>
-                            <div>
-                                <h4 class="font-medium mb-2 text-center">코드 또는 GeoGebra 링크</h4>
-                                <div class="editable-container">
-                                    <textarea id="inquiry-code" class="markdown-input editable-field font-mono text-sm" placeholder="결과물에 해당하는 코드나 링크를 입력하세요."></textarea>
-                                    <div class="markdown-preview prose max-w-none"></div>
-                                </div>
+                        </div>
+                        <div>
+                            <label class="font-bold text-sm block mb-1">진행 각도 (t)</label>
+                            <div class="flex items-center gap-2">
+                                <input id="t-slider" type="range" min="5" max="175" value="90" class="w-full savable">
+                                <span id="t-value" class="w-12 text-center font-mono">90°</span>
                             </div>
                         </div>
                     </div>
-                    <div><label for="inquiry-conclusion" class="block text-lg font-semibold mb-2">6. 결론 및 고찰</label><div class="editable-container"><textarea id="inquiry-conclusion" class="markdown-input editable-field" placeholder="탐구 결과와 그로부터 얻은 결론을 작성하세요. 초기 가설과 비교하여 분석하고, 탐구의 의의와 한계점을 서술하세요."></textarea><div class="markdown-preview prose max-w-none"></div></div></div>
-                    <div><label for="inquiry-future" class="block text-lg font-semibold mb-2">7. 후속 연구 제안</label><div class="editable-container"><textarea id="inquiry-future" class="markdown-input editable-field" placeholder="이 탐구를 바탕으로 더 진행해보고 싶은 후속 연구나 새로운 아이디어를 제안하세요."></textarea><div class="markdown-preview prose max-w-none"></div></div></div>
                 </div>
-            </div>
-        </section>
+            </section>
 
-        <!-- Step 6: References -->
-        <section id="step6" class="mb-16">
-            <div class="step-card bg-white p-8 rounded-xl shadow-lg">
-                <h2 class="text-3xl font-bold mb-4 border-b-2 border-gray-300 pb-2">Step 6: 참고 문헌</h2>
-                <p class="mb-6 text-gray-600">
-                    보고서 작성 및 탐구 과정에서 참고한 모든 자료(논문, 책, 웹사이트, PDF 파일 등)의 출처를 APA 양식 또는 학계 표준 양식에 맞게 기입하세요.
-                </p>
-                <div class="editable-container">
-                    <textarea id="references" class="markdown-input editable-field" placeholder="예시)&#10;* Sharp, J. (1997). The Circular Tractrix and Trudrix. Mathematics in School, 26(1), 10–13. http://www.jstor.org/stable/30211783&#10;* Weisstein, Eric W. "Tractrix." From MathWorld--A Wolfram Web Resource. https://mathworld.wolfram.com/Tractrix.html"></textarea>
-                    <div class="markdown-preview prose max-w-none"></div>
+            <!-- Step 4: Formulation -->
+            <section id="step4" class="m-card">
+                <h2 class="text-xl font-bold mb-4">Step 4: Tractrix 곡선 수식화</h2>
+                <div class="bg-gray-50 p-4 rounded-xl mb-4 text-sm text-neutral-700">
+                    <strong class="block mb-2">핵심 미분 방정식</strong>
+                    $$ \frac{dy}{dx} = \pm \frac{\sqrt{L^2 - x^2}}{x} $$
+                    <br>
+                    <strong class="block mb-2 mt-4">매개변수 방정식</strong>
+                    $$ x(t) = L \sin t, \quad y(t) = L \left( \ln (\tan \frac{t}{2}) + \cos t \right) $$
                 </div>
+                <div>
+                    <label class="font-bold text-sm block mb-2">수식 유도 과정</label>
+                    <div class="editable-container">
+                        <textarea id="derivation" class="savable markdown-input"
+                            placeholder="- 피타고라스 정리에 의해..."></textarea>
+                        <div class="markdown-preview"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Step 5: Advanced & Conclusion -->
+            <section id="step5" class="m-card">
+                <h2 class="text-xl font-bold mb-4">Step 5: 심화 탐구 및 결론</h2>
+                <div class="space-y-4">
+                    <div>
+                        <label class="font-bold text-sm block mb-1">탐구 주제 (예: Circular Tractrix)</label>
+                        <input id="inquiry-title" class="m-input savable">
+                    </div>
+                    <div>
+                        <label class="font-bold text-sm block mb-1">탐구 내용</label>
+                        <div class="editable-container">
+                            <textarea id="inquiry-content" class="savable markdown-input"
+                                placeholder="탐구 내용..."></textarea>
+                            <div class="markdown-preview"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="font-bold text-sm block mb-1">결과 자료 (스크린샷)</label>
+                        <div id="results-gallery-drop" class="dropzone p-4">드래그 & 드롭</div>
+                        <div class="flex gap-2 mt-2">
+                            <input id="results-gallery-input" type="file" accept="image/*" multiple class="hidden">
+                            <button id="results-gallery-add" class="m-btn small secondary"
+                                onclick="document.getElementById('results-gallery-input').click()">+ 추가</button>
+                            <button id="results-gallery-clear" class="m-btn small secondary"
+                                onclick="if(confirm('삭제?')) document.getElementById('results-gallery').innerHTML=''">초기화</button>
+                        </div>
+                        <div id="results-gallery" class="gallery-grid"></div>
+                    </div>
+                    <div>
+                        <label class="font-bold text-sm block mb-1">결론 및 제언</label>
+                        <div class="editable-container">
+                            <textarea id="inquiry-conclusion" class="savable markdown-input"
+                                placeholder="..."></textarea>
+                            <div class="markdown-preview"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="font-bold text-sm block mb-1">참고 문헌</label>
+                        <div class="editable-container">
+                            <textarea id="references" class="savable markdown-input"
+                                placeholder="APA 스타일로 작성"></textarea>
+                            <div class="markdown-preview"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+
+        <footer class="mt-8 text-center text-sm text-muted print-hidden">
+            <div id="autosave-status" class="flex items-center justify-center gap-2 opacity-0 transition-opacity">
+                <span id="autosave-icon-saving" class="hidden">💾 저장 중...</span>
+                <span id="autosave-icon-saved" class="text-green-600 hidden">✅ 저장됨</span>
+                <span id="autosave-text"></span>
             </div>
-        </section>
-        
-        <footer class="text-center mt-12 print-hidden">
-            <div id="validation-message" class="text-red-600 font-semibold mb-4 h-6"></div>
-            <button onclick="saveAsPdf()" class="bg-green-600 text-white font-bold py-3 px-8 rounded-lg text-lg hover:bg-green-700 transition-colors shadow-lg">
-                보고서 PDF로 저장
-            </button>
+            <p class="mt-4">MathEdu Project 2025.</p>
         </footer>
-    </main>
-    
-    <!-- Autosave Status Indicator -->
-    <div id="autosave-status" class="print-hidden fixed bottom-6 right-6 flex items-center bg-slate-800 text-white py-2 px-4 rounded-lg shadow-lg opacity-0 transition-opacity duration-500 z-50">
-        <svg id="autosave-icon-saving" class="animate-spin h-5 w-5 mr-3 hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-        </svg>
-        <svg id="autosave-icon-saved" class="h-5 w-5 mr-3 hidden" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-        </svg>
-        <span id="autosave-text"></span>
+
     </div>
 
-    <script>
-        // 커스텀 마크다운 처리: **text** = 굵게, __text__ = 기울임꼴만 허용
-        showdown.extension('customMarkdown', function() {
-            return [
-                {
-                    // __text__를 기울임꼴로 변환
-                    type: 'lang',
-                    regex: /__((?:(?!__).)+)__/g,
-                    replace: '<em>$1</em>'
-                }
-            ];
-        });
+    <!-- Logic -->
+    <script type="module" src="script.js"></script>
 
-        const converter = new showdown.Converter({
-            ghCodeBlocks: true,
-            simpleLineBreaks: true,
-            literalMidWordUnderscores: true,  // 단일 언더스코어 무시
-            literalMidWordAsterisks: true,     // 단일 별표 무시
-            disableForced4SpacesIndentedSublists: true,
-            excludeTrailingPunctuationFromURLs: true,
-            extensions: ['customMarkdown']
-        });
-
-        let saveTimer = null;
-        let statusTimer = null;
-
-        // --- AUTOSAVE STATUS UI ---
-        function showSaveStatus(state) {
-            const statusEl = document.getElementById('autosave-status');
-            if (!statusEl) return;
-            const textEl = document.getElementById('autosave-text');
-            const iconSaving = document.getElementById('autosave-icon-saving');
-            const iconSaved = document.getElementById('autosave-icon-saved');
-
-            clearTimeout(statusTimer);
-            statusEl.classList.remove('opacity-0');
-
-            if (state === 'saving') {
-                textEl.textContent = '저장 중...';
-                iconSaving.classList.remove('hidden');
-                iconSaved.classList.add('hidden');
-            } else if (state === 'saved') {
-                textEl.textContent = '모든 변경사항이 저장되었습니다.';
-                iconSaving.classList.add('hidden');
-                iconSaved.classList.remove('hidden');
-                statusTimer = setTimeout(() => {
-                    statusEl.classList.add('opacity-0');
-                }, 2000); // 2초 후 숨김
-            }
-        }
-        
-        document.addEventListener('DOMContentLoaded', function() {
-            // KaTeX 스크립트가 로드된 후 의존성 있는 함수들 실행
-            const katexScript = document.querySelector('script[src*="katex.min.js"]');
-            const initPage = () => {
-                loadContent();
-                renderAllMath();
-                document.querySelectorAll('.markdown-input').forEach(el => updatePreview(el));
-                setupEventListeners();
-                setupTractrixSimulation();
-            };
-            if (window.katex) {
-                initPage();
-            } else {
-                katexScript.onload = initPage;
-            }
-        });
-
-
-        function updatePreview(element) {
-            const container = element.closest('.editable-container');
-            if (!container) return;
-            const preview = container.querySelector('.markdown-preview');
-            if (!preview) return;
-
-            let markdownText = element.value;
-            if (element.id === 'simulation-code' || element.id === 'inquiry-code') {
-                const lang = element.value.trim().startsWith('http') ? '' : 'python';
-                markdownText = "```" + lang + "\n" + element.value + "\n```";
-            }
-
-            const placeholder = '<p class="text-slate-400">내용을 입력하세요...</p>';
-            let html = markdownText ? converter.makeHtml(markdownText) : placeholder;
-
-            preview.innerHTML = html;
-            renderAllMathInElement(preview);
-            if (window.Prism) { Prism.highlightAllUnder(preview); }
-        }
-
-        function previewMedia(event, id) {
-            const preview = document.getElementById(`screenshot-preview-${id}`);
-            const placeholder = document.getElementById(`screenshot-placeholder-${id}`);
-            const file = event.target.files[0];
-            
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const base64Data = e.target.result;
-                    
-                    // TODO: 비디오 파일인 경우 <video> 태그를 동적으로 생성할 수 있으나,
-                    // PDF 저장 기능을 고려할 때 정적 이미지(캡처)를 권장하므로 여기서는 <img>로 통일합니다.
-                    // if (file.type.startsWith('video/')) { ... }
-                    
-                    preview.src = base64Data;
-                    preview.classList.remove('hidden');
-                    placeholder.classList.add('hidden');
-                    
-                    showSaveStatus('saving');
-                    // 로컬 스토리지 용량 한계(약 5MB)로 인해 큰 이미지/영상은 저장이 실패할 수 있습니다.
-                    try {
-                        localStorage.setItem(`screenshot-preview-${id}`, base64Data);
-                    } catch (e) {
-                        console.error("LocalStorage 저장 실패: ", e);
-                        alert("파일이 너무 큽니다. 1MB 이하의 이미지를 사용해주세요.");
-                        preview.src = "";
-                        preview.classList.add('hidden');
-                        placeholder.classList.remove('hidden');
-                    }
-                    showSaveStatus('saved');
-                }
-                reader.readAsDataURL(file);
-            }
-        }
-
-        function renderAllMath() { if (window.renderMathInElement) { renderMathInElement(document.body, { delimiters: [ {left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}, {left: '\\(', right: '\\)', display: false}, {left: '\\[', right: '\\]', display: true} ] }); } }
-        function renderAllMathInElement(el) { if (window.renderMathInElement) { renderMathInElement(el, { delimiters: [ {left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}, {left: '\\(', right: '\\)', display: false}, {left: '\\[', right: '\\]', display: true} ] }); } }
-
-        function saveContent(element) { if (element.id) { localStorage.setItem(element.id, element.value); } }
-
-        function loadContent() {
-            document.querySelectorAll('.editable-field').forEach(field => {
-                const savedValue = localStorage.getItem(field.id);
-                if (savedValue) { field.value = savedValue; }
-            });
-            // 3개의 이미지 슬롯 로드
-            for (let i = 1; i <= 3; i++) {
-                const savedImage = localStorage.getItem(`screenshot-preview-${i}`);
-                if (savedImage) {
-                    const preview = document.getElementById(`screenshot-preview-${i}`);
-                    const placeholder = document.getElementById(`screenshot-placeholder-${i}`);
-                    if(preview && placeholder) {
-                        preview.src = savedImage;
-                        preview.classList.remove('hidden');
-                        placeholder.classList.add('hidden');
-                    }
-                }
-            }
-        }
-        
-        function autoResizeTextarea(textarea) {
-            textarea.style.height = 'auto';
-            textarea.style.height = (textarea.scrollHeight) + 'px';
-        }
-
-        function setupEventListeners() {
-            // 클릭 시 편집 가능하도록 설정
-            document.querySelectorAll('.editable-container').forEach(container => {
-                const preview = container.querySelector('.markdown-preview');
-                const editor = container.querySelector('textarea.markdown-input');
-
-                if (preview && editor) {
-                    preview.addEventListener('click', () => {
-                        preview.style.display = 'none';
-                        editor.style.display = 'block';
-                        editor.focus();
-                        autoResizeTextarea(editor);
-                    });
-
-                    editor.addEventListener('blur', () => {
-                        editor.style.display = 'none';
-                        preview.style.display = 'block';
-                        updatePreview(editor); // blur 시점에 최종 렌더링
-                    });
-
-                    editor.addEventListener('input', () => {
-                        autoResizeTextarea(editor);
-                        // 실시간 저장을 위해 input 이벤트 사용
-                        clearTimeout(saveTimer);
-                        showSaveStatus('saving');
-                        saveTimer = setTimeout(() => {
-                            saveContent(editor);
-                            showSaveStatus('saved');
-                        }, 1200);
-                    });
-                }
-            });
-
-            // input.editable-field 자동 저장
-            document.querySelectorAll('input.editable-field').forEach(field => {
-                field.addEventListener('input', () => {
-                    clearTimeout(saveTimer);
-                    showSaveStatus('saving');
-                    saveTimer = setTimeout(() => {
-                        saveContent(field);
-                        showSaveStatus('saved');
-                    }, 1200);
-                });
-            });
-
-            // 모바일 메뉴
-            const mobileMenuButton = document.getElementById('mobile-menu-button');
-            const mobileMenu = document.getElementById('mobile-menu');
-            if (mobileMenuButton && mobileMenu) {
-                mobileMenuButton.addEventListener('click', () => mobileMenu.classList.toggle('hidden'));
-                document.querySelectorAll('#mobile-menu a').forEach(link => link.addEventListener('click', () => mobileMenu.classList.add('hidden')));
-            }
-
-            // Tractrix 시뮬레이션은 initPage()에서 이미 호출됨
-
-            // 탭 버튼
-            document.querySelectorAll('.tab-button').forEach(tab => {
-                tab.addEventListener('click', () => {
-                    // 모든 탭 버튼 비활성화
-                    tab.parentElement.querySelectorAll('.tab-button').forEach(t => t.classList.remove('active'));
-                    // 모든 탭 콘텐츠 숨기기
-                    tab.closest('.border-b').nextElementSibling.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-                    
-                    // 클릭된 탭 활성화
-                    tab.classList.add('active');
-                    const tabContent = document.getElementById(tab.dataset.tab);
-                    if (tabContent) {
-                        tabContent.classList.add('active');
-                        // 탭 전환 시 코드 하이라이팅 재실행
-                        if (window.Prism) { Prism.highlightAllUnder(tabContent); }
-                    }
-                });
-            });
-        }
-        
-        function validateForm() {
-            let isValid = true;
-            const validationMessage = document.getElementById('validation-message');
-            
-            // 필수 입력 필드 (학번, 이름)
-            ['student-id', 'student-name'].forEach(id => {
-                const field = document.getElementById(id);
-                field.classList.remove('is-invalid');
-                if (field.value.trim() === '') {
-                    field.classList.add('is-invalid');
-                    isValid = false;
-                }
-            });
-            
-            // 필수 이미지 (Step 1의 첫 번째 이미지)
-            const imgPreview = document.getElementById(`screenshot-preview-1`);
-            const imgContainer = imgPreview.parentElement;
-            imgContainer.classList.remove('is-invalid');
-            if (imgPreview.classList.contains('hidden')) {
-                imgContainer.style.borderColor = 'var(--invalid-color)'; // Tailwind 클래스 대신 직접 스타일링
-                isValid = false;
-            } else {
-                 imgContainer.style.borderColor = 'transparent';
-            }
-
-            validationMessage.textContent = isValid ? '' : '학번, 이름, Step 1의 실험 사진을 모두 첨부해야 합니다.';
-            if (!isValid) { 
-                window.scrollTo({ top: 0, behavior: 'smooth' }); 
-            }
-            return isValid;
-        }
-
-        function saveAsPdf() {
-            if (!validateForm()) return;
-
-            // PDF 저장 전 모든 편집창을 미리보기로 전환
-            document.querySelectorAll('.editable-container').forEach(container => {
-                const preview = container.querySelector('.markdown-preview');
-                const editor = container.querySelector('textarea.markdown-input');
-                if (preview && editor) {
-                    editor.style.display = 'none';
-                    preview.style.display = 'block';
-                    updatePreview(editor); // 최종 렌더링 확인
-                }
-            });
-            
-            // 모든 수식/코드 재렌더링
-            renderAllMath();
-            if (window.Prism) { Prism.highlightAll(); }
-
-
-            // 파일명 설정 (학번_이름 포함)
-            const prevTitle = document.title;
-            const studentId = document.getElementById('student-id')?.value.trim() || '학번';
-            const studentName = document.getElementById('student-name')?.value.trim() || '이름';
-            document.title = `Tractrix보고서_${studentId}_${studentName}`;
-
-            const cleanup = () => {
-                // 편집 모드로 복원
-                document.querySelectorAll('.editable-container').forEach(container => {
-                     const preview = container.querySelector('.markdown-preview');
-                     const editor = container.querySelector('textarea.markdown-input');
-                     if (preview && editor) {
-                        // 편집 중이던 상태로 복원하지 않고, 기본 '미리보기' 상태로 둡니다.
-                        // editor.style.display = 'block'; // 클릭 시 활성화되므로 다시 숨김
-                        // preview.style.display = 'none';
-                     }
-                });
-                document.title = prevTitle;
-                window.removeEventListener('afterprint', cleanup);
-            };
-            window.addEventListener('afterprint', cleanup);
-
-            window.print();
-        }
-
-        // --- Tractrix Simulation ---
-        // 완전히 새로 작성한 시뮬레이션
-
-        let sim = {
-            canvas: null,
-            ctx: null,
-            L: 100,              // 줄의 길이
-            pullerY: 0,          // 끄는 점의 Y 위치 (y축 상의 위치)
-            isDragging: false,
-            path: []             // 궤적 저장
-        };
-
-        function setupTractrixSimulation() {
-            // 요소 가져오기
-            sim.canvas = document.getElementById('tractrixCanvas');
-            const lSlider = document.getElementById('l-slider');
-            const tSlider = document.getElementById('t-slider');
-            const lValue = document.getElementById('l-value');
-            const tValue = document.getElementById('t-value');
-
-            if (!sim.canvas || !lSlider || !tSlider) {
-                console.error('Tractrix: Required elements not found', {canvas: !!sim.canvas, lSlider: !!lSlider, tSlider: !!tSlider});
-                return;
-            }
-
-            sim.ctx = sim.canvas.getContext('2d');
-            if (!sim.ctx) {
-                console.error('Tractrix: Failed to get 2D context');
-                return;
-            }
-
-            console.log('Tractrix: Canvas size:', sim.canvas.width, 'x', sim.canvas.height);
-
-            // 초기값 설정
-            sim.L = parseFloat(lSlider.value);
-            const t_deg = parseFloat(tSlider.value);
-            const t_rad = t_deg * Math.PI / 180;
-            sim.pullerY = sim.L * Math.log(Math.tan(t_rad / 2));
-
-            console.log('Tractrix: Initial values - L:', sim.L, 't:', t_deg, 'pullerY:', sim.pullerY);
-
-            lValue.textContent = sim.L;
-            tValue.textContent = t_deg.toFixed(0) + '°';
-
-            // L 슬라이더 이벤트
-            lSlider.addEventListener('input', (e) => {
-                sim.L = parseFloat(e.target.value);
-                lValue.textContent = sim.L;
-                sim.path = []; // 경로 초기화
-                draw();
-            });
-
-            // t 슬라이더 이벤트 (pullerY 조정)
-            tSlider.addEventListener('input', (e) => {
-                if (sim.isDragging) return;
-
-                const t_deg = parseFloat(e.target.value);
-                const t_rad = t_deg * Math.PI / 180;
-
-                // t로부터 pullerY 계산
-                // puller의 y좌표 = L * ln(tan(t/2))
-                sim.pullerY = sim.L * Math.log(Math.tan(t_rad / 2));
-
-                tValue.textContent = t_deg.toFixed(0) + '°';
-                sim.path = []; // 경로 초기화
-                draw();
-            });
-
-            // 마우스 드래그 이벤트
-            sim.canvas.addEventListener('mousedown', onMouseDown);
-            sim.canvas.addEventListener('mousemove', onMouseMove);
-            sim.canvas.addEventListener('mouseup', onMouseUp);
-            sim.canvas.addEventListener('mouseleave', onMouseUp);
-
-            // 터치 이벤트
-            sim.canvas.addEventListener('touchstart', onTouchStart, {passive: false});
-            sim.canvas.addEventListener('touchmove', onTouchMove, {passive: false});
-            sim.canvas.addEventListener('touchend', onMouseUp);
-
-            // 초기 그리기
-            console.log('Tractrix: Initial draw');
-            draw();
-        }
-
-        function getCanvasCoords(evt) {
-            const rect = sim.canvas.getBoundingClientRect();
-            let clientX, clientY;
-
-            if (evt.touches && evt.touches.length > 0) {
-                clientX = evt.touches[0].clientX;
-                clientY = evt.touches[0].clientY;
-            } else {
-                clientX = evt.clientX;
-                clientY = evt.clientY;
-            }
-
-            return {
-                x: clientX - rect.left,
-                y: clientY - rect.top
-            };
-        }
-
-        function onMouseDown(evt) {
-            const pos = getCanvasCoords(evt);
-            const centerX = sim.canvas.width / 2;
-            const centerY = sim.canvas.height / 2;
-
-            // y축 상의 끄는 점 위치 (캔버스 좌표)
-            const pullerCanvasY = centerY - sim.pullerY;
-
-            // 클릭이 끄는 점 근처인지 확인 (20px 반경)
-            const dist = Math.sqrt(Math.pow(pos.x - centerX, 2) + Math.pow(pos.y - pullerCanvasY, 2));
-
-            if (dist < 20) {
-                sim.isDragging = true;
-                sim.canvas.classList.add('grabbing');
-                sim.path = []; // 새로운 드래그 시작 시 경로 초기화
-            }
-        }
-
-        function onTouchStart(evt) {
-            evt.preventDefault();
-            onMouseDown(evt);
-        }
-
-        function onMouseMove(evt) {
-            if (!sim.isDragging) return;
-
-            const pos = getCanvasCoords(evt);
-            const centerY = sim.canvas.height / 2;
-
-            // 마우스 Y좌표를 수학적 Y좌표로 변환
-            sim.pullerY = centerY - pos.y;
-
-            // pullerY로부터 t 계산
-            let t_rad = 2 * Math.atan(Math.exp(sim.pullerY / sim.L));
-            t_rad = Math.max(0.1, Math.min(Math.PI - 0.1, t_rad));
-
-            // t 슬라이더 업데이트
-            const t_deg = t_rad * 180 / Math.PI;
-            document.getElementById('t-slider').value = t_deg;
-            document.getElementById('t-value').textContent = t_deg.toFixed(0) + '°';
-
-            // 궤적에 현재 물체 위치 추가
-            const obj = calculateObjectPos(sim.pullerY, sim.L);
-            sim.path.push(obj);
-
-            // 경로가 너무 길면 앞부분 제거
-            if (sim.path.length > 1000) {
-                sim.path.shift();
-            }
-
-            draw();
-        }
-
-        function onTouchMove(evt) {
-            evt.preventDefault();
-            onMouseMove(evt);
-        }
-
-        function onMouseUp() {
-            sim.isDragging = false;
-            sim.canvas.classList.remove('grabbing');
-        }
-
-        // pullerY로부터 물체의 위치 계산
-        function calculateObjectPos(pullerY, L) {
-            // t = 2 * atan(exp(pullerY / L))
-            const t = 2 * Math.atan(Math.exp(pullerY / L));
-
-            // 물체의 수학적 좌표
-            // x = L * sin(t)
-            // y = L * (cos(t) + ln(tan(t/2))) = L * cos(t) + pullerY
-            const x = L * Math.sin(t);
-            const y = L * Math.cos(t) + pullerY;
-
-            return { x, y };
-        }
-
-        function draw() {
-            if (!sim.ctx || !sim.canvas) {
-                console.error('Draw: Canvas or context not initialized');
-                return;
-            }
-
-            const ctx = sim.ctx;
-            const w = sim.canvas.width;
-            const h = sim.canvas.height;
-            const centerX = w / 2;
-            const centerY = h / 2;
-
-            // 캔버스 초기화
-            ctx.clearRect(0, 0, w, h);
-
-            // 1. 축 그리기
-            ctx.strokeStyle = '#d1d5db';
-            ctx.lineWidth = 1;
-            ctx.beginPath();
-            ctx.moveTo(centerX, 0);
-            ctx.lineTo(centerX, h); // y축
-            ctx.moveTo(0, centerY);
-            ctx.lineTo(w, centerY); // x축
-            ctx.stroke();
-
-            // 2. 현재 상태 계산
-            const obj = calculateObjectPos(sim.pullerY, sim.L);
-
-            // 수학 좌표를 캔버스 좌표로 변환
-            const pullerCanvasX = centerX;
-            const pullerCanvasY = centerY - sim.pullerY;
-            const objCanvasX = centerX + obj.x;
-            const objCanvasY = centerY - obj.y;
-
-            // 3. 저장된 궤적 그리기 (녹색)
-            if (sim.path.length > 1) {
-                ctx.strokeStyle = 'rgba(22, 163, 74, 0.8)';
-                ctx.lineWidth = 3;
-                ctx.beginPath();
-
-                // 오른쪽 궤적
-                for (let i = 0; i < sim.path.length; i++) {
-                    const px = centerX + sim.path[i].x;
-                    const py = centerY - sim.path[i].y;
-                    if (i === 0) ctx.moveTo(px, py);
-                    else ctx.lineTo(px, py);
-                }
-                ctx.stroke();
-
-                // 왼쪽 대칭 궤적
-                ctx.beginPath();
-                for (let i = 0; i < sim.path.length; i++) {
-                    const px = centerX - sim.path[i].x;
-                    const py = centerY - sim.path[i].y;
-                    if (i === 0) ctx.moveTo(px, py);
-                    else ctx.lineTo(px, py);
-                }
-                ctx.stroke();
-            }
-
-            // 4. 줄 그리기 (빨간색)
-            ctx.strokeStyle = '#ef4444';
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.moveTo(pullerCanvasX, pullerCanvasY);
-            ctx.lineTo(objCanvasX, objCanvasY);
-            ctx.stroke();
-
-            // 대칭 줄
-            ctx.beginPath();
-            ctx.moveTo(pullerCanvasX, pullerCanvasY);
-            ctx.lineTo(centerX - obj.x, objCanvasY);
-            ctx.stroke();
-
-            // 5. 끄는 점 그리기 (파란색)
-            ctx.fillStyle = '#3b82f6';
-            ctx.beginPath();
-            ctx.arc(pullerCanvasX, pullerCanvasY, 8, 0, 2 * Math.PI);
-            ctx.fill();
-
-            // 6. 물체 그리기 (빨간색)
-            ctx.fillStyle = '#ef4444';
-            ctx.beginPath();
-            ctx.arc(objCanvasX, objCanvasY, 6, 0, 2 * Math.PI);
-            ctx.fill();
-
-            // 대칭 물체
-            ctx.fillStyle = 'rgba(239, 68, 68, 0.5)';
-            ctx.beginPath();
-            ctx.arc(centerX - obj.x, objCanvasY, 6, 0, 2 * Math.PI);
-            ctx.fill();
-        }
-
-    </script>
 </body>
-</html>
 
+</html>

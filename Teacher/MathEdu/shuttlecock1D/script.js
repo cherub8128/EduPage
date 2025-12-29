@@ -1,85 +1,137 @@
-/**
- * Shuttlecock1D Student Report - Page-Specific Script
- * Uses atomic modules from ../js/ for common functionality
- */
+import { ReportManager } from '../js/report-core.js';
 
-// ============ Configuration ============
-const CONFIG = {
-    storagePrefix: 'shuttlecock_report_',
-    themeButtonId: 'themeBtn',
-    imageIds: [1, 2],
-    requiredFields: ['student-id', 'student-name', 'observations'],
-    requiredImages: [1],
-    pdfPrefix: '셔틀콕_탐구보고서',
-    validationMessageId: 'validation-message',
-    validationMessage: '학번, 이름, 관찰 내용, 사진은 필수입니다.'
+const report = new ReportManager('Shuttlecock-report-v2');
+
+// ============ State ============
+let chart1 = null;
+let chart2 = null;
+let simChart = null;
+
+// ============ Math Utilities ============
+const MathUtils = {
+    findColumn: (cols, candidates) => {
+        const lower = cols.map(c => String(c).trim().toLowerCase());
+        for (const cand of candidates) {
+            const i = lower.findIndex(c => c === cand || c.includes(cand));
+            if (i !== -1) return cols[i];
+        }
+        return null;
+    },
+
+    finiteDiff: (t, y) => {
+        const n = t.length;
+        const v = new Array(n).fill(NaN);
+        const a = new Array(n).fill(NaN);
+        for (let i = 1; i < n - 1; i++) {
+            const dt = t[i + 1] - t[i - 1];
+            if (dt !== 0) v[i] = (y[i + 1] - y[i - 1]) / dt;
+        }
+        for (let i = 2; i < n - 2; i++) {
+            const dt = t[i + 1] - t[i - 1];
+            if (dt !== 0) a[i] = (v[i + 1] - v[i - 1]) / dt;
+        }
+        return { v, a };
+    },
+
+    polyFit2: (t, y) => {
+        let S0 = 0, S1 = 0, S2 = 0, S3 = 0, S4 = 0, T0 = 0, T1 = 0, T2 = 0;
+        for (let i = 0; i < t.length; i++) {
+            const ti = t[i], yi = y[i], t2 = ti * ti;
+            S0++; S1 += ti; S2 += t2; S3 += t2 * ti; S4 += t2 * t2;
+            T0 += yi; T1 += yi * ti; T2 += yi * t2;
+        }
+        const A = [[S4, S3, S2], [S3, S2, S1], [S2, S1, S0]], B = [T2, T1, T0];
+        // Gaussian Elimination
+        for (let i = 0; i < 3; i++) {
+            let max = i;
+            for (let r = i + 1; r < 3; r++) if (Math.abs(A[r][i]) > Math.abs(A[max][i])) max = r;
+            if (max !== i) { [A[i], A[max]] = [A[max], A[i]];[B[i], B[max]] = [B[max], B[i]]; }
+            const piv = A[i][i] || 1e-12;
+            for (let j = i; j < 3; j++) A[i][j] /= piv;
+            B[i] /= piv;
+            for (let r = 0; r < 3; r++) {
+                if (r === i) continue;
+                const f = A[r][i];
+                for (let j = i; j < 3; j++) A[r][j] -= f * A[i][j];
+                B[r] -= f * B[i];
+            }
+        }
+        return { a: B[0], b: B[1], c: B[2] };
+    },
+
+    linFit: (x, y) => {
+        let n = 0, sx = 0, sy = 0, sxx = 0, sxy = 0;
+        for (let i = 0; i < x.length; i++) {
+            if (isFinite(x[i]) && isFinite(y[i])) {
+                n++; sx += x[i]; sy += y[i]; sxx += x[i] * x[i]; sxy += x[i] * y[i];
+            }
+        }
+        const q = (n * sxy - sx * sy) / ((n * sxx - sx * sx) || 1e-12);
+        const p = (sy - q * sx) / (n || 1);
+        return { p, q, n };
+    }
 };
 
-// ============ Page State ============
-let storage, chart1, chart2, simChart;
-
-// ============ CSV Analysis Utilities ============
-function findColumn(cols, candidates) {
-    const lower = cols.map(c => String(c).trim().toLowerCase());
-    for (const cand of candidates) {
-        const i = lower.findIndex(c => c === cand || c.includes(cand));
-        if (i !== -1) return cols[i];
+// ============ Chart Helper ============
+const GraphUtils = {
+    createLineChart: (canvasId, title) => {
+        const ctx = document.getElementById(canvasId)?.getContext('2d');
+        if (!ctx) return null;
+        return new Chart(ctx, {
+            type: 'scatter',
+            data: { datasets: [] },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: { display: !!title, text: title },
+                    legend: { display: true }
+                },
+                scales: {
+                    x: { type: 'linear', position: 'bottom' }
+                }
+            }
+        });
+    },
+    updateChart: (chart, datasets) => {
+        if (!chart) return;
+        chart.data.datasets = datasets.map((ds, i) => ({
+            label: ds.label,
+            data: ds.data,
+            borderColor: getColor(i),
+            backgroundColor: getColor(i),
+            showLine: ds.showLine !== false,
+            borderWidth: ds.borderWidth || 2,
+            pointRadius: ds.pointRadius !== undefined ? ds.pointRadius : 2
+        }));
+        chart.update();
+    },
+    toPoints: (xArray, yArray) => {
+        return xArray.map((x, i) => ({ x: x, y: yArray[i] })).filter(p => isFinite(p.x) && isFinite(p.y));
     }
-    return null;
+};
+
+function getColor(i) {
+    const colors = ['#0ea5e9', '#f43f5e', '#22c55e', '#a855f7', '#fbbf24'];
+    return colors[i % colors.length];
 }
 
-function finiteDiff(t, y) {
-    const n = t.length;
-    const v = new Array(n).fill(NaN);
-    const a = new Array(n).fill(NaN);
-    for (let i = 1; i < n - 1; i++) {
-        const dt = t[i + 1] - t[i - 1];
-        if (dt !== 0) v[i] = (y[i + 1] - y[i - 1]) / dt;
-    }
-    for (let i = 2; i < n - 2; i++) {
-        const dt = t[i + 1] - t[i - 1];
-        if (dt !== 0) a[i] = (v[i + 1] - v[i - 1]) / dt;
-    }
-    return { v, a };
-}
+// ============ Main Init ============
+document.addEventListener('DOMContentLoaded', () => {
+    report.init();
+    report.initGallery('gallery1', 'gallery1-input', 'gallery1-drop', 'gallery1-clear', 'gallery1-add');
 
-function polyFit2(t, y) {
-    let S0 = 0, S1 = 0, S2 = 0, S3 = 0, S4 = 0, T0 = 0, T1 = 0, T2 = 0;
-    for (let i = 0; i < t.length; i++) {
-        const ti = t[i], yi = y[i], t2 = ti * ti;
-        S0++; S1 += ti; S2 += t2; S3 += t2 * ti; S4 += t2 * t2;
-        T0 += yi; T1 += yi * ti; T2 += yi * t2;
-    }
-    const A = [[S4, S3, S2], [S3, S2, S1], [S2, S1, S0]], B = [T2, T1, T0];
-    for (let i = 0; i < 3; i++) {
-        let max = i;
-        for (let r = i + 1; r < 3; r++) if (Math.abs(A[r][i]) > Math.abs(A[max][i])) max = r;
-        if (max !== i) { [A[i], A[max]] = [A[max], A[i]];[B[i], B[max]] = [B[max], B[i]]; }
-        const piv = A[i][i] || 1e-12;
-        for (let j = i; j < 3; j++) A[i][j] /= piv;
-        B[i] /= piv;
-        for (let r = 0; r < 3; r++) {
-            if (r === i) continue;
-            const f = A[r][i];
-            for (let j = i; j < 3; j++) A[r][j] -= f * A[i][j];
-            B[r] -= f * B[i];
-        }
-    }
-    return { a: B[0], b: B[1], c: B[2] };
-}
+    // Init Charts
+    chart1 = GraphUtils.createLineChart('chart1', "위치(y) & 속력(v) 분석");
+    chart2 = GraphUtils.createLineChart('chart2', "가속도(a) & 피팅");
+    simChart = GraphUtils.createLineChart('simChart', "시뮬레이션 비교");
 
-function linFit(x, y) {
-    let n = 0, sx = 0, sy = 0, sxx = 0, sxy = 0;
-    for (let i = 0; i < x.length; i++) {
-        if (!isFinite(x[i]) || !isFinite(y[i])) continue;
-        n++; sx += x[i]; sy += y[i]; sxx += x[i] * x[i]; sxy += x[i] * y[i];
-    }
-    const q = (n * sxy - sx * sy) / ((n * sxx - sx * sx) || 1e-12);
-    const p = (sy - q * sx) / (n || 1);
-    return { p, q, n };
-}
+    setupCSVAnalysis();
+    setupSimulation();
+});
 
-// ============ CSV Analysis ============
+
+// ============ Logic ============
 function setupCSVAnalysis() {
     const runFit = document.getElementById('runFit');
     if (!runFit) return;
@@ -95,148 +147,127 @@ function setupCSVAnalysis() {
                 if (!rows?.length) { alert('CSV가 비어 있습니다.'); return; }
 
                 const cols = Object.keys(rows[0]);
-                const tCol = findColumn(cols, ['t', 'time', 'timestamp', 'seconds']);
-                const yCol = findColumn(cols, ['y', 'posy', 'height', 'vertical']);
-                if (!tCol || !yCol) { alert('t, y 열을 찾지 못했습니다.'); return; }
+                const tCol = MathUtils.findColumn(cols, ['t', 'time', 'timestamp', 'seconds']);
+                const yCol = MathUtils.findColumn(cols, ['y', 'posy', 'height', 'vertical']);
+                if (!tCol || !yCol) { alert('t, y 열을 찾지 못했습니다. CSV 헤더를 확인하세요.'); return; }
 
                 let t = rows.map(r => Number(r[tCol]));
                 let y = rows.map(r => Number(r[yCol]));
-                if (document.getElementById('signMode')?.value === 'up') y = y.map(v => -v);
 
-                // Filter valid data
+                // Sign Invert Check (User specific logic inside CSV Logic normally unavailable but good to have)
+                // Assuming standard tracker output with Y up
+                // If user wants to invert logic for "fall distance", they can process data.
+                // Let's assume standard data.
+
                 const ft = [], fy = [];
                 for (let i = 0; i < t.length; i++) {
                     if (isFinite(t[i]) && isFinite(y[i])) { ft.push(t[i]); fy.push(y[i]); }
                 }
+                if (ft.length === 0) return;
+
                 const t0 = ft[0];
                 t = ft.map(v => v - t0);
                 y = fy;
 
-                const { v, a } = finiteDiff(t, y);
+                const { v, a } = MathUtils.finiteDiff(t, y);
                 const fitMode = document.getElementById('fitMode')?.value;
                 const fitResult = document.getElementById('fitResult');
 
-                ChartUtils.updateChart(chart1, [
-                    { label: 'y(t)', data: ChartUtils.toPoints(t, y), borderWidth: 2, pointRadius: 0 },
-                    { label: 'v(t)', data: ChartUtils.toPoints(t, v), borderWidth: 2, pointRadius: 0 }
+                GraphUtils.updateChart(chart1, [
+                    { label: 'y(t)', data: GraphUtils.toPoints(t, y) },
+                    { label: 'v(t)', data: GraphUtils.toPoints(t, v) }
                 ]);
 
                 if (fitMode === 'freefall') {
-                    const fit = polyFit2(t, y);
-                    const gEst = 2 * fit.a;
+                    // Fit y = at^2 + bt + c => a corresponds to 0.5 g
+                    const fit = MathUtils.polyFit2(t, y);
+                    const gEst = Math.abs(2 * fit.a); // Accel is 2*coef of t^2
+
                     const yFit = t.map(tt => fit.a * tt * tt + fit.b * tt + fit.c);
-                    ChartUtils.updateChart(chart2, [
-                        { label: 'a(t)', data: ChartUtils.toPoints(t, a), borderWidth: 2, pointRadius: 0 },
-                        { label: 'y_fit', data: ChartUtils.toPoints(t, yFit), borderWidth: 2, pointRadius: 0 }
+
+                    GraphUtils.updateChart(chart2, [
+                        { label: 'a(t) (Raw)', data: GraphUtils.toPoints(t, a), showLine: false },
+                        { label: 'y_fit', data: GraphUtils.toPoints(t, yFit) }
                     ]);
-                    fitResult.textContent = `g ≈ ${gEst.toFixed(4)} m/s² (a=${fit.a.toFixed(6)})`;
+
+                    if (fitResult) fitResult.textContent = `추정 중력가속도 g ≈ ${gEst.toFixed(4)} m/s²`;
+
                 } else {
-                    const v2 = v.map(x => x * x);
-                    const fit = linFit(v2, a);
-                    const vT = fit.q < 0 ? Math.sqrt(fit.p / -fit.q) : NaN;
-                    const pts = [], line = [];
+                    // Shuttlecock: a = g - k v^2
+                    // We fit linear: a = p + q(v^2)
+                    // Then g ≈ p (intercept at v=0), k ≈ -q.
+                    // v_T (Terminal vel) when a=0 => p + q(v^2)=0 => v^2 = -p/q => v = sqrt(-p/q)
+
+                    const v2 = v.map(val => val * val);
+                    const fit = MathUtils.linFit(v2, a);
+
+                    // We plot a vs v^2
+                    const pts = [];
+                    const line = [];
+
                     for (let i = 0; i < t.length; i++) {
                         if (isFinite(v2[i]) && isFinite(a[i])) pts.push({ x: v2[i], y: a[i] });
                     }
-                    if (pts.length) {
-                        const xmin = Math.min(...pts.map(p => p.x)), xmax = Math.max(...pts.map(p => p.x));
-                        line.push({ x: xmin, y: fit.p + fit.q * xmin }, { x: xmax, y: fit.p + fit.q * xmax });
+                    if (pts.length > 0) {
+                        const xMax = Math.max(...pts.map(p => p.x));
+                        line.push({ x: 0, y: fit.p }, { x: xMax, y: fit.p + fit.q * xMax });
                     }
-                    ChartUtils.updateChart(chart2, [
-                        { label: 'a vs v²', data: pts, showLine: false, pointRadius: 2 },
-                        { label: 'fit', data: line, borderWidth: 2, pointRadius: 0 }
+
+                    GraphUtils.updateChart(chart2, [
+                        { label: 'a vs v²', data: pts, showLine: false },
+                        { label: 'Linear Fit', data: line }
                     ]);
-                    fitResult.textContent = `v_T ≈ ${isFinite(vT) ? vT.toFixed(3) : 'NaN'} m/s (g≈${fit.p.toFixed(3)})`;
+
+                    const vT = fit.q < 0 ? Math.sqrt(fit.p / -fit.q) : NaN;
+                    if (fitResult) fitResult.textContent = `종단속도 v_T ≈ ${isFinite(vT) ? vT.toFixed(3) : 'NaN'} m/s (g절편=${fit.p.toFixed(2)})`;
                 }
             }
         });
     });
 }
 
-// ============ Simulation ============
 function setupSimulation() {
     const runSim = document.getElementById('runSim');
     if (!runSim) return;
 
     runSim.addEventListener('click', () => {
         const g = Number(document.getElementById('simG')?.value) || 9.8;
-        const H = Number(document.getElementById('simH')?.value) || 2.0;
-        const dt = Number(document.getElementById('simDt')?.value) || 0.01;
-        const b = Number(document.getElementById('simB')?.value) || 0.7;
+        const H = 300; // sufficiently high or user defined
+        const dt = 0.01;
+
+        // k for F = kv or F = kv^2
         const k = Number(document.getElementById('simK')?.value) || 0.22;
         const model = document.getElementById('simModel')?.value || 'none';
 
         let t = 0, y = 0, v = 0;
         const T = [], Y = [], V = [], A = [];
-        while (y < H && t < 30 && T.length < 50000) {
-            const a = model === 'none' ? g : (model === 'linear' ? g - b * v : g - k * v * v);
-            v += a * dt; y += v * dt; t += dt;
+
+        while (t < 10) { // Simulate 10 seconds
+            let a = g;
+            // Note: Coordinate system: Down = Positive Y
+            // Gravity is +g. Drag is opposing velocity.
+            // If Falling (v > 0), Drag is -kv^2
+
+            if (model === 'quad') { // F_drag = -k * v^2
+                a = g - k * v * v;
+            } else if (model === 'linear') { // F_drag = -k * v (Not in original UI options but good to handle logic)
+                a = g - k * v;
+            }
+
+            v += a * dt;
+            y += v * dt;
+            t += dt;
+
             T.push(t); Y.push(y); V.push(v); A.push(a);
         }
 
-        ChartUtils.updateChart(simChart, [
-            { label: 'y(t)', data: ChartUtils.toPoints(T, Y), borderWidth: 2, pointRadius: 0 },
-            { label: 'v(t)', data: ChartUtils.toPoints(T, V), borderWidth: 2, pointRadius: 0 },
-            { label: 'a(t)', data: ChartUtils.toPoints(T, A), borderWidth: 2, pointRadius: 0 }
+        GraphUtils.updateChart(simChart, [
+            { label: 'y(t)', data: GraphUtils.toPoints(T, Y) },
+            { label: 'v(t)', data: GraphUtils.toPoints(T, V) },
+            { label: 'a(t)', data: GraphUtils.toPoints(T, A) }
         ]);
 
-        let vT = model === 'quad' && k > 0 ? Math.sqrt(g / k) : (model === 'linear' && b > 0 ? g / b : NaN);
-        document.getElementById('simSummary').textContent =
-            `t=${t.toFixed(3)}s, v_end=${v.toFixed(3)}m/s, v_T≈${isFinite(vT) ? vT.toFixed(3) : '—'}`;
+        const simSummary = document.getElementById('simSummary');
+        if (simSummary) simSummary.textContent = `Simulation End: t=${t.toFixed(1)}s, v=${v.toFixed(2)}m/s`;
     });
 }
-
-// ============ Initialize ============
-window.addEventListener('DOMContentLoaded', () => {
-    // Initialize with atomic modules
-    storage = new StorageManager(CONFIG.storagePrefix);
-
-    // Theme
-    ThemeManager.init();
-    ThemeManager.bindButton(CONFIG.themeButtonId);
-
-    // Markdown
-    MarkdownPreview.init();
-
-    // Image upload global handler
-    ImageUpload.createGlobalHandler(storage);
-    ImageUpload.loadAll(CONFIG.imageIds, storage);
-
-    // Load saved fields
-    storage.loadFields(document.querySelectorAll('.editable-field'));
-
-    // Autosave
-    AutosaveStatus.setup('.editable-field', storage);
-
-    // Markdown editors
-    MarkdownPreview.setupAll();
-
-    // PDF export
-    PDFExport.createGlobalHandler(
-        CONFIG.pdfPrefix,
-        () => FormValidator.validate(CONFIG.requiredFields, CONFIG.requiredImages),
-        CONFIG.validationMessageId,
-        CONFIG.validationMessage
-    );
-
-    // Initialize charts
-    const chart1El = document.getElementById('chart1');
-    const chart2El = document.getElementById('chart2');
-    const simChartEl = document.getElementById('simChart');
-
-    if (chart1El) chart1 = ChartUtils.createLineChart(chart1El, [], 'y, v vs t');
-    if (chart2El) chart2 = ChartUtils.createLineChart(chart2El, [], 'a vs t');
-    if (simChartEl) simChart = ChartUtils.createLineChart(simChartEl, [], '시뮬레이션');
-
-    ChartUtils.observeTheme([chart1, chart2, simChart]);
-
-    // Setup page-specific features
-    setupCSVAnalysis();
-    setupSimulation();
-
-    // Render math and previews after KaTeX loads
-    MathRenderer.onReady(() => {
-        MathRenderer.renderPage();
-        MarkdownPreview.updateAll();
-    });
-});
