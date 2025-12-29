@@ -63,7 +63,9 @@
         <!-- Header -->
         <header class="modern-header flex justify-between items-end flex-wrap gap-4">
             <div>
-                <span class="m-badge mb-2" style="background:var(--grad-primary); color:white;">One-Page Report</span>
+                <div class="mb-2">
+                    <span class="m-badge" style="background:var(--grad-primary); color:white;">One-Page Report</span>
+                </div>
                 <h1>Tractrix Curve 탐구</h1>
                 <p>끌려가는 물체의 자취: 견인 곡선 분석</p>
             </div>
@@ -153,20 +155,20 @@
                 <h2 class="text-xl font-bold mb-4">Step 3: 운동 시뮬레이션</h2>
 
                 <div class="m-grid" style="grid-template-columns: minmax(300px, 2fr) 1fr; gap: 2rem;">
-                    <div class="vis-container">
-                        <canvas id="tractrixCanvas" width="500" height="600"></canvas>
+                    <div class="vis-container"
+                        style="min-height: 800px; display: flex; justify-content: center; align-items: center;">
+                        <canvas id="tractrixCanvas" width="600" height="800"
+                            style="width: 100%; max-width: 600px; min-height: 800px; object-fit: contain; background: white; border: 1px solid var(--border-light); border-radius: var(--radius-lg); box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);"></canvas>
                     </div>
                     <div class="flex flex-col gap-4">
                         <div class="p-3 bg-blue-50 text-blue-900 rounded-lg text-sm mb-4">
                             <strong>사용법:</strong> 캔버스 내 파란 점(끌개)을 위아래로 <strong>드래그</strong>하여 물체(빨간 점)가 따라오는 궤적을 확인하세요.
                         </div>
 
-                        <div>
-                            <label class="font-bold text-sm block mb-1">줄 길이 (L)</label>
-                            <div class="flex items-center gap-2">
-                                <input id="l-slider" type="range" min="50" max="150" value="100" class="w-full savable">
-                                <span id="l-value" class="w-8 text-center font-mono">100</span>
-                            </div>
+                        <label class="font-bold text-sm block mb-1">줄 길이 (L)</label>
+                        <div class="flex items-center gap-2">
+                            <input id="l-slider" type="range" min="50" max="300" value="200" class="w-full savable">
+                            <span id="l-value" class="w-8 text-center font-mono">200</span>
                         </div>
                         <div>
                             <label class="font-bold text-sm block mb-1">진행 각도 (t)</label>

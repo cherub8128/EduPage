@@ -3,19 +3,15 @@ import { ReportManager } from '../js/report-core.js';
 const report = new ReportManager('CausticCurve-report-v2');
 
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. Init Report System
     report.init();
-
-    // 2. Init Galleries
     report.initGallery('gallery', 'gallery-input', 'gallery-drop', 'gallery-clear', 'gallery-add');
     report.initGallery('results-gallery', 'results-gallery-input', 'results-gallery-drop', 'results-gallery-clear', 'results-gallery-add');
 
-    // 3. Init Simulations
     initReflectionSim(report);
     initEpicycloidSim(report);
 });
 
-// --- Simulation 1: Reflection (Light Ray) ---
+// --- Simulation 1: Reflection (Cardioid/Caustic) ---
 function initReflectionSim(reportManager) {
     const canvas = document.getElementById('reflectionCanvas');
     if (!canvas) return;
@@ -24,126 +20,141 @@ function initReflectionSim(reportManager) {
     const slider = document.getElementById('theta-slider');
     const valueDisp = document.getElementById('theta-value');
 
+    // Resize Helper
+    const resizeObserver = new ResizeObserver(entries => {
+        for (const entry of entries) {
+            const dpr = window.devicePixelRatio || 1;
+            canvas.width = entry.contentRect.width * dpr;
+            canvas.height = entry.contentRect.height * dpr;
+            draw();
+        }
+    });
+    resizeObserver.observe(canvas);
+
     const draw = () => {
-        const w = canvas.width = 400; // Fixed resolution for report consistency
-        const h = canvas.height = 400;
+        const w = canvas.width;
+        const h = canvas.height;
+        const cx = w / 2;
+        const cy = h / 2;
+        const r = Math.min(w, h) * 0.35;
 
         ctx.clearRect(0, 0, w, h);
 
-        const centerX = w / 2;
-        const centerY = h / 2;
-        const radius = Math.min(w, h) * 0.35;
+        // Grid / Axis
+        ctx.strokeStyle = '#e5e7eb';
+        ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(0, cy); ctx.lineTo(w, cy); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(cx, 0); ctx.lineTo(cx, h); ctx.stroke();
 
-        // Angle Logic
-        let val = parseFloat(slider.value); // 0~180
-        // Map 0 -> 90deg(Right), 90 -> 0deg(Top), 180 -> -90deg(Left)
-        // Actually original logic was: value - 90.
-        // Let's stick to original valid logic:
-        const angleDeg = val - 90;
-        const angleRad = angleDeg * Math.PI / 180;
-
-        if (valueDisp) valueDisp.textContent = `${val}°`; // Display raw slider value for UX
-
-        // 1. Cup (Circle)
+        // Cup (Circle)
         ctx.beginPath();
-        ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
-        ctx.strokeStyle = '#9ca3af';
+        ctx.arc(cx, cy, r, 0, 2 * Math.PI);
+        ctx.strokeStyle = '#6b7280'; // Neutral-500
         ctx.lineWidth = 2;
         ctx.stroke();
 
-        // 2. Axis
-        ctx.beginPath();
-        ctx.moveTo(0, centerY); ctx.lineTo(w, centerY);
-        ctx.moveTo(centerX, 0); ctx.lineTo(centerX, h);
-        ctx.strokeStyle = '#e5e7eb';
-        ctx.lineWidth = 1;
-        ctx.stroke();
+        // Input
+        let val = parseFloat(slider.value) - 90; // 0 to 180
+        if (valueDisp) valueDisp.textContent = `${val}°`;
 
-        /*
-           Wait, standard math coord: X right, Y up. Canvas: Y down.
-           P(cos, sin). Canvas P(cx + r*cos, cy - r*sin).
-        */
-        const px = centerX + radius * Math.cos(angleRad);
-        const py = centerY - radius * Math.sin(angleRad);
+        // Math Angle: 0 is Right, 90 is Top.
+        // We want to simulate ray from Left.
+        // Rays usually hit the left side of cup (180 deg) to right side (0 deg)?
+        // Or if light comes from Left, it hits the LEFT side of the circle?
+        // No, light from left hits the convex side? Or concave?
+        // "Coffee cup" usually means light oblique into a cup.
+        // Let's assume Parallel Rays from Left.
+        // They hit the LEFT hemisphere: 90 deg to 270 deg.
+        // Let's map slider 0..180 to angle 90..270?
+        // Or simpler: Just map to the standard angle and let user sweep.
 
-        // 3. Incident Ray (Horizontal from Left)
-        // If angle is -90 ~ 90 (Right side), ray comes from left.
-        // Current angle logic: 0(Right) -> -90(Top) -> -180(Left).
-        // Let's rely on visual checkout. 
-        // Original: const angleDeg = sliderValue - 90;
-        // 135 -> 45deg. 
+        const angleDeg = val;
+        const angleRad = angleDeg * Math.PI / 180;
 
+        // Point P
+        // Canvas Y is inverted.
+        const px = cx + r * Math.cos(angleRad);
+        const py = cy - r * Math.sin(angleRad);
+
+        // 1. Incident Ray (From Left, Horizontal)
+        // Travels to P(px, py). Start x = 0.
         ctx.beginPath();
         ctx.moveTo(0, py);
         ctx.lineTo(px, py);
-        ctx.strokeStyle = '#f59e0b'; // Amber
+        ctx.strokeStyle = '#f59e0b'; // Amber-500
         ctx.lineWidth = 2;
         ctx.stroke();
 
-        // 4. Reflected Ray
-        // Angle of incidence = Angle of reflection.
-        // Surface normal angle at P is angleRad.
-        // Incident Ray angle is 0 (Horizontal).
-        // Actually let's use the vector reflection formula: r = i - 2(i.n)n
-        // i = (1, 0). n = (-cos, -sin) (inward normal)
-        // Wait, n at surface is outward (cos, sin) or inward (-cos, -sin).
+        // 2. Reflected Ray
+        // Normal Angle at P is angleRad.
+        // Reflection Formula: r = i - 2(i.n)n
+        // i = (1, 0). n = (Math.cos(angleRad), Math.sin(angleRad)) [Outward]
+        // Actually for internal reflection (mirror), n is inward? 
+        // Law of reflection holds regardless of n direction if we use angles correctly.
+        // Angle of i = 0.
+        // Angle of n = angleRad.
+        // r_angle = 2*theta - 0 = 2*theta. (If we consider angles wrt normal)
+        // Vector algebra result: (-cos 2t, -sin 2t).
 
-        // Original Logic:
-        const reflectedAngle = 2 * angleRad;
-        let dirX = Math.cos(reflectedAngle);
-        let dirY = -Math.sin(reflectedAngle); // Output: Canvas Space Y is inverted
+        const rx = -Math.cos(2 * angleRad);
+        const ry = -Math.sin(2 * angleRad);
 
-        // Force inward
-        const toCx = centerX - px;
-        const toCy = centerY - py;
-        if (dirX * toCx + dirY * toCy < 0) {
-            dirX = -dirX;
-            dirY = -dirY;
-        }
+        // Draw Ray
+        const RayLen = w; // Long enough to cross
+
+        // End point. Canvas Y logic: y_canvas = cy - (y_math)
+        // end_y_math = p_y_math + ry
+        // end_y_canvas = cy - (r*sin(t) + ry*Len) = py - ry*Len
+        // Since ry already contains the Math direction, we SUBTRACT it for Canvas Y if ry is positive up.
+        // Yes, py is already flipped. We need to move in (rx, -ry) direction (Canvas coords).
+
+        const ex = px + RayLen * rx;
+        const ey = py - RayLen * ry;
 
         ctx.beginPath();
         ctx.moveTo(px, py);
-        ctx.lineTo(px + w * dirX, py + h * dirY);
-        ctx.strokeStyle = '#10b981'; // Green
+        ctx.lineTo(ex, ey);
+        ctx.strokeStyle = '#10b981'; // Emerald-500
         ctx.lineWidth = 2;
         ctx.stroke();
 
-        // P
+        // Draw P
         ctx.beginPath();
-        ctx.arc(px, py, 5, 0, 2 * Math.PI);
-        ctx.fillStyle = '#ef4444';
+        ctx.arc(px, py, 4, 0, 2 * Math.PI);
+        ctx.fillStyle = '#ef4444'; // Red-500
         ctx.fill();
     };
 
     if (slider) {
-        slider.addEventListener('input', () => {
-            draw();
-            reportManager.saveContent();
-        });
-        // Initial load check
-        if (localStorage.getItem(reportManager.storageKey)) {
-            // ReportManager restores .savable inputs. We just need to sync visuals.
-            // But 'input' event might not fire on load.
-            // We can check value manually.
-        }
+        slider.addEventListener('input', () => { draw(); reportManager.saveContent(); });
         draw();
     }
 }
 
-// --- Simulation 2: Epicycloid ---
+// --- Simulation 2: Epicycloid (Cardioid/Nephroid) ---
 function initEpicycloidSim(reportManager) {
     const canvas = document.getElementById('epicycloidCanvas');
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
 
     const kSlider = document.getElementById('k-slider');
-    const rSlider = document.getElementById('size-slider'); // 'size' is r
+    const rSlider = document.getElementById('size-slider');
     const angleSlider = document.getElementById('epicycloid-slider');
 
-    // Value Displays
     const kVal = document.getElementById('k-value');
     const rVal = document.getElementById('size-value');
     const angVal = document.getElementById('epicycloid-value');
+
+    // Resize Helper
+    const resizeObserver = new ResizeObserver(entries => {
+        for (const entry of entries) {
+            const dpr = window.devicePixelRatio || 1;
+            canvas.width = entry.contentRect.width * dpr;
+            canvas.height = entry.contentRect.height * dpr;
+            draw();
+        }
+    });
+    resizeObserver.observe(canvas);
 
     const draw = () => {
         const k = parseInt(kSlider.value);
@@ -155,66 +166,76 @@ function initEpicycloidSim(reportManager) {
         if (rVal) rVal.textContent = r;
         if (angVal) angVal.textContent = `${animDeg.toFixed(0)}°`;
 
-        const w = canvas.width = 400;
-        const h = canvas.height = 400;
+        const w = canvas.width;
+        const h = canvas.height;
         const cx = w / 2;
         const cy = h / 2;
         const R = k * r; // Fixed circle radius
 
         ctx.clearRect(0, 0, w, h);
 
-        // Fixed Circle (Gray)
+        // 1. Fixed Circle (Gray)
         ctx.beginPath();
         ctx.arc(cx, cy, R, 0, 2 * Math.PI);
-        ctx.strokeStyle = '#e2e8f0';
+        ctx.strokeStyle = '#d1d5db'; // Neutral-300
         ctx.lineWidth = 2;
         ctx.stroke();
 
-        // Epicycloid Curve (Purple)
+        // 2. Epicycloid Curve (Purple)
         ctx.beginPath();
-        ctx.strokeStyle = '#8b5cf6';
+        ctx.strokeStyle = '#8b5cf6'; // Violet-500
         ctx.lineWidth = 2;
 
-        // Theoretical max t for closed curve depends on k.
-        // For integer k, 2PI is enough.
-        const maxT = 2 * Math.PI;
+        const maxT = 2 * Math.PI * (k < 1 ? 10 : 1); // Enough loops
 
-        for (let t = 0; t <= maxT; t += 0.05) {
-            const x = cx + r * (k + 1) * Math.cos(t) - r * Math.cos((k + 1) * t);
-            const y = cy + r * (k + 1) * Math.sin(t) - r * Math.sin((k + 1) * t); // Canvas Y + is down, but sin is up.. usually -sin.
-            // Let's keep original: +sin -sin. Origin Y is down.
-            // Wait, original code:
-            // y = centerY + ... sin(t) ... - sin(...) 
-            // In standard math y is up. In canvas y is down.
-            // If we want standard orientation, we usually do centerY - (...).
-            // But let's stick to original visualization which worked.
-            if (t === 0) ctx.moveTo(x, y);
-            else ctx.lineTo(x, y);
+        // Plot Parametric
+        // x = (R+r)cos t - r cos((R+r)/r t) = r(k+1)cos t - r cos(k+1)t
+        // y = r(k+1)sin t - r sin(k+1)t
+
+        let first = true;
+        for (let t = 0; t <= maxT + 0.1; t += 0.05) {
+            const xMath = r * (k + 1) * Math.cos(t) - r * Math.cos((k + 1) * t);
+            const yMath = r * (k + 1) * Math.sin(t) - r * Math.sin((k + 1) * t);
+
+            // Canvas Coords
+            const px = cx + xMath;
+            const py = cy - yMath; // Flip Y
+
+            if (first) { ctx.moveTo(px, py); first = false; }
+            else ctx.lineTo(px, py);
         }
         ctx.stroke();
 
-        // Moving Circle (Cyan)
-        // Center position at animRad
-        const mcx = cx + (R + r) * Math.cos(animRad);
-        const mcy = cy + (R + r) * Math.sin(animRad);
+        // 3. Rolling Circle (Cyan)
+        // Center position angle t = animRad
+        const centerDist = R + r;
+        const mcxMath = centerDist * Math.cos(animRad);
+        const mcyMath = centerDist * Math.sin(animRad);
+
+        const mcx = cx + mcxMath;
+        const mcy = cy - mcyMath;
 
         ctx.beginPath();
         ctx.arc(mcx, mcy, r, 0, 2 * Math.PI);
-        ctx.strokeStyle = '#06b6d4';
+        ctx.strokeStyle = '#06b6d4'; // Cyan-500
         ctx.lineWidth = 1;
         ctx.stroke();
 
-        // Trace Point (Red)
-        const tx = cx + r * (k + 1) * Math.cos(animRad) - r * Math.cos((k + 1) * animRad);
-        const ty = cy + r * (k + 1) * Math.sin(animRad) - r * Math.sin((k + 1) * animRad);
+        // 4. Trace Point (Red)
+        const txMath = r * (k + 1) * Math.cos(animRad) - r * Math.cos((k + 1) * animRad);
+        const tyMath = r * (k + 1) * Math.sin(animRad) - r * Math.sin((k + 1) * animRad);
 
-        // Line from MC center to Trace Point
+        const tx = cx + txMath;
+        const ty = cy - tyMath;
+
+        // Radius Line (Center to Point)
         ctx.beginPath();
         ctx.moveTo(mcx, mcy);
         ctx.lineTo(tx, ty);
         ctx.strokeStyle = 'rgba(239, 68, 68, 0.5)';
         ctx.stroke();
 
+        // Point
         ctx.beginPath();
         ctx.arc(tx, ty, 5, 0, 2 * Math.PI);
         ctx.fillStyle = '#ef4444';

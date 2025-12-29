@@ -69,15 +69,31 @@ function initPlayground(reportManager) {
     const angOut = document.getElementById('angleAB');
 
     // Setup Canvas
+    // Setup Canvas with ResizeObserver
     const DPR = window.devicePixelRatio || 1;
-    const W0 = canvas.width, H0 = canvas.height;
-    // Fix resolution for High DPI
-    canvas.width = W0 * DPR;
-    canvas.height = H0 * DPR;
+    let W = canvas.clientWidth;
+    let H = canvas.clientHeight;
+    let C = { x: W / 2, y: H / 2 };
 
+    const resizeObserver = new ResizeObserver(entries => {
+        for (constentry of entries) {
+            const rect = entry.contentRect;
+            W = rect.width;
+            H = rect.height;
+            canvas.width = W * DPR;
+            canvas.height = H * DPR;
+            ctx.setTransform(1, 0, 0, 1, 0, 0); // Reset transform
+            ctx.scale(DPR, DPR); // Apply DPR scale
+            C = { x: W / 2, y: H / 2 };
+            draw();
+        }
+    });
+    resizeObserver.observe(canvas);
+
+    // Initial Setup not strictly needed as Observer fires once, but good for robust init
+    canvas.width = canvas.clientWidth * DPR;
+    canvas.height = canvas.clientHeight * DPR;
     ctx.scale(DPR, DPR);
-
-    const C = { x: W0 / 2, y: H0 / 2 };
 
     // State
     let aLen = 120, aAng = 0, bLen = 140, bAng = 35;
@@ -161,8 +177,8 @@ function initPlayground(reportManager) {
     function getMouse(e) {
         const r = canvas.getBoundingClientRect();
         return {
-            x: (e.clientX - r.left) * (W0 / r.width),
-            y: (e.clientY - r.top) * (H0 / r.height)
+            x: (e.clientX - r.left),
+            y: (e.clientY - r.top)
         };
     }
     function vec(len, angDeg) { const r = angDeg * Math.PI / 180; return { x: len * Math.cos(r), y: len * Math.sin(r) }; }
@@ -199,15 +215,15 @@ function initPlayground(reportManager) {
 
     // Render Loop
     function draw() {
-        ctx.clearRect(0, 0, W0, H0);
+        ctx.clearRect(0, 0, W, H);
 
         // Grid
         if (grid && grid.checked) {
             ctx.save(); ctx.translate(C.x, C.y);
             ctx.strokeStyle = '#e2e8f0'; ctx.lineWidth = 1;
-            for (let x = -W0; x <= W0; x += 20) { line(x, -H0, x, H0); }
-            for (let y = -H0; y <= H0; y += 20) { line(-W0, y, W0, y); }
-            ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 1.2; line(-W0, 0, W0, 0); line(0, -H0, 0, H0);
+            for (let x = -W; x <= W; x += 20) { line(x, -H, x, H); }
+            for (let y = -H; y <= H; y += 20) { line(-W, y, W, y); }
+            ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 1.2; line(-W, 0, W, 0); line(0, -H, 0, H);
             ctx.restore();
         }
 

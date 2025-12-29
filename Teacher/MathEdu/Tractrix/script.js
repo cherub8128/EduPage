@@ -27,7 +27,7 @@ function initTractrixSim(reportManager) {
     const tValue = document.getElementById('t-value');
 
     let sim = {
-        L: 100,
+        L: 200,
         pullerY: 0,
         isDragging: false,
         path: []
@@ -59,17 +59,38 @@ function initTractrixSim(reportManager) {
         return { x, y, t };
     }
 
+    // Resize Observer
+    const resizeObserver = new ResizeObserver(entries => {
+        for (const entry of entries) {
+            const dpr = window.devicePixelRatio || 1;
+            canvas.width = entry.contentRect.width * dpr;
+            canvas.height = entry.contentRect.height * dpr;
+            draw();
+        }
+    });
+    resizeObserver.observe(canvas);
+
     function draw() {
-        const w = canvas.width = 500;
-        const h = canvas.height = 600;
+        const w = canvas.width;
+        const h = canvas.height;
         const cx = w / 2;
         const cy = h / 2;
 
         ctx.clearRect(0, 0, w, h);
 
-        // 1. Axis
-        ctx.strokeStyle = '#e5e7eb';
+        // Grid (50px steps)
+        ctx.strokeStyle = '#f3f4f6';
         ctx.lineWidth = 1;
+        ctx.beginPath();
+        for (let gx = cx; gx < w; gx += 50) { ctx.moveTo(gx, 0); ctx.lineTo(gx, h); }
+        for (let gx = cx; gx > 0; gx -= 50) { ctx.moveTo(gx, 0); ctx.lineTo(gx, h); }
+        for (let gy = cy; gy < h; gy += 50) { ctx.moveTo(0, gy); ctx.lineTo(w, gy); }
+        for (let gy = cy; gy > 0; gy -= 50) { ctx.moveTo(0, gy); ctx.lineTo(w, gy); }
+        ctx.stroke();
+
+        // Axis
+        ctx.strokeStyle = '#d1d5db';
+        ctx.lineWidth = 1.5;
         ctx.beginPath();
         ctx.moveTo(cx, 0); ctx.lineTo(cx, h);
         ctx.moveTo(0, cy); ctx.lineTo(w, cy);
@@ -142,53 +163,91 @@ function initTractrixSim(reportManager) {
     }
 
     // Interactions
+    // Interactions
     const getPos = (e) => {
         const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+
         // Handle touch/mouse
-        const clientY = (e.touches && e.touches.length) ? e.touches[0].clientY : e.clientY;
-        return { y: clientY - rect.top };
+        let clientX = e.clientX;
+        let clientY = e.clientY;
+        if (e.touches && e.touches.length > 0) {
+            clientX = e.touches[0].clientX;
+            clientY = e.touches[0].clientY;
+        }
+
+        return {
+            x: (clientX - rect.left) * scaleX,
+            y: (clientY - rect.top) * scaleY
+        };
     }
 
-    const onMove = (e) => {
-        if (!sim.isDragging) return;
-        e.preventDefault();
+    const onDown = (e) => {
         const pos = getPos(e);
         const cy = canvas.height / 2;
+        const pullerCy = cy - sim.pullerY; // Canvas coordinate for Puller Center
+        const cx = canvas.width / 2;
 
-        // Math Y = cy - Canvas Y
-        sim.pullerY = cy - pos.y;
+        // Hit test radius 40 (generous)
+        // Check distance squared to avoid sqrt
+        const distSq = (pos.x - cx) ** 2 + (pos.y - pullerCy) ** 2;
+
+        if (distSq < 40 * 40) {
+            sim.isDragging = true;
+            canvas.style.cursor = 'grabbing';
+            sim.path = []; // Reset path on new drag
+
+            // Interaction Offset (so point doesn't snap to center of mouse)
+            sim.dragOffsetY = pullerCy - pos.y;
+
+            e.preventDefault();
+        }
+    };
+
+    const onMove = (e) => {
+        const pos = getPos(e);
+        const cy = canvas.height / 2;
+        const cx = canvas.width / 2;
+
+        // Hover Effect
+        if (!sim.isDragging) {
+            const pullerCy = cy - sim.pullerY;
+            const distSq = (pos.x - cx) ** 2 + (pos.y - pullerCy) ** 2;
+            canvas.style.cursor = (distSq < 40 * 40) ? 'grab' : 'default';
+            return;
+        }
+
+        e.preventDefault();
+
+        // Dragging Logic
+        // visualPullerY = mousePosY + offset
+        // sim.pullerY = cy - visualPullerY
+        const visualY = pos.y + (sim.dragOffsetY || 0);
+        sim.pullerY = cy - visualY;
 
         // Record Path
         const obj = calculateObjectPos(sim.pullerY, sim.L);
         sim.path.push(obj);
-        if (sim.path.length > 2000) sim.path.shift();
+        // Limit path size to prevent lag, but keep enough history
+        if (sim.path.length > 3000) sim.path.shift();
 
         draw();
     };
 
-    canvas.addEventListener('mousedown', (e) => {
-        const pos = getPos(e); // Need X too for hit test
-        const rect = canvas.getBoundingClientRect();
-        const cx = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
-
-        const w = canvas.width;
-        const h = canvas.height;
-        const cy = h / 2;
-        const pullerCy = cy - sim.pullerY;
-
-        // Hit test radius 30
-        if (Math.abs(cx - w / 2) < 30 && Math.abs(pos.y - pullerCy) < 30) {
-            sim.isDragging = true;
-            canvas.style.cursor = 'grabbing';
-            sim.path = []; // Reset path on new drag
-        }
-    });
-
-    ['mousemove', 'touchmove'].forEach(ev => canvas.addEventListener(ev, onMove, { passive: false }));
-    ['mouseup', 'mouseleave', 'touchend'].forEach(ev => canvas.addEventListener(ev, () => {
+    const onUp = () => {
         sim.isDragging = false;
-        canvas.style.cursor = 'grab';
-    }));
+        canvas.style.cursor = 'grab'; // Fallback
+    };
+
+    canvas.addEventListener('mousedown', onDown);
+    canvas.addEventListener('touchstart', onDown, { passive: false });
+
+    // Attach move/up to window to handle dragging outside canvas
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('touchmove', onMove, { passive: false });
+    window.addEventListener('mouseup', onUp);
+    window.addEventListener('touchend', onUp);
 
     // Sliders
     if (lSlider) lSlider.addEventListener('input', (e) => {

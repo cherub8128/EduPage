@@ -25,7 +25,38 @@ export class ReportManager {
         this.attachEditors();
         this.initAutoSave();
         this.initPDFExport();
+        this.renderGlobalMath(); // Render static math on load
         this.loadContent();
+    }
+
+    renderGlobalMath() {
+        const render = () => {
+            if (window.renderMathInElement) {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        { left: '$$', right: '$$', display: true },
+                        { left: '$', right: '$', display: false },
+                        { left: '\\(', right: '\\)', display: false },
+                        { left: '\\[', right: '\\]', display: true }
+                    ],
+                    throwOnError: false
+                });
+            }
+        };
+
+        if (window.katex && window.renderMathInElement) {
+            render();
+        } else {
+            // Wait for deferred scripts
+            const timer = setInterval(() => {
+                if (window.katex && window.renderMathInElement) {
+                    clearInterval(timer);
+                    render();
+                }
+            }, 100);
+            // Fallback safety (stop checking after 5s)
+            setTimeout(() => clearInterval(timer), 5000);
+        }
     }
 
     // --- Markdown Editor ---

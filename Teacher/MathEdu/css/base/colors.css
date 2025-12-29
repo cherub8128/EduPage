@@ -38,6 +38,13 @@
     --teal-vivid: #14b8a6;
     --cyan-vivid: #06b6d4;
 
+    /* Functional Colors (Tints) */
+    --blue-50: #eff6ff;
+    --blue-600: #2563eb;
+    --blue-700: #1d4ed8;
+    --blue-800: #1e40af;
+    --blue-900: #1e3a8a;
+
     /* ==============================================
      MODERN GRADIENTS
      ============================================== */

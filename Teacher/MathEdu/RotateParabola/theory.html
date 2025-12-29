@@ -1,196 +1,208 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>회전 포물선 - 수식화 및 심화 탐구</title>
-  <link rel="stylesheet" href="shared.css" />
-  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.8/dist/web/static/pretendard.css" />
-  
-  <!-- MathJax -->
-  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <title>회전 유체 포물면 - 수식화 및 심화 탐구</title>
+
+  <!-- Modern Design System -->
+  <link rel="stylesheet" href="../css/main.css" />
+  <link rel="stylesheet" href="../css/components/report.css" />
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/naen-nae/d2coding/d2coding-subset.css">
+
+  <!-- Libs -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/showdown/2.1.0/showdown.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 </head>
 
 <body>
 
-<header>
-  <div class="header-brand">
-    <h1>MathEdu Project</h1>
-    <span class="tagline">회전 유체 역학의 수학적 모델링</span>
+  <!-- Back Button -->
+  <a href="index.html" class="m-back-btn" aria-label="Back">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2">
+      <line x1="19" y1="12" x2="5" y2="12"></line>
+      <polyline points="12 19 5 12 12 5"></polyline>
+    </svg>
+  </a>
+
+  <div class="container pt-lg pb-lg">
+
+    <!-- Header -->
+    <header class="modern-header flex justify-between items-end flex-wrap gap-4">
+      <div>
+        <div class="mb-2">
+          <span class="m-badge" style="background:var(--grad-primary); color:white;">Theory & Inquiry</span>
+        </div>
+        <h1>수식화 및 심화 탐구</h1>
+        <p>회전 유체 역학의 물리적 일반화와 무차원화 해석</p>
+      </div>
+      <div class="flex gap-2 print-hidden">
+        <button id="export-pdf" class="m-btn primary small">
+          <span>📄 PDF 저장</span>
+        </button>
+        <a href="index.html" class="m-btn secondary small text-decoration-none">
+          <span>🔙 시뮬레이션으로</span>
+        </a>
+      </div>
+    </header>
+
+    <main class="flex flex-col gap-6">
+
+      <!-- Step 4: Formulation -->
+      <section id="formula" class="m-card">
+        <h2 class="text-xl font-bold mb-4">Step 4: 수식화 및 일반화</h2>
+        <p class="text-body mb-6">관찰과 시뮬레이션을 수식으로 정리하고, 무차원화와 다른 기하학적 형태(원통, 정육면체)로 확장합니다.</p>
+
+        <div class="m-grid" style="grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem;">
+          <div>
+            <h3 class="font-bold mb-3 flex items-center gap-2">
+              <span class="m-badge">모델 A</span> 직사각형 해석
+            </h3>
+            <div class="p-4 rounded border bg-gray-50">
+              <ul class="space-y-3">
+                <li>
+                  <strong class="text-sm block">자유수면 높이 \( z(r) \)</strong>
+                  $$ z(r) = H - \frac{\omega^2}{2g}\left(\frac{L^2}{12} - r^2\right) $$
+                </li>
+                <li>
+                  <strong class="text-sm block">임계 각속도 (\(z_v=0\))</strong>
+                  $$ \omega_c = \sqrt{\frac{24 g H}{L^2}} $$
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <div>
+            <h3 class="font-bold mb-3 flex items-center gap-2">
+              <span class="m-badge">모델 B</span> 무차원화 (Nondimensionalization)
+            </h3>
+            <div class="p-4 rounded" style="background-color: var(--blue-50); color: var(--blue-900);">
+              <p class="text-xs mb-3 opacity-80">길이 스케일 \(R = L/2\) 로 정규화하여 모든 크기의 실험을 통합합니다.</p>
+              <div class="space-y-2">
+                $$ X = \omega \sqrt{\frac{R}{g}}, \quad H^* = \frac{H}{R}, \quad Z = \frac{z}{R} $$
+                <strong class="text-sm block">무차원 방정식:</strong>
+                $$ Z(R^*) = H^* - \frac{X^2}{6}\left(1 - (R^*)^2\right) $$
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Step 5: Advanced Inquiry -->
+      <section id="explore" class="m-card">
+        <h2 class="text-xl font-bold mb-4">Step 5: 심화 주제 탐구</h2>
+        <p class="text-body mb-6">스스로 질문을 던지고 가설을 세워 검증해보세요. 작성한 내용은 실시간으로 자동 저장됩니다.</p>
+
+        <div class="m-grid" style="grid-template-columns: 1fr 1fr; gap: 2rem;">
+          <div class="space-y-4">
+            <div>
+              <label class="font-bold text-sm block mb-1">연구 질문</label>
+              <div class="editable-container">
+                <textarea id="inquiry-question" class="savable markdown-input"
+                  placeholder="예) 입자 유체 시뮬레이션에서 측정한 자유수면의 곡률이 이론식과 얼마나 일치하는가?"></textarea>
+                <div class="markdown-preview"></div>
+              </div>
+            </div>
+            <div>
+              <label class="font-bold text-sm block mb-1">가설 설정</label>
+              <div class="editable-container">
+                <textarea id="inquiry-hypothesis" class="savable markdown-input"
+                  placeholder="예) 점성을 무시했으므로 실제 실험보다 시뮬레이션의 진동이 더 오래 지속될 것이다."></textarea>
+                <div class="markdown-preview"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="space-y-4">
+            <div>
+              <label class="font-bold text-sm block mb-1">실험 및 분석 설계</label>
+              <div class="editable-container">
+                <textarea id="inquiry-experimental" class="savable markdown-input"
+                  placeholder="• 준비물: 회전대, 스마트폰(자이로), 투명 물통&#10;• 측정: 각속도별 중심 높이 변화&#10;• 분석: Tracker 프로그램으로 영상 분석"></textarea>
+                <div class="markdown-preview"></div>
+              </div>
+            </div>
+            <div>
+              <label class="font-bold text-sm block mb-1">결과 분석 및 메모</label>
+              <div class="editable-container">
+                <textarea id="inquiry-notes" class="savable markdown-input"
+                  placeholder="시뮬레이션에서 관찰한 특이점이나 수식과의 오차 원인을 기록하세요."></textarea>
+                <div class="markdown-preview"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recommended Topics -->
+        <div class="mt-8 pt-6 border-t">
+          <h3 class="font-bold mb-4">추천 연구 주제</h3>
+          <div class="m-grid" style="grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem;">
+            <div class="p-4 border rounded bg-gray-50 hover:bg-white transition-colors">
+              <strong class="text-sm block mb-1" style="color: var(--blue-600)">1. 중력가속도 측정</strong>
+              <p class="text-xs text-body">다양한 \(\omega\)에서 포물선 곡률을 측정하여 \(g\)를 역추정하고 오차 분석하기</p>
+            </div>
+            <div class="p-4 border rounded bg-gray-50 hover:bg-white transition-colors">
+              <strong class="text-sm block mb-1" style="color: var(--purple-vivid)">2. 점성 효과 연구</strong>
+              <p class="text-xs text-body">물 대신 꿀, 식용유 등을 가정하여 이완 시간(Relaxation Time) 측정하기</p>
+            </div>
+            <div class="p-4 border rounded bg-gray-50 hover:bg-white transition-colors">
+              <strong class="text-sm block mb-1" style="color: var(--emerald-500)">3. 형상별 임계점 비교</strong>
+              <p class="text-xs text-body">직사각형, 원통, 정육면체에서 마른 영역이 생기는 \(\omega_c\) 비교 분석</p>
+            </div>
+            <div class="p-4 border rounded bg-gray-50 hover:bg-white transition-colors">
+              <strong class="text-sm block mb-1" style="color: var(--orange-vivid)">4. 이론 vs 시뮬레이션</strong>
+              <p class="text-xs text-body">입자 개수, 물리엔진 설정에 따른 이론값과의 편차(Residual) 연구</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <footer class="mt-8 text-center text-sm text-muted print-hidden">
+      <div id="autosave-status" class="flex items-center justify-center gap-2 opacity-0 transition-opacity">
+        <span id="autosave-icon-saving" class="hidden">💾 저장 중...</span>
+        <span id="autosave-icon-saved" class="text-green-600 hidden">✅ 저장됨</span>
+        <span id="autosave-text"></span>
+      </div>
+      <p class="mt-4">MathEdu Project 2025.</p>
+    </footer>
+
   </div>
-  <nav>
-    <a href="overview.html">개요</a>
-    <a href="simulation.html">시뮬레이션</a>
-    <a href="theory.html" class="active">수식·심화</a>
-  </nav>
-</header>
 
-<main>
+  <!-- Script to handle ReportManager and Math -->
+  <script type="module">
+    import { ReportManager } from '../js/report-core.js';
+    const report = new ReportManager('RotateParabola-Theory-v1');
 
-  <!-- 4. 수식화 정리 -->
-  <section id="formula">
-    <h2>
-      <span class="badge">STEP 4</span>
-      수식화 및 일반화
-    </h2>
-    <p class="sub-desc">
-      관찰과 시뮬레이션을 수식으로 정리하고, 무차원화와 다른 기하(원통, 정육면체)로 확장합니다.
-    </p>
-
-    <div class="two-column">
-      <div>
-        <div class="card" style="height: 100%;">
-          <h3 style="margin-top:0;">1D 포물선 모델 (직사각형)</h3>
-          <div class="math-box" style="margin-bottom: 1.5rem;">
-            <strong>자유수면 높이</strong>
-            \[ z(r) = H - \frac{\omega^2}{2g}\left(\frac{L^2}{12} - r^2\right) \]
-            
-            <strong>꼭짓점 높이</strong>
-            \[ z_v = H - \frac{\omega^2 L^2}{24 g} \]
-            
-            <strong>임계 각속도 (\(z_v=0\))</strong>
-            \[ \omega_c = \sqrt{\frac{24 g H}{L^2}} \]
-          </div>
-          <p style="color: var(--text-sub); font-size: 0.9rem;">
-            이 모델은 폭이 좁은 직사각형 수조에서 중심 단면의 높이 변화를 설명합니다.
-          </p>
-        </div>
-      </div>
-
-      <div>
-        <div class="card" style="height: 100%; background: linear-gradient(to bottom right, #f8fafc, #ffffff);">
-          <h3 style="margin-top:0;">무차원화 (Nondimensionalization)</h3>
-          <p style="color: var(--text-sub); font-size: 0.9rem; margin-bottom: 1rem;">
-            길이 스케일 \(R = L/2\) 로 정규화하여 모든 크기의 실험을 통합합니다.
-          </p>
-          
-          <div class="math-box" style="background: #334155;">
-            <strong>무차원 변수</strong>
-            \[ X = \omega \sqrt{\frac{R}{g}}, \quad H^* = \frac{H}{R}, \quad Z = \frac{z}{R} \]
-            
-            <strong>무차원 방정식</strong>
-            \[ Z(R^*) = H^* - \frac{X^2}{6}\left(1 - (R^*)^2\right) \]
-          </div>
-          
-          <div style="margin-top: 1rem;">
-            <span class="chip" style="background: #e0f2fe; color: #0369a1; border-color: #bae6fd;">장점</span>
-            <span style="font-size: 0.85rem; color: var(--text-sub);">다양한 크기의 실험 데이터를 하나의 그래프로 비교 가능</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- 5. 심화 탐구 -->
-  <section id="explore">
-    <h2>
-      <span class="badge">STEP 5</span>
-      심화 주제 탐구
-    </h2>
-    <p class="sub-desc">
-      스스로 질문을 던지고 가설을 세워 검증해보세요. 작성한 내용은 브라우저에 자동 저장됩니다.
-    </p>
-
-    <div class="two-column" style="margin-bottom: 2rem;">
-      <div style="display: flex; flex-direction: column; gap: 1.5rem;">
-        <div class="card">
-          <div class="chip-container">
-            <span class="chip">연구 질문</span>
-          </div>
-          <textarea id="question" class="memo-area" placeholder="예) 입자 유체 시뮬레이션에서 측정한 자유수면의 곡률이 이론식과 얼마나 일치하는가?"></textarea>
-        </div>
-        <div class="card">
-          <div class="chip-container">
-            <span class="chip">가설 설정</span>
-          </div>
-          <textarea id="hypothesis" class="memo-area" placeholder="예) 점성을 무시했으므로 실제 실험보다 시뮬레이션의 진동이 더 오래 지속될 것이다."></textarea>
-        </div>
-      </div>
-
-      <div style="display: flex; flex-direction: column; gap: 1.5rem;">
-        <div class="card">
-          <div class="chip-container">
-            <span class="chip">실험 설계</span>
-          </div>
-          <textarea id="experiment" class="memo-area" placeholder="• 준비물: 회전대, 스마트폰(자이로), 투명 물통&#10;• 측정: 각속도별 중심 높이 변화&#10;• 분석: Tracker 프로그램으로 영상 분석"></textarea>
-        </div>
-        <div class="card">
-          <div class="chip-container">
-            <span class="chip">결과 분석 메모</span>
-          </div>
-          <textarea id="simulation-notes" class="memo-area" placeholder="시뮬레이션에서 관찰한 특이점이나 수식과의 오차 원인을 기록하세요."></textarea>
-        </div>
-      </div>
-    </div>
-
-    <!-- 추천 연구 주제 -->
-    <h3 style="margin-bottom: 1rem; color: var(--text-main);">추천 연구 주제</h3>
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem;">
-      
-      <div class="card topic-card" style="border-left: 4px solid #3b82f6;">
-        <h4 style="color: #1d4ed8;">1. 중력가속도 측정</h4>
-        <p>다양한 \(\omega\)에서 포물선 곡률을 측정하여 \(g\)를 역추정하고 오차 분석하기</p>
-      </div>
-
-      <div class="card topic-card" style="border-left: 4px solid #8b5cf6;">
-        <h4 style="color: #6d28d9;">2. 점성 효과 연구</h4>
-        <p>물 대신 꿀, 식용유 등을 가정하여 이완 시간(Relaxation Time) 측정하기</p>
-      </div>
-
-      <div class="card topic-card" style="border-left: 4px solid #10b981;">
-        <h4 style="color: #047857;">3. 형상별 임계점 비교</h4>
-        <p>직사각형, 원통, 정육면체에서 마른 영역이 생기는 \(\omega_c\) 비교 분석</p>
-      </div>
-
-      <div class="card topic-card" style="border-left: 4px solid #f59e0b;">
-        <h4 style="color: #b45309;">4. 이론 vs 시뮬레이션</h4>
-        <p>입자 개수, 물리엔진 설정에 따른 이론값과의 편차(Residual) 연구</p>
-      </div>
-      
-    </div>
-  </section>
-
-  <footer>
-    <p>MathEdu Project &copy; 2025. Your research notes are saved locally.</p>
-  </footer>
-
-</main>
-
-<style>
-  .memo-area {
-    width: 100%;
-    min-height: 120px;
-    padding: 1rem;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    font-family: inherit;
-    font-size: 0.95rem;
-    resize: vertical;
-    background-color: #f8fafc;
-    transition: all 0.2s;
-  }
-  .memo-area:focus {
-    outline: none;
-    background-color: #ffffff;
-    border-color: var(--primary);
-    box-shadow: 0 0 0 3px var(--primary-light);
-  }
-  .topic-card h4 { margin: 0 0 0.5rem 0; font-size: 1rem; }
-  .topic-card p { margin: 0; font-size: 0.85rem; color: var(--text-sub); }
-</style>
-
-<script>
-// LocalStorage Auto-save
-const textareas = ['question', 'hypothesis', 'experiment', 'simulation-notes'];
-textareas.forEach(id => {
-  const el = document.getElementById(id);
-  if (!el) return;
-  const saved = localStorage.getItem(`rotateParabola_${id}`);
-  if (saved) el.value = saved;
-  el.addEventListener('input', () => localStorage.setItem(`rotateParabola_${id}`, el.value));
-});
-</script>
+    document.addEventListener('DOMContentLoaded', () => {
+      report.init();
+      // Initialize math rendering
+      if (window.renderMathInElement) {
+        renderMathInElement(document.body, {
+          delimiters: [
+            { left: "$$", right: "$$", display: true },
+            { left: "\\(", right: "\\)", display: false },
+            { left: "\\[", right: "\\]", display: true }
+          ]
+        });
+      }
+    });
+  </script>
 
 </body>
+
 </html>

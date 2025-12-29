@@ -50,7 +50,9 @@
     <!-- Header -->
     <header class="modern-header flex justify-between items-end flex-wrap gap-4">
       <div>
-        <span class="m-badge mb-2" style="background:var(--grad-blue); color:white;">Interactive Report</span>
+        <div class="mb-2">
+          <span class="m-badge" style="background:var(--grad-blue); color:white;">Interactive Report</span>
+        </div>
         <h1>2D 벡터 연산 탐구 보고서</h1>
         <p>perp·dot 관점에서의 면적과 토크 해석</p>
       </div>
@@ -185,7 +187,8 @@
         </div>
 
         <div class="relative w-full bg-white border border-gray-200 rounded-xl overflow-hidden mb-4">
-          <canvas id="playCanvas" height="420" style="width:100%; display:block;"></canvas>
+          <canvas id="playCanvas" height="600"
+            style="width:100%; min-height: 600px; display:block; aspect-ratio: 4/3;"></canvas>
         </div>
 
         <div class="bg-gray-50 p-4 rounded-xl mb-6 text-sm text-neutral-700">
