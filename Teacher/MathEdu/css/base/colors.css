@@ -41,8 +41,8 @@
     /* ==============================================
      MODERN GRADIENTS
      ============================================== */
-    /* Brand / Primary */
-    --grad-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    /* Brand / Primary - Charcoal */
+    --grad-primary: linear-gradient(135deg, #1f2937 0%, #4b5563 100%);
 
     /* Feature Accents */
     --grad-blue: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%);
@@ -62,7 +62,7 @@
     /* ==============================================
      SEMANTIC OVERRIDES
      ============================================== */
-    --color-brand: var(--blue-vivid);
+    --color-brand: var(--neutral-800);
     --color-brand-grad: var(--grad-primary);
 
     --color-success: #10b981;

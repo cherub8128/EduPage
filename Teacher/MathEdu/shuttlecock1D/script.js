@@ -75,8 +75,17 @@ const MathUtils = {
 // ============ Chart Helper ============
 const GraphUtils = {
     createLineChart: (canvasId, title) => {
-        const ctx = document.getElementById(canvasId)?.getContext('2d');
+        const canvas = document.getElementById(canvasId);
+        if (!canvas) return null;
+        const ctx = canvas.getContext('2d');
         if (!ctx) return null;
+
+        // Ensure Chart is available
+        if (typeof Chart === 'undefined') {
+            console.error("Chart.js not loaded");
+            return null;
+        }
+
         return new Chart(ctx, {
             type: 'scatter',
             data: { datasets: [] },
@@ -84,11 +93,20 @@ const GraphUtils = {
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
-                    title: { display: !!title, text: title },
-                    legend: { display: true }
+                    title: { display: !!title, text: title, color: '#1f2937', font: { size: 14, weight: 'bold' } },
+                    legend: { display: true, labels: { color: '#4b5563' } }
                 },
                 scales: {
-                    x: { type: 'linear', position: 'bottom' }
+                    x: {
+                        type: 'linear',
+                        position: 'bottom',
+                        grid: { color: '#e5e7eb' },
+                        ticks: { color: '#6b7280' }
+                    },
+                    y: {
+                        grid: { color: '#e5e7eb' },
+                        ticks: { color: '#6b7280' }
+                    }
                 }
             }
         });
@@ -102,7 +120,8 @@ const GraphUtils = {
             backgroundColor: getColor(i),
             showLine: ds.showLine !== false,
             borderWidth: ds.borderWidth || 2,
-            pointRadius: ds.pointRadius !== undefined ? ds.pointRadius : 2
+            pointRadius: ds.pointRadius !== undefined ? ds.pointRadius : 2,
+            pointHoverRadius: 5
         }));
         chart.update();
     },
@@ -112,7 +131,8 @@ const GraphUtils = {
 };
 
 function getColor(i) {
-    const colors = ['#0ea5e9', '#f43f5e', '#22c55e', '#a855f7', '#fbbf24'];
+    // Vivid colors for Charcoal theme: Orange, Sky Blue, Purple, Emerald, Rose
+    const colors = ['#ea580c', '#0ea5e9', '#8b5cf6', '#10b981', '#f43f5e'];
     return colors[i % colors.length];
 }
 
@@ -128,6 +148,34 @@ document.addEventListener('DOMContentLoaded', () => {
 
     setupCSVAnalysis();
     setupSimulation();
+
+    // Explicit Math Rendering for Static Content
+    // Wait for KaTeX to load if deferred
+    const renderMath = () => {
+        if (window.renderMathInElement) {
+            renderMathInElement(document.body, {
+                delimiters: [
+                    { left: '$$', right: '$$', display: true },
+                    { left: '$', right: '$', display: false },
+                    { left: '\\(', right: '\\)', display: false },
+                    { left: '\\[', right: '\\]', display: true }
+                ]
+            });
+        }
+    };
+
+    if (window.katex) {
+        renderMath();
+    } else {
+        const checkKatex = setInterval(() => {
+            if (window.katex && window.renderMathInElement) {
+                clearInterval(checkKatex);
+                renderMath();
+            }
+        }, 100);
+        // Fallback
+        window.addEventListener('load', renderMath);
+    }
 });
 
 
@@ -153,11 +201,6 @@ function setupCSVAnalysis() {
 
                 let t = rows.map(r => Number(r[tCol]));
                 let y = rows.map(r => Number(r[yCol]));
-
-                // Sign Invert Check (User specific logic inside CSV Logic normally unavailable but good to have)
-                // Assuming standard tracker output with Y up
-                // If user wants to invert logic for "fall distance", they can process data.
-                // Let's assume standard data.
 
                 const ft = [], fy = [];
                 for (let i = 0; i < t.length; i++) {
@@ -193,15 +236,9 @@ function setupCSVAnalysis() {
                     if (fitResult) fitResult.textContent = `추정 중력가속도 g ≈ ${gEst.toFixed(4)} m/s²`;
 
                 } else {
-                    // Shuttlecock: a = g - k v^2
-                    // We fit linear: a = p + q(v^2)
-                    // Then g ≈ p (intercept at v=0), k ≈ -q.
-                    // v_T (Terminal vel) when a=0 => p + q(v^2)=0 => v^2 = -p/q => v = sqrt(-p/q)
-
                     const v2 = v.map(val => val * val);
                     const fit = MathUtils.linFit(v2, a);
 
-                    // We plot a vs v^2
                     const pts = [];
                     const line = [];
 
@@ -232,25 +269,20 @@ function setupSimulation() {
 
     runSim.addEventListener('click', () => {
         const g = Number(document.getElementById('simG')?.value) || 9.8;
-        const H = 300; // sufficiently high or user defined
+        const H = 300;
         const dt = 0.01;
 
-        // k for F = kv or F = kv^2
         const k = Number(document.getElementById('simK')?.value) || 0.22;
         const model = document.getElementById('simModel')?.value || 'none';
 
         let t = 0, y = 0, v = 0;
         const T = [], Y = [], V = [], A = [];
 
-        while (t < 10) { // Simulate 10 seconds
+        while (t < 10) {
             let a = g;
-            // Note: Coordinate system: Down = Positive Y
-            // Gravity is +g. Drag is opposing velocity.
-            // If Falling (v > 0), Drag is -kv^2
-
             if (model === 'quad') { // F_drag = -k * v^2
                 a = g - k * v * v;
-            } else if (model === 'linear') { // F_drag = -k * v (Not in original UI options but good to handle logic)
+            } else if (model === 'linear') {
                 a = g - k * v;
             }
 
