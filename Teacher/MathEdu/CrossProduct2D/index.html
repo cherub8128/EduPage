@@ -1,937 +1,387 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>2D 벡터 연산 탐구 보고서 — perp·dot(^{⊥}·) · 플로팅 메뉴 · 단일열 v4</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>2D 벡터 연산 탐구 보고서 (perp·dot)</title>
 
-  <!-- Tailwind -->
-  <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  <!-- Modern Design System -->
+  <link rel="stylesheet" href="../css/main.css" />
+  <link rel="stylesheet" href="../css/components/report.css" />
 
   <!-- Fonts -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap"
+    rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/naen-nae/d2coding/d2coding-subset.css">
 
-  <!-- Markdown & Math & Code -->
+  <!-- Libs -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/showdown/2.1.0/showdown.min.js"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/matlab.min.js"></script>
 
   <style>
-    :root{
-      --accent:#0ea5e9; --ink:#0b1220; --muted:#5b6370; --panel:#ffffff;
-      --a:#10b981; --b:#f59e0b;
-    }
-    body{font-family:'Pretendard',system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans KR","Apple SD Gothic Neo",sans-serif;background:#f7fafc;color:var(--ink)}
-    .font-mono{font-family:'D2Coding',ui-monospace,monospace}
-    .editable-container .markdown-input{display:none}
-    .markdown-preview{cursor:text;min-height:170px;padding:1rem;border-radius:.6rem;border:1px solid #e2e8f0;background:#ffffff}
-    .markdown-preview:hover{border-color:#cbd5e1}
-    textarea.markdown-input{width:100%;min-height:200px;resize:vertical;border:1px solid #e2e8f0;border-radius:.6rem;padding:1rem;font-size:1rem;line-height:1.55;background:#ffffff}
-    input.line-input{width:100%;border:1px solid #e2e8f0;border-radius:.5rem;padding:.65rem .8rem}
-    .interactive-canvas{border:1px solid #e2e8f0;border-radius:.75rem;background:#ffffff}
-    .step-card{background:#fff}
-    .badge{font-size:.72rem; padding:.2rem .5rem; border:1px solid #cbd5e1; border-radius:.4rem; background:#f1f5f9; color:#334155;}
-    .callout{background:#f1f5f9; border-left:4px solid var(--accent); padding:0.9rem 1rem; border-radius:.6rem;}
-    .katex-display{margin:.4rem 0 .6rem 0;}
-    .small{font-size:.95rem}
-    .pill{display:inline-flex; gap:.4rem; align-items:center; padding:.2rem .55rem; border-radius:999px; font-size:.72rem; background:#e0f2fe; color:#0369a1; font-weight:700;}
-    /* Floating Drawer */
-    #drawer-backdrop{position:fixed; inset:0; background:rgba(2,6,23,.35); backdrop-filter:blur(2px); opacity:0; pointer-events:none; transition:.2s; z-index:40;}
-    #drawer{position:fixed; top:0; right:0; height:100vh; width:320px; background:var(--panel); border-left:1px solid #e2e8f0; box-shadow:-12px 0 32px rgba(2,6,23,.12); transform:translateX(100%); transition:transform .25s ease; z-index:50;}
-    #drawer.open{transform:translateX(0)}
-    #drawer-backdrop.open{opacity:1; pointer-events:auto}
-    .toggle{appearance:none; width:40px; height:22px; background:#e2e8f0; border-radius:999px; position:relative; outline:none; cursor:pointer; transition:.2s;}
-    .toggle:checked{background:#a7f3d0;}
-    .toggle:before{content:''; position:absolute; width:18px; height:18px; background:#ffffff; border-radius:50%; top:2px; left:2px; transition:.2s; box-shadow:0 2px 6px rgba(0,0,0,.2);}
-    .toggle:checked:before{left:20px;}
-    .btn{display:inline-flex; align-items:center; gap:.5rem; padding:.45rem .8rem; border:1px solid #cbd5e1; border-radius:.6rem; background:#fff; font-weight:600;}
-    .btn:hover{background:#f8fafc;}
-    .btn-primary{background:#0ea5e9; color:#fff; border-color:#0ea5e9;}
-    .btn-primary:hover{background:#0284c7;}
-    .icon-btn{display:inline-flex;align-items:center;gap:.3rem;padding:.25rem .5rem;border:1px solid #cbd5e1;border-radius:.5rem;background:#fff;font-size:.82rem}
-    .icon-btn:hover{background:#f8fafc;}
-    /* Gallery */
-    .dropzone{border:2px dashed #cbd5e1;border-radius:.75rem;background:#f8fafc;padding:1rem;text-align:center;color:#64748b}
-    .dropzone.drag{background:#e0f2fe;border-color:#38bdf8;color:#0369a1}
-    .gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px}
-    .card{border:1px solid #e2e8f0;border-radius:.6rem;background:#fff;overflow:hidden;display:flex;flex-direction:column}
-    .card img{width:100%;height:140px;object-fit:contain;background:#f8fafc}
-    .card .controls{display:flex;gap:.3rem;flex-wrap:wrap;padding:.5rem;border-top:1px solid #e2e8f0}
-    .card input{width:100%;border-top:1px solid #e2e8f0;padding:.45rem .6rem;font-size:.9rem}
-    @media print{
-      @page{size:A4;margin:12mm}
-      .print-hidden{display:none !important}
-      .markdown-input{display:none !important}
-      .markdown-preview{display:block !important;background:transparent !important;border:0 !important;padding:0 !important}
-      pre,code{white-space:pre-wrap !important;word-break:break-word !important;overflow-wrap:anywhere !important}
-      .step-card{page-break-inside:avoid;break-inside:avoid}
-      #floatOpen,#drawer,#drawer-backdrop{display:none !important}
+    /* Custom Color Overrides for this Project */
+    :root {
+      --a: #10b981;
+      --b: #f59e0b;
     }
   </style>
 </head>
-<body class="p-4 sm:p-8">
-  <!-- Header -->
-  <header class="bg-white rounded-xl shadow-sm p-5 mb-6 print-hidden">
-    <div class="flex justify-between items-center mb-3">
-      <div class="flex items-center gap-2">
-        <span class="pill">보고서 양식</span>
-        <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-800">2D 벡터 연산 탐구 보고서 — perp·dot 관점</h1>
-      </div>
-      <div class="flex items-center gap-2">
-        <button id="floatOpen" class="px-3 py-2 rounded-lg border text-slate-700 hover:bg-slate-50">메뉴</button>
-        <button id="export-pdf" class="bg-sky-600 hover:bg-sky-700 text-white px-4 py-2 rounded-lg font-semibold">PDF로 저장</button>
-      </div>
-    </div>
-    <div class="bg-emerald-50 border border-emerald-200 rounded-lg p-3">
-      <div class="flex items-start gap-2">
-        <svg class="w-5 h-5 text-emerald-600 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-        <div class="text-sm text-emerald-700">
-          <strong class="font-semibold">PDF 저장 가이드:</strong>
-          <span class="ml-1">인쇄 대화상자에서 <strong>"PDF로 저장"</strong>을 선택하고, <strong>머리글과 바닥글 옵션을 해제</strong>한 후 저장하세요.</span>
-        </div>
-      </div>
-    </div>
-  </header>
 
-  <!-- Drawer -->
-  <div id="drawer-backdrop" class="print-hidden"></div>
-  <aside id="drawer" class="print-hidden flex flex-col">
-    <div class="p-4 border-b flex items-center justify-between">
-      <div class="font-bold text-slate-800">인터렉티브 옵션</div>
-      <button id="floatClose" class="px-2 py-1 rounded border text-slate-600 hover:bg-slate-50">닫기</button>
+<body>
+
+  <!-- Back Button -->
+  <a href="../index.html" class="m-back-btn" aria-label="Back">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2">
+      <line x1="19" y1="12" x2="5" y2="12"></line>
+      <polyline points="12 19 5 12 12 5"></polyline>
+    </svg>
+  </a>
+
+  <div class="container pt-lg pb-lg">
+
+    <!-- Header -->
+    <header class="modern-header flex justify-between items-end flex-wrap gap-4">
+      <div>
+        <span class="m-badge mb-2" style="background:var(--grad-blue); color:white;">Interactive Report</span>
+        <h1>2D 벡터 연산 탐구 보고서</h1>
+        <p>perp·dot 관점에서의 면적과 토크 해석</p>
+      </div>
+      <div class="flex gap-2 print-hidden">
+        <a href="advanced.html" class="m-btn secondary small">
+          <span>📚 심화 이론 가이드</span>
+        </a>
+        <button id="floatOpen" class="m-btn secondary small">
+          <span>⚙️ 시뮬레이션 옵션</span>
+        </button>
+        <button id="export-pdf" class="m-btn primary small">
+          <span>📄 PDF 저장</span>
+        </button>
+      </div>
+    </header>
+
+    <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-6 flex gap-3 text-sm text-blue-900 print-hidden">
+      <div style="font-size:1.2rem;">💡</div>
+      <div>
+        <strong>PDF 저장 팁:</strong> 인쇄 설정에서 "PDF로 저장"을 선택하고, 머리글/바닥글 옵션을 해제하세요.
+      </div>
     </div>
-    <div class="p-4 space-y-4 overflow-y-auto">
-      <div class="space-y-3">
-        <label class="flex items-center justify-between gap-3">
-          <span class="text-sm text-slate-700">격자(Grid)</span>
-          <input id="optGrid" type="checkbox" class="toggle savable" checked>
-        </label>
-        <label class="flex items-center justify-between gap-3">
-          <span class="text-sm text-slate-700">면적 채움</span>
-          <input id="optFill" type="checkbox" class="toggle savable" checked>
-        </label>
-        <label class="flex items-center justify-between gap-3">
-          <span class="text-sm text-slate-700">각도 표시</span>
-          <input id="optAngle" type="checkbox" class="toggle savable" checked>
-        </label>
-        <label class="flex items-center justify-between gap-3">
-          <span class="text-sm text-slate-700">보조선</span>
-          <input id="optGuides" type="checkbox" class="toggle savable">
-        </label>
-      </div>
-      <hr>
-      <div class="space-y-3">
+
+    <main id="report-root" class="flex flex-col gap-6">
+
+      <!-- Student Info -->
+      <section class="m-card">
+        <div class="m-grid" style="grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div>
+            <label for="student-id" class="font-bold text-sm block mb-1">학번</label>
+            <input id="student-id" class="m-input savable" placeholder="예: 30212">
+          </div>
+          <div>
+            <label for="student-name" class="font-bold text-sm block mb-1">이름</label>
+            <input id="student-name" class="m-input savable" placeholder="예: 홍길동">
+          </div>
+        </div>
+        <div class="mt-4 p-4 bg-gray-50 rounded-xl text-sm">
+          <strong class="block mb-2 text-neutral-700">학습 목표</strong>
+          <ul class="list-disc pl-5 text-muted space-y-1">
+            <li>\( \mathbf a\,{}^{\perp}\!\cdot\,\mathbf b \)의 기하학적 의미(부호 있는 면적) 이해</li>
+            <li>토크 \( \tau=\mathbf r\,{}^{\perp}\!\cdot\,\mathbf F \)의 2D 표현</li>
+            <li>회전 분해 및 슈레이스 공식과의 연결</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- Navigation (Jump Links) -->
+      <nav class="flex flex-wrap gap-2 print-hidden">
+        <a href="#observe" class="m-badge hover:bg-gray-200 cursor-pointer text-decoration-none">관찰</a>
+        <a href="#model" class="m-badge hover:bg-gray-200 cursor-pointer text-decoration-none">모델링</a>
+        <a href="#sim" class="m-badge hover:bg-gray-200 cursor-pointer text-decoration-none">시뮬레이션</a>
+        <a href="#math" class="m-badge hover:bg-gray-200 cursor-pointer text-decoration-none">수식화</a>
+        <a href="#exercises" class="m-badge hover:bg-gray-200 cursor-pointer text-decoration-none">연습문제</a>
+        <a href="#deep" class="m-badge hover:bg-gray-200 cursor-pointer text-decoration-none">심화탐구</a>
+      </nav>
+
+      <!-- 1. Observe -->
+      <section id="observe" class="m-card">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-xl font-bold">1. 현상 관찰 & 문제 설정</h2>
+          <span class="m-badge">Observation</span>
+        </div>
+
+        <div class="mb-6">
+          <label class="font-bold text-sm block mb-2">관찰 상황 요약</label>
+          <div class="editable-container">
+            <textarea id="A1" class="savable markdown-input"
+              placeholder="- 예: 문 손잡이를 밀고/당길 때의 회전력(토크) 차이 관찰"></textarea>
+            <div class="markdown-preview"></div>
+          </div>
+        </div>
+
+        <div class="mb-4">
+          <div class="font-bold text-sm mb-2">관찰 자료 (Gallery)</div>
+          <div id="gallery-drop" class="dropzone">
+            이미지를 끌어다 놓거나 추가하세요.
+          </div>
+          <div class="flex gap-2 mt-2">
+            <input id="gallery-input" type="file" accept="image/*" multiple class="hidden">
+            <button id="gallery-add" class="m-btn small secondary">+ 이미지 추가</button>
+            <button id="gallery-clear" class="m-btn small secondary">초기화</button>
+          </div>
+          <div id="gallery" class="gallery-grid"></div>
+        </div>
+
+        <div class="mb-4">
+          <label class="font-bold text-sm block mb-2">핵심 질문</label>
+          <input id="C1" class="m-input savable" placeholder="예: 2D 평면에서 회전 방향을 부호로만 나타내도 충분한가?">
+        </div>
+
         <div>
-          <label class="block text-xs text-slate-600">a 크기</label>
-          <input id="magA" type="range" min="0.5" max="5" step="0.1" value="2.5" class="w-full savable">
+          <label class="font-bold text-sm block mb-2">예비 가설</label>
+          <div class="editable-container">
+            <textarea id="D1" class="savable markdown-input"
+              placeholder="- 예: perp dot product의 값은 면적과 비례하며, 그 부호는 회전 방향을 결정한다."></textarea>
+            <div class="markdown-preview"></div>
+          </div>
         </div>
+      </section>
+
+      <!-- 2. Modeling -->
+      <section id="model" class="m-card">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-xl font-bold">2. 모델링 (Simplification)</h2>
+          <span class="m-badge">Modeling</span>
+        </div>
+
+        <div class="mb-4">
+          <label class="font-bold text-sm block mb-1">핵심 벡터 정의</label>
+          <div class="m-grid" style="grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <input id="F1" class="m-input savable" placeholder="벡터 a 정의 (예: 위치 벡터 r)">
+            <input id="F2" class="m-input savable" placeholder="벡터 b 정의 (예: 힘 벡터 F)">
+          </div>
+        </div>
+
         <div>
-          <label class="block text-xs text-slate-600">b 각도(°)</label>
-          <input id="angB" type="range" min="-179" max="180" step="1" value="35" class="w-full savable">
+          <label class="font-bold text-sm block mb-2">가정 (Assumptions)</label>
+          <div class="editable-container">
+            <textarea id="G1" class="savable markdown-input"
+              placeholder="- 모든 운동은 2D 평면 상에서 일어난다.&#10;- 마찰은 무시하거나 상수로 가정한다."></textarea>
+            <div class="markdown-preview"></div>
+          </div>
         </div>
-        <div class="flex gap-2">
-          <button id="btnSnapOrtho" class="btn">b ⟂ a</button>
-          <button id="btnSnapPara" class="btn">b ∥ a</button>
-          <button id="btnReset" class="btn">초기화</button>
+      </section>
+
+      <!-- 3. Simulation -->
+      <section id="sim" class="m-card">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-xl font-bold">3. perp·dot 시뮬레이션</h2>
+          <button id="openControls" class="m-btn small secondary print-hidden">옵션 열기</button>
         </div>
+
+        <div class="relative w-full bg-white border border-gray-200 rounded-xl overflow-hidden mb-4">
+          <canvas id="playCanvas" height="420" style="width:100%; display:block;"></canvas>
+        </div>
+
+        <div class="bg-gray-50 p-4 rounded-xl mb-6 text-sm text-neutral-700">
+          <div class="m-grid" style="grid-template-columns: repeat(3, 1fr); gap: 1rem; text-align: center;">
+            <div>\(\mathbf a \cdot \mathbf b =\) <strong id="dAB" class="text-lg">0</strong></div>
+            <div>\(\mathbf a^\perp \cdot \mathbf b =\) <strong id="pAB" class="text-lg text-primary">0</strong></div>
+            <div>\(\varphi =\) <strong id="angleAB" class="text-lg">0</strong>°</div>
+          </div>
+        </div>
+
+        <div class="mb-4">
+          <label class="font-bold text-sm block mb-2">실험 메모: 평행/수직 조건</label>
+          <div class="editable-container">
+            <textarea id="M1" class="savable markdown-input"
+              placeholder="- 두 벡터가 평행할 때 perp dot 값은?&#10;- 두 벡터가 수직일 때 dot product 값은?"></textarea>
+            <div class="markdown-preview"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 4. Math -->
+      <section id="math" class="m-card">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-xl font-bold">4. 수식화 (Formulation)</h2>
+          <span class="m-badge">Math</span>
+        </div>
+
+        <div class="p-4 bg-gray-50 rounded-xl mb-4 text-sm">
+          <strong class="block mb-2">유도 과제</strong>
+          <ol class="list-decimal pl-5 space-y-1">
+            <li>\( \tilde{\mathbf a} \cdot \mathbf b = a_x b_y - a_y b_x \) 유도</li>
+            <li>회전 분해 식 \( \mathbf b = \cos\varphi \mathbf a + \sin\varphi \tilde{\mathbf a} \) 확인</li>
+            <li>Shoelace Formula와 perp dot의 관계 설명</li>
+          </ol>
+        </div>
+
+        <div>
+          <label class="font-bold text-sm block mb-2">나의 유도 과정</label>
+          <div class="editable-container">
+            <textarea id="Dcalc1" class="savable markdown-input"
+              placeholder="- 수식 유도 과정을 여기에 적으세요. LaTeX 문법 사용 가능 (예: $$ ... $$)"></textarea>
+            <div class="markdown-preview"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. Exercises -->
+      <section id="exercises" class="m-card">
+        <h2 class="text-xl font-bold mb-4">5. 계산 연습 (Exercises)</h2>
+        <ul id="ex-list" class="space-y-6">
+          <!-- Items added by script or hardcoded below for cleaner DOM -->
+          <li class="mb-4">
+            <div class="font-bold mb-2 ex-question">문항 1. \(\mathbf a=(1,2), \mathbf b=(3,1)\): \(\mathbf a\cdot\mathbf
+              b\), \(\mathbf a^{\perp}\cdot\mathbf b\), \(\varphi\) 계산</div>
+            <div class="editable-container">
+              <textarea id="EX1" class="savable markdown-input" style="width:100%;" placeholder="- 풀이"></textarea>
+              <div class="markdown-preview"></div>
+            </div>
+          </li>
+          <li class="mb-4">
+            <div class="font-bold mb-2 ex-question">문항 2. \(\mathbf a=(2,-1), \mathbf b=(-1,4)\): \(\tau=\mathbf
+              a^{\perp}\cdot\mathbf b\) 물리 해석</div>
+            <div class="editable-container">
+              <textarea id="EX2" class="savable markdown-input" style="width:100%;" placeholder="- 풀이"></textarea>
+              <div class="markdown-preview"></div>
+            </div>
+          </li>
+          <li class="mb-4">
+            <div class="font-bold mb-2 ex-question">문항 3. \((0,0)\to(4,0)\to(4,2)\to(0,2)\): 면적을 perp·dot 합으로 계산</div>
+            <div class="editable-container">
+              <textarea id="EX3" class="savable markdown-input" style="width:100%;" placeholder="- 풀이"></textarea>
+              <div class="markdown-preview"></div>
+            </div>
+          </li>
+          <li class="mb-4">
+            <div class="font-bold mb-2 ex-question">문항 4. \(\mathbf a \parallel \mathbf b\)이면 \(\mathbf
+              a^{\perp}\cdot\mathbf b=0\)인 기하적 이유</div>
+            <div class="editable-container">
+              <textarea id="EX4" class="savable markdown-input" style="width:100%;" placeholder="- 풀이"></textarea>
+              <div class="markdown-preview"></div>
+            </div>
+          </li>
+        </ul>
+      </section>
+
+      <!-- 6. Deep Dive (Report) -->
+      <section id="deep" class="m-card">
+        <h2 class="text-xl font-bold mb-4">6. 심화 탐구 보고서</h2>
+
+        <div class="mb-4">
+          <label class="font-bold text-sm block mb-1">연구 주제 (Research Topic)</label>
+          <input id="research-topic" class="m-input savable" placeholder="예: 자전거 페달링 효율과 크랭크 각도의 관계 분석">
+        </div>
+
+        <div class="mb-4">
+          <label class="font-bold text-sm block mb-1">연구 배경 및 목적</label>
+          <div class="editable-container">
+            <textarea id="intro" class="savable markdown-input" placeholder="연구의 동기와 목적, 관련 이론 배경 등을 서술"></textarea>
+            <div class="markdown-preview"></div>
+          </div>
+        </div>
+
+        <div class="mb-4">
+          <label class="font-bold text-sm block mb-1">연구 결과</label>
+          <div class="editable-container">
+            <textarea id="results" class="savable markdown-input" placeholder="실험 데이터, 그래프 해석 등"></textarea>
+            <div class="markdown-preview"></div>
+          </div>
+        </div>
+
+        <div class="mb-4">
+          <label class="font-bold text-sm block mb-1">결과 자료 (Gallery)</label>
+          <div id="results-gallery-drop" class="dropzone">
+            결과 이미지를 추가하세요.
+          </div>
+          <div class="flex gap-2 mt-2">
+            <input id="results-gallery-input" type="file" accept="image/*" multiple class="hidden">
+            <button id="results-gallery-add" class="m-btn small secondary">+ 이미지 추가</button>
+            <button id="results-gallery-clear" id="results-gallery-clear" class="m-btn small secondary">초기화</button>
+          </div>
+          <div id="results-gallery" class="gallery-grid"></div>
+        </div>
+
+        <div>
+          <label class="font-bold text-sm block mb-1">결론 및 제언</label>
+          <div class="editable-container">
+            <textarea id="conclusion" class="savable markdown-input" placeholder="결론 요약 및 향후 연구 방향"></textarea>
+            <div class="markdown-preview"></div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <footer class="mt-8 text-center text-sm text-muted print-hidden">
+      <div id="autosave-status" class="flex items-center justify-center gap-2 opacity-0 transition-opacity">
+        <span id="autosave-icon-saving" class="hidden">💾 저장 중...</span>
+        <span id="autosave-icon-saved" class="text-green-600 hidden">✅ 저장됨</span>
+        <span id="autosave-text"></span>
       </div>
-      <hr>
-      <div class="text-xs text-slate-500">
-        수식 예: \( \tau=\mathbf r\,{}^{\perp}\!\cdot\,\mathbf F \), \( \mathbf a\,{}^{\perp}\!\cdot\,\mathbf b=a_x b_y - a_y b_x \)
+      <p class="mt-4">MathEdu Project 2025.</p>
+    </footer>
+
+  </div>
+
+  <!-- Drawer / Sidebar for Controls -->
+  <div id="drawer-backdrop"></div>
+  <aside id="drawer">
+    <div class="p-4 border-b flex justify-between items-center">
+      <span class="font-bold text-lg">Options</span>
+      <button id="floatClose" class="text-muted hover:text-black">✕</button>
+    </div>
+    <div class="p-4 flex flex-col gap-4 overflow-y-auto">
+
+      <!-- Toggles -->
+      <label class="flex justify-between items-center cursor-pointer">
+        <span class="text-sm font-medium">격자 (Grid)</span>
+        <input id="optGrid" type="checkbox" class="toggle savable" checked>
+      </label>
+      <label class="flex justify-between items-center cursor-pointer">
+        <span class="text-sm font-medium">면적 채움 (Fill)</span>
+        <input id="optFill" type="checkbox" class="toggle savable" checked>
+      </label>
+      <label class="flex justify-between items-center cursor-pointer">
+        <span class="text-sm font-medium">각도 표시 (Angle)</span>
+        <input id="optAngle" type="checkbox" class="toggle savable" checked>
+      </label>
+      <label class="flex justify-between items-center cursor-pointer">
+        <span class="text-sm font-medium">보조선 (Guides)</span>
+        <input id="optGuides" type="checkbox" class="toggle savable">
+      </label>
+
+      <hr class="border-gray-100">
+
+      <!-- Sliders with .savable class for AutoSave -->
+      <div>
+        <label class="text-xs font-bold text-muted mb-1 block">Vector a Magnitude</label>
+        <input id="magA" type="range" min="0.5" max="5" step="0.1" value="2.5" class="w-full savable">
       </div>
+      <div>
+        <label class="text-xs font-bold text-muted mb-1 block">Vector b Angle</label>
+        <input id="angB" type="range" min="-179" max="180" step="1" value="35" class="w-full savable">
+      </div>
+
+      <div class="flex flex-col gap-2 mt-2">
+        <button id="btnSnapOrtho" class="m-btn secondary small w-full justify-center">b ⟂ a (Snap)</button>
+        <button id="btnSnapPara" class="m-btn secondary small w-full justify-center">b ∥ a (Snap)</button>
+        <button id="btnReset" class="m-btn secondary small w-full justify-center">Reset</button>
+      </div>
+
     </div>
   </aside>
 
-  <main id="report-root" class="max-w-3xl mx-auto bg-white rounded-2xl shadow-sm">
-    <!-- 학생 정보 & 목표 -->
-    <section class="p-6 sm:p-8 border-b">
-      <div class="mb-4">
-        <label for="student-id" class="block text-sm font-semibold text-slate-700">학번</label>
-        <input id="student-id" class="savable line-input mt-1" placeholder="예: 30212"/>
-      </div>
-      <div class="mb-6">
-        <label for="student-name" class="block text-sm font-semibold text-slate-700">이름</label>
-        <input id="student-name" class="savable line-input mt-1" placeholder="예: 홍길동"/>
-      </div>
-      <div class="callout small">
-        <div class="font-semibold text-slate-700 mb-1">학습 목표</div>
-        <ul class="list-disc pl-5">
-          <li>\( \mathbf a\,{}^{\perp}\!\cdot\,\mathbf b \)의 정의·서명 면적 해석</li>
-          <li>\( \tau=\mathbf r\,{}^{\perp}\!\cdot\,\mathbf F \)로 2D 토크 이해</li>
-          <li>슈레이스 공식과 perp·dot의 연결</li>
-          <li>회전 분해 \( \mathbf b=\cos\varphi\,\mathbf a+\sin\varphi\,\tilde{\mathbf a} \)</li>
-        </ul>
-      </div>
-    </section>
+  <!-- Logic (Module) -->
+  <script type="module" src="script.js"></script>
 
-    <!-- Nav -->
-    <nav class="print-hidden px-6 sm:px-8 py-3 border-b bg-slate-50">
-      <a href="#observe" class="px-3 py-1 rounded bg-slate-200 hover:bg-slate-300 text-slate-800 text-sm font-semibold">관찰</a>
-      <a href="#model" class="px-3 py-1 rounded bg-slate-200 hover:bg-slate-300 text-slate-800 text-sm font-semibold">단순화</a>
-      <a href="#sim" class="px-3 py-1 rounded bg-slate-200 hover:bg-slate-300 text-slate-800 text-sm font-semibold">시뮬레이션</a>
-      <a href="#math" class="px-3 py-1 rounded bg-slate-200 hover:bg-slate-300 text-slate-800 text-sm font-semibold">수식화</a>
-      <a href="#exercises" class="px-3 py-1 rounded bg-slate-200 hover:bg-slate-300 text-slate-800 text-sm font-semibold">계산 연습</a>
-      <a href="#deep" class="px-3 py-1 rounded bg-slate-200 hover:bg-slate-300 text-slate-800 text-sm font-semibold">심화 탐구</a>
-      <a href="#refs" class="px-3 py-1 rounded bg-slate-200 hover:bg-slate-300 text-slate-800 text-sm font-semibold">참고문헌</a>
-    </nav>
-
-    <!-- 관찰 -->
-    <section id="observe" class="p-6 sm:p-8 step-card border-b">
-      <span class="badge">관찰</span>
-      <h2 class="text-2xl font-bold text-slate-800 mt-1 mb-4">현상 관찰 & 문제 설정</h2>
-
-      <label class="block text-sm font-semibold mb-1">관찰 상황 요약</label>
-      <div class="editable-container mb-6">
-        <textarea id="A1" class="savable markdown-input" placeholder="- 예: 문 손잡이를 밀고/당길 때 토크 방향 관찰&#10;- 예: 자전거 페달을 밟을 때 각도와 힘의 관계"></textarea>
-        <div class="markdown-preview prose max-w-none mt-2"></div>
-      </div>
-
-      <!-- Advanced Photo Gallery -->
-      <div class="mb-3 font-semibold text-sm">관찰 자료(사진/그림/스크린샷)</div>
-      <div id="gallery-drop" class="dropzone mb-3">
-        여기에 이미지를 끌어다 놓거나, 아래 버튼으로 선택하세요.
-      </div>
-      <div class="flex gap-2 mb-4">
-        <input id="gallery-input" class="hidden" type="file" accept="image/*" multiple capture="environment">
-        <button id="gallery-add" class="icon-btn">+ 이미지 추가</button>
-        <button id="gallery-clear" class="icon-btn">모두 삭제</button>
-      </div>
-      <div id="gallery" class="gallery"></div>
-
-      <label class="block text-sm font-semibold mt-6 mb-1">핵심 질문</label>
-      <input id="C1" class="savable line-input mb-6" placeholder="예: 회전 방향을 부호로 처리하면 분석이 쉬운가?"/>
-
-      <label class="block text-sm font-semibold mb-1">예비 가설</label>
-      <div class="editable-container">
-        <textarea id="D1" class="savable markdown-input" placeholder="- 예: perp·dot의 부호는 시계/반시계를 구분해 토크 부호와 일치한다."></textarea>
-        <div class="markdown-preview prose max-w-none mt-2"></div>
-      </div>
-    </section>
-
-    <!-- 단순화 -->
-    <section id="model" class="p-6 sm:p-8 step-card border-b">
-      <span class="badge">모델링</span>
-      <h2 class="text-2xl font-bold text-slate-800 mt-1 mb-4">단순화(가정) & 모델 정의</h2>
-
-      <label class="block text-sm font-semibold mb-1">좌표계/단위</label>
-      <input id="E1" class="savable line-input mb-6" placeholder="원점·축·각도 부호(반시계 +), 단위(SI 등)"/>
-
-      <label class="block text-sm font-semibold mb-1">핵심 벡터 정의</label>
-      <input id="F1" class="savable line-input mb-2" placeholder="벡터 a: 의미/측정법 (예: 손잡이 방향 벡터)"/>
-      <input id="F2" class="savable line-input mb-6" placeholder="벡터 b: 의미/측정법 (예: 가해진 힘 벡터)"/>
-
-      <label class="block text-sm font-semibold mb-1">가정</label>
-      <div class="editable-container mb-6">
-        <textarea id="G1" class="savable markdown-input" placeholder="- 평면 가정&#10;- 마찰 무시 또는 상수 마찰&#10;- 강체 가정"></textarea>
-        <div class="markdown-preview prose max-w-none mt-2"></div>
-      </div>
-    </section>
-
-    <!-- 시뮬레이션 -->
-    <section id="sim" class="p-6 sm:p-8 step-card border-b">
-      <span class="badge">시각화</span>
-      <div class="flex items-center justify-between mt-1 mb-3">
-        <h2 class="text-2xl font-bold text-slate-800">perp·dot 시뮬레이션</h2>
-        <button id="openControls" class="print-hidden px-3 py-1.5 rounded-lg border text-slate-700 hover:bg-slate-50">옵션</button>
-      </div>
-
-      <canvas id="playCanvas" width="600" height="420" class="interactive-canvas mb-4"></canvas>
-
-      <div class="bg-slate-50 p-3 rounded mb-4">
-        <h3 class="font-semibold mb-1">실시간 계산</h3>
-        <div class="text-sm">
-          <div>\(\mathbf a=(a_x,a_y),\; \mathbf b=(b_x,b_y),\; \tilde{\mathbf a}=(-a_y,a_x)\)</div>
-          <div class="mt-2">\(\mathbf a\cdot\mathbf b = \) <span id="dAB">0</span></div>
-          <div class="mt-2">\(\tilde{\mathbf a}\cdot\mathbf b = \) <span id="pAB">0</span></div>
-          <div class="mt-2">\(\cos\varphi=\frac{\mathbf a\cdot\mathbf b}{\|\mathbf a\|\,\|\mathbf b\|},\; \sin\varphi=\frac{\tilde{\mathbf a}\cdot\mathbf b}{\|\mathbf a\|\,\|\mathbf b\|}\)</div>
-          <div class="mt-1">\(\varphi=\) <span id="angleAB">0</span>°</div>
-        </div>
-      </div>
-
-      <label class="block text-xs font-semibold text-slate-700 mb-1">실험 메모 — ∥/⟂ 테스트</label>
-      <div class="editable-container mb-4">
-        <textarea id="M1" class="savable markdown-input" placeholder="- 예: b ∥ a 또는 b ⟂ a에서 값/부호 관찰"></textarea>
-        <div class="markdown-preview prose max-w-none mt-2"></div>
-      </div>
-
-      <label class="block text-xs font-semibold text-slate-700 mb-1">각도–면적 관계 확인</label>
-      <div class="editable-container mb-4">
-        <textarea id="M2" class="savable markdown-input" placeholder="- 예: φ 변화에 따른 sinφ, signed area 변화 그래프화 아이디어"></textarea>
-        <div class="markdown-preview prose max-w-none mt-2"></div>
-      </div>
-
-      <label class="block text-xs font-semibold text-slate-700 mb-1">크기 변화 관찰</label>
-      <div class="editable-container">
-        <textarea id="M3" class="savable markdown-input" placeholder="- 예: |a|·|b|와 면적의 비례 관계 실험 로그"></textarea>
-        <div class="markdown-preview prose max-w-none mt-2"></div>
-      </div>
-    </section>
-
-    <!-- 수식화 -->
-    <section id="math" class="p-6 sm:p-8 step-card border-b">
-      <span class="badge">수식</span>
-      <h2 class="text-2xl font-bold text-slate-800 mt-1 mb-4">수식화 & 검증</h2>
-      <div class="callout small mb-4">
-        <div class="font-semibold mb-1">유도 과제</div>
-        <ol class="list-decimal pl-5">
-          <li>\( \tilde{\mathbf a}\cdot\mathbf b = a_x b_y - a_y b_x \) 도출.</li>
-          <li>\( \mathbf b=\cos\varphi\,\mathbf a+\sin\varphi\,\tilde{\mathbf a} \)에서 \( \sin\varphi \) 식 유도.</li>
-          <li>슈레이스 공식 \( A=\tfrac12\sum \mathbf v_i^{\perp}\!\cdot\,\mathbf v_{i+1} \).</li>
-          <li>토크 \( \tau=\mathbf r^{\perp}\!\cdot\,\mathbf F \) 단위·부호 해석.</li>
-        </ol>
-      </div>
-
-      <label class="block text-sm font-semibold mb-1">유도 1 풀이</label>
-      <div class="editable-container mb-4">
-        <textarea id="Dcalc1" class="savable markdown-input" placeholder="- 힌트: \( \tilde{\mathbf a}=(-a_y,a_x) \), 내적 정의 적용"></textarea>
-        <div class="markdown-preview prose max-w-none mt-2"></div>
-      </div>
-
-      <label class="block text-sm font-semibold mb-1">유도 2–4 요약</label>
-      <div class="editable-container">
-        <textarea id="Dcalc2" class="savable markdown-input" placeholder="- 핵심 단계와 단위 분석 요약"></textarea>
-        <div class="markdown-preview prose max-w-none mt-2"></div>
-      </div>
-    </section>
-
-    <!-- 계산 연습 -->
-    <section id="exercises" class="p-6 sm:p-8 step-card border-b">
-      <span class="badge">연습</span>
-      <h2 class="text-2xl font-bold text-slate-800 mt-1 mb-2">계산 연습 — 문항별 답안</h2>
-      <p class="text-slate-600 mb-3 small">문항별로 계산/근거를 적으세요(수식 입력 가능).</p>
-      <ol class="list-decimal pl-6 space-y-4 small" id="ex-list"></ol>
-    </section>
-
-    <!-- 심화 탐구 (완성본 구조) -->
-    <section id="deep" class="p-6 sm:p-8 step-card border-b">
-      <span class="badge">심화</span>
-      <h2 class="text-2xl font-bold text-slate-800 mt-1 mb-4">심화 탐구 보고서</h2>
-
-      <label class="block text-sm font-semibold mb-1">연구 주제</label>
-      <input id="research-topic" class="savable line-input mb-4" placeholder="예: 회전 문손잡이의 토크 분석 / 자전거 페달 효율성 연구 / 로봇 팔 회전 제어 최적화 / 풍력 발전기 날개 각도 최적화"/>
-
-      <label class="block text-sm font-semibold mb-1">1. 연구 배경 및 목적</label>
-      <div class="editable-container mb-4">
-        <textarea id="intro" class="savable markdown-input" placeholder="예시 주제:&#10;- 삼각형 면적 공식 \((1/2)|p^{\perp}\cdot u|\) 유도 및 응용&#10;- 회전행렬 \(R_\theta\)와 \(\tilde{\mathbf a}\)의 관계&#10;- n각형 면적의 일반식 (슈레이스 공식)&#10;- 컴퓨터 그래픽스에서 orientation test&#10;- 토크 벡터장 \(\mathbf r=(x,y), \mathbf F=(-y,x)\) 분석&#10;- 측정 오차가 있는 다각형 면적의 오차 분석&#10;- 연속 곡선의 면적을 선적분 \(\oint\gamma^{\perp}\cdot d\gamma\)로 표현&#10;&#10;물리 현상 예시:&#10;- 회전문 손잡이에 가하는 힘의 방향과 토크의 관계&#10;- 자전거 페달을 밟을 때 각도에 따른 효율 변화&#10;- 시소의 평형 조건과 무게중심&#10;- 풍력발전기 날개의 회전력 분석&#10;&#10;- 연구 동기와 배경 설명&#10;- 관련 선행연구 (예: Gössner(2017), Green(2019) 등)"></textarea>
-        <div class="markdown-preview prose max-w-none mt-2"></div>
-      </div>
-
-      <label class="block text-sm font-semibold mb-1">2. 연구 방법</label>
-      <div class="editable-container mb-4">
-        <textarea id="method" class="savable markdown-input" placeholder="- 실험 설계 및 측정 방법&#10;- 사용한 장비/도구 (측정 장치, 시뮬레이션 소프트웨어 등)&#10;- 데이터 수집 절차 및 조건&#10;- 본 템플릿 시뮬레이터 활용 방법&#10;- (선택) Python/Matlab/GeoGebra 코드 및 알고리즘"></textarea>
-        <div class="markdown-preview prose max-w-none mt-2"></div>
-      </div>
-
-      <label class="block text-sm font-semibold mb-1">3. 연구 결과</label>
-      <div class="editable-container mb-4">
-        <textarea id="results" class="savable markdown-input" placeholder="- 측정 데이터 및 계산 결과&#10;- 표, 그래프, 수식 등으로 결과 제시&#10;- 핵심 수치 (평균, 표준편차, 오차범위 등)&#10;- 예: φ–signed area 관계 그래프, 토크 부호 맵"></textarea>
-        <div class="markdown-preview prose max-w-none mt-2"></div>
-      </div>
-
-      <!-- Results Photo Gallery -->
-      <div class="mb-3 text-sm font-semibold">결과 자료 (사진/그래프/표)</div>
-      <div id="results-gallery-drop" class="dropzone mb-3">
-        결과 관련 이미지를 끌어다 놓거나, 아래 버튼으로 선택하세요.
-      </div>
-      <div class="flex gap-2 mb-4">
-        <input id="results-gallery-input" class="hidden" type="file" accept="image/*" multiple>
-        <button id="results-gallery-add" class="icon-btn">+ 이미지 추가</button>
-        <button id="results-gallery-clear" class="icon-btn">모두 삭제</button>
-      </div>
-      <div id="results-gallery" class="gallery mb-6"></div>
-
-      <label class="block text-sm font-semibold mb-1">4. 분석 및 논의</label>
-      <div class="editable-container mb-4">
-        <textarea id="discussion" class="savable markdown-input" placeholder="- 결과에 대한 해석 및 의미 분석&#10;- 예상과 다른 결과에 대한 설명&#10;- 오차 요인 및 한계점&#10;- 선행연구 또는 이론과의 비교&#10;- 실생활 응용 가능성 및 교육적 시사점"></textarea>
-        <div class="markdown-preview prose max-w-none mt-2"></div>
-      </div>
-
-      <label class="block text-sm font-semibold mb-1">5. 결론 및 제언</label>
-      <div class="editable-container mb-4">
-        <textarea id="conclusion" class="savable markdown-input" placeholder="- 연구 결과 요약 (2-3문장)&#10;- 연구의 의의 및 기여&#10;- 연구의 한계점&#10;- 후속 연구 제안 및 개선 방향"></textarea>
-        <div class="markdown-preview prose max-w-none mt-2"></div>
-      </div>
-
-      <label class="block text-sm font-semibold mb-1">6. 부록</label>
-      <div class="editable-container">
-        <textarea id="appendix" class="savable markdown-input font-mono" placeholder="- 상세 계산 과정&#10;- 프로그램 코드 (Python, Matlab 등)&#10;- 원본 데이터 표&#10;- 추가 그림 및 자료"></textarea>
-        <div class="markdown-preview prose max-w-none mt-2"></div>
-      </div>
-    </section>
-
-    <!-- 참고문헌: 전체 문서용 (분리 섹션) -->
-    <section id="refs" class="p-6 sm:p-8 step-card border-b">
-      <span class="badge">참고문헌</span>
-      <h2 class="text-2xl font-bold text-slate-800 mt-1 mb-4">참고문헌 (APA 권장)</h2>
-      <div class="editable-container">
-        <textarea id="refs-md" class="savable markdown-input" placeholder="- 예: Gössner, S. (2017). Cross Product Considered Harmful (in 2D). Preprint.&#10;- 예: Green, D. (2019). The Perp Dot Product."></textarea>
-        <div class="markdown-preview prose max-w-none mt-2"></div>
-      </div>
-    </section>
-  </main>
-
-  <!-- Footer -->
-  <footer class="text-center mt-6 text-slate-500 text-sm print-hidden">
-    <div id="validation-message" class="text-red-600 font-semibold mb-2 h-6"></div>
-    <p>작성 후 상단 버튼으로 인쇄 대화상자에서 <strong>PDF로 저장</strong>을 선택하세요.</p>
-  </footer>
-
-  <!-- Autosave Toast -->
-  <div id="autosave-status" class="print-hidden fixed bottom-6 right-6 flex items-center bg-slate-800 text-white py-2 px-4 rounded-lg shadow-lg opacity-0 transition-opacity duration-500 z-50">
-    <svg id="autosave-icon-saving" class="animate-spin h-5 w-5 mr-3 hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-    <svg id="autosave-icon-saved" class="h-5 w-5 mr-3 hidden text-green-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>
-    <span id="autosave-text"></span>
-  </div>
-
-  <script>
-    // ---------- Drawer controls ----------
-    const drawer = document.getElementById('drawer');
-    const backdrop = document.getElementById('drawer-backdrop');
-    function openDrawer(){ drawer.classList.add('open'); backdrop.classList.add('open'); }
-    function closeDrawer(){ drawer.classList.remove('open'); backdrop.classList.remove('open'); }
-    document.getElementById('floatOpen').addEventListener('click', openDrawer);
-    document.getElementById('openControls').addEventListener('click', openDrawer);
-    document.getElementById('floatClose').addEventListener('click', closeDrawer);
-    backdrop.addEventListener('click', closeDrawer);
-
-    // ---------- Common helpers ----------
-    const converter = new showdown.Converter({ tables:true, ghCodeBlocks:true, simpleLineBreaks:true, literalMidWordUnderscores:true });
-    const storageKey = 'Cross2D-report-v6';
-    let saveTimer, statusTimer, galleryData = [], resultsGalleryData = [];
-
-    function showSaveStatus(state){
-      const toast = document.getElementById('autosave-status');
-      const txt = document.getElementById('autosave-text');
-      const spin = document.getElementById('autosave-icon-saving');
-      const ok = document.getElementById('autosave-icon-saved');
-      clearTimeout(statusTimer);
-      toast.classList.remove('opacity-0');
-      if(state==='saving'){ txt.textContent='저장 중...'; spin.classList.remove('hidden'); ok.classList.add('hidden'); }
-      else { txt.textContent='모든 변경사항이 저장되었습니다.'; spin.classList.add('hidden'); ok.classList.remove('hidden'); statusTimer=setTimeout(()=>toast.classList.add('opacity-0'), 1600); }
-    }
-
-    function updateMarkdownPreview(textarea){
-      const container = textarea.closest('.editable-container');
-      const preview = container.querySelector('.markdown-preview');
-      const html = textarea.value ? converter.makeHtml(textarea.value) : '<p class="text-slate-400">내용을 입력하세요...</p>';
-      preview.innerHTML = html;
-      if(window.renderMathInElement){
-        renderMathInElement(preview, {
-          delimiters:[
-            {left:'$$',right:'$$',display:true},
-            {left:'\\(',right:'\\)',display:false},
-            {left:'$',right:'$',display:false}
-          ],
-          throwOnError:false
-        });
-      }
-      if(window.hljs){
-        preview.querySelectorAll('pre code').forEach(el => { delete el.dataset.highlighted; hljs.highlightElement(el); });
-      }
-    }
-    function autoResizeTextarea(t){ t.style.height='auto'; t.style.height=(t.scrollHeight)+'px'; }
-
-    function saveContent(){
-      clearTimeout(saveTimer);
-      showSaveStatus('saving');
-      saveTimer = setTimeout(() => {
-        const data = {};
-        document.querySelectorAll('.savable').forEach(el => {
-          if(el.type === 'checkbox' || el.type === 'radio'){ data[el.id] = el.checked; }
-          else { data[el.id] = el.value; }
-        });
-        // gallery
-        data['gallery'] = galleryData;
-        data['resultsGallery'] = resultsGalleryData;
-        localStorage.setItem(storageKey, JSON.stringify(data));
-        showSaveStatus('saved');
-      }, 600);
-    }
-
-    function loadContent(){
-      const data = JSON.parse(localStorage.getItem(storageKey)||'null');
-      document.querySelectorAll('.savable').forEach(el => {
-        if(data && (el.id in data)){
-          if(el.type === 'checkbox' || el.type === 'radio'){ el.checked = !!data[el.id]; }
-          else { el.value = data[el.id]; }
-        }
-      });
-      document.querySelectorAll('.editable-container textarea.markdown-input').forEach(el => {
-        if(data && (el.id in data)) el.value = data[el.id];
-        updateMarkdownPreview(el);
-      });
-      // gallery
-      if(data && Array.isArray(data.gallery)){ galleryData = data.gallery; renderGallery(); }
-      if(data && Array.isArray(data.resultsGallery)){ resultsGalleryData = data.resultsGallery; renderResultsGallery(); }
-    }
-
-    document.getElementById('export-pdf').addEventListener('click', async ()=>{
-      // Integrity check
-      const requiredFields = [
-        {id: 'title', label: '제목'},
-        {id: 'author', label: '작성자'},
-        {id: 'D1', label: '관찰 - 현상'},
-        {id: 'F1', label: '단순화 - 벡터 a'},
-        {id: 'F2', label: '단순화 - 벡터 b'},
-        {id: 'Dcalc1', label: '수식화 - 유도 1'},
-        {id: 'research-topic', label: '심화 - 연구 주제'},
-        {id: 'intro', label: '심화 - 연구 배경 및 목적'},
-        {id: 'method', label: '심화 - 연구 방법'},
-        {id: 'results', label: '심화 - 연구 결과'},
-        {id: 'discussion', label: '심화 - 분석 및 논의'},
-        {id: 'conclusion', label: '심화 - 결론 및 제언'}
-      ];
-
-      const missingFields = [];
-      requiredFields.forEach(field => {
-        const el = document.getElementById(field.id);
-        if(el && (!el.value || el.value.trim() === '')) {
-          missingFields.push(field.label);
-        }
-      });
-
-      if(missingFields.length > 0) {
-        const confirmMsg = `다음 항목이 작성되지 않았습니다:\n\n${missingFields.join('\n')}\n\n그래도 PDF로 저장하시겠습니까?`;
-        if(!confirm(confirmMsg)) {
-          return;
-        }
-      }
-
-      const root = document.getElementById('report-root');
-      document.querySelectorAll('.markdown-input').forEach(el=>el.style.display='none');
-      document.querySelectorAll('.markdown-preview').forEach(el=>el.style.display='block');
-      if(window.renderMathInElement) renderMathInElement(root, {
-        delimiters:[
-          {left:'$$',right:'$$',display:true},
-          {left:'\\(',right:'\\)',display:false},
-          {left:'$',right:'$',display:false}
-        ],
-        throwOnError:false
-      });
-      await document.fonts.ready.catch(()=>{});
-      const prev = document.title;
-      const sId = (document.getElementById('student-id').value||'학번').trim();
-      const sNm = (document.getElementById('student-name').value||'이름').trim();
-      document.title = `Cross2D_${sId}_${sNm}`;
-      const cleanup = ()=>{ document.title = prev; window.removeEventListener('afterprint', cleanup); };
-      window.addEventListener('afterprint', cleanup);
-      window.print();
-    });
-
-    // ---------- Gallery ----------
-    const galleryEl = document.getElementById('gallery');
-    const gInput = document.getElementById('gallery-input');
-    const gAdd = document.getElementById('gallery-add');
-    const gClear = document.getElementById('gallery-clear');
-    const gDrop = document.getElementById('gallery-drop');
-
-    gAdd.addEventListener('click', ()=> gInput.click());
-    gClear.addEventListener('click', ()=>{ if(confirm('모든 이미지를 삭제할까요?')){ galleryData=[]; renderGallery(); saveContent(); }});
-    gInput.addEventListener('change', ()=> handleFiles(gInput.files));
-
-    ;['dragenter','dragover'].forEach(ev => gDrop.addEventListener(ev, e=>{ e.preventDefault(); gDrop.classList.add('drag'); }));
-    ;['dragleave','drop'].forEach(ev => gDrop.addEventListener(ev, e=>{ e.preventDefault(); gDrop.classList.remove('drag'); }));
-    gDrop.addEventListener('drop', e=>{
-      const files = e.dataTransfer.files;
-      handleFiles(files);
-    });
-
-    function handleFiles(files){
-      if(!files || !files.length) return;
-      const arr = Array.from(files).filter(f => f.type.startsWith('image/'));
-      arr.forEach(file => {
-        const rd = new FileReader();
-        rd.onload = e => {
-          galleryData.push({ src:e.target.result, caption:'' });
-          renderGallery();
-          saveContent();
-        };
-        rd.readAsDataURL(file);
-      });
-      gInput.value = '';
-    }
-
-    function renderGallery(){
-      galleryEl.innerHTML='';
-      galleryData.forEach((item, idx) => {
-        const card = document.createElement('div');
-        card.className='card';
-        const img = document.createElement('img');
-        img.src = item.src;
-        img.alt = item.caption || `관찰 이미지 ${idx+1}`;
-        card.appendChild(img);
-
-        const cap = document.createElement('input');
-        cap.type='text'; cap.placeholder='캡션(설명)'; cap.value=item.caption||'';
-        cap.addEventListener('input', e=>{ galleryData[idx].caption = e.target.value; saveContent(); });
-        card.appendChild(cap);
-
-        const controls = document.createElement('div');
-        controls.className='controls';
-        controls.innerHTML = `
-          <button class="icon-btn" data-act="up">↑</button>
-          <button class="icon-btn" data-act="down">↓</button>
-          <button class="icon-btn" data-act="left">←</button>
-          <button class="icon-btn" data-act="right">→</button>
-          <button class="icon-btn" data-act="del">삭제</button>
-        `;
-        controls.addEventListener('click', e=>{
-          const act = e.target.getAttribute('data-act');
-          if(!act) return;
-          if(act==='del'){ galleryData.splice(idx,1); renderGallery(); saveContent(); return; }
-          const swap = (i,j)=>{ [galleryData[i],galleryData[j]] = [galleryData[j],galleryData[i]]; };
-          if(act==='up' && idx>0){ swap(idx, idx-1); renderGallery(); saveContent(); }
-          if(act==='down' && idx<galleryData.length-1){ swap(idx, idx+1); renderGallery(); saveContent(); }
-          if(act==='left' && idx>0){ swap(idx, idx-1); renderGallery(); saveContent(); }
-          if(act==='right' && idx<galleryData.length-1){ swap(idx, idx+1); renderGallery(); saveContent(); }
-        });
-        card.appendChild(controls);
-
-        galleryEl.appendChild(card);
-      });
-    }
-
-    // ---------- Results Gallery ----------
-    const resultsGalleryEl = document.getElementById('results-gallery');
-    const rgInput = document.getElementById('results-gallery-input');
-    const rgAdd = document.getElementById('results-gallery-add');
-    const rgClear = document.getElementById('results-gallery-clear');
-    const rgDrop = document.getElementById('results-gallery-drop');
-
-    rgAdd.addEventListener('click', ()=> rgInput.click());
-    rgClear.addEventListener('click', ()=>{ if(confirm('모든 이미지를 삭제할까요?')){ resultsGalleryData=[]; renderResultsGallery(); saveContent(); }});
-    rgInput.addEventListener('change', ()=> handleResultsFiles(rgInput.files));
-
-    ;['dragenter','dragover'].forEach(ev => rgDrop.addEventListener(ev, e=>{ e.preventDefault(); rgDrop.classList.add('drag'); }));
-    ;['dragleave','drop'].forEach(ev => rgDrop.addEventListener(ev, e=>{ e.preventDefault(); rgDrop.classList.remove('drag'); }));
-    rgDrop.addEventListener('drop', e=>{
-      const files = e.dataTransfer.files;
-      handleResultsFiles(files);
-    });
-
-    function handleResultsFiles(files){
-      if(!files || !files.length) return;
-      const arr = Array.from(files).filter(f => f.type.startsWith('image/'));
-      arr.forEach(file => {
-        const rd = new FileReader();
-        rd.onload = e => {
-          resultsGalleryData.push({ src:e.target.result, caption:'' });
-          renderResultsGallery();
-          saveContent();
-        };
-        rd.readAsDataURL(file);
-      });
-      rgInput.value = '';
-    }
-
-    function renderResultsGallery(){
-      resultsGalleryEl.innerHTML='';
-      resultsGalleryData.forEach((item, idx) => {
-        const card = document.createElement('div');
-        card.className='card';
-        const img = document.createElement('img');
-        img.src = item.src;
-        img.alt = item.caption || `결과 이미지 ${idx+1}`;
-        card.appendChild(img);
-
-        const cap = document.createElement('input');
-        cap.type='text'; cap.placeholder='캡션(설명)'; cap.value=item.caption||'';
-        cap.addEventListener('input', e=>{ resultsGalleryData[idx].caption = e.target.value; saveContent(); });
-        card.appendChild(cap);
-
-        const controls = document.createElement('div');
-        controls.className='controls';
-        controls.innerHTML = `
-          <button class="icon-btn" data-act="up">↑</button>
-          <button class="icon-btn" data-act="down">↓</button>
-          <button class="icon-btn" data-act="left">←</button>
-          <button class="icon-btn" data-act="right">→</button>
-          <button class="icon-btn" data-act="del">삭제</button>
-        `;
-        controls.addEventListener('click', e=>{
-          const act = e.target.getAttribute('data-act');
-          if(!act) return;
-          if(act==='del'){ resultsGalleryData.splice(idx,1); renderResultsGallery(); saveContent(); return; }
-          const swap = (i,j)=>{ [resultsGalleryData[i],resultsGalleryData[j]] = [resultsGalleryData[j],resultsGalleryData[i]]; };
-          if(act==='up' && idx>0){ swap(idx, idx-1); renderResultsGallery(); saveContent(); }
-          if(act==='down' && idx<resultsGalleryData.length-1){ swap(idx, idx+1); renderResultsGallery(); saveContent(); }
-          if(act==='left' && idx>0){ swap(idx, idx-1); renderResultsGallery(); saveContent(); }
-          if(act==='right' && idx<resultsGalleryData.length-1){ swap(idx, idx+1); renderResultsGallery(); saveContent(); }
-        });
-        card.appendChild(controls);
-
-        resultsGalleryEl.appendChild(card);
-      });
-    }
-
-    document.addEventListener('DOMContentLoaded', ()=>{
-      // editable markdown behavior
-      function attachEditors(){
-        document.querySelectorAll('.editable-container').forEach(container=>{
-          const preview = container.querySelector('.markdown-preview');
-          const editor = container.querySelector('textarea.markdown-input');
-          if(!editor || !preview) return;
-          // init content
-          updateMarkdownPreview(editor);
-          // toggle
-          preview.addEventListener('click', ()=>{
-            preview.style.display='none';
-            editor.style.display='block';
-            editor.focus();
-            autoResizeTextarea(editor);
-          });
-          editor.addEventListener('blur', ()=>{
-            editor.style.display='none';
-            preview.style.display='block';
-            updateMarkdownPreview(editor);
-          });
-          editor.addEventListener('input', ()=>{
-            autoResizeTextarea(editor);
-            saveContent();
-          });
-        });
-      }
-
-      // build exercise list
-      const ex = [
-        "\\(\\mathbf a=(1,2), \\mathbf b=(3,1)\\): \\(\\mathbf a\\cdot\\mathbf b\\), \\(\\mathbf a^{\\perp}\\cdot\\mathbf b\\), \\(\\varphi\\) 계산",
-        "\\(\\mathbf a=(2,-1), \\mathbf b=(-1,4)\\): \\(\\tau=\\mathbf a^{\\perp}\\cdot\\mathbf b\\) 물리 해석",
-        "\\((0,0)\\to(4,0)\\to(4,2)\\to(0,2)\\): 면적을 perp·dot 합으로 계산",
-        "\\(\\mathbf a \\parallel \\mathbf b\\)이면 \\(\\mathbf a^{\\perp}\\cdot\\mathbf b=0\\)인 기하적 이유"
-      ];
-      const list = document.getElementById('ex-list');
-      ex.forEach((text, i)=>{
-        const li = document.createElement('li');
-        li.className = "space-y-1";
-        li.innerHTML = `
-          <div class="font-semibold ex-question">문항 ${i+1}. ${text}</div>
-          <div class="editable-container">
-            <textarea id="EX${i+1}" class="savable markdown-input" placeholder="- 풀이/근거 입력"></textarea>
-            <div class="markdown-preview prose max-w-none mt-2"></div>
-          </div>
-        `;
-        list.appendChild(li);
-      });
-      // Render math in exercise questions
-      if(window.renderMathInElement){
-        document.querySelectorAll('.ex-question').forEach(el => {
-          renderMathInElement(el, {
-            delimiters:[
-              {left:'$$',right:'$$',display:true},
-              {left:'\\(',right:'\\)',display:false},
-              {left:'$',right:'$',display:false}
-            ],
-            throwOnError:false
-          });
-        });
-      }
-
-      // savable inputs
-      document.querySelectorAll('.savable').forEach(el => el.addEventListener('input', saveContent));
-
-      // load saved then attach editors
-      loadContent();
-      attachEditors();
-
-      // init canvas & global math render
-      initPlayground();
-      renderMathInElement(document.body, {
-        delimiters:[
-          {left:'$$',right:'$$',display:true},
-          {left:'\\(',right:'\\)',display:false},
-          {left:'$',right:'$',display:false}
-        ],
-        throwOnError:false
-      });
-    });
-
-    // --------- Interactive: perp·dot playground ----------
-    function initPlayground(){
-      const canvas = document.getElementById('playCanvas');
-      const ctx = canvas.getContext('2d');
-
-      const grid = document.getElementById('optGrid');
-      const fill = document.getElementById('optFill');
-      const angle = document.getElementById('optAngle');
-      const guides = document.getElementById('optGuides');
-      const magA = document.getElementById('magA');
-      const angB = document.getElementById('angB');
-      const snapOrtho = document.getElementById('btnSnapOrtho');
-      const snapPara = document.getElementById('btnSnapPara');
-      const resetBtn = document.getElementById('btnReset');
-
-      const dAB = document.getElementById('dAB');
-      const pAB = document.getElementById('pAB');
-      const angOut = document.getElementById('angleAB');
-
-      const DPR = window.devicePixelRatio || 1;
-      const W0 = canvas.width, H0 = canvas.height;
-      canvas.width = W0 * DPR; canvas.height = H0 * DPR; canvas.style.width=W0+'px'; canvas.style.height=H0+'px';
-      ctx.scale(DPR, DPR);
-
-      const C = { x: W0/2, y: H0/2 };
-
-      let aLen = 120, aAng = 0, bLen = 140, bAng = parseFloat(angB.value);
-
-      // restore slider states if saved
-      const saved = JSON.parse(localStorage.getItem('Cross2D-report-v6')||'null');
-      if(saved){
-        if(typeof saved.magA !== 'undefined'){ magA.value = saved.magA; aLen = 48*parseFloat(saved.magA); }
-        if(typeof saved.angB !== 'undefined'){ angB.value = saved.angB; bAng = parseFloat(saved.angB); }
-        if(typeof saved.optGrid !== 'undefined') grid.checked = !!saved.optGrid;
-        if(typeof saved.optFill !== 'undefined') fill.checked = !!saved.optFill;
-        if(typeof saved.optAngle !== 'undefined') angle.checked = !!saved.optAngle;
-        if(typeof saved.optGuides !== 'undefined') guides.checked = !!saved.optGuides;
-      }
-
-      let dragging = null;
-      canvas.addEventListener('pointerdown', (e)=>{
-        const p = getMouse(e);
-        const A = vec(aLen, aAng);
-        const B = vec(bLen, bAng);
-        const hitA = dist(p, add(C, A)) < 14;
-        const hitB = dist(p, add(C, B)) < 14;
-        dragging = hitA ? 'a' : hitB ? 'b' : null;
-        if(dragging) canvas.setPointerCapture(e.pointerId);
-      });
-      canvas.addEventListener('pointermove', (e)=>{
-        if(!dragging) return;
-        const p = getMouse(e);
-        const v = sub(p, C);
-        const ang = Math.atan2(v.y, v.x) * 180/Math.PI;
-        const len = Math.hypot(v.x, v.y);
-        if(dragging==='a'){ aAng = ang; aLen = len; magA.value = (aLen/48).toFixed(2); saveContent(); }
-        else { bAng = ang; bLen = len; angB.value = ((bAng+540)%360)-180; saveContent(); }
-      });
-      canvas.addEventListener('pointerup', (e)=>{ dragging=null; canvas.releasePointerCapture(e.pointerId); });
-
-      magA.addEventListener('input', e => { aLen = 48 * parseFloat(e.target.value); });
-      angB.addEventListener('input', e => { bAng = parseFloat(e.target.value); });
-      snapOrtho.addEventListener('click', () => { bAng = aAng + 90; angB.value = ((bAng+540)%360)-180; });
-      snapPara.addEventListener('click', () => { bAng = aAng; angB.value = ((bAng+540)%360)-180; });
-      resetBtn.addEventListener('click', () => {
-        aLen = 120; aAng = 0; bLen = 140; bAng = 35;
-        magA.value = 2.5; angB.value = 35;
-      });
-
-      function getMouse(e){ const r = canvas.getBoundingClientRect(); return { x:(e.clientX-r.left), y:(e.clientY-r.top) }; }
-      function vec(len, angDeg){ const r=angDeg*Math.PI/180; return {x: len*Math.cos(r), y: len*Math.sin(r)}; }
-      function add(a,b){ return {x:a.x+b.x, y:a.y+b.y}; }
-      function sub(a,b){ return {x:a.x-b.x, y:a.y-b.y}; }
-      function dist(a,b){ return Math.hypot(a.x-b.x, a.y-b.y); }
-      function pdot(ax,ay,bx,by){ return ax*by - ay*bx; }
-      function dot(ax,ay,bx,by){ return ax*bx + ay*by; }
-      function len2(x,y){ return Math.hypot(x,y); }
-      function angleDeg(ax,ay,bx,by){
-        const cs = dot(ax,ay,bx,by)/(len2(ax,ay)*len2(bx,by));
-        const angleRad = Math.acos(Math.max(-1,Math.min(1,cs)));
-        const angleDegrees = angleRad * 180/Math.PI;
-        // 항상 180도 이하의 각도 반환 (부호는 perp dot으로 결정)
-        const sign = Math.sign(pdot(ax,ay,bx,by));
-        return sign * angleDegrees;
-      }
-      function getCSS(name){ return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
-      function line(x1,y1,x2,y2){ ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke(); }
-
-      function drawVec(V, color){
-        ctx.save();
-        ctx.translate(C.x, C.y);
-        ctx.lineWidth = 3.2;
-        ctx.strokeStyle = color; ctx.fillStyle = color;
-        ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(V.x,V.y); ctx.stroke();
-        const th = Math.atan2(V.y,V.x); const ah = 10, aw = 6;
-        ctx.beginPath(); ctx.moveTo(V.x, V.y);
-        ctx.lineTo(V.x - ah*Math.cos(th) + aw*Math.sin(th), V.y - ah*Math.sin(th) - aw*Math.cos(th));
-        ctx.lineTo(V.x - ah*Math.cos(th) - aw*Math.sin(th), V.y - ah*Math.sin(th) + aw*Math.cos(th));
-        ctx.closePath(); ctx.fill();
-        ctx.beginPath(); ctx.arc(V.x,V.y, 6, 0, Math.PI*2); ctx.fillStyle='#fff'; ctx.fill();
-        ctx.beginPath(); ctx.arc(V.x,V.y, 5, 0, Math.PI*2); ctx.fillStyle=color; ctx.fill();
-        ctx.restore();
-      }
-
-      function draw(){
-        ctx.clearRect(0,0,W0,H0);
-
-        // Grid
-        if(grid.checked){
-          ctx.save(); ctx.translate(C.x, C.y);
-          ctx.strokeStyle = '#e2e8f0'; ctx.lineWidth = 1;
-          for(let x=-W0; x<=W0; x+=20){ line(x,-H0,x,H0); }
-          for(let y=-H0; y<=H0; y+=20){ line(-W0,y,W0,y); }
-          ctx.strokeStyle='#cbd5e1'; ctx.lineWidth=1.2; line(-W0,0,W0,0); line(0,-H0,0,H0);
-          ctx.restore();
-        }
-
-        const A = vec(aLen, aAng);
-        const B = vec(bLen, bAng);
-
-        // Signed area fill
-        if(fill.checked){
-          ctx.save(); ctx.translate(C.x, C.y);
-          const sgn = Math.sign(pdot(A.x,A.y,B.x,B.y))||1;
-          const grad = ctx.createLinearGradient(0,0, A.x+B.x, A.y+B.y);
-          grad.addColorStop(0, sgn>0 ? 'rgba(16,185,129,.18)' : 'rgba(99,102,241,.18)');
-          grad.addColorStop(1, sgn>0 ? 'rgba(234,179,8,.28)' : 'rgba(244,63,94,.28)');
-          ctx.fillStyle = grad;
-          ctx.beginPath();
-          ctx.moveTo(0,0); ctx.lineTo(A.x,A.y); ctx.lineTo(A.x+B.x, A.y+B.y); ctx.lineTo(B.x,B.y); ctx.closePath();
-          ctx.fill();
-          ctx.setLineDash([8,6]); ctx.lineWidth=2;
-          ctx.strokeStyle = sgn>0 ? 'rgba(16,185,129,.65)' : 'rgba(244,63,94,.65)';
-          ctx.stroke();
-          ctx.restore();
-        }
-
-        // Guides
-        if(guides.checked){
-          ctx.save(); ctx.translate(C.x, C.y);
-          ctx.setLineDash([4,4]); ctx.strokeStyle='#94a3b8';
-          line(A.x,A.y, A.x+B.x, A.y+B.y);
-          line(B.x,B.y, A.x+B.x, A.y+B.y);
-          ctx.restore();
-        }
-
-        // Angle arc
-        if(angle.checked){
-          ctx.save(); ctx.translate(C.x, C.y);
-          const r = 36;
-          const a0 = aAng*Math.PI/180, a1 = bAng*Math.PI/180;
-          // 항상 180도 이하의 각도로 호를 그림
-          let angleDiff = a1 - a0;
-          // 각도 차이를 -π ~ π 범위로 정규화
-          while(angleDiff > Math.PI) angleDiff -= 2*Math.PI;
-          while(angleDiff < -Math.PI) angleDiff += 2*Math.PI;
-          // 180도를 넘으면 반대 방향으로 그림
-          const counterClockwise = angleDiff < 0;
-          ctx.beginPath(); ctx.arc(0,0,r,a0,a1,counterClockwise);
-          ctx.strokeStyle='#0ea5e9'; ctx.lineWidth=3; ctx.stroke();
-          ctx.restore();
-        }
-
-        drawVec(A, getCSS('--a'));
-        drawVec(B, getCSS('--b'));
-
-        // math values
-        const pd = pdot(A.x,A.y,B.x,B.y);
-        const cs = dot(A.x,A.y,B.x,B.y);
-        const ang = angleDeg(A.x,A.y,B.x,B.y);
-        const s = (v)=> (Math.abs(v)<1e-9? '0' : v.toFixed(3));
-        dAB.textContent = s(cs);
-        pAB.textContent = s(pd/(40*40));
-        angOut.textContent = s(ang);
-
-        requestAnimationFrame(draw);
-      }
-      requestAnimationFrame(draw);
-    }
-  </script>
 </body>
+
 </html>

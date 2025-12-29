@@ -1,73 +1,71 @@
 /* ==================================================
-   COLOR PALETTE - Professional MathEdu System
-   "Sophisticated, Trustworthy, Clean"
+   COLOR PALETTE - Modern Minimal & Vivid
+   "Warm, Clean, Vibrant"
    ================================================== */
 
 :root {
     /* ==============================================
-     NEUTRALS (Refined Gray Scale)
-     Used for text, borders, backgrounds.
-     Avoids pure black for a softer, premium feel.
+     NEUTRALS (Warm & Charcoal)
      ============================================== */
-    --gray-0: #ffffff;
-    --gray-25: #fcfcfd;
-    /* Page Background */
-    --gray-50: #f8fafc;
-    /* Section Background */
-    --gray-100: #f1f5f9;
-    /* Element Background */
-    --gray-200: #e2e8f0;
-    /* Border - Light */
-    --gray-300: #cbd5e0;
-    /* Border - Heavy */
-    --gray-400: #94a3b8;
-    /* Icon / Muted Text */
-    --gray-500: #64748b;
-    /* Body Text - Light */
-    --gray-600: #475569;
-    /* Body Text - Main */
-    --gray-700: #334155;
-    /* Heading - Sub */
-    --gray-800: #1e293b;
-    /* Heading - Main */
-    --gray-900: #0f172a;
-    /* Absolute Black equivalent */
+    --white: #ffffff;
+    --off-white: #faf9f6;
+    /* Warm White Base */
+
+    --neutral-50: #f9fafb;
+    --neutral-100: #f3f4f6;
+    --neutral-200: #e5e7eb;
+    --neutral-300: #d1d5db;
+    --neutral-400: #9ca3af;
+    --neutral-500: #6b7280;
+    --neutral-600: #4b5563;
+    /* Body Text Secondary */
+    --neutral-700: #374151;
+    /* Body Text Primary */
+    --neutral-800: #1f2937;
+    /* Headings */
+    --neutral-900: #111827;
+    /* Dark Charcoal */
+    --neutral-950: #030712;
+    /* Almost Black */
 
     /* ==============================================
-     PRIMARY BRAND (Royal Indigo)
-     "Intellectual, Calm, Academic"
+     VIVID ACCENTS (Gradients Base)
      ============================================== */
-    --primary-50: #eff6ff;
-    --primary-100: #dbeafe;
-    --primary-200: #bfdbfe;
-    --primary-300: #93c5fd;
-    --primary-400: #60a5fa;
-    --primary-500: #3b82f6;
-    /* BRAND MAIN */
-    --primary-600: #2563eb;
-    /* Hover */
-    --primary-700: #1d4ed8;
-    /* Active */
-    --primary-800: #1e40af;
-    --primary-900: #1e3a8a;
+    --blue-vivid: #3b82f6;
+    --purple-vivid: #8b5cf6;
+    --pink-vivid: #ec4899;
+    --orange-vivid: #f97316;
+    --teal-vivid: #14b8a6;
+    --cyan-vivid: #06b6d4;
 
     /* ==============================================
-     ACCENT COLORS (Semantic)
-     Used sparingly for status, badges, or call-to-actions.
+     MODERN GRADIENTS
      ============================================== */
-    /* Success (Teal-Green) */
-    --success-bg: #f0fdf4;
-    --success-text: #15803d;
+    /* Brand / Primary */
+    --grad-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 
-    /* Warning (Amber) */
-    --warning-bg: #fffbeb;
-    --warning-text: #b45309;
+    /* Feature Accents */
+    --grad-blue: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%);
+    /* Soft Purple */
+    --grad-ocean: linear-gradient(120deg, #89f7fe 0%, #66a6ff 100%);
+    /* Blue */
+    --grad-sunset: linear-gradient(120deg, #f6d365 0%, #fda085 100%);
+    /* Orange */
+    --grad-mint: linear-gradient(120deg, #84fab0 0%, #8fd3f4 100%);
+    /* Green/Blue */
+    --grad-berry: linear-gradient(120deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%);
+    /* Pink */
 
-    /* Error (Rose) */
-    --error-bg: #fff1f2;
-    --error-text: #be123c;
+    /* Text Gradients (Background Clip) */
+    --grad-text-dark: linear-gradient(to right, #1f2937, #4b5563);
 
-    /* Info (Sky) */
-    --info-bg: #f0f9ff;
-    --info-text: #0369a1;
+    /* ==============================================
+     SEMANTIC OVERRIDES
+     ============================================== */
+    --color-brand: var(--blue-vivid);
+    --color-brand-grad: var(--grad-primary);
+
+    --color-success: #10b981;
+    --color-warning: #f59e0b;
+    --color-error: #ef4444;
 }

@@ -1,0 +1,176 @@
+/* ==================================================
+   REPORT UI COMPONENTS
+   (Markdown Editor, Gallery, Drawer, Print)
+   ================================================== */
+
+/* --- Markdown Editor --- */
+.editable-container {
+    position: relative;
+    width: 100%;
+}
+
+.markdown-preview {
+    min-height: 100px;
+    background: var(--neutral-50);
+    padding: 1rem;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-light);
+    transition: all 0.2s;
+}
+
+.editable-container .markdown-preview:hover {
+    border-color: var(--color-brand);
+    background: white;
+    cursor: text;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+.markdown-input {
+    width: 100%;
+    min-height: 150px;
+    padding: 1rem;
+    border: 1px solid var(--color-brand);
+    border-radius: var(--radius-md);
+    font-family: var(--font-mono);
+    line-height: 1.6;
+    display: none;
+    /* Hidden by default */
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+/* --- Gallery & Dropzone --- */
+.dropzone {
+    padding: 2rem;
+    border: 2px dashed var(--neutral-300);
+    border-radius: var(--radius-lg);
+    text-align: center;
+    color: var(--text-muted);
+    background: var(--neutral-50);
+    transition: all 0.2s;
+    cursor: pointer;
+}
+
+.dropzone:hover,
+.dropzone.drag {
+    border-color: var(--color-brand);
+    background: #eff6ff;
+    /* light blue */
+    color: var(--color-brand);
+}
+
+.gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+/* --- Drawer (Sidebar) --- */
+#drawer-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.3);
+    opacity: 0;
+    pointer-events: none;
+    transition: 0.2s;
+    z-index: 40;
+    backdrop-filter: blur(2px);
+}
+
+#drawer {
+    position: fixed;
+    top: 0;
+    right: 0;
+    height: 100vh;
+    width: 320px;
+    background: white;
+    transform: translateX(100%);
+    transition: transform 0.25s ease;
+    z-index: 50;
+    box-shadow: -5px 0 20px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+}
+
+#drawer.open {
+    transform: translateX(0);
+}
+
+#drawer-backdrop.open {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* --- Toggle Switch --- */
+.toggle {
+    appearance: none;
+    width: 40px;
+    height: 22px;
+    background: var(--neutral-200);
+    border-radius: 999px;
+    position: relative;
+    outline: none;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.toggle:checked {
+    background: var(--color-success);
+}
+
+.toggle:before {
+    content: '';
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    background: white;
+    border-radius: 50%;
+    top: 2px;
+    left: 2px;
+    transition: 0.2s;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.toggle:checked:before {
+    left: 20px;
+}
+
+/* --- Print Styles --- */
+@media print {
+
+    .print-hidden,
+    .m-back-btn,
+    #floatOpen,
+    #export-pdf,
+    #openControls {
+        display: none !important;
+    }
+
+    .m-card {
+        box-shadow: none;
+        border: 1px solid #ddd;
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+
+    body {
+        background: white;
+    }
+
+    #drawer,
+    #drawer-backdrop {
+        display: none;
+    }
+
+    .markdown-input {
+        display: none !important;
+    }
+
+    .markdown-preview {
+        display: block !important;
+        border: none;
+        padding: 0;
+        background: transparent;
+    }
+}

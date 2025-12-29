@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>2D 벡터 연산 심화 학습</title>
+
+    <link rel="stylesheet" href="../css/main.css" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+</head>
+
+<body>
+    <a href="index.html" class="m-back-btn" aria-label="Back">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+        </svg>
+    </a>
+
+    <div class="container pt-lg pb-lg">
+        <header class="modern-header">
+            <span class="m-badge" style="background:var(--grad-primary); color:white; margin-bottom:1rem;">Advanced
+                Guide</span>
+            <h1>2D Cross Product (perp·dot) 대안과 심화</h1>
+            <p>Gössner et al.의 2D 벡터 연산 이론</p>
+        </header>
+
+        <main class="m-grid" style="grid-template-columns: minmax(250px, 1fr) 3fr;">
+            <!-- Sidebar / TOC -->
+            <aside class="m-card h-max sticky top-6">
+                <h3 class="text-lg font-bold mb-4">목차</h3>
+                <nav class="flex flex-col gap-2 text-sm">
+                    <a href="#sec1" class="text-body hover:text-primary">1. 문제 설정</a>
+                    <a href="#sec2" class="text-body hover:text-primary">2. 핵심 개념</a>
+                    <a href="#sec3" class="text-body hover:text-primary">3. 주요 정리/동치</a>
+                    <a href="#sec4" class="text-body hover:text-primary">4. 오해와 실수</a>
+                    <a href="#sec6" class="text-body hover:text-primary">5. 증명 스케치</a>
+                </nav>
+            </aside>
+
+            <!-- Content -->
+            <div class="flex flex-col gap-6">
+
+                <!-- Sec 1 -->
+                <section id="sec1" class="m-card">
+                    <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
+                        <span class="m-badge">문제</span>
+                        왜 \( {}^{\perp}\!\cdot \) (perp·dot) 인가?
+                    </h2>
+                    <ul class="list-disc pl-5 space-y-2 text-body">
+                        <li>2D 문제에서 3D 외적 \( \mathbf a \times \mathbf b \)을 쓰면 \( k \)축(z축) 개념이 불필요하게 개입합니다.</li>
+                        <li><strong>90° 회전 연산자 \( E \)</strong>와 \( {}^{\perp}\!\cdot \) 연산을 사용하면 2D 평면 내에서 면적, 토크, 회전을
+                            완결성 있게 설명할 수 있습니다.</li>
+                        <li>정의: \( \mathbf a\,{}^{\perp}\!\cdot\,\mathbf b := a_x b_y - a_y b_x \)</li>
+                    </ul>
+                </section>
+
+                <!-- Sec 2 -->
+                <section id="sec2" class="m-card">
+                    <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
+                        <span class="m-badge">개념</span>
+                        핵심 개념 가이드
+                    </h2>
+                    <div class="m-grid" style="grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                        <div class="p-4 bg-gray-50 rounded-xl">
+                            <h3 class="font-bold text-sm mb-2 text-neutral-700">2D 직교 연산자 (perp operator)</h3>
+                            <div
+                                class="p-3 bg-white border border-gray-200 rounded-lg mb-2 text-sm italic border-l-4 border-l-blue-500">
+                                \( E = \begin{pmatrix} 0 & -1 \\ 1 & 0 \end{pmatrix}, \quad \tilde{\mathbf a} = E\mathbf
+                                a = (-a_y, a_x) \)
+                            </div>
+                            <p class="text-xs text-muted">반시계 방향으로 90도 회전시키는 연산자입니다. 복소수 \( i \)와 동일한 역할을 합니다.</p>
+                        </div>
+
+                        <div class="p-4 bg-gray-50 rounded-xl">
+                            <h3 class="font-bold text-sm mb-2 text-neutral-700">perp·dot (부호 있는 면적)</h3>
+                            <div
+                                class="p-3 bg-white border border-gray-200 rounded-lg mb-2 text-sm italic border-l-4 border-l-green-500">
+                                \( \mathbf a\,{}^{\perp}\!\cdot\,\mathbf b = \det(\mathbf a, \mathbf b) \)
+                            </div>
+                            <p class="text-xs text-muted">평행사변형의 부호가 있는 면적입니다. (반시계: 양수, 시계: 음수)</p>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 p-4 bg-blue-50 rounded-xl border border-blue-100">
+                        <h3 class="font-bold mb-2">회전 분해 (Rotational Decomposition)</h3>
+                        <p>임의의 벡터 \( \mathbf b \)를 \( \mathbf a \)와 \( \tilde{\mathbf a} \) 성분으로 분해:</p>
+                        $$ \mathbf b = \cos\varphi\,\mathbf a + \sin\varphi\,\tilde{\mathbf a} $$
+                        <p class="text-sm mt-2 text-muted">여기서 \( \sin\varphi = \dfrac{\mathbf
+                            a\,{}^{\perp}\!\cdot\,\mathbf b}{\|\mathbf a\|\,\|\mathbf b\|} \) 입니다.</p>
+                    </div>
+                </section>
+
+                <!-- Sec 3 -->
+                <section id="sec3" class="m-card">
+                    <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
+                        <span class="m-badge">정리</span>
+                        주요 정리 & 동치
+                    </h2>
+                    <div class="space-y-4">
+                        <div class="p-4 border rounded-xl">
+                            <strong>Shoelace Formula (다각형 면적)</strong>
+                            $$ A = \frac{1}{2} \sum_{i=1}^{n} \mathbf v_i\,{}^{\perp}\!\cdot\,\mathbf v_{i+1} $$
+                            <p class="text-sm text-muted mt-1">정점이 반시계 방향으로 나열되어 있을 때 양수 면적을 줍니다.</p>
+                        </div>
+                        <div class="p-4 border rounded-xl">
+                            <strong>Lie Algebra \(\mathfrak{so}(2)\)</strong>
+                            <p class="text-sm text-muted">2D 회전군 생성자 \( E \)는 \( [E, E] = 0 \)을 만족하며, 이는 복소평면 회전과 동형입니다.
+                            </p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Proof Sketch -->
+                <section id="sec6" class="m-card bg-neutral-900 text-white border-none">
+                    <h2 class="text-xl font-bold mb-4 text-white">증명 스케치</h2>
+                    <div class="space-y-4 text-sm text-gray-300">
+                        <details>
+                            <summary class="cursor-pointer font-bold text-white hover:text-primary">▶ (A) 회전 행렬의 지수 맵
+                            </summary>
+                            <p class="mt-2 pl-4 border-l border-gray-700">
+                                \( e^{\varphi E} = \sum \frac{(\varphi E)^n}{n!} \).<br>
+                                \( E^2 = -I \) 성질을 이용하면 테일러 급수가 \( (\cos\varphi)I + (\sin\varphi)E \)로 귀결됩니다.
+                            </p>
+                        </details>
+                        <details>
+                            <summary class="cursor-pointer font-bold text-white hover:text-primary">▶ (B) 토크의 스칼라화
+                            </summary>
+                            <p class="mt-2 pl-4 border-l border-gray-700">
+                                \( \tau = \|\mathbf r\| \|\mathbf F\| \sin\theta \).<br>
+                                이는 정확히 \( \mathbf r\,{}^{\perp}\!\cdot\,\mathbf F \)의 정의와 일치합니다.
+                            </p>
+                        </details>
+                    </div>
+                </section>
+
+            </div>
+        </main>
+
+        <footer class="mt-12 text-center text-muted text-sm">
+            Adapted from CrossProduct2DH. MathEdu Project 2025.
+        </footer>
+
+        <script>
+            document.addEventListener("DOMContentLoaded", () => {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        { left: "$$", right: "$$", display: true },
+                        { left: "$", right: "$", display: false },
+                        { left: "\\(", right: "\\)", display: false },
+                        { left: "\\[", right: "\\]", display: true }
+                    ],
+                    throwOnError: false
+                });
+            });
+        </script>
+    </div>
+</body>
+
+</html>
