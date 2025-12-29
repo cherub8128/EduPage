@@ -1,0 +1,149 @@
+/* ==================================================
+   Modern Minimal Design System
+   "Clean, Crisp, Content-First"
+   ================================================== */
+
+/* === Modern Card === */
+.m-card {
+    background: #ffffff;
+    border: 1px solid var(--slate-200);
+    border-radius: 16px;
+    padding: 24px;
+    transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    display: flex;
+    flex-direction: column;
+    text-decoration: none;
+    height: 100%;
+    position: relative;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.m-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px -10px rgba(0, 0, 0, 0.1);
+    border-color: var(--slate-300);
+}
+
+/* Icon Box */
+.m-card .icon-box {
+    width: 48px;
+    height: 48px;
+    background: var(--slate-50);
+    border: 1px solid var(--slate-100);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    margin-bottom: 16px;
+    transition: background 0.2s, color 0.2s;
+}
+
+.m-card:hover .icon-box {
+    background: var(--slate-100);
+    color: var(--slate-900);
+}
+
+/* Typography inside Card */
+.m-card h3 {
+    font-family: var(--font-sans);
+    /* Fredoka 제거, 깔끔한 고딕 */
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--slate-900);
+    /* 확실한 블랙 */
+    margin-bottom: 8px;
+    line-height: 1.3;
+}
+
+.m-card p {
+    font-size: 0.9375rem;
+    color: var(--slate-600);
+    /* 확실한 다크 그레이 */
+    line-height: 1.6;
+    margin-bottom: 24px;
+    flex-grow: 1;
+}
+
+/* Badge / Tag */
+.m-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    background: var(--slate-100);
+    color: var(--slate-600);
+    align-self: flex-start;
+    border: 1px solid transparent;
+}
+
+.m-card:hover .m-badge {
+    background: var(--slate-900);
+    color: white;
+}
+
+/* === Modern Header === */
+.modern-header {
+    text-align: left;
+    margin-bottom: 40px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--slate-200);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+}
+
+.modern-header h1 {
+    font-family: 'Fredoka', var(--font-sans);
+    /* 로고 느낌 유지 */
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--slate-900);
+    letter-spacing: -0.03em;
+    margin-bottom: 4px;
+}
+
+.modern-header p {
+    font-size: 1.125rem;
+    color: var(--slate-500);
+    font-weight: 500;
+}
+
+/* === Page Background === */
+body.minimal-theme {
+    background-color: #fcfcfc;
+    background-image:
+        radial-gradient(var(--slate-200) 1px, transparent 1px);
+    background-size: 24px 24px;
+}
+
+/* === Back Button Upgrade === */
+.btn-minimal-back {
+    position: fixed;
+    top: 24px;
+    right: 24px;
+    /* 우측 상단으로 이동하여 미니멀하게 */
+    left: auto;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: white;
+    border: 1px solid var(--slate-200);
+    color: var(--slate-500);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    z-index: 100;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.btn-minimal-back:hover {
+    background: var(--slate-900);
+    color: white;
+    border-color: var(--slate-900);
+    transform: rotate(-90deg);
+    /* 재미있는 인터랙션 */
+}

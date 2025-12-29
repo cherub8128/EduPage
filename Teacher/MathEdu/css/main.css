@@ -14,6 +14,7 @@
 @import './components/cards.css';
 @import './components/forms.css';
 @import './components/tabs.css';
+@import './components/modern.css';
 
 /* Layout */
 @import './layout/grid.css';
