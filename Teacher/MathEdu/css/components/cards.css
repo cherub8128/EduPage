@@ -96,10 +96,12 @@
     padding: 14px;
 }
 
-/* === Nintendo Style Card === */
+/* ==================================================
+   Nintendo Style Card (using CSS variables)
+   ================================================== */
 .n-card {
-    background: rgba(255, 255, 255, 0.9);
-    backdrop-filter: blur(10px);
+    background: var(--n-card-bg);
+    backdrop-filter: blur(12px);
     border-radius: var(--radius-xl);
     padding: var(--space-xl);
     box-shadow: var(--n-shadow-pop);
@@ -116,14 +118,14 @@
 .n-card:hover {
     transform: translateY(-8px) scale(1.02);
     box-shadow: var(--n-shadow-hover);
-    border-color: rgba(99, 179, 237, 0.3);
-    background: #ffffff;
+    border-color: var(--blue-200);
+    background: var(--card);
 }
 
 .n-card .n-icon {
     font-size: 3rem;
     margin-bottom: 20px;
-    background: #f7fafc;
+    background: var(--n-icon-bg);
     width: 80px;
     height: 80px;
     display: flex;
@@ -131,26 +133,30 @@
     justify-content: center;
     border-radius: 20px;
     transition: transform 0.3s ease;
+    border: 1px solid var(--n-icon-border);
 }
 
 .n-card:hover .n-icon {
     transform: rotate(10deg) scale(1.1);
-    background: #ebf8ff;
+    background: var(--n-icon-bg-hover);
+    border-color: var(--n-icon-border-hover);
 }
 
 .n-card h3 {
     font-size: 1.5rem;
-    font-weight: 600;
+    font-weight: 700;
     margin-bottom: 10px;
-    color: var(--text);
+    color: var(--n-text-title);
+    letter-spacing: -0.02em;
 }
 
 .n-card p {
     font-size: 1rem;
-    color: var(--muted);
+    color: var(--n-text-body);
     line-height: 1.6;
     margin-bottom: 20px;
     flex-grow: 1;
+    font-weight: 500;
 }
 
 .n-card .tag {
@@ -160,56 +166,74 @@
     font-size: 0.85rem;
     font-weight: 600;
     color: #fff;
-    background: #cbd5e0;
+    background: var(--n-tag-default);
     border: none;
     align-self: flex-start;
 }
 
-/* Color Variants */
+/* ==================================================
+   Color Variants (using CSS variables)
+   ================================================== */
 .n-card.color-blue .n-icon {
-    color: #3182ce;
+    color: var(--blue-600);
 }
 
 .n-card.color-blue .tag {
-    background: #4299e1;
+    background: var(--blue-500);
 }
 
 .n-card.color-purple .n-icon {
-    color: #805ad5;
+    color: var(--purple-600);
 }
 
 .n-card.color-purple .tag {
-    background: #9f7aea;
+    background: var(--purple-500);
 }
 
 .n-card.color-green .n-icon {
-    color: #38a169;
+    color: var(--green-600);
 }
 
 .n-card.color-green .tag {
-    background: #48bb78;
+    background: var(--green-500);
 }
 
 .n-card.color-red .n-icon {
-    color: #e53e3e;
+    color: var(--red-500);
 }
 
 .n-card.color-red .tag {
-    background: #f56565;
+    background: var(--red-400);
 }
 
 .n-card.color-orange .n-icon {
-    color: #dd6b20;
+    color: var(--orange-600);
 }
 
 .n-card.color-orange .tag {
-    background: #ed8936;
+    background: var(--orange-500);
 }
 
 .n-card.color-teal .n-icon {
-    color: #319795;
+    color: var(--teal-600);
 }
 
 .n-card.color-teal .tag {
-    background: #38b2ac;
+    background: var(--teal-500);
+}
+
+.n-card.color-cyan .n-icon {
+    color: var(--cyan-600);
+}
+
+.n-card.color-cyan .tag {
+    background: var(--cyan-500);
+}
+
+.n-card.color-amber .n-icon {
+    color: var(--amber-600);
+}
+
+.n-card.color-amber .tag {
+    background: var(--amber-500);
 }

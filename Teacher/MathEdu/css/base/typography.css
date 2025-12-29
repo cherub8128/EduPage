@@ -52,7 +52,7 @@ h6 {
     color: var(--text);
     letter-spacing: -1px;
     margin-bottom: 10px;
-    text-shadow: 2px 2px 0px #fff, 4px 4px 0px rgba(0, 0, 0, 0.05);
+    text-shadow: 2px 2px 0px var(--card), 4px 4px 0px rgba(0, 0, 0, 0.05);
 }
 
 .hero-subtitle {

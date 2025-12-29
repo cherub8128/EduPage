@@ -68,7 +68,7 @@
 
 /* Code */
 .prose code {
-    color: #be185d;
+    color: var(--pink-700);
     font-family: var(--font-mono);
     font-size: 0.875em;
     padding: 0.2em 0.4em;
