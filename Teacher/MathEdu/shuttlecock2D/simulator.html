@@ -4,133 +4,188 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>셔틀콕 2D 투사체 시뮬레이터</title>
+
+    <!-- Modern Design System -->
+    <link rel="stylesheet" href="../css/main.css" />
+
+    <!-- Libs -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+
     <style>
-      :root {
-        --primary: #2563eb;
-        --bg: #f8fafc;
-        --card: #ffffff;
-        --text: #1e293b;
-        --border: #e2e8f0;
+      .sim-container {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 2rem;
       }
-      body {
-        font-family: "Inter", -apple-system, sans-serif;
-        background: var(--bg);
-        color: var(--text);
-        margin: 0;
-        padding: 20px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-      }
-      .container {
-        max-width: 1000px;
-        width: 100%;
-      }
-      .card {
-        background: var(--card);
-        border: 1px solid var(--border);
-        border-radius: 12px;
-        padding: 24px;
-        box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
-        margin-bottom: 20px;
-      }
-      .controls {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-        gap: 16px;
-        margin-bottom: 20px;
-      }
-      .control-group label {
-        display: block;
-        font-size: 13px;
-        font-weight: 600;
-        margin-bottom: 4px;
-      }
-      input {
-        width: 100%;
-        padding: 8px;
-        border: 1px solid var(--border);
-        border-radius: 6px;
-        box-sizing: border-box;
-      }
-      button {
-        background: var(--primary);
-        color: white;
-        border: none;
-        padding: 10px 20px;
-        border-radius: 6px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: opacity 0.2s;
-      }
-      button:hover {
-        opacity: 0.9;
-      }
-      canvas {
-        width: 100%;
-        height: 400px;
+      .chart-box {
+        height: 450px;
         background: white;
-        border: 1px solid var(--border);
-        border-radius: 8px;
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--border-light);
+        padding: 1.5rem;
+        margin-top: 1.5rem;
+        box-shadow: var(--shadow-sm);
       }
-      .stats {
-        margin-top: 16px;
-        font-family: monospace;
-        font-size: 14px;
-        background: #1e293b;
-        color: #10b981;
-        padding: 12px;
-        border-radius: 6px;
-        white-space: pre-wrap;
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-top: 1.5rem;
       }
-      h1 {
-        font-size: 24px;
-        margin-bottom: 8px;
+      .stat-card {
+        background: var(--neutral-50);
+        padding: 1rem;
+        border-radius: var(--radius-md);
+        border: 1px solid var(--border-light);
+        text-align: center;
       }
-      p.desc {
-        color: #64748b;
-        margin-bottom: 24px;
+      .stat-label {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+      }
+      .stat-value {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--color-brand);
+        font-family: var(--font-mono);
       }
     </style>
   </head>
-  <body>
-    <div class="container">
-      <h1>셔틀콕 2차원 투사체 시뮬레이터</h1>
-      <p class="desc">
-        제곱 항력 모델 ($F_d = -kv|\vec{v}|$)을 이용한 수치해석 시뮬레이션
-      </p>
+  <body class="bg-neutral-50">
+    <div class="sim-container">
+      <a href="index.html" class="m-back-btn" style="top: 2rem; left: 2rem">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <line x1="19" y1="12" x2="5" y2="12"></line>
+          <polyline points="12 19 5 12 12 5"></polyline>
+        </svg>
+      </a>
 
-      <div class="card">
-        <div class="controls">
-          <div class="control-group">
-            <label>발사 속도 $v_0$ (m/s)</label>
-            <input type="number" id="v0" value="15" step="0.5" />
+      <header class="modern-header mb-8">
+        <div>
+          <span class="m-badge mb-2">Interactive Tool</span>
+          <h1>2D 투사체 시뮬레이터</h1>
+          <p>제곱 항력 모델 ($F_d = -kv|\vec{v}|$) 수치 시뮬레이션</p>
+        </div>
+      </header>
+
+      <div class="m-grid" style="grid-template-columns: 320px 1fr; gap: 2rem">
+        <!-- Controls -->
+        <div class="flex flex-col gap-4">
+          <div class="m-card">
+            <h3 class="text-sm font-bold mb-4 flex items-center gap-2">
+              <span>⚙️</span> 파라미터 설정
+            </h3>
+
+            <div class="space-y-4">
+              <div>
+                <label class="font-bold text-xs block mb-1"
+                  >발사 속도 $v_0$ (m/s)</label
+                >
+                <input
+                  type="number"
+                  id="v0"
+                  class="m-input"
+                  value="15"
+                  step="0.5"
+                />
+              </div>
+              <div>
+                <label class="font-bold text-xs block mb-1"
+                  >발사 각도 $\theta$ (deg)</label
+                >
+                <input
+                  type="number"
+                  id="angle"
+                  class="m-input"
+                  value="30"
+                  step="1"
+                />
+              </div>
+              <div>
+                <label class="font-bold text-xs block mb-1"
+                  >항력 계수 $k$</label
+                >
+                <input
+                  type="number"
+                  id="k"
+                  class="m-input"
+                  value="0.15"
+                  step="0.01"
+                />
+              </div>
+              <div>
+                <label class="font-bold text-xs block mb-1"
+                  >중력 $g$ (m/s²)</label
+                >
+                <input
+                  type="number"
+                  id="g"
+                  class="m-input"
+                  value="9.8"
+                  step="0.1"
+                />
+              </div>
+              <button
+                onclick="runSimulation()"
+                class="m-btn primary w-full justify-center mt-2"
+              >
+                시뮬레이션 가동
+              </button>
+            </div>
           </div>
-          <div class="control-group">
-            <label>발사 각도 $\theta$ (deg)</label>
-            <input type="number" id="angle" value="30" step="1" />
-          </div>
-          <div class="control-group">
-            <label>항력 계수 $k$</label>
-            <input type="number" id="k" value="0.15" step="0.01" />
-          </div>
-          <div class="control-group">
-            <label>중력 $g$ (m/s²)</label>
-            <input type="number" id="g" value="9.8" step="0.1" />
+
+          <div class="m-card bg-blue-50 border-blue-100">
+            <p class="text-xs text-blue-700 leading-relaxed text-wrap">
+              <strong>Tip:</strong> $k$값이 클수록 셔틀콕처럼 궤적이 비대칭으로
+              변하며 사거리가 크게 줄어듭니다.
+            </p>
           </div>
         </div>
-        <button onclick="runSimulation()">시뮬레이션 실행</button>
-      </div>
 
-      <div class="card">
-        <canvas id="simCanvas"></canvas>
-        <div id="stats" class="stats">결과가 여기 표시됩니다.</div>
+        <!-- Display -->
+        <div>
+          <div class="chart-box">
+            <canvas id="simCanvas"></canvas>
+          </div>
+
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-label">비행 시간 (Time)</div>
+              <div id="stat-time" class="stat-value">0.00s</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">수평 사거리 (Range)</div>
+              <div id="stat-range" class="stat-value">0.00m</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">최고 높이 (Height)</div>
+              <div id="stat-maxH" class="stat-value">0.00m</div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
       let chart;
+
       function runSimulation() {
         const v0 = parseFloat(document.getElementById("v0").value);
         const angleDeg = parseFloat(document.getElementById("angle").value);
@@ -150,7 +205,6 @@
         const vx0 = vx,
           vy0 = vy;
 
-        // Resistance simulation
         while (t < 20) {
           const v = Math.sqrt(vx * vx + vy * vy);
           const ax = -k * v * vx;
@@ -166,7 +220,6 @@
           traj.push({ x, y });
         }
 
-        // Ideal simulation
         for (let it = 0; it < 20; it += 0.05) {
           const ix = vx0 * it;
           const iy = vy0 * it - 0.5 * g * it * it;
@@ -177,15 +230,9 @@
         updateChart(traj, trajIdeal);
 
         const maxH = Math.max(...traj.map((p) => p.y));
-        const range = traj[traj.length - 1].x;
-        document.getElementById("stats").innerText =
-          `[시뮬레이션 결과]\n` +
-          `- 비행 시간: ${t.toFixed(3)} s\n` +
-          `- 수평 사거리: ${range.toFixed(3)} m\n` +
-          `- 최고 높이: ${maxH.toFixed(3)} m\n` +
-          `- 종단 속도 추정(v_T = sqrt(g/k)): ${Math.sqrt(g / k).toFixed(
-            2
-          )} m/s`;
+        document.getElementById("stat-time").innerText = t.toFixed(2) + "s";
+        document.getElementById("stat-range").innerText = x.toFixed(2) + "m";
+        document.getElementById("stat-maxH").innerText = maxH.toFixed(2) + "m";
       }
 
       function updateChart(res, ideal) {
@@ -197,17 +244,19 @@
           data: {
             datasets: [
               {
-                label: "공기저항 모델 (셔틀콕)",
+                label: "공기저항 모델",
                 data: res,
-                borderColor: "#2563eb",
+                borderColor: "#3b82f6",
+                borderWidth: 3,
                 showLine: true,
                 pointRadius: 0,
               },
               {
-                label: "무저항 모델 (포물선)",
+                label: "무저항 (이론값)",
                 data: ideal,
                 borderColor: "#94a3b8",
                 borderDash: [5, 5],
+                borderWidth: 2,
                 showLine: true,
                 pointRadius: 0,
               },
@@ -217,14 +266,32 @@
             responsive: true,
             maintainAspectRatio: false,
             scales: {
-              x: { title: { display: true, text: "거리 x (m)" } },
-              y: { title: { display: true, text: "높이 y (m)" }, min: 0 },
+              x: {
+                title: { display: true, text: "거리 x (m)" },
+                grid: { color: "#f1f5f9" },
+              },
+              y: {
+                title: { display: true, text: "높이 y (m)" },
+                min: 0,
+                grid: { color: "#f1f5f9" },
+              },
+            },
+            plugins: {
+              legend: { position: "top" },
             },
           },
         });
       }
 
-      window.onload = runSimulation;
+      window.onload = () => {
+        renderMathInElement(document.body, {
+          delimiters: [
+            { left: "$$", right: "$$", display: true },
+            { left: "$", right: "$", display: false },
+          ],
+        });
+        runSimulation();
+      };
     </script>
   </body>
 </html>

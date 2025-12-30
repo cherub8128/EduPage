@@ -1,285 +1,237 @@
-// --- Global Utilities & Markdown ---
-const converter = new showdown.Converter({ tables: true, strikethrough: true });
+import { ReportManager } from "../js/report-core.js";
 
-function updateMarkdownPreviews() {
-  document.querySelectorAll(".editable-container").forEach((container) => {
-    const textarea = container.querySelector("textarea");
-    const preview = container.querySelector(".markdown-preview");
-    if (textarea && preview) {
-      preview.innerHTML = converter.makeHtml(textarea.value);
-      renderMathInElement(preview, {
-        delimiters: [
-          { left: "$$", right: "$$", display: true },
-          { left: "$", right: "$", display: false },
-        ],
-        throwOnError: false,
-      });
+const report = new ReportManager("Shuttlecock2D-report-v1");
+
+// ============ State ============
+let trajChart = null;
+let velChart = null;
+let simChart = null;
+
+// ============ Math Utilities ============
+const MathUtils = {
+  finiteDiff2D: (t, x, y) => {
+    const n = t.length;
+    const vx = new Array(n).fill(NaN);
+    const vy = new Array(n).fill(NaN);
+    const ax = new Array(n).fill(NaN);
+    const ay = new Array(n).fill(NaN);
+
+    for (let i = 1; i < n - 1; i++) {
+      const dt = t[i + 1] - t[i - 1];
+      if (dt !== 0) {
+        vx[i] = (x[i + 1] - x[i - 1]) / dt;
+        vy[i] = (y[i + 1] - y[i - 1]) / dt;
+      }
     }
-  });
-}
+    for (let i = 2; i < n - 2; i++) {
+      const dt = t[i + 1] - t[i - 1];
+      if (dt !== 0) {
+        ax[i] = (vx[i + 1] - vx[i - 1]) / dt;
+        ay[i] = (vy[i + 1] - vy[i - 1]) / dt;
+      }
+    }
+    return { vx, vy, ax, ay };
+  },
 
-// --- Local Storage (Autosave) ---
-function saveToLocal() {
-  const data = {};
-  document.querySelectorAll(".savable").forEach((el) => {
-    data[el.id] = el.value;
-  });
-  localStorage.setItem("shuttlecock2D_report", JSON.stringify(data));
-  showAutosaveStatus();
-}
+  findColumn: (cols, candidates) => {
+    const lower = cols.map((c) => String(c).trim().toLowerCase());
+    for (const cand of candidates) {
+      const i = lower.findIndex((c) => c === cand || c.includes(cand));
+      if (i !== -1) return cols[i];
+    }
+    return null;
+  },
+};
 
-function loadFromLocal() {
-  const saved = localStorage.getItem("shuttlecock2D_report");
-  if (saved) {
-    const data = JSON.parse(saved);
-    Object.keys(data).forEach((id) => {
-      const el = document.getElementById(id);
-      if (el) el.value = data[id];
+// ============ Chart Helper ============
+const GraphUtils = {
+  createScatterChart: (canvasId, title) => {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) return null;
+    const ctx = canvas.getContext("2d");
+    return new Chart(ctx, {
+      type: "scatter",
+      data: { datasets: [] },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          title: {
+            display: !!title,
+            text: title,
+            font: { size: 14, weight: "bold" },
+          },
+          legend: { display: true },
+        },
+        scales: {
+          x: { type: "linear", position: "bottom", grid: { color: "#e5e7eb" } },
+          y: { grid: { color: "#e5e7eb" } },
+        },
+      },
     });
-  }
-  updateMarkdownPreviews();
+  },
+  updateChart: (chart, datasets) => {
+    if (!chart) return;
+    chart.data.datasets = datasets.map((ds, i) => ({
+      label: ds.label,
+      data: ds.data,
+      borderColor: ds.color || getColor(i),
+      backgroundColor: ds.color || getColor(i),
+      showLine: ds.showLine !== false,
+      borderWidth: ds.borderWidth || 2,
+      pointRadius: ds.pointRadius !== undefined ? ds.pointRadius : 2,
+      borderDash: ds.borderDash || [],
+    }));
+    chart.update();
+  },
+};
+
+function getColor(i) {
+  const colors = ["#3b82f6", "#ef4444", "#10b981", "#8b5cf6", "#f59e0b"];
+  return colors[i % colors.length];
 }
 
-function showAutosaveStatus() {
-  const status = document.getElementById("autosave-status");
-  const savedIcon = document.getElementById("autosave-icon-saved");
-  status.style.opacity = "1";
-  savedIcon.classList.remove("hidden");
-  setTimeout(() => {
-    status.style.opacity = "0";
-  }, 2000);
-}
-
-// --- Charts Setup ---
-let trajChart, velChart, simChart;
-
-function initCharts() {
-  const ctxTraj = document.getElementById("chartTraj").getContext("2d");
-  trajChart = new Chart(ctxTraj, {
-    type: "scatter",
-    data: { datasets: [] },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      scales: {
-        x: { title: { display: true, text: "x (m)" } },
-        y: { title: { display: true, text: "y (m)" } },
-      },
-    },
-  });
-
-  const ctxVel = document.getElementById("chartVel").getContext("2d");
-  velChart = new Chart(ctxVel, {
-    type: "line",
-    data: { datasets: [] },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      scales: {
-        x: { title: { display: true, text: "Time (s)" } },
-        y: { title: { display: true, text: "Velocity (m/s)" } },
-      },
-    },
-  });
-
-  const ctxSim = document.getElementById("simTrajChart").getContext("2d");
-  simChart = new Chart(ctxSim, {
-    type: "scatter",
-    data: { datasets: [] },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      scales: {
-        x: { title: { display: true, text: "x (m)" } },
-        y: { title: { display: true, text: "y (m)" }, min: 0 },
-      },
-    },
-  });
-}
-
-// --- Tracker CSV Parsing ---
-document.getElementById("csvFile").addEventListener("change", function (e) {
-  const file = e.target.files[0];
-  if (!file) return;
-
-  Papa.parse(file, {
-    header: true,
-    dynamicTyping: true,
-    complete: function (results) {
-      processTrackerData(results.data);
-    },
-  });
-});
-
-function processTrackerData(data) {
-  // Filter out invalid rows
-  const cleanData = data.filter(
-    (d) => d.t !== null && d.x !== null && d.y !== null
+// ============ Main Init ============
+document.addEventListener("DOMContentLoaded", () => {
+  report.init();
+  report.initGallery(
+    "gallery1",
+    "gallery1-input",
+    "gallery1-drop",
+    "gallery1-clear",
+    "gallery1-add"
   );
 
-  const trajPoints = cleanData.map((d) => ({ x: d.x, y: d.y }));
-  const velPointsX = cleanData.map((d) => ({ x: d.t, y: d.vx || 0 }));
-  const velPointsY = cleanData.map((d) => ({ x: d.t, y: d.vy || 0 }));
+  trajChart = GraphUtils.createScatterChart("chartTraj", "궤적 분석 (y vs x)");
+  velChart = GraphUtils.createScatterChart("chartVel", "속도 분석 (v vs t)");
+  simChart = GraphUtils.createScatterChart(
+    "simTrajChart",
+    "2D 수치 시뮬레이션 결과"
+  );
 
-  trajChart.data.datasets = [
-    {
-      label: "Measured Trajectory",
-      data: trajPoints,
-      borderColor: "rgba(54, 162, 235, 1)",
-      backgroundColor: "rgba(54, 162, 235, 0.5)",
-      showLine: true,
-    },
-  ];
-  trajChart.update();
-
-  velChart.data.datasets = [
-    {
-      label: "vx (m/s)",
-      data: velPointsX,
-      borderColor: "rgba(255, 99, 132, 1)",
-      fill: false,
-    },
-    {
-      label: "vy (m/s)",
-      data: velPointsY,
-      borderColor: "rgba(75, 192, 192, 1)",
-      fill: false,
-    },
-  ];
-  velChart.update();
-
-  // Simple Fit Result (Placeholder logic for student to see)
-  const v0x =
-    cleanData.length > 1
-      ? (cleanData[1].x - cleanData[0].x) / (cleanData[1].t - cleanData[0].t)
-      : 0;
-  const v0y =
-    cleanData.length > 1
-      ? (cleanData[1].y - cleanData[0].y) / (cleanData[1].t - cleanData[0].t)
-      : 0;
-  document.getElementById(
-    "fitResult"
-  ).innerHTML = `Initial Guess: v0x ≈ ${v0x.toFixed(2)}, v0y ≈ ${v0y.toFixed(
-    2
-  )}`;
-}
-
-// --- 2D Numerical Simulation (Euler Method) ---
-function runSimulation() {
-  const v0 = parseFloat(document.getElementById("simV0").value);
-  const angleDeg = parseFloat(document.getElementById("simAngle").value);
-  const g = parseFloat(document.getElementById("simG").value);
-  const k = parseFloat(document.getElementById("simK").value);
-
-  const angleRad = (angleDeg * Math.PI) / 180;
-  let vx = v0 * Math.cos(angleRad);
-  let vy = v0 * Math.sin(angleRad);
-  let x = 0;
-  let y = 0;
-  let t = 0;
-  const dt = 0.01;
-  const traj = [{ x: 0, y: 0 }];
-
-  // No resistance baseline
-  const trajNoRes = [];
-  const vx0 = vx;
-  const vy0 = vy;
-
-  while (t < 10) {
-    const v = Math.sqrt(vx * vx + vy * vy);
-
-    // Model: a = g - kv*v
-    const ax = -k * v * vx;
-    const ay = -g - k * v * vy;
-
-    vx += ax * dt;
-    vy += ay * dt;
-    x += vx * dt;
-    y += vy * dt;
-    t += dt;
-
-    if (y < 0) {
-      // Linear interpolation for more accurate landing
-      const fraction = (0 - (y - vy * dt)) / (vy * dt);
-      traj.push({ x: x - vx * dt * (1 - fraction), y: 0 });
-      break;
-    }
-    traj.push({ x, y });
-  }
-
-  // Parabolic baseline
-  for (let st = 0; st <= t + 1; st += 0.1) {
-    const px = vx0 * st;
-    const py = vy0 * st - 0.5 * g * st * st;
-    if (py < 0) break;
-    trajNoRes.push({ x: px, y: py });
-  }
-
-  simChart.data.datasets = [
-    {
-      label: `Simulation (k=${k})`,
-      data: traj,
-      borderColor: "rgba(255, 99, 132, 1)",
-      showLine: true,
-      pointRadius: 0,
-    },
-    {
-      label: "Ideal Parabola (k=0)",
-      data: trajNoRes,
-      borderColor: "rgba(200, 200, 200, 0.8)",
-      borderDash: [5, 5],
-      showLine: true,
-      pointRadius: 0,
-    },
-  ];
-  simChart.update();
-
-  const last = traj[traj.length - 1];
-  document.getElementById("simStats").innerText = `Flight Time: ${t.toFixed(
-    2
-  )}s\nRange: ${last.x.toFixed(2)}m\nMax Height: ${Math.max(
-    ...traj.map((p) => p.y)
-  ).toFixed(2)}m`;
-}
-
-// --- Initialization ---
-document.addEventListener("DOMContentLoaded", () => {
-  initCharts();
-  loadFromLocal();
-
-  document.querySelectorAll(".markdown-input").forEach((textarea) => {
-    textarea.addEventListener("input", () => {
-      updateMarkdownPreviews();
-      saveToLocal();
-    });
-  });
-
-  document.querySelectorAll(".savable").forEach((el) => {
-    el.addEventListener("change", saveToLocal);
-  });
-
-  document.getElementById("runSim").addEventListener("click", runSimulation);
-  document.getElementById("runFit").addEventListener("click", () => {
-    alert("CSV 데이터를 분석하여 모델 파라미터를 추정합니다. (구현 예시)");
-  });
-
-  document.getElementById("export-pdf").addEventListener("click", () => {
-    window.print();
-  });
-
-  // Gallery Logic
-  const galleryInput = document.getElementById("gallery1-input");
-  const gallery = document.getElementById("gallery1");
-  galleryInput.addEventListener("change", (e) => {
-    Array.from(e.target.files).forEach((file) => {
-      const reader = new FileReader();
-      reader.onload = (re) => {
-        const img = document.createElement("img");
-        img.src = re.target.result;
-        img.className = "gallery-img";
-        gallery.appendChild(img);
-      };
-      reader.readAsDataURL(file);
-    });
-  });
+  setupCSVAnalysis();
+  setupSimulation();
 });
+
+function setupCSVAnalysis() {
+  const runFit = document.getElementById("runFit");
+  if (!runFit) return;
+
+  runFit.addEventListener("click", () => {
+    const file = document.getElementById("csvFile")?.files?.[0];
+    if (!file) {
+      alert("CSV 파일을 선택하세요.");
+      return;
+    }
+
+    Papa.parse(file, {
+      header: true,
+      dynamicTyping: true,
+      skipEmptyLines: true,
+      complete: (res) => {
+        const rows = res.data;
+        const cols = Object.keys(rows[0]);
+        const tCol = MathUtils.findColumn(cols, ["t", "time"]);
+        const xCol = MathUtils.findColumn(cols, ["x", "posx"]);
+        const yCol = MathUtils.findColumn(cols, ["y", "posy"]);
+
+        if (!tCol || !xCol || !yCol) {
+          alert("t, x, y 열을 찾지 못했습니다.");
+          return;
+        }
+
+        const t = rows.map((r) => Number(r[tCol]));
+        const x = rows.map((r) => Number(r[xCol]));
+        const y = rows.map((r) => Number(r[yCol]));
+
+        const { vx, vy } = MathUtils.finiteDiff2D(t, x, y);
+
+        GraphUtils.updateChart(trajChart, [
+          {
+            label: "Measured 궤적",
+            data: t.map((val, i) => ({ x: x[i], y: y[i] })),
+          },
+        ]);
+
+        GraphUtils.updateChart(velChart, [
+          {
+            label: "vx (m/s)",
+            data: t.map((val, i) => ({ x: val, y: vx[i] })),
+          },
+          {
+            label: "vy (m/s)",
+            data: t.map((val, i) => ({ x: val, y: vy[i] })),
+          },
+        ]);
+
+        document.getElementById(
+          "fitResult"
+        ).innerText = `데이터 로드 완료: ${t.length} 프레임`;
+      },
+    });
+  });
+}
+
+function setupSimulation() {
+  const runSim = document.getElementById("runSim");
+  if (!runSim) return;
+
+  runSim.addEventListener("click", () => {
+    const v0 = parseFloat(document.getElementById("simV0").value);
+    const angleDeg = parseFloat(document.getElementById("simAngle").value);
+    const g = parseFloat(document.getElementById("simG").value);
+    const k = parseFloat(document.getElementById("simK").value);
+
+    const angleRad = (angleDeg * Math.PI) / 180;
+    let vx = v0 * Math.cos(angleRad);
+    let vy = v0 * Math.sin(angleRad);
+    let x = 0,
+      y = 0,
+      t = 0;
+    const dt = 0.01;
+
+    const trajRes = [{ x: 0, y: 0 }];
+    const trajIdeal = [];
+    const vx0 = vx,
+      vy0 = vy;
+
+    // Model: Resistance
+    while (t < 20) {
+      const v = Math.sqrt(vx * vx + vy * vy);
+      const ax = -k * v * vx;
+      const ay = -g - k * v * vy;
+
+      vx += ax * dt;
+      vy += ay * dt;
+      x += vx * dt;
+      y += vy * dt;
+      t += dt;
+
+      if (y < 0) break;
+      trajRes.push({ x, y });
+    }
+
+    // Model: Ideal
+    for (let it = 0; it < t + 1; it += 0.1) {
+      const ix = vx0 * it;
+      const iy = vy0 * it - 0.5 * g * it * it;
+      if (iy < 0 && it > 0) break;
+      trajIdeal.push({ x: ix, y: iy });
+    }
+
+    GraphUtils.updateChart(simChart, [
+      { label: "항력 모델 (k=" + k + ")", data: trajRes, pointRadius: 0 },
+      {
+        label: "이상적 포물선 (k=0)",
+        data: trajIdeal,
+        pointRadius: 0,
+        color: "#94a3b8",
+        borderDash: [5, 5],
+      },
+    ]);
+
+    document.getElementById("simStats").innerText = `결과: 사거리 ${x.toFixed(
+      2
+    )}m, 비행시간 ${t.toFixed(2)}s`;
+  });
+}
