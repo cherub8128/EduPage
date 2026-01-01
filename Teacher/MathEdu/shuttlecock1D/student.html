@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>셔틀콕 낙하 운동 - 학생 활동지</title>
+
+    <!-- Modern Design System -->
+    <link rel="stylesheet" href="../css/main.css" />
+    <link rel="stylesheet" href="../css/components/report.css" />
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap"
+        rel="stylesheet">
+
+    <!-- KaTeX -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+
+    <!-- Showdown for Markdown -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/showdown/2.1.0/showdown.min.js"></script>
+</head>
+
+<body>
+    <!-- Back Button -->
+    <a href="index.html" class="m-back-btn" aria-label="Back">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+        </svg>
+    </a>
+
+    <div class="container pt-lg pb-lg">
+        <header class="modern-header mb-8 flex justify-between items-end flex-wrap gap-4">
+            <div>
+                <div class="mb-2">
+                    <span class="m-badge" style="background: var(--green-600); color: white">학생 활동지</span>
+                </div>
+                <h1>셔틀콕 낙하 운동 - 실험 보고서</h1>
+                <p class="text-neutral-600">종단속도와 공기저항 모델 검증</p>
+            </div>
+            <div class="flex gap-2 print-hidden">
+                <button id="export-md" class="m-btn secondary small"><span>📝 MD</span></button>
+                <button id="export-html" class="m-btn secondary small"><span>🌐 HTML</span></button>
+                <button id="export-pdf" class="m-btn primary small"><span>📄 PDF</span></button>
+            </div>
+        </header>
+
+        <main class="flex flex-col gap-6">
+
+            <!-- 학생 정보 -->
+            <section class="m-card">
+                <div class="m-grid" style="grid-template-columns: 1fr 1fr 1fr; gap: 1rem;">
+                    <div>
+                        <label class="font-bold text-sm block mb-1">학번</label>
+                        <input id="student-id" class="m-input savable" placeholder="예: 30212">
+                    </div>
+                    <div>
+                        <label class="font-bold text-sm block mb-1">이름</label>
+                        <input id="student-name" class="m-input savable" placeholder="예: 홍길동">
+                    </div>
+                    <div>
+                        <label class="font-bold text-sm block mb-1">실험 일자</label>
+                        <input id="exp-date" type="date" class="m-input savable">
+                    </div>
+                </div>
+            </section>
+
+            <!-- 1. 연구 문제 -->
+            <section class="m-card worksheet-section">
+                <h2 class="text-xl font-bold mb-4">1. 연구 문제</h2>
+                <div class="bg-blue-50 p-4 rounded-lg mb-4 text-sm">
+                    <p class="mb-2"><strong>RQ1:</strong> 공기저항이 거의 없는 물체의 자유낙하에서 가속도는 정말 일정하게 $g$인가?</p>
+                    <p class="mb-2"><strong>RQ2:</strong> 셔틀콕의 수직 낙하에서 속도는 계속 증가하는가, 아니면 일정한 값(종단속도)에 가까워지는가?</p>
+                    <p><strong>RQ3:</strong> 셔틀콕의 저항력은 속도에 비례($F \propto v$)할까, 속도의 제곱에 비례($F \propto v^2$)할까?</p>
+                </div>
+                <label class="font-bold text-sm block mb-2">나의 가설</label>
+                <div class="editable-container">
+                    <textarea id="hypothesis" class="savable markdown-input"
+                        placeholder="예: 셔틀콕은 깃털 때문에 공기저항이 커서 종단속도에 빠르게 도달할 것이다..."></textarea>
+                    <div class="markdown-preview"></div>
+                </div>
+            </section>
+
+            <!-- 2. 변인 설정 -->
+            <section class="m-card worksheet-section">
+                <h2 class="text-xl font-bold mb-4">2. 변인 설정</h2>
+                <div class="m-grid" style="grid-template-columns: 1fr 1fr 1fr; gap: 1rem;">
+                    <div class="bg-green-50 p-4 rounded-lg">
+                        <strong class="text-sm block mb-2 text-green-700">조작변인 (독립변인)</strong>
+                        <textarea id="var-indep" class="savable m-input h-24 text-sm"
+                            placeholder="예: 물체 종류 (쇠구슬 vs 셔틀콕)"></textarea>
+                    </div>
+                    <div class="bg-blue-50 p-4 rounded-lg">
+                        <strong class="text-sm block mb-2 text-blue-700">종속변인</strong>
+                        <textarea id="var-dep" class="savable m-input h-24 text-sm"
+                            placeholder="예: y(t), v(t), a(t), 추정 g, 추정 v_T"></textarea>
+                    </div>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <strong class="text-sm block mb-2 text-gray-700">통제변인</strong>
+                        <textarea id="var-ctrl" class="savable m-input h-24 text-sm"
+                            placeholder="예: 낙하 높이, 초기속도=0, 촬영 프레임레이트..."></textarea>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 3. 실험 과정 기록 -->
+            <section class="m-card worksheet-section">
+                <h2 class="text-xl font-bold mb-4">3. 실험 과정 기록</h2>
+
+                <div class="mb-4">
+                    <strong class="block mb-2 text-sm text-neutral-600">실험 사진</strong>
+                    <div id="gallery1-drop" class="dropzone p-4">사진을 드래그하거나 클릭하여 추가</div>
+                    <div class="flex gap-2 mt-2">
+                        <input id="gallery1-input" type="file" accept="image/*" multiple class="hidden">
+                        <button id="gallery1-add" class="m-btn small secondary"
+                            onclick="document.getElementById('gallery1-input').click()">+ 추가</button>
+                        <button id="gallery1-clear" class="m-btn small secondary"
+                            onclick="if(confirm('삭제?')) document.getElementById('gallery1').innerHTML=''">초기화</button>
+                    </div>
+                    <div id="gallery1" class="gallery-grid"></div>
+                </div>
+
+                <label class="font-bold text-sm block mb-2">실험 절차 및 관찰 내용</label>
+                <div class="editable-container">
+                    <textarea id="procedure" class="savable markdown-input"
+                        placeholder="1. 카메라 설치...&#10;2. 줄자 배치...&#10;3. 셔틀콕 낙하 촬영..."></textarea>
+                    <div class="markdown-preview"></div>
+                </div>
+            </section>
+
+            <!-- 4. 데이터 분석 -->
+            <section class="m-card worksheet-section">
+                <h2 class="text-xl font-bold mb-4">4. 데이터 분석</h2>
+
+                <div class="m-grid" style="grid-template-columns: 1fr 1fr; gap: 2rem;">
+                    <div>
+                        <h3 class="font-bold text-sm mb-2">A. 자유낙하 분석</h3>
+                        <div class="bg-gray-50 p-3 rounded mb-2">
+                            <p class="text-xs mb-2">피팅: $y(t) = at^2 + bt + c$</p>
+                            <div class="m-grid" style="grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem;">
+                                <input id="fit-a" class="savable m-input text-center text-sm" placeholder="a">
+                                <input id="fit-b" class="savable m-input text-center text-sm" placeholder="b">
+                                <input id="fit-c" class="savable m-input text-center text-sm" placeholder="c">
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="text-sm">추정 $g = 2a =$</span>
+                            <input id="est-g" class="savable m-input w-20 text-center text-sm" placeholder="?"> m/s²
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-sm">오차율 =</span>
+                            <input id="err-g" class="savable m-input w-20 text-center text-sm" placeholder="?"> %
+                        </div>
+                    </div>
+
+                    <div>
+                        <h3 class="font-bold text-sm mb-2">B. 셔틀콕 분석</h3>
+                        <div class="bg-orange-50 p-3 rounded mb-2">
+                            <p class="text-xs mb-2">$a$ vs $v^2$ 선형 피팅: $a = \alpha + \beta v^2$</p>
+                            <div class="m-grid" style="grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+                                <input id="fit-alpha" class="savable m-input text-center text-sm" placeholder="α (절편)">
+                                <input id="fit-beta" class="savable m-input text-center text-sm" placeholder="β (기울기)">
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="text-sm">$k = -\beta =$</span>
+                            <input id="est-k" class="savable m-input w-20 text-center text-sm" placeholder="?">
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-sm">$v_T = \sqrt{\alpha / (-\beta)} =$</span>
+                            <input id="est-vt" class="savable m-input w-20 text-center text-sm" placeholder="?"> m/s
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    <strong class="block mb-2 text-sm text-neutral-600">그래프 캡처</strong>
+                    <div id="gallery2-drop" class="dropzone p-4">Tracker 그래프 스크린샷 추가</div>
+                    <div class="flex gap-2 mt-2">
+                        <input id="gallery2-input" type="file" accept="image/*" multiple class="hidden">
+                        <button id="gallery2-add" class="m-btn small secondary"
+                            onclick="document.getElementById('gallery2-input').click()">+ 추가</button>
+                        <button id="gallery2-clear" class="m-btn small secondary"
+                            onclick="if(confirm('삭제?')) document.getElementById('gallery2').innerHTML=''">초기화</button>
+                    </div>
+                    <div id="gallery2" class="gallery-grid"></div>
+                </div>
+            </section>
+
+            <!-- 5. 결론 및 오차 분석 -->
+            <section class="m-card worksheet-section">
+                <h2 class="text-xl font-bold mb-4">5. 결론 및 오차 분석</h2>
+
+                <label class="font-bold text-sm block mb-2">결론</label>
+                <div class="editable-container mb-4">
+                    <textarea id="conclusion" class="savable markdown-input"
+                        placeholder="실험 결과, 셔틀콕의 저항력은 속도의 제곱에 비례함을 확인하였다..."></textarea>
+                    <div class="markdown-preview"></div>
+                </div>
+
+                <label class="font-bold text-sm block mb-2">오차 원인</label>
+                <div class="editable-container mb-4">
+                    <textarea id="error-analysis" class="savable markdown-input"
+                        placeholder="- 스케일이 낙하 평면과 어긋남&#10;- 셔틀콕 자세 변화&#10;- Tracker 미분 잡음..."></textarea>
+                    <div class="markdown-preview"></div>
+                </div>
+
+                <label class="font-bold text-sm block mb-2">확장 탐구 아이디어</label>
+                <div class="editable-container">
+                    <textarea id="extension" class="savable markdown-input"
+                        placeholder="- 깃털 vs 나일론 셔틀콕 비교&#10;- 질량 변화 실험&#10;- 스핀 효과 연구..."></textarea>
+                    <div class="markdown-preview"></div>
+                </div>
+            </section>
+
+        </main>
+
+        <footer class="mt-8 text-center text-sm text-muted print-hidden">
+            <div id="autosave-status" class="flex items-center justify-center gap-2 opacity-0 transition-opacity">
+                <span id="autosave-icon-saving" class="hidden">💾 저장 중...</span>
+                <span id="autosave-icon-saved" class="text-green-600 hidden">✅ 저장됨</span>
+            </div>
+            <p class="mt-4">MathEdu Project 2025.</p>
+        </footer>
+    </div>
+
+    <script type="module">
+        import { ReportManager } from '../js/report-core.js';
+        const report = new ReportManager('shuttlecock1d-student-v1');
+        report.init();
+        report.initGallery('gallery1', 'gallery1-input', 'gallery1-drop', 'gallery1-clear', 'gallery1-add');
+        report.initGallery('gallery2', 'gallery2-input', 'gallery2-drop', 'gallery2-clear', 'gallery2-add');
+
+        // Render KaTeX
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.renderMathInElement) {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        { left: '$$', right: '$$', display: true },
+                        { left: '$', right: '$', display: false }
+                    ]
+                });
+            }
+        });
+    </script>
+</body>
+
+</html>

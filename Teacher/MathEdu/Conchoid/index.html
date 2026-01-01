@@ -174,23 +174,7 @@
         </footer>
     </div>
 
-    <script src="script.js"></script>
-    <script>
-        // Auto-render KaTeX
-        document.addEventListener("DOMContentLoaded", function () {
-            renderMathInElement(document.body, {
-                delimiters: [
-                    { left: "$$", right: "$$", display: true },
-                    { left: "$", right: "$", display: false }
-                ]
-            });
-        });
-    </script>
-    <script type="module">
-        import { ReportManager } from '../js/report-core.js';
-        const report = new ReportManager('conchoid_main');
-        report.init();
-    </script>
+    <script type="module" src="script.js"></script>
 </body>
 
 </html>

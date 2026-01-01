@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>셔틀콕 낙하 운동 - 이론 가이드</title>
+
+    <!-- Modern Design System -->
+    <link rel="stylesheet" href="../css/main.css" />
+    <link rel="stylesheet" href="../css/components/report.css" />
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap"
+        rel="stylesheet">
+
+    <!-- KaTeX -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+</head>
+
+<body>
+    <!-- Back Button -->
+    <a href="index.html" class="m-back-btn" aria-label="Back">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+        </svg>
+    </a>
+
+    <div class="container pt-lg pb-lg">
+        <header class="modern-header mb-8 flex justify-between items-end flex-wrap gap-4">
+            <div>
+                <div class="mb-2">
+                    <span class="m-badge" style="background: var(--blue-600); color: white">교사용 가이드</span>
+                </div>
+                <h1>셔틀콕 낙하 운동 - 이론</h1>
+                <p class="text-neutral-600">종단속도와 공기저항 모델링의 수학적 배경</p>
+            </div>
+            <div class="flex gap-2 print-hidden">
+                <button id="export-md" class="m-btn secondary small"><span>📝 MD</span></button>
+                <button id="export-html" class="m-btn secondary small"><span>🌐 HTML</span></button>
+                <button id="export-pdf" class="m-btn primary small"><span>📄 PDF</span></button>
+            </div>
+        </header>
+
+        <main class="flex flex-col gap-6">
+
+            <!-- 1. 수업 개요 -->
+            <section class="m-card">
+                <h2 class="text-xl font-bold mb-4">1. 수업 개요: 정–반–합 구조</h2>
+                <div class="m-grid" style="grid-template-columns: 1fr 1fr 1fr; gap: 1rem;">
+                    <div class="bg-green-50 p-4 rounded-lg border border-green-100">
+                        <strong class="text-green-700 block mb-2">정 (Thesis)</strong>
+                        <p class="text-sm">중력만 받는 물체 → $y(t)$는 이차함수(자유낙하), 궤적은 포물선</p>
+                    </div>
+                    <div class="bg-orange-50 p-4 rounded-lg border border-orange-100">
+                        <strong class="text-orange-700 block mb-2">반 (Antithesis)</strong>
+                        <p class="text-sm">셔틀콕 데이터는 포물선/자유낙하와 다르게 나온다 (속도가 포화)</p>
+                    </div>
+                    <div class="bg-blue-50 p-4 rounded-lg border border-blue-100">
+                        <strong class="text-blue-700 block mb-2">합 (Synthesis)</strong>
+                        <p class="text-sm">공기저항 $F \propto v^2$ 모델을 세우고 데이터로 검증</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 2. 자유낙하 유도 -->
+            <section class="m-card">
+                <h2 class="text-xl font-bold mb-4">2. 자유낙하: 고1 수준 유도</h2>
+
+                <div class="bg-gray-50 p-4 rounded-lg mb-4">
+                    <h3 class="font-bold text-sm mb-2">가정 (단순화)</h3>
+                    <ul class="text-sm list-disc pl-4 space-y-1">
+                        <li>공기저항 무시 (또는 매우 작다)</li>
+                        <li>중력가속도 $g$는 일정</li>
+                        <li>물체는 점 (크기 무시), 낙하는 수직 1차원</li>
+                    </ul>
+                </div>
+
+                <h3 class="font-bold mb-2">등차수열로부터 $y(t) = \frac{1}{2}gt^2$ 증명</h3>
+                <div class="prose text-sm text-neutral-700">
+                    <p>시간을 $\Delta t$씩 잘라 $t_N = N \Delta t$라 하면:</p>
+                    <ul>
+                        <li>가속도가 일정 $g$이면, 매 구간마다 속도 변화량은 $\Delta v = g \Delta t$</li>
+                        <li>따라서 구간 시작 속도는 등차수열: $v_n = n g \Delta t$</li>
+                    </ul>
+                    <p>$n$번째 구간에서의 이동거리:</p>
+                    $$ \Delta y_n = \frac{v_n + v_{n+1}}{2} \Delta t = \left(n + \frac{1}{2}\right) g (\Delta t)^2 $$
+                    <p>전체 이동거리를 합산하면:</p>
+                    $$ y_N = \sum_{n=0}^{N-1} \Delta y_n = \frac{g}{2} N^2 (\Delta t)^2 = \frac{1}{2} g t^2 $$
+                </div>
+
+                <div class="bg-blue-50 p-4 rounded-lg mt-4 text-center">
+                    <strong>일반해:</strong>
+                    $$ y(t) = y_0 + v_0 t + \frac{1}{2} g t^2, \quad v(t) = v_0 + gt $$
+                </div>
+            </section>
+
+            <!-- 3. 셔틀콕 모델링 -->
+            <section class="m-card">
+                <h2 class="text-xl font-bold mb-4">3. 셔틀콕: 제곱 저항 모델</h2>
+
+                <div class="bg-orange-50 p-4 rounded-lg mb-4">
+                    <h3 class="font-bold text-sm mb-2">가설 (논문 기반)</h3>
+                    <ul class="text-sm list-disc pl-4 space-y-1">
+                        <li>운동은 수직 1차원</li>
+                        <li>중력 $mg$는 일정 (아래 방향)</li>
+                        <li>저항력은 위 방향, 크기는 $v^2$에 비례: $F_{\text{res}} = k m v^2$</li>
+                    </ul>
+                </div>
+
+                <h3 class="font-bold mb-2">뉴턴 법칙 적용</h3>
+                <div class="text-center py-4 bg-gray-50 rounded-lg mb-4">
+                    $$ m a = m g - k m v^2 \quad \Rightarrow \quad a = g - k v^2 $$
+                </div>
+
+                <p class="text-sm text-neutral-600 mb-4">
+                    <strong>핵심 포인트:</strong> $a$와 $v^2$의 관계가 <strong>일차함수(직선)</strong>이므로,
+                    $a$ vs $v^2$ 산점도를 그리면 직선이 나와야 합니다.
+                </p>
+
+                <h3 class="font-bold mb-2">종단속도 (Terminal Velocity)</h3>
+                <p class="text-sm mb-2">속도가 더는 증가하지 않을 때 ($a = 0$):</p>
+                <div class="text-center py-4 bg-green-50 rounded-lg">
+                    $$ 0 = g - k v_T^2 \quad \Rightarrow \quad v_T = \sqrt{\frac{g}{k}} $$
+                </div>
+            </section>
+
+            <!-- 4. 심화: 미분방정식 해 -->
+            <section class="m-card">
+                <h2 class="text-xl font-bold mb-4">4. 심화: 미분방정식의 닫힌 해</h2>
+
+                <p class="text-sm text-neutral-600 mb-4">
+                    (수학 동아리/심화 보고서용) 제곱 저항 모델의 쌍곡선 함수 해:
+                </p>
+
+                <div class="bg-purple-50 p-4 rounded-lg">
+                    <p class="text-sm mb-2">미분방정식 $\frac{dv}{dt} = g - kv^2$를 풀면:</p>
+                    $$ v(t) = v_T \tanh\left(\frac{g}{v_T} t\right) $$
+                    $$ y(t) = \frac{v_T^2}{g} \ln \cosh\left(\frac{g}{v_T} t\right) $$
+                </div>
+
+                <div class="mt-4 p-3 bg-gray-100 rounded text-xs text-neutral-600">
+                    <strong>유도 과정:</strong> 변수분리 → $\int \frac{dv}{1 - v^2/v_T^2} = g \int dt$
+                    → $\text{artanh}(v/v_T) = \frac{g}{v_T} t$ → tanh 역함수
+                </div>
+            </section>
+
+            <!-- 5. 실험 가이드 -->
+            <section class="m-card">
+                <h2 class="text-xl font-bold mb-4">5. 실험 가이드</h2>
+
+                <div class="m-grid" style="grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                    <div>
+                        <h3 class="font-bold text-sm mb-2">준비물</h3>
+                        <ul class="text-sm list-disc pl-4 space-y-1">
+                            <li>스마트폰 (60fps 이상 권장) + 삼각대</li>
+                            <li>줄자/테이프 (벽에 세로로 붙이기)</li>
+                            <li>낙하 물체 (쇠구슬/작은 공), 셔틀콕</li>
+                            <li>바닥 충돌 안전장치 (매트)</li>
+                            <li>Tracker 소프트웨어</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-sm mb-2">안전 수칙</h3>
+                        <ul class="text-sm list-disc pl-4 space-y-1">
+                            <li>계단실 아래 공간 통제</li>
+                            <li>안전요원 (학생 1명) 배치</li>
+                            <li>낙하 지점 아래에 매트 설치</li>
+                            <li>촬영 시 초상권 주의</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="mt-4 p-3 bg-yellow-50 rounded text-sm border border-yellow-100">
+                    <strong>💡 Tracker 팁:</strong> 가속도는 미분이라 잡음이 큽니다. $y(t)$를 함수로 피팅한 뒤 미분하거나,
+                    구간 평균/이동평균으로 완화하는 방식이 안정적입니다.
+                </div>
+            </section>
+
+            <!-- 6. 평가 루브릭 -->
+            <section class="m-card">
+                <h2 class="text-xl font-bold mb-4">6. 평가 루브릭</h2>
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="border-b">
+                            <th class="text-left p-2">평가 항목</th>
+                            <th class="text-center p-2">비중</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="border-b">
+                            <td class="p-2">실험 설계 (변인 통제 명확성)</td>
+                            <td class="text-center p-2">25%</td>
+                        </tr>
+                        <tr class="border-b">
+                            <td class="p-2">데이터 처리 (그래프/피팅/추정값의 타당성)</td>
+                            <td class="text-center p-2">25%</td>
+                        </tr>
+                        <tr class="border-b">
+                            <td class="p-2">수학적 설명 (가설→식→해석의 논리성)</td>
+                            <td class="text-center p-2">25%</td>
+                        </tr>
+                        <tr>
+                            <td class="p-2">오차 분석/확장 아이디어 (비판적 사고+창의성)</td>
+                            <td class="text-center p-2">25%</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+        </main>
+
+        <footer class="mt-8 text-center text-sm text-muted">
+            <p>MathEdu Project 2025.</p>
+        </footer>
+    </div>
+
+    <script type="module">
+        import { ReportManager } from '../js/report-core.js';
+        const report = new ReportManager('shuttlecock1d-theory');
+        report.init();
+
+        // Render KaTeX
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.renderMathInElement) {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        { left: '$$', right: '$$', display: true },
+                        { left: '$', right: '$', display: false }
+                    ]
+                });
+            }
+        });
+    </script>
+</body>
+
+</html>

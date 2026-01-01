@@ -119,9 +119,9 @@ const GraphUtils = {
             borderColor: getColor(i),
             backgroundColor: getColor(i),
             showLine: ds.showLine !== false,
-            borderWidth: ds.borderWidth || 2,
-            pointRadius: ds.pointRadius !== undefined ? ds.pointRadius : 2,
-            pointHoverRadius: 5
+            borderWidth: ds.borderWidth || 1.5,
+            pointRadius: ds.pointRadius !== undefined ? ds.pointRadius : 1.5,
+            pointHoverRadius: 4
         }));
         chart.update();
     },
@@ -267,29 +267,47 @@ function setupSimulation() {
     const runSim = document.getElementById('runSim');
     if (!runSim) return;
 
+    // Setup falling animation canvas
+    const fallCanvas = document.getElementById('fallCanvas');
+    let fallCtx = null;
+    let animId = null;
+
+    if (fallCanvas) {
+        fallCtx = fallCanvas.getContext('2d');
+        const container = fallCanvas.parentElement;
+        const resizeObserver = new ResizeObserver(entries => {
+            for (const entry of entries) {
+                const dpr = window.devicePixelRatio || 1;
+                const rect = entry.contentRect;
+                fallCanvas.width = rect.width * dpr;
+                fallCanvas.height = rect.height * dpr;
+                fallCanvas.style.width = rect.width + 'px';
+                fallCanvas.style.height = rect.height + 'px';
+                fallCtx.setTransform(1, 0, 0, 1, 0, 0);
+                fallCtx.scale(dpr, dpr);
+            }
+        });
+        resizeObserver.observe(container);
+    }
+
     runSim.addEventListener('click', () => {
         const g = Number(document.getElementById('simG')?.value) || 9.8;
-        const H = 300;
         const dt = 0.01;
-
         const k = Number(document.getElementById('simK')?.value) || 0.22;
         const model = document.getElementById('simModel')?.value || 'none';
 
+        // Pre-compute trajectory
         let t = 0, y = 0, v = 0;
         const T = [], Y = [], V = [], A = [];
 
         while (t < 10) {
             let a = g;
-            if (model === 'quad') { // F_drag = -k * v^2
-                a = g - k * v * v;
-            } else if (model === 'linear') {
-                a = g - k * v;
-            }
+            if (model === 'quad') a = g - k * v * v;
+            else if (model === 'linear') a = g - k * v;
 
             v += a * dt;
             y += v * dt;
             t += dt;
-
             T.push(t); Y.push(y); V.push(v); A.push(a);
         }
 
@@ -301,5 +319,55 @@ function setupSimulation() {
 
         const simSummary = document.getElementById('simSummary');
         if (simSummary) simSummary.textContent = `Simulation End: t=${t.toFixed(1)}s, v=${v.toFixed(2)}m/s`;
+
+        // Animate falling shuttlecock
+        if (fallCanvas && fallCtx) {
+            if (animId) cancelAnimationFrame(animId);
+
+            const dpr = window.devicePixelRatio || 1;
+            const w = fallCanvas.width / dpr;
+            const h = fallCanvas.height / dpr;
+            const maxY = Math.max(...Y);
+            let frame = 0;
+            const speed = 5; // frames per step
+
+            const drawFrame = () => {
+                const idx = Math.min(Math.floor(frame / speed), Y.length - 1);
+                const posY = (Y[idx] / maxY) * (h - 40) + 20;
+
+                fallCtx.clearRect(0, 0, w, h);
+
+                // Draw shuttlecock (simple shape)
+                const cx = w / 2;
+                // Cork (head)
+                fallCtx.fillStyle = '#f8fafc';
+                fallCtx.beginPath();
+                fallCtx.arc(cx, posY, 8, 0, Math.PI * 2);
+                fallCtx.fill();
+                fallCtx.strokeStyle = '#64748b';
+                fallCtx.lineWidth = 1;
+                fallCtx.stroke();
+
+                // Feathers (cone)
+                fallCtx.fillStyle = '#e0f2fe';
+                fallCtx.beginPath();
+                fallCtx.moveTo(cx - 12, posY - 8);
+                fallCtx.lineTo(cx, posY - 30);
+                fallCtx.lineTo(cx + 12, posY - 8);
+                fallCtx.closePath();
+                fallCtx.fill();
+                fallCtx.stroke();
+
+                // Info text
+                fallCtx.fillStyle = '#0ea5e9';
+                fallCtx.font = '11px Inter, sans-serif';
+                fallCtx.textAlign = 'right';
+                fallCtx.fillText(`t=${T[idx].toFixed(2)}s  v=${V[idx].toFixed(2)}m/s`, w - 10, 18);
+
+                frame++;
+                if (idx < Y.length - 1) animId = requestAnimationFrame(drawFrame);
+            };
+            drawFrame();
+        }
     });
 }
