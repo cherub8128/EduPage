@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>3D 프린터 궤적 최적화 - NURBS와 미적분</title>
+
+    <!-- Modern Design System -->
+    <link rel="stylesheet" href="../css/main.css" />
+    <link rel="stylesheet" href="../css/components/report.css" />
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap"
+        rel="stylesheet" />
+
+    <!-- KaTeX -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+
+    <!-- Showdown -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/showdown/2.1.0/showdown.min.js"></script>
+</head>
+
+<body>
+    <!-- Back Button -->
+    <a href="../index.html" class="m-back-btn" aria-label="Back">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+        </svg>
+    </a>
+
+    <div class="container pt-lg pb-lg">
+        <header class="modern-header mb-8 flex justify-between items-end flex-wrap gap-4">
+            <div>
+                <div class="mb-2">
+                    <span class="m-badge"
+                        style="background: linear-gradient(135deg, #7c3aed, #2563eb); color: white">Math &
+                        Engineering</span>
+                </div>
+                <h1>3D 프린터 궤적 최적화</h1>
+                <p class="text-neutral-600">미분·적분으로 NURBS 곡선을 실시간 보간하기</p>
+            </div>
+            <div class="flex gap-2 print-hidden">
+                <button id="export-md" class="m-btn secondary small"><span>📝 MD</span></button>
+                <button id="export-html" class="m-btn secondary small"><span>🌐 HTML</span></button>
+                <button id="export-pdf" class="m-btn primary small"><span>📄 PDF</span></button>
+            </div>
+        </header>
+
+        <main class="flex flex-col gap-6">
+
+            <!-- Navigation Cards -->
+            <section class="m-grid" style="grid-template-columns: 1fr 1fr; gap: 1rem">
+                <a href="theory.html" class="block text-decoration-none transform transition hover:-translate-y-1">
+                    <div class="m-card h-full hover:shadow-lg transition-shadow border-l-4 border-purple-500 p-4">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="text-xl">📚</span>
+                            <h3 class="font-bold m-0 text-neutral-800">이론 가이드 (교사용)</h3>
+                        </div>
+                        <p class="text-xs text-neutral-600">현 오차, 테일러 보간, 저크 제한</p>
+                    </div>
+                </a>
+                <a href="student.html" class="block text-decoration-none transform transition hover:-translate-y-1">
+                    <div class="m-card h-full hover:shadow-lg transition-shadow border-l-4 border-green-500 p-4">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="text-xl">📝</span>
+                            <h3 class="font-bold m-0 text-neutral-800">학생 활동지</h3>
+                        </div>
+                        <p class="text-xs text-neutral-600">인간 CNC 실험, 수식 유도, 시뮬레이션</p>
+                    </div>
+                </a>
+            </section>
+
+            <!-- Student Info -->
+            <section class="m-card">
+                <div class="m-grid" style="grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div>
+                        <label class="font-bold text-sm block mb-1">학번</label>
+                        <input id="student-id" class="m-input savable" placeholder="예: 30212">
+                    </div>
+                    <div>
+                        <label class="font-bold text-sm block mb-1">이름</label>
+                        <input id="student-name" class="m-input savable" placeholder="예: 홍길동">
+                    </div>
+                </div>
+            </section>
+
+            <!-- 핵심 아이디어 -->
+            <section class="m-card bg-purple-50">
+                <p class="text-purple-900">
+                    <strong>핵심 한 줄:</strong> "곡선(연속)을 기계(이산)가 따라가려면, 오차·속도·가속도·저크를 <strong>수학적으로 제한</strong>해야 한다."
+                </p>
+            </section>
+
+            <!-- Step 1: 현상 관찰 -->
+            <section class="m-card">
+                <h2 class="text-xl font-bold mb-4">Step 1: 문제 인식</h2>
+
+                <div class="m-grid" style="grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                    <div class="bg-red-50 p-4 rounded-lg border border-red-100">
+                        <strong class="text-red-700 block mb-2">문제: 직선 근사 (G01)</strong>
+                        <ul class="text-sm list-disc pl-4 space-y-1">
+                            <li>곡선을 수천 개의 짧은 직선으로 쪼갬</li>
+                            <li>G-code 파일이 커져 전송/처리 병목</li>
+                            <li>꼭짓점마다 속도 방향 급변 → 진동</li>
+                        </ul>
+                    </div>
+                    <div class="bg-green-50 p-4 rounded-lg border border-green-100">
+                        <strong class="text-green-700 block mb-2">해결: NURBS 보간 (G06.2)</strong>
+                        <ul class="text-sm list-disc pl-4 space-y-1">
+                            <li>제어점 몇 개로 곡선 정의 (데이터 압축)</li>
+                            <li>제어기가 실시간으로 다음 점 계산</li>
+                            <li>매끄러운 속도 변화 가능</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Step 2: 수학적 모델링 -->
+            <section class="m-card">
+                <h2 class="text-xl font-bold mb-4">Step 2: 수학적 모델링</h2>
+
+                <h3 class="font-bold text-sm mb-2">현 오차 (Chord Error)</h3>
+                <p class="text-sm text-neutral-600 mb-2">곡률반경 $R$인 원호를 길이 $L$인 현으로 근사할 때:</p>
+                <div class="p-4 bg-gray-50 rounded-lg text-center mb-4">
+                    $$ e = R - \sqrt{R^2 - \left(\frac{L}{2}\right)^2} \approx \frac{L^2}{8R} $$
+                </div>
+
+                <h3 class="font-bold text-sm mb-2">속도와 매개변수 연결</h3>
+                <p class="text-sm text-neutral-600 mb-2">연쇄법칙으로 $u$ 업데이트:</p>
+                <div class="p-4 bg-blue-50 rounded-lg text-center">
+                    $$ \frac{du}{dt} = \frac{V_s}{|C'(u)|} $$
+                    <p class="text-xs text-blue-700 mt-2">$V_s$: 속력, $C'(u)$: 곡선의 도함수</p>
+                </div>
+            </section>
+
+            <!-- Step 3: 시뮬레이션 -->
+            <section class="m-card">
+                <h2 class="text-xl font-bold mb-4">Step 3: 시뮬레이션</h2>
+
+                <div class="m-grid" style="grid-template-columns: 1fr 2fr; gap: 2rem;">
+                    <div class="flex flex-col gap-4">
+                        <div class="p-4 bg-neutral-50 rounded-xl border">
+                            <strong class="text-xs uppercase text-neutral-500 mb-3 block">파라미터</strong>
+                            <div class="space-y-3">
+                                <div>
+                                    <label class="text-xs font-bold block mb-1">분할 수 $n$</label>
+                                    <input type="range" id="simN" class="w-full savable" min="4" max="64" value="12">
+                                    <span class="text-xs text-blue-600" id="dispN">12</span>
+                                </div>
+                                <div>
+                                    <label class="text-xs font-bold block mb-1">반지름 $R$ (cm)</label>
+                                    <input type="number" id="simR" class="m-input small savable" value="5" step="0.5">
+                                </div>
+                            </div>
+                        </div>
+                        <button id="runSim" class="m-btn primary w-full">시뮬레이션 실행</button>
+                        <div id="simResult" class="text-xs font-mono p-3 bg-slate-800 text-green-400 rounded-lg">
+                            Ready...
+                        </div>
+                    </div>
+                    <div class="chart-container" style="height: 300px; position: relative;">
+                        <canvas id="simCanvas"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Step 4: 결론 -->
+            <section class="m-card">
+                <h2 class="text-xl font-bold mb-4">Step 4: 탐구 결론</h2>
+                <div class="editable-container">
+                    <textarea id="conclusion" class="savable markdown-input"
+                        placeholder="### 결론&#10;1. 직선 근사의 한계&#10;2. 현 오차의 수학적 유도&#10;3. n과 오차의 관계 (1/n² 스케일링)&#10;4. NURBS의 장점"></textarea>
+                    <div class="markdown-preview"></div>
+                </div>
+            </section>
+
+        </main>
+
+        <footer class="mt-8 text-center text-sm text-muted print-hidden">
+            <div id="autosave-status" class="flex items-center justify-center gap-2 opacity-0 transition-opacity">
+                <span id="autosave-icon-saved" class="text-green-600 hidden">✅ 저장됨</span>
+            </div>
+            <p class="mt-4">MathEdu Project 2025.</p>
+        </footer>
+    </div>
+
+    <script type="module">
+        import { ReportManager } from '../js/report-core.js';
+        const report = new ReportManager('3dprint-project-v1');
+        report.init();
+
+        // Simple simulation
+        const canvas = document.getElementById('simCanvas');
+        const ctx = canvas.getContext('2d');
+        const simN = document.getElementById('simN');
+        const simR = document.getElementById('simR');
+        const dispN = document.getElementById('dispN');
+        const runSim = document.getElementById('runSim');
+        const simResult = document.getElementById('simResult');
+
+        simN.addEventListener('input', e => dispN.textContent = e.target.value);
+
+        function resizeCanvas() {
+            const rect = canvas.parentElement.getBoundingClientRect();
+            const dpr = window.devicePixelRatio || 1;
+            canvas.width = rect.width * dpr;
+            canvas.height = rect.height * dpr;
+            canvas.style.width = rect.width + 'px';
+            canvas.style.height = rect.height + 'px';
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
+            ctx.scale(dpr, dpr);
+        }
+
+        function drawSim() {
+            resizeCanvas();
+            const w = canvas.width / (window.devicePixelRatio || 1);
+            const h = canvas.height / (window.devicePixelRatio || 1);
+            const cx = w / 2, cy = h / 2;
+            const n = parseInt(simN.value);
+            const R = parseFloat(simR.value) * 20; // Scale
+
+            ctx.clearRect(0, 0, w, h);
+
+            // Draw circle
+            ctx.strokeStyle = '#0ea5e9';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(cx, cy, R, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // Draw polygon
+            ctx.strokeStyle = '#ef4444';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            for (let i = 0; i <= n; i++) {
+                const angle = (i / n) * Math.PI * 2;
+                const x = cx + R * Math.cos(angle);
+                const y = cy + R * Math.sin(angle);
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+
+            // Draw vertices
+            ctx.fillStyle = '#ef4444';
+            for (let i = 0; i < n; i++) {
+                const angle = (i / n) * Math.PI * 2;
+                const x = cx + R * Math.cos(angle);
+                const y = cy + R * Math.sin(angle);
+                ctx.beginPath();
+                ctx.arc(x, y, 3, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            // Calculate max chord error
+            const L = 2 * R * Math.sin(Math.PI / n);
+            const e = (L * L) / (8 * R);
+
+            // Draw chord error
+            ctx.strokeStyle = '#22c55e';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([4, 4]);
+            ctx.beginPath();
+            ctx.moveTo(cx + R, cy);
+            ctx.lineTo(cx + R * Math.cos(Math.PI / n), cy - R * Math.sin(Math.PI / n));
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            simResult.textContent = `n=${n}, L=${(L / 20).toFixed(3)}cm, e≈${(e / 20).toFixed(4)}cm\ne = L²/(8R) = ${((L * L) / (8 * R) / 20).toFixed(4)}cm`;
+        }
+
+        runSim.addEventListener('click', drawSim);
+        window.addEventListener('resize', drawSim);
+        drawSim();
+    </script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            renderMathInElement(document.body, {
+                delimiters: [
+                    { left: "$$", right: "$$", display: true },
+                    { left: "$", right: "$", display: false }
+                ]
+            });
+        });
+    </script>
+</body>
+
+</html>

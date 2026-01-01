@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>3D 프린터 궤적 최적화 - 학생 활동지</title>
+
+    <!-- Modern Design System -->
+    <link rel="stylesheet" href="../css/main.css" />
+    <link rel="stylesheet" href="../css/components/report.css" />
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap"
+        rel="stylesheet" />
+
+    <!-- KaTeX -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+
+    <!-- Showdown -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/showdown/2.1.0/showdown.min.js"></script>
+</head>
+
+<body>
+    <!-- Back Button -->
+    <a href="index.html" class="m-back-btn" aria-label="Back">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+        </svg>
+    </a>
+
+    <div class="container pt-lg pb-lg">
+        <header class="modern-header mb-8 flex justify-between items-end flex-wrap gap-4">
+            <div>
+                <div class="mb-2">
+                    <span class="m-badge" style="background: var(--green-600, #16a34a); color: white">학생 활동지</span>
+                </div>
+                <h1>3D 프린터 궤적 최적화</h1>
+                <p class="text-neutral-600">미분과 적분으로 NURBS 보간 이해하기</p>
+            </div>
+            <div class="flex gap-2 print-hidden">
+                <button id="export-md" class="m-btn secondary small"><span>📝 MD</span></button>
+                <button id="export-html" class="m-btn secondary small"><span>🌐 HTML</span></button>
+                <button id="export-pdf" class="m-btn primary small"><span>📄 PDF</span></button>
+            </div>
+        </header>
+
+        <main class="flex flex-col gap-6">
+
+            <!-- 학생 정보 -->
+            <section class="m-card">
+                <div class="m-grid" style="grid-template-columns: 1fr 1fr 1fr; gap: 1rem;">
+                    <div>
+                        <label class="font-bold text-sm block mb-1">학번</label>
+                        <input id="student-id" class="m-input savable" placeholder="예: 30212">
+                    </div>
+                    <div>
+                        <label class="font-bold text-sm block mb-1">이름</label>
+                        <input id="student-name" class="m-input savable" placeholder="예: 홍길동">
+                    </div>
+                    <div>
+                        <label class="font-bold text-sm block mb-1">역할</label>
+                        <select id="role" class="m-input savable">
+                            <option>실험/기록</option>
+                            <option>기하·증명</option>
+                            <option>GeoGebra</option>
+                            <option>Python</option>
+                            <option>발표/정리</option>
+                        </select>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 1차시: 실험 & 관찰 -->
+            <section class="m-card worksheet-section">
+                <h2 class="text-xl font-bold mb-4">1차시: 인간 CNC 실험</h2>
+
+                <div class="bg-blue-50 p-4 rounded-lg mb-4 text-sm">
+                    <strong>미션:</strong> 반지름 $R = 5$ cm 원을 "직선만"으로 그린다.
+                    <ul class="list-disc pl-4 mt-2 space-y-1">
+                        <li>Case A: 6개 점 → 정육각형</li>
+                        <li>Case B: 36개 점 → 정36각형</li>
+                    </ul>
+                    <p class="mt-2 text-blue-700">규칙: 일정한 속도로, 꼭짓점에서 멈추지 말고 그릴 것.</p>
+                </div>
+
+                <div class="m-grid" style="grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                    <div>
+                        <label class="font-bold text-sm block mb-2">기록 1: 그리기 시간</label>
+                        <div class="space-y-2">
+                            <div class="flex items-center gap-2">
+                                <span class="text-sm">Case A:</span>
+                                <input id="time-a" class="m-input w-20 savable" placeholder="s">
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-sm">Case B:</span>
+                                <input id="time-b" class="m-input w-20 savable" placeholder="s">
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="font-bold text-sm block mb-2">기록 2: 튐/진동 관찰</label>
+                        <p class="text-sm mb-2">꼭짓점에서 손이 튀는 느낌이 더 큰 쪽:</p>
+                        <div class="flex gap-4 text-sm">
+                            <label><input type="radio" name="jerk" value="A" class="mr-1 savable"> Case A</label>
+                            <label><input type="radio" name="jerk" value="B" class="mr-1 savable"> Case B</label>
+                            <label><input type="radio" name="jerk" value="same" class="mr-1 savable"> 비슷</label>
+                        </div>
+                    </div>
+                </div>
+
+                <label class="font-bold text-sm block mb-2 mt-4">토의: 왜 점이 많아지면 더 힘들어지는가?</label>
+                <div class="editable-container">
+                    <textarea id="discuss1" class="savable markdown-input"
+                        placeholder="명령 개수 증가, 처리/전송 부담, 방향 급변..."></textarea>
+                    <div class="markdown-preview"></div>
+                </div>
+            </section>
+
+            <!-- 2차시: 시뮬레이션 -->
+            <section class="m-card worksheet-section">
+                <h2 class="text-xl font-bold mb-4">2차시: 오차 측정 (GeoGebra)</h2>
+
+                <p class="text-sm mb-4">반지름 4인 원을 그리고, 점 $n$개를 찍어 다각형 생성. 최대 현 오차를 측정.</p>
+
+                <table class="w-full text-sm mb-4">
+                    <thead>
+                        <tr class="border-b bg-gray-50">
+                            <th class="p-2">$n$ (분할 수)</th>
+                            <th class="p-2">6</th>
+                            <th class="p-2">12</th>
+                            <th class="p-2">24</th>
+                            <th class="p-2">48</th>
+                            <th class="p-2">96</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="p-2 font-bold">최대 오차 $e_n$</td>
+                            <td class="p-2"><input id="e6" class="savable m-input w-full text-center" placeholder="">
+                            </td>
+                            <td class="p-2"><input id="e12" class="savable m-input w-full text-center" placeholder="">
+                            </td>
+                            <td class="p-2"><input id="e24" class="savable m-input w-full text-center" placeholder="">
+                            </td>
+                            <td class="p-2"><input id="e48" class="savable m-input w-full text-center" placeholder="">
+                            </td>
+                            <td class="p-2"><input id="e96" class="savable m-input w-full text-center" placeholder="">
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <label class="font-bold text-sm block mb-2">질문: $n$을 2배 늘리면 $e_n$은?</label>
+                <div class="flex gap-4 text-sm mb-4">
+                    <label><input type="radio" name="scale" value="1/2" class="mr-1 savable"> 1/2</label>
+                    <label><input type="radio" name="scale" value="1/4" class="mr-1 savable"> 1/4</label>
+                    <label><input type="radio" name="scale" value="1/8" class="mr-1 savable"> 1/8</label>
+                </div>
+                <div class="editable-container">
+                    <textarea id="scale-reason" class="savable markdown-input" placeholder="근거: ..."></textarea>
+                    <div class="markdown-preview"></div>
+                </div>
+            </section>
+
+            <!-- 3차시: 수식화 1 -->
+            <section class="m-card worksheet-section">
+                <h2 class="text-xl font-bold mb-4">3차시: 현 오차 증명</h2>
+
+                <div class="bg-gray-50 p-4 rounded-lg mb-4">
+                    <p class="text-sm mb-2"><strong>상황:</strong> 곡률반경 $R$인 원호를 길이 $L$인 현으로 근사</p>
+                    <p class="text-sm">현의 중점에서 원호까지 최대 거리 = $e$</p>
+                </div>
+
+                <h3 class="font-bold text-sm mb-2">1) 정확식 유도</h3>
+                <p class="text-sm mb-2">직각삼각형에서 $d = \sqrt{R^2 - (L/2)^2}$이므로:</p>
+                <div class="flex items-center gap-2 mb-4">
+                    <span class="text-sm">$e = R - d =$</span>
+                    <input id="exact-e" class="savable m-input flex-1" placeholder="식 작성...">
+                </div>
+
+                <h3 class="font-bold text-sm mb-2">2) 근사식 유도</h3>
+                <p class="text-sm mb-2">$\sqrt{1-x} \approx 1 - \frac{x}{2}$ (단, $x \ll 1$)를 사용하여:</p>
+                <div class="flex items-center gap-2 mb-4">
+                    <span class="text-sm">$e \approx$</span>
+                    <input id="approx-e" class="savable m-input flex-1" placeholder="L^2 / ...">
+                </div>
+
+                <h3 class="font-bold text-sm mb-2">3) 공학 변수 (한 보간 주기 $T$, 속력 $V_s$)</h3>
+                <div class="p-3 bg-purple-50 rounded text-center">
+                    $$ e \approx \frac{(V_s T)^2}{8R} $$
+                </div>
+            </section>
+
+            <!-- 4차시: 수식화 2 -->
+            <section class="m-card worksheet-section">
+                <h2 class="text-xl font-bold mb-4">4차시: 실시간 보간 & 속도 제한</h2>
+
+                <h3 class="font-bold text-sm mb-2">연쇄법칙으로 $\frac{du}{dt}$ 유도</h3>
+                <p class="text-sm mb-2">$V_s = \frac{ds}{dt}$, $\frac{ds}{du} = |C'(u)|$를 이용:</p>
+                <div class="flex items-center gap-2 mb-4">
+                    <span class="text-sm">$\frac{du}{dt} =$</span>
+                    <input id="dudt" class="savable m-input flex-1" placeholder="V_s / ...">
+                </div>
+
+                <h3 class="font-bold text-sm mb-2">속도 제한식</h3>
+                <p class="text-sm mb-2">$e \le e_{max}$이면:</p>
+                <div class="p-3 bg-orange-50 rounded text-center mb-4">
+                    $$ V_s \le \frac{1}{T} \sqrt{8 \rho \cdot e_{max}} $$
+                </div>
+
+                <label class="font-bold text-sm block mb-2">질문: 급커브($\rho$ 작음)에서 속도를 줄여야 하는 이유</label>
+                <div class="editable-container">
+                    <textarea id="speed-reason" class="savable markdown-input"
+                        placeholder="ρ가 작아지면 속도 상한이 ..."></textarea>
+                    <div class="markdown-preview"></div>
+                </div>
+            </section>
+
+            <!-- 결론 -->
+            <section class="m-card worksheet-section">
+                <h2 class="text-xl font-bold mb-4">탐구 결론</h2>
+                <div class="editable-container">
+                    <textarea id="conclusion" class="savable markdown-input"
+                        placeholder="### 결론&#10;1. 직선 근사(G01)의 한계&#10;2. NURBS의 장점&#10;3. 현 오차의 $1/n^2$ 스케일링&#10;4. 속도 제한의 수학적 근거"></textarea>
+                    <div class="markdown-preview"></div>
+                </div>
+            </section>
+
+            <!-- 확장 질문 -->
+            <section class="m-card">
+                <h2 class="text-xl font-bold mb-4">확장 질문 (탐구용)</h2>
+                <ul class="text-sm list-disc pl-4 space-y-2">
+                    <li>$e_{max}$를 절반으로 줄이면 가공시간은 얼마나 늘어날까?</li>
+                    <li>"곡률 기반 감속"과 "저크 기반 감속"은 어떤 관계가 있을까?</li>
+                    <li>1차 vs 2차 테일러 보간의 정밀도 차이는?</li>
+                </ul>
+            </section>
+
+        </main>
+
+        <footer class="mt-8 text-center text-sm text-muted print-hidden">
+            <div id="autosave-status" class="flex items-center justify-center gap-2 opacity-0 transition-opacity">
+                <span id="autosave-icon-saving" class="hidden">💾 저장 중...</span>
+                <span id="autosave-icon-saved" class="text-green-600 hidden">✅ 저장됨</span>
+            </div>
+            <p class="mt-4">MathEdu Project 2025.</p>
+        </footer>
+    </div>
+
+    <script type="module">
+        import { ReportManager } from '../js/report-core.js';
+        const report = new ReportManager('3dprint-student-v1');
+        report.init();
+    </script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            renderMathInElement(document.body, {
+                delimiters: [
+                    { left: "$$", right: "$$", display: true },
+                    { left: "$", right: "$", display: false }
+                ]
+            });
+        });
+    </script>
+</body>
+
+</html>

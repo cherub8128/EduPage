@@ -15,39 +15,11 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap"
         rel="stylesheet" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/naen-nae/d2coding/d2coding-subset.css" />
 
-    <!-- Libraries -->
-    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <!-- KaTeX -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
-
-    <style>
-        .prose h3 {
-            margin-top: 1.5rem;
-            margin-bottom: 0.75rem;
-            color: #1e293b;
-            font-weight: 700;
-        }
-
-        .prose ul {
-            list-style-type: disc;
-            padding-left: 1.5rem;
-            margin-bottom: 1rem;
-        }
-
-        .prose li {
-            margin-bottom: 0.25rem;
-        }
-
-        .math-block {
-            background: #f8fafc;
-            padding: 1rem;
-            border-radius: 8px;
-            margin: 1rem 0;
-            overflow-x: auto;
-        }
-    </style>
 </head>
 
 <body>
@@ -61,118 +33,128 @@
     </a>
 
     <div class="container pt-lg pb-lg">
-        <header class="modern-header mb-8">
-            <div class="mb-2">
-                <span class="m-badge" style="background: var(--blue-600); color: white">Teacher Guide</span>
+        <header class="modern-header mb-8 flex justify-between items-end flex-wrap gap-4">
+            <div>
+                <div class="mb-2">
+                    <span class="m-badge" style="background: var(--amber-600, #d97706); color: white">교사용 가이드</span>
+                </div>
+                <h1 class="text-3xl font-bold mb-2">커피 얼룩 (Coffee Ring Effect)</h1>
+                <p class="text-neutral-600">실험 → 관찰 → 추상화 → 시뮬레이션 → 검증 → 수식화</p>
             </div>
-            <h1 class="text-3xl font-bold mb-2">커피 얼룩 (Coffee Ring Effect) 수업 지도안</h1>
-            <p class="text-neutral-600">
-                실험 → 관찰 → 추상화 → 시뮬레이션 → 검증 → 수식화 → 확장질문
-            </p>
-            <div class="mt-4 p-4 bg-amber-50 border border-amber-200 rounded text-amber-900 text-sm">
-                <strong>핵심 요약:</strong> 접촉선(Contect Line)이 고정(Pinning)된 액적은 가장자리 증발이 더 커서, 그 손실을 메우려는
-                "바깥쪽 모세관 유동"이 생기고, 입자가 가장자리로 운반되어 링을 만듭니다.
+            <div class="flex gap-2 print-hidden">
+                <button id="export-md" class="m-btn secondary small"><span>📝 MD</span></button>
+                <button id="export-html" class="m-btn secondary small"><span>🌐 HTML</span></button>
+                <button id="export-pdf" class="m-btn primary small"><span>📄 PDF</span></button>
             </div>
         </header>
 
-        <main class="m-card prose max-w-none text-neutral-800">
+        <main class="flex flex-col gap-6">
 
-            <h3>0. 수업 목표 (통계물리 + 수학 연결)</h3>
-            <ul>
-                <li><strong>통계물리:</strong> 비평형 과정의 물질 수송(이류-확산)이 거시적 패턴을 만듦을 이해. (핀닝 + 보존법칙)</li>
-                <li><strong>수학:</strong> 미적분을 통한 스케일링 법칙 유도 ($M(t) \sim t^{\frac{2}{1+\lambda}}$) 및 로그-로그 회귀 분석.</li>
-            </ul>
+            <!-- 핵심 요약 -->
+            <section class="m-card bg-amber-50 border-amber-200">
+                <p class="text-amber-900">
+                    <strong>핵심 요약:</strong> 접촉선(Contact Line)이 고정(Pinning)된 액적은 가장자리 증발이 더 커서,
+                    "바깥쪽 모세관 유동"이 생기고 입자가 가장자리로 운반되어 링을 만듭니다.
+                </p>
+            </section>
 
-            <hr class="my-6 border-neutral-200">
+            <!-- 수업 목표 -->
+            <section class="m-card">
+                <h2 class="text-xl font-bold mb-4">0. 수업 목표</h2>
+                <ul class="list-disc pl-5 space-y-1 text-sm">
+                    <li><strong>통계물리:</strong> 비평형 과정의 물질 수송(이류-확산)이 거시적 패턴을 만듦을 이해.</li>
+                    <li><strong>수학:</strong> 스케일링 법칙 $M(t) \sim t^{\frac{2}{1+\lambda}}$ 유도 및 로그-로그 회귀 분석.</li>
+                </ul>
+            </section>
 
-            <h3>1 & 2. 수업 흐름 (2차시 권장)</h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="bg-gray-50 p-4 rounded">
-                    <strong class="block text-lg mb-2">1차시: 실험 & 추상화</strong>
-                    <ul>
-                        <li><strong>실험:</strong> 커피 방울 건조 (기본, 선풍기, 덮개 등 조건 변화).</li>
-                        <li><strong>관찰:</strong> 타임랩스 촬영, 핀닝 여부 확인.</li>
-                        <li><strong>추상화:</strong> 축대칭 모델, 핀닝 가정, 증발 플럭스 강화 합의.</li>
-                    </ul>
+            <!-- 수업 흐름 -->
+            <section class="m-card">
+                <h2 class="text-xl font-bold mb-4">1. 수업 흐름 (2차시 권장)</h2>
+                <div class="m-grid" style="grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <strong class="block text-lg mb-2">1차시: 실험 & 추상화</strong>
+                        <ul class="text-sm list-disc pl-4 space-y-1">
+                            <li><strong>실험:</strong> 커피 방울 건조 (기본, 선풍기, 덮개 등)</li>
+                            <li><strong>관찰:</strong> 타임랩스 촬영, 핀닝 여부 확인</li>
+                            <li><strong>추상화:</strong> 축대칭 모델, 핀닝 가정</li>
+                        </ul>
+                    </div>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <strong class="block text-lg mb-2">2차시: 시뮬 & 수식화</strong>
+                        <ul class="text-sm list-disc pl-4 space-y-1">
+                            <li><strong>시뮬레이션:</strong> 몬테카를로 방법으로 $p$ 지수 재현</li>
+                            <li><strong>분석:</strong> 실험 데이터 $p$ vs 이론값 비교</li>
+                            <li><strong>수식화:</strong> 보존법칙으로 $\bar{v}$와 time law 유도</li>
+                        </ul>
+                    </div>
                 </div>
-                <div class="bg-gray-50 p-4 rounded">
-                    <strong class="block text-lg mb-2">2차시: 시뮬 & 수식화</strong>
-                    <ul>
-                        <li><strong>시뮬레이션:</strong> 몬테카를로 방법으로 $p$ 지수 재현.</li>
-                        <li><strong>분석:</strong> 실험 데이터 $p$ vs 이론값 비교.</li>
-                        <li><strong>수식화:</strong> 보존법칙으로 $\bar{v}$와 time law 유도.</li>
-                    </ul>
+            </section>
+
+            <!-- 이론적 배경 -->
+            <section class="m-card">
+                <h2 class="text-xl font-bold mb-4">2. 이론적 배경</h2>
+
+                <h3 class="font-bold text-sm mb-2">2.1 증발 플럭스 $J(r)$</h3>
+                <p class="text-sm mb-2">
+                    Deegan은 수증기 확산이 라플라스 방정식($\nabla^2 f = 0$)을 만족한다고 가정했습니다.
+                    액적 가장자리의 "쐐기(wedge)" 기하학으로 인해 플럭스는 끝에서 발산합니다:
+                </p>
+                <div class="p-3 bg-gray-50 rounded text-center mb-4">
+                    $$ J(r) \sim (R-r)^{-\lambda}, \quad \lambda = \frac{\pi - 2\theta_c}{2\pi - 2\theta_c} $$
                 </div>
-            </div>
 
-            <hr class="my-6 border-neutral-200">
+                <h3 class="font-bold text-sm mb-2 mt-4">2.2 바깥쪽 평균 유속 $\bar{v}$</h3>
+                <p class="text-sm mb-2">
+                    <strong>보존 법칙:</strong> 핀닝으로 반지름 $R$이 고정되므로, 가장자리 증발로 사라진 부피를 채우기 위해 내부에서 액체가 흘러와야 합니다.
+                </p>
+                <div class="p-3 bg-gray-50 rounded text-center mb-2">
+                    $$ 2\pi r h(r) \bar{v}(r) = \int_r^R 2\pi r' J(r') dr' $$
+                </div>
+                <p class="text-sm">
+                    $x = R-r$로 치환하고 근사하면 ($h \sim x, J \sim x^{-\lambda}$):
+                    $\bar{v} \sim x^{-\lambda}$. 즉, 유속도 가장자리로 갈수록 빨라집니다.
+                </p>
 
-            <h3>3. 이론적 배경 (상세 증명)</h3>
+                <h3 class="font-bold text-sm mb-2 mt-4">2.3 링 질량 성장 법칙 $M(t)$</h3>
+                <p class="text-sm mb-2">입자가 가장자리로 도달하는 시간 $t$와 초기 위치 $x$의 관계:</p>
+                <div class="p-3 bg-gray-50 rounded text-center mb-2">
+                    $$ t \sim x^{1+\lambda} \quad \Rightarrow \quad x \sim t^{\frac{1}{1+\lambda}} $$
+                </div>
+                <p class="text-sm mb-2">초기 질량 분포 $M(x) \sim x^2$ (쐐기 꼴)이므로:</p>
+                <div class="p-3 bg-amber-50 rounded text-center border-l-4 border-amber-500">
+                    $$ M(t) \sim t^{\frac{2}{1+\lambda}} $$
+                    <p class="text-sm text-amber-700 mt-2">$\lambda \approx 0.5$일 때, $p \approx 1.33$</p>
+                </div>
+            </section>
 
-            <h4>3.1 증발 플럭스 ($J(r)$)</h4>
-            <p>
-                Deegan은 수증기 확산이 라플라스 방정식($\nabla^2 f = 0$)을 만족한다고 가정했습니다.
-                액적 가장자리의 "쐐기(wedge)" 기하학적 구조로 인해 플럭스는 끝에서 발산합니다:
-            </p>
-            <div class="math-block">
-                $$ J(r) \sim (R-r)^{-\lambda}, \quad \lambda = \frac{\pi - 2\theta_c}{2\pi - 2\theta_c} $$
-            </div>
-
-            <h4>3.2 바깥쪽 평균 유속 ($\bar{v}$)</h4>
-            <p>
-                <strong>보존 법칙:</strong> 핀닝으로 인해 반지름 $R$이 고정되므로, 가장자리 증발로 사라진 부피를 채우기 위해 내부에서 액체가 흘러와야 합니다.
-                반지름 $r$ 통과 유량 = $r$ 바깥쪽 증발 총량.
-            </p>
-            <div class="math-block">
-                $$ 2\pi r h(r) \bar{v}(r) = \int_r^R 2\pi r' J(r') dr' $$
-            </div>
-            <p>
-                $x = R-r$ 로 치환하고 근사하면 ($h \sim x, J \sim x^{-\lambda}$):
-                $$ \bar{v} \sim \frac{1}{x} \int_0^x s^{-\lambda} ds \sim \frac{x^{1-\lambda}}{x} = x^{-\lambda} $$
-                즉, 유속도 가장자리로 갈수록 빨라집니다.
-            </p>
-
-            <h4>3.3 링 질량 성장 법칙 ($M(t)$)</h4>
-            <p>입자가 가장자리로 도달하는 시간 $t$와 초기 위치 $x$의 관계:</p>
-            <div class="math-block">
-                $$ t = \int \frac{dr}{\bar{v}} \sim \int x^{\lambda} dx \sim x^{1+\lambda} \quad \Rightarrow \quad x
-                \sim t^{\frac{1}{1+\lambda}} $$
-            </div>
-            <p>초기 질량 분포 $M(x) \sim \text{Volume} \sim x^2$ (쐐기 꼴) 이므로:</p>
-            <div class="math-block">
-                $$ M(t) \sim (t^{\frac{1}{1+\lambda}})^2 = t^{\frac{2}{1+\lambda}} $$
-            </div>
-            <p>$\lambda \approx 0.5$ (낮은 접촉각)일 때, $p \approx 1.33$ 입니다.</p>
-
-            <hr class="my-6 border-neutral-200">
-
-            <h3>4. 확장: 왜 링이 안 생길까? (Surface Capture)</h3>
-            <p>
-                최근 연구(PRF, 2024 등)에서는 증발이 매우 빠르면 입자가 가장자리로 이동하기 전에
-                수직 방향 유동에 의해 표면에 <strong>표면 포획(Surface Capture)</strong> 된다고 설명합니다.
-                이 경우, 가장자리에만 쌓이지 않고 바닥 전체에 균일하게 침전될 수 있습니다.
-            </p>
+            <!-- 확장 -->
+            <section class="m-card">
+                <h2 class="text-xl font-bold mb-4">3. 확장: 왜 링이 안 생길까?</h2>
+                <p class="text-sm">
+                    최근 연구(PRF, 2024 등)에서는 증발이 매우 빠르면 입자가 가장자리로 이동하기 전에
+                    <strong>표면 포획(Surface Capture)</strong>된다고 설명합니다.
+                    이 경우, 가장자리에만 쌓이지 않고 바닥 전체에 균일하게 침전될 수 있습니다.
+                </p>
+            </section>
 
         </main>
 
         <footer class="mt-8 text-center text-sm text-neutral-400">
-            MathEdu Project - Teacher Guide
+            MathEdu Project - Coffee Stain Teacher Guide
         </footer>
     </div>
 
-    <!-- Script imports -->
     <script type="module">
         import { ReportManager } from '../js/report-core.js';
         const report = new ReportManager('coffee_stain_theory');
         report.init();
-        // No gallery needed for teacher guide usually, but initHTMLExport is handled by base init
     </script>
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             renderMathInElement(document.body, {
                 delimiters: [
                     { left: "$$", right: "$$", display: true },
-                    { left: "\\(", right: "\\)", display: false }
+                    { left: "$", right: "$", display: false }
                 ]
             });
         });

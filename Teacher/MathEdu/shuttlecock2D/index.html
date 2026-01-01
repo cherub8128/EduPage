@@ -96,326 +96,347 @@
       </div>
     </header>
 
-    <main class="flex flex-col gap-6">
-      <!-- Student Info -->
-      <section class="m-card">
-        <div class="m-grid" style="grid-template-columns: 1fr 1fr; gap: 1rem">
-          <div>
-            <label for="student-id" class="font-bold text-sm block mb-1">학번</label>
-            <input id="student-id" class="m-input savable" placeholder="예: 20501" />
+    <!-- Navigation Cards -->
+    <section class="m-grid" style="grid-template-columns: 1fr 1fr; gap: 1rem">
+      <a href="theory.html" class="block text-decoration-none transform transition hover:-translate-y-1">
+        <div class="m-card h-full hover:shadow-lg transition-shadow border-l-4 border-blue-500 p-4">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="text-xl">📚</span>
+            <h3 class="font-bold m-0 text-neutral-800">이론 가이드 (교사용)</h3>
           </div>
-          <div>
-            <label for="student-name" class="font-bold text-sm block mb-1">이름</label>
-            <input id="student-name" class="m-input savable" placeholder="예: 김이과" />
-          </div>
+          <p class="text-xs text-neutral-600">2D 항력 모델, 오일러 방법, 수업 지도안</p>
         </div>
-      </section>
-
-      <!-- Navigation -->
-      <nav class="flex flex-wrap gap-2 print-hidden">
-        <a href="#step1" class="m-badge hover:bg-gray-200 cursor-pointer text-decoration-none">Step 1: 실험 설계</a>
-        <a href="#step2" class="m-badge hover:bg-gray-200 cursor-pointer text-decoration-none">Step 2: 이론적 모델링</a>
-        <a href="#step3" class="m-badge hover:bg-gray-200 cursor-pointer text-decoration-none">Step 3: 데이터 분석</a>
-        <a href="#step4" class="m-badge hover:bg-gray-200 cursor-pointer text-decoration-none">Step 4: 시뮬레이션</a>
-        <a href="#step5" class="m-badge hover:bg-gray-200 cursor-pointer text-decoration-none">Step 5: 심화 탐구</a>
-      </nav>
-
-      <!-- Step 1: Observation -->
-      <section id="step1" class="m-card">
-        <h2 class="text-xl font-bold mb-4">Step 1: 현상 관찰 및 실험 설계</h2>
-
-        <!-- 실험 가이드 -->
-        <div class="mb-6">
-          <details>
-            <summary>📋 [ 펼쳐보기 ] 실험 가이드 및 통제 변인 설정</summary>
-            <div class="prose text-sm text-neutral-700 bg-gray-50 p-4 rounded-lg">
-              <h4 class="font-bold mb-2">실험 1: 공 (통제군 - 기준 포물선)</h4>
-              <ul class="list-disc pl-5 mb-4">
-                <li><strong>조작변인</strong>: 발사각 $\theta$ (예: 30°, 45°, 60° 고정)</li>
-                <li><strong>종속변인</strong>: 2D 궤적 $(x(t), y(t))$</li>
-                <li><strong>통제변인</strong>: 작은 공 사용, 일정한 발사 속도, 카메라 위치/각도 고정</li>
-              </ul>
-
-              <h4 class="font-bold mb-2">실험 2: 셔틀콕 (실험군 - 항력 관찰)</h4>
-              <ul class="list-disc pl-5">
-                <li><strong>조작변인</strong>: 물체 종류 (셔틀콕)</li>
-                <li><strong>종속변인</strong>: 2D 궤적 및 속도 변화</li>
-                <li><strong>핵심 포인트</strong>: 셔틀콕이 포물선 궤적에서 어떻게 벗어나는지, <em>비대칭성</em>에 주목하여 촬영합니다.</li>
-              </ul>
-            </div>
-          </details>
+      </a>
+      <a href="student.html" class="block text-decoration-none transform transition hover:-translate-y-1">
+        <div class="m-card h-full hover:shadow-lg transition-shadow border-l-4 border-green-500 p-4">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="text-xl">📝</span>
+            <h3 class="font-bold m-0 text-neutral-800">학생 활동지</h3>
+          </div>
+          <p class="text-xs text-neutral-600">실험 설계, 데이터 분석, 결론 작성</p>
         </div>
+      </a>
+    </section>
 
-        <div class="m-grid" style="grid-template-columns: 1fr 1fr; gap: 2rem">
-          <div>
-            <strong class="block mb-2 text-sm text-neutral-600">실험 사진 / Tracker 캡처</strong>
-            <div id="gallery1-drop" class="dropzone p-4 text-center text-sm text-muted border-dashed border-2 rounded">
-              Tracker 분석 화면이나 실험 셋업 사진을<br>여기에 드래그하세요.
-            </div>
-            <div class="flex gap-2 mt-2 justify-center">
-              <input id="gallery1-input" type="file" accept="image/*" multiple class="hidden" />
-              <button id="gallery1-add" class="m-btn small secondary"
-                onclick="document.getElementById('gallery1-input').click()">
-                + 사진 추가
-              </button>
-              <button id="gallery1-clear" class="m-btn small secondary"
-                onclick="if(confirm('모든 사진을 삭제하시겠습니까?')) document.getElementById('gallery1').innerHTML=''">
-                초기화
-              </button>
-            </div>
-            <div id="gallery1" class="gallery-grid mt-2"></div>
-          </div>
-          <div>
-            <label class="font-bold text-sm block mb-2">관찰 기록 (Observations)</label>
-            <div class="editable-container">
-              <textarea id="observations" class="savable markdown-input"
-                placeholder="### 관찰 내용&#10;1. 공의 궤적 특징:&#10;2. 셔틀콕 궤적 특징: (특히 정점 이후의 낙하 모습)&#10;3. 오차 원인 분석:"></textarea>
-              <div class="markdown-preview"></div>
-            </div>
-          </div>
+    <!-- Student Info -->
+    <section class="m-card">
+      <div class="m-grid" style="grid-template-columns: 1fr 1fr; gap: 1rem">
+        <div>
+          <label for="student-id" class="font-bold text-sm block mb-1">학번</label>
+          <input id="student-id" class="m-input savable" placeholder="예: 20501" />
         </div>
-      </section>
-
-      <!-- Step 2: Modeling -->
-      <section id="step2" class="m-card">
-        <h2 class="text-xl font-bold mb-4">Step 2: 수학적 모델링</h2>
-
-        <div class="prose mb-6">
-          <details class="mb-4">
-            <summary>📐 [ 펼쳐보기 ] 1차원 종단속도 모델 (논문 요약)</summary>
-            <div class="bg-gray-50 p-4 rounded text-sm">
-              <p class="mb-2 italic">Peastrel et al. (1980)은 셔틀콕 수직 낙하 실험에서 <strong>속도 제곱에 비례하는 저항($v^2$)</strong> 모델이
-                가장 적합함을 보였습니다.</p>
-              <div class="math-box">
-                $$ \frac{dv}{dt} = g - k v^2 $$
-                이 식의 해는 종단속도 $v_T = \sqrt{g/k}$를 이용하여 다음과 같이 표현됩니다:
-                $$ v(t) = v_T \tanh\left(\frac{g}{v_T}t\right) $$
-              </div>
-              <p>우리는 이 아이디어를 <strong>2차원 평면 운동</strong>으로 확장합니다.</p>
-            </div>
-          </details>
+        <div>
+          <label for="student-name" class="font-bold text-sm block mb-1">이름</label>
+          <input id="student-name" class="m-input savable" placeholder="예: 김이과" />
         </div>
+      </div>
+    </section>
 
-        <div class="m-grid" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
-          <!-- 모델 A -->
-          <div class="bg-white border rounded-xl p-4 shadow-sm">
-            <div class="flex items-center gap-2 mb-3">
-              <span class="m-badge">Model A</span>
-              <strong class="text-sm">이상적 포물선 (Vacuum)</strong>
-            </div>
-            <div class="text-sm space-y-2">
-              <p class="text-neutral-600">공기저항이 없다고 가정합니다.</p>
-              <div class="math-box text-center py-2">
-                $$ \vec{F} = m \vec{g} $$
-              </div>
-              <p><strong>수평:</strong> 등속 운동 ($a_x = 0$)</p>
-              <p><strong>수직:</strong> 등가속도 운동 ($a_y = -g$)</p>
-              <p class="text-xs text-muted mt-2">→ 결과: $y$는 $x$에 대한 2차 함수</p>
-            </div>
+    <!-- Navigation -->
+    <nav class="flex flex-wrap gap-2 print-hidden">
+      <a href="#step1" class="m-badge hover:bg-gray-200 cursor-pointer text-decoration-none">Step 1: 실험 설계</a>
+      <a href="#step2" class="m-badge hover:bg-gray-200 cursor-pointer text-decoration-none">Step 2: 이론적 모델링</a>
+      <a href="#step3" class="m-badge hover:bg-gray-200 cursor-pointer text-decoration-none">Step 3: 데이터 분석</a>
+      <a href="#step4" class="m-badge hover:bg-gray-200 cursor-pointer text-decoration-none">Step 4: 시뮬레이션</a>
+      <a href="#step5" class="m-badge hover:bg-gray-200 cursor-pointer text-decoration-none">Step 5: 심화 탐구</a>
+    </nav>
+
+    <!-- Step 1: Observation -->
+    <section id="step1" class="m-card">
+      <h2 class="text-xl font-bold mb-4">Step 1: 현상 관찰 및 실험 설계</h2>
+
+      <!-- 실험 가이드 -->
+      <div class="mb-6">
+        <details>
+          <summary>📋 [ 펼쳐보기 ] 실험 가이드 및 통제 변인 설정</summary>
+          <div class="prose text-sm text-neutral-700 bg-gray-50 p-4 rounded-lg">
+            <h4 class="font-bold mb-2">실험 1: 공 (통제군 - 기준 포물선)</h4>
+            <ul class="list-disc pl-5 mb-4">
+              <li><strong>조작변인</strong>: 발사각 $\theta$ (예: 30°, 45°, 60° 고정)</li>
+              <li><strong>종속변인</strong>: 2D 궤적 $(x(t), y(t))$</li>
+              <li><strong>통제변인</strong>: 작은 공 사용, 일정한 발사 속도, 카메라 위치/각도 고정</li>
+            </ul>
+
+            <h4 class="font-bold mb-2">실험 2: 셔틀콕 (실험군 - 항력 관찰)</h4>
+            <ul class="list-disc pl-5">
+              <li><strong>조작변인</strong>: 물체 종류 (셔틀콕)</li>
+              <li><strong>종속변인</strong>: 2D 궤적 및 속도 변화</li>
+              <li><strong>핵심 포인트</strong>: 셔틀콕이 포물선 궤적에서 어떻게 벗어나는지, <em>비대칭성</em>에 주목하여 촬영합니다.</li>
+            </ul>
           </div>
+        </details>
+      </div>
 
-          <!-- 모델 B -->
-          <div class="bg-blue-50 border border-blue-100 rounded-xl p-4 shadow-sm">
-            <div class="flex items-center gap-2 mb-3">
-              <span class="m-badge" style="background:var(--color-primary); color:white;">Model B</span>
-              <strong class="text-sm text-blue-900">셔틀콕 항력 모델 (Air Drag)</strong>
-            </div>
-            <div class="text-sm space-y-2">
-              <p class="text-blue-800">항력은 속도 반대 방향, 크기는 $v^2$에 비례합니다.</p>
-              <div class="math-box text-center py-2 bg-white">
-                $$ \vec{F}_d = -mkv \vec{v} $$
-              </div>
-              <div class="text-xs font-mono bg-white p-2 rounded">
-                ax = -k * v * vx<br>
-                ay = -g - k * v * vy
-              </div>
-              <p class="text-xs text-blue-700 mt-2">※ 해석적으로 풀기 어려워 <strong>수치해석(Euler Method)</strong>을 사용합니다.</p>
-            </div>
+      <div class="m-grid" style="grid-template-columns: 1fr 1fr; gap: 2rem">
+        <div>
+          <strong class="block mb-2 text-sm text-neutral-600">실험 사진 / Tracker 캡처</strong>
+          <div id="gallery1-drop" class="dropzone p-4 text-center text-sm text-muted border-dashed border-2 rounded">
+            Tracker 분석 화면이나 실험 셋업 사진을<br>여기에 드래그하세요.
           </div>
-        </div>
-
-        <div class="mt-6">
-          <label class="font-bold text-sm block mb-2">모델 비교 및 가설 설정</label>
-          <div class="editable-container">
-            <textarea id="hypothesis" class="savable markdown-input"
-              placeholder="Model A와 Model B 중 셔틀콕의 궤적을 설명하기에 더 적합한 모델은 무엇이며, 그 이유는 무엇입니까? (예상되는 궤적 차이 서술)"></textarea>
-            <div class="markdown-preview"></div>
-          </div>
-        </div>
-      </section>
-
-      <!-- Step 3: Analysis -->
-      <section id="step3" class="m-card">
-        <h2 class="text-xl font-bold mb-4">Step 3: 데이터 분석 (Tracker 연동)</h2>
-
-        <div class="alert bg-yellow-50 text-yellow-800 p-3 rounded mb-4 text-sm flex items-start gap-2">
-          <span>💡</span>
-          <div>
-            <strong>Tracker 데이터 준비:</strong> 영상 분석 프로그램 Tracker에서 추출한 <code>t, x, y</code> 데이터가 담긴 CSV 파일이 필요합니다.
-          </div>
-        </div>
-
-        <div class="m-grid" style="grid-template-columns: 1fr 2fr; gap: 2rem">
-          <!-- Controls -->
-          <div class="flex flex-col gap-4">
-            <div class="card p-4 bg-gray-50">
-              <label class="font-bold text-sm block mb-2">1. 데이터 로드</label>
-              <input type="file" id="csvFile" accept=".csv" class="m-input text-sm mb-2" />
-              <button id="runFit" class="m-btn primary w-full">
-                분석 시작 (Plot Data)
-              </button>
-              <div id="fitResult" class="mt-2 text-xs font-mono text-muted min-h-[1.5rem]">
-                파일 미선택
-              </div>
-            </div>
-
-            <div class="card p-4">
-              <label class="font-bold text-sm block mb-2">2. 분석 포인트</label>
-              <ul class="text-sm list-disc pl-4 space-y-1 text-neutral-600">
-                <li><strong>공:</strong> $x-t$ 그래프가 직선에 가까운가?</li>
-                <li><strong>셔틀콕:</strong> 최고점 이후 수직 낙하에 가까워지는가?</li>
-                <li><strong>속도:</strong> 종단속도 경향성이 보이는가?</li>
-              </ul>
-            </div>
-          </div>
-
-          <!-- Charts -->
-          <div class="flex flex-col gap-4">
-            <div class="chart-container">
-              <canvas id="chartTraj"></canvas>
-            </div>
-            <div class="chart-container">
-              <canvas id="chartVel"></canvas>
-            </div>
-          </div>
-        </div>
-
-        <div class="mt-4">
-          <label class="font-bold text-sm block mb-2">데이터 분석 결과 (Result)</label>
-          <div class="editable-container">
-            <textarea id="analysis-result" class="savable markdown-input"
-              placeholder="CSV 데이터 분석을 통해 관찰된 특징을 서술하세요. (예: 공은 포물선과 잘 일치했으나, 셔틀콕은 1.5초 후 급격히 떨어짐 등)"></textarea>
-            <div class="markdown-preview"></div>
-          </div>
-        </div>
-      </section>
-
-      <!-- Step 4: Simulation -->
-      <section id="step4" class="m-card">
-        <h2 class="text-xl font-bold mb-4">Step 4: 2D 수치 시뮬레이션 (Fitting)</h2>
-        <p class="text-sm text-neutral-600 mb-4">
-          오일러 방법(Euler Method)을 사용하여 항력 모델을 시뮬레이션합니다. <strong>항력 계수 $k$</strong>를 조절하여 실측 데이터(Step 3에서 로드한 데이터)와 가장 잘 맞는
-          값을 찾아보세요.
-        </p>
-
-        <div class="m-grid" style="grid-template-columns: 280px 1fr; gap: 2rem">
-          <!-- Sim Controls -->
-          <div class="space-y-4">
-            <div class="p-4 bg-neutral-50 rounded-xl border">
-              <strong class="text-xs uppercase text-neutral-500 mb-3 block border-b pb-1">초기 조건 (Initial)</strong>
-              <div class="space-y-3">
-                <div>
-                  <div class="flex justify-between mb-1">
-                    <label class="text-xs font-bold">발사 속도 $v_0$ (m/s)</label>
-                    <span class="text-xs text-blue-600" id="dispV0">10.0</span>
-                  </div>
-                  <input type="range" id="simV0" class="w-full savable" min="1" max="30" step="0.1" value="10">
-                </div>
-                <div>
-                  <div class="flex justify-between mb-1">
-                    <label class="text-xs font-bold">발사 각도 $\theta$ (°)</label>
-                    <span class="text-xs text-blue-600" id="dispAngle">45</span>
-                  </div>
-                  <input type="range" id="simAngle" class="w-full savable" min="0" max="90" step="1" value="45">
-                </div>
-              </div>
-            </div>
-
-            <div class="p-4 bg-blue-50 rounded-xl border border-blue-100">
-              <strong class="text-xs uppercase text-blue-500 mb-3 block border-b border-blue-200 pb-1">물리 계수
-                (Physics)</strong>
-              <div class="space-y-3">
-                <div>
-                  <div class="flex justify-between mb-1">
-                    <label class="text-xs font-bold text-blue-900">항력 계수 $k$</label>
-                    <span class="text-xs text-blue-700 font-mono" id="dispK">0.20</span>
-                  </div>
-                  <input type="range" id="simK" class="w-full savable" min="0" max="1.0" step="0.01" value="0.2">
-                  <p class="text-[10px] text-blue-600 mt-1">* $k$가 클수록 공기저항이 큼</p>
-                </div>
-                <div>
-                  <label class="text-xs font-bold text-blue-900 block mb-1">중력 $g$ (m/s²)</label>
-                  <input type="number" id="simG" class="m-input small" value="9.8" step="0.1">
-                </div>
-              </div>
-            </div>
-
-            <button id="runSim" class="m-btn secondary w-full">
-              🔄 시뮬레이션 업데이트
+          <div class="flex gap-2 mt-2 justify-center">
+            <input id="gallery1-input" type="file" accept="image/*" multiple class="hidden" />
+            <button id="gallery1-add" class="m-btn small secondary"
+              onclick="document.getElementById('gallery1-input').click()">
+              + 사진 추가
             </button>
-
-            <div id="simStats" class="text-xs font-mono p-3 bg-slate-800 text-green-400 rounded-lg">
-              Ready to simulate...
-            </div>
+            <button id="gallery1-clear" class="m-btn small secondary"
+              onclick="if(confirm('모든 사진을 삭제하시겠습니까?')) document.getElementById('gallery1').innerHTML=''">
+              초기화
+            </button>
           </div>
-
-          <!-- Chart -->
-          <div>
-            <div class="chart-container" style="height: 500px;">
-              <canvas id="simTrajChart"></canvas>
-            </div>
-            <div class="mt-2 text-center">
-              <span class="chip">점선: 무저항 모델</span>
-              <span class="chip" style="background:var(--blue-100); color:var(--blue-800);">실선: 항력 모델 ($k v^2$)</span>
-            </div>
+          <div id="gallery1" class="gallery-grid mt-2"></div>
+        </div>
+        <div>
+          <label class="font-bold text-sm block mb-2">관찰 기록 (Observations)</label>
+          <div class="editable-container">
+            <textarea id="observations" class="savable markdown-input"
+              placeholder="### 관찰 내용&#10;1. 공의 궤적 특징:&#10;2. 셔틀콕 궤적 특징: (특히 정점 이후의 낙하 모습)&#10;3. 오차 원인 분석:"></textarea>
+            <div class="markdown-preview"></div>
           </div>
         </div>
-      </section>
+      </div>
+    </section>
 
-      <!-- Step 5: Advanced & Conclusion -->
-      <section id="step5" class="m-card">
-        <h2 class="text-xl font-bold mb-4">Step 5: 탐구 결론 및 심화 주제</h2>
+    <!-- Step 2: Modeling -->
+    <section id="step2" class="m-card">
+      <h2 class="text-xl font-bold mb-4">Step 2: 수학적 모델링</h2>
 
-        <div class="mb-6">
-          <h3 class="text-lg font-bold mb-3">심화 탐구 주제 제안</h3>
-          <div class="m-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
-            <div class="card p-3 bg-gray-50 border hover:bg-white transition-colors cursor-pointer"
-              onclick="document.getElementById('inquiry-topic').value = '주제 1: 최대 사거리 각도는 45도가 아니다?';">
-              <div class="text-xl mb-2">🎯</div>
-              <strong class="text-sm block">1. 최적 발사 각도</strong>
-              <p class="text-xs text-muted">항력이 있을 때 최대 사거리를 만드는 각도는 45°보다 작을까?</p>
+      <div class="prose mb-6">
+        <details class="mb-4">
+          <summary>📐 [ 펼쳐보기 ] 1차원 종단속도 모델 (논문 요약)</summary>
+          <div class="bg-gray-50 p-4 rounded text-sm">
+            <p class="mb-2 italic">Peastrel et al. (1980)은 셔틀콕 수직 낙하 실험에서 <strong>속도 제곱에 비례하는 저항($v^2$)</strong> 모델이
+              가장 적합함을 보였습니다.</p>
+            <div class="math-box">
+              $$ \frac{dv}{dt} = g - k v^2 $$
+              이 식의 해는 종단속도 $v_T = \sqrt{g/k}$를 이용하여 다음과 같이 표현됩니다:
+              $$ v(t) = v_T \tanh\left(\frac{g}{v_T}t\right) $$
             </div>
-            <div class="card p-3 bg-gray-50 border hover:bg-white transition-colors cursor-pointer"
-              onclick="document.getElementById('inquiry-topic').value = '주제 2: 바람이 불 때의 궤적 변화';">
-              <div class="text-xl mb-2">💨</div>
-              <strong class="text-sm block">2. 바람의 영향</strong>
-              <p class="text-xs text-muted">맞바람이나 뒷바람이 불 때 모델을 $\vec{v}-\vec{w}$로 수정해보자.</p>
+            <p>우리는 이 아이디어를 <strong>2차원 평면 운동</strong>으로 확장합니다.</p>
+          </div>
+        </details>
+      </div>
+
+      <div class="m-grid" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
+        <!-- 모델 A -->
+        <div class="bg-white border rounded-xl p-4 shadow-sm">
+          <div class="flex items-center gap-2 mb-3">
+            <span class="m-badge">Model A</span>
+            <strong class="text-sm">이상적 포물선 (Vacuum)</strong>
+          </div>
+          <div class="text-sm space-y-2">
+            <p class="text-neutral-600">공기저항이 없다고 가정합니다.</p>
+            <div class="math-box text-center py-2">
+              $$ \vec{F} = m \vec{g} $$
             </div>
-            <div class="card p-3 bg-gray-50 border hover:bg-white transition-colors cursor-pointer"
-              onclick="document.getElementById('inquiry-topic').value = '주제 3: 무차원화와 스케일링';">
-              <div class="text-xl mb-2">📏</div>
-              <strong class="text-sm block">3. 무차원화 분석</strong>
-              <p class="text-xs text-muted">속도를 종단속도로 나누어($v/v_T$) 일반화된 그래프를 그려보자.</p>
-            </div>
+            <p><strong>수평:</strong> 등속 운동 ($a_x = 0$)</p>
+            <p><strong>수직:</strong> 등가속도 운동 ($a_y = -g$)</p>
+            <p class="text-xs text-muted mt-2">→ 결과: $y$는 $x$에 대한 2차 함수</p>
           </div>
         </div>
 
+        <!-- 모델 B -->
+        <div class="bg-blue-50 border border-blue-100 rounded-xl p-4 shadow-sm">
+          <div class="flex items-center gap-2 mb-3">
+            <span class="m-badge" style="background:var(--color-primary); color:white;">Model B</span>
+            <strong class="text-sm text-blue-900">셔틀콕 항력 모델 (Air Drag)</strong>
+          </div>
+          <div class="text-sm space-y-2">
+            <p class="text-blue-800">항력은 속도 반대 방향, 크기는 $v^2$에 비례합니다.</p>
+            <div class="math-box text-center py-2 bg-white">
+              $$ \vec{F}_d = -mkv \vec{v} $$
+            </div>
+            <div class="text-xs font-mono bg-white p-2 rounded">
+              ax = -k * v * vx<br>
+              ay = -g - k * v * vy
+            </div>
+            <p class="text-xs text-blue-700 mt-2">※ 해석적으로 풀기 어려워 <strong>수치해석(Euler Method)</strong>을 사용합니다.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-6">
+        <label class="font-bold text-sm block mb-2">모델 비교 및 가설 설정</label>
+        <div class="editable-container">
+          <textarea id="hypothesis" class="savable markdown-input"
+            placeholder="Model A와 Model B 중 셔틀콕의 궤적을 설명하기에 더 적합한 모델은 무엇이며, 그 이유는 무엇입니까? (예상되는 궤적 차이 서술)"></textarea>
+          <div class="markdown-preview"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Step 3: Analysis -->
+    <section id="step3" class="m-card">
+      <h2 class="text-xl font-bold mb-4">Step 3: 데이터 분석 (Tracker 연동)</h2>
+
+      <div class="alert bg-yellow-50 text-yellow-800 p-3 rounded mb-4 text-sm flex items-start gap-2">
+        <span>💡</span>
+        <div>
+          <strong>Tracker 데이터 준비:</strong> 영상 분석 프로그램 Tracker에서 추출한 <code>t, x, y</code> 데이터가 담긴 CSV 파일이 필요합니다.
+        </div>
+      </div>
+
+      <div class="m-grid" style="grid-template-columns: 1fr 2fr; gap: 2rem">
+        <!-- Controls -->
+        <div class="flex flex-col gap-4">
+          <div class="card p-4 bg-gray-50">
+            <label class="font-bold text-sm block mb-2">1. 데이터 로드</label>
+            <input type="file" id="csvFile" accept=".csv" class="m-input text-sm mb-2" />
+            <button id="runFit" class="m-btn primary w-full">
+              분석 시작 (Plot Data)
+            </button>
+            <div id="fitResult" class="mt-2 text-xs font-mono text-muted min-h-[1.5rem]">
+              파일 미선택
+            </div>
+          </div>
+
+          <div class="card p-4">
+            <label class="font-bold text-sm block mb-2">2. 분석 포인트</label>
+            <ul class="text-sm list-disc pl-4 space-y-1 text-neutral-600">
+              <li><strong>공:</strong> $x-t$ 그래프가 직선에 가까운가?</li>
+              <li><strong>셔틀콕:</strong> 최고점 이후 수직 낙하에 가까워지는가?</li>
+              <li><strong>속도:</strong> 종단속도 경향성이 보이는가?</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Charts -->
+        <div class="flex flex-col gap-4">
+          <div class="chart-container">
+            <canvas id="chartTraj"></canvas>
+          </div>
+          <div class="chart-container">
+            <canvas id="chartVel"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-4">
+        <label class="font-bold text-sm block mb-2">데이터 분석 결과 (Result)</label>
+        <div class="editable-container">
+          <textarea id="analysis-result" class="savable markdown-input"
+            placeholder="CSV 데이터 분석을 통해 관찰된 특징을 서술하세요. (예: 공은 포물선과 잘 일치했으나, 셔틀콕은 1.5초 후 급격히 떨어짐 등)"></textarea>
+          <div class="markdown-preview"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Step 4: Simulation -->
+    <section id="step4" class="m-card">
+      <h2 class="text-xl font-bold mb-4">Step 4: 2D 수치 시뮬레이션 (Fitting)</h2>
+      <p class="text-sm text-neutral-600 mb-4">
+        오일러 방법(Euler Method)을 사용하여 항력 모델을 시뮬레이션합니다. <strong>항력 계수 $k$</strong>를 조절하여 실측 데이터(Step 3에서 로드한 데이터)와 가장 잘 맞는
+        값을 찾아보세요.
+      </p>
+
+      <div class="m-grid" style="grid-template-columns: 280px 1fr; gap: 2rem">
+        <!-- Sim Controls -->
         <div class="space-y-4">
-          <div>
-            <label class="font-bold text-sm block mb-1">선택한 심화 주제</label>
-            <input id="inquiry-topic" class="m-input savable" placeholder="위 카드를 클릭하거나 직접 입력하세요.">
-          </div>
-
-          <div>
-            <label class="font-bold text-sm block mb-1">결론 및 제언 (Conclusion)</label>
-            <div class="editable-container">
-              <textarea id="final-conclusion" class="savable markdown-input"
-                placeholder="### 결론&#10;1. 셔틀콕의 운동은 [공기저항 모델]로 잘 설명됨&#10;2. 실험에서 추정한 항력계수 k값은 약 [   ]로 나타남&#10;3. 오차 분석: 트래커 측정 오차, 회전 등..."></textarea>
-              <div class="markdown-preview"></div>
+          <div class="p-4 bg-neutral-50 rounded-xl border">
+            <strong class="text-xs uppercase text-neutral-500 mb-3 block border-b pb-1">초기 조건 (Initial)</strong>
+            <div class="space-y-3">
+              <div>
+                <div class="flex justify-between mb-1">
+                  <label class="text-xs font-bold">발사 속도 $v_0$ (m/s)</label>
+                  <span class="text-xs text-blue-600" id="dispV0">10.0</span>
+                </div>
+                <input type="range" id="simV0" class="w-full savable" min="1" max="30" step="0.1" value="10">
+              </div>
+              <div>
+                <div class="flex justify-between mb-1">
+                  <label class="text-xs font-bold">발사 각도 $\theta$ (°)</label>
+                  <span class="text-xs text-blue-600" id="dispAngle">45</span>
+                </div>
+                <input type="range" id="simAngle" class="w-full savable" min="0" max="90" step="1" value="45">
+              </div>
             </div>
           </div>
+
+          <div class="p-4 bg-blue-50 rounded-xl border border-blue-100">
+            <strong class="text-xs uppercase text-blue-500 mb-3 block border-b border-blue-200 pb-1">물리 계수
+              (Physics)</strong>
+            <div class="space-y-3">
+              <div>
+                <div class="flex justify-between mb-1">
+                  <label class="text-xs font-bold text-blue-900">항력 계수 $k$</label>
+                  <span class="text-xs text-blue-700 font-mono" id="dispK">0.20</span>
+                </div>
+                <input type="range" id="simK" class="w-full savable" min="0" max="1.0" step="0.01" value="0.2">
+                <p class="text-[10px] text-blue-600 mt-1">* $k$가 클수록 공기저항이 큼</p>
+              </div>
+              <div>
+                <label class="text-xs font-bold text-blue-900 block mb-1">중력 $g$ (m/s²)</label>
+                <input type="number" id="simG" class="m-input small" value="9.8" step="0.1">
+              </div>
+            </div>
+          </div>
+
+          <button id="runSim" class="m-btn secondary w-full">
+            🔄 시뮬레이션 업데이트
+          </button>
+
+          <div id="simStats" class="text-xs font-mono p-3 bg-slate-800 text-green-400 rounded-lg">
+            Ready to simulate...
+          </div>
         </div>
-      </section>
+
+        <!-- Chart -->
+        <div>
+          <div class="chart-container" style="height: 500px;">
+            <canvas id="simTrajChart"></canvas>
+          </div>
+          <div class="mt-2 text-center">
+            <span class="chip">점선: 무저항 모델</span>
+            <span class="chip" style="background:var(--blue-100); color:var(--blue-800);">실선: 항력 모델 ($k v^2$)</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Step 5: Advanced & Conclusion -->
+    <section id="step5" class="m-card">
+      <h2 class="text-xl font-bold mb-4">Step 5: 탐구 결론 및 심화 주제</h2>
+
+      <div class="mb-6">
+        <h3 class="text-lg font-bold mb-3">심화 탐구 주제 제안</h3>
+        <div class="m-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+          <div class="card p-3 bg-gray-50 border hover:bg-white transition-colors cursor-pointer"
+            onclick="document.getElementById('inquiry-topic').value = '주제 1: 최대 사거리 각도는 45도가 아니다?';">
+            <div class="text-xl mb-2">🎯</div>
+            <strong class="text-sm block">1. 최적 발사 각도</strong>
+            <p class="text-xs text-muted">항력이 있을 때 최대 사거리를 만드는 각도는 45°보다 작을까?</p>
+          </div>
+          <div class="card p-3 bg-gray-50 border hover:bg-white transition-colors cursor-pointer"
+            onclick="document.getElementById('inquiry-topic').value = '주제 2: 바람이 불 때의 궤적 변화';">
+            <div class="text-xl mb-2">💨</div>
+            <strong class="text-sm block">2. 바람의 영향</strong>
+            <p class="text-xs text-muted">맞바람이나 뒷바람이 불 때 모델을 $\vec{v}-\vec{w}$로 수정해보자.</p>
+          </div>
+          <div class="card p-3 bg-gray-50 border hover:bg-white transition-colors cursor-pointer"
+            onclick="document.getElementById('inquiry-topic').value = '주제 3: 무차원화와 스케일링';">
+            <div class="text-xl mb-2">📏</div>
+            <strong class="text-sm block">3. 무차원화 분석</strong>
+            <p class="text-xs text-muted">속도를 종단속도로 나누어($v/v_T$) 일반화된 그래프를 그려보자.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="space-y-4">
+        <div>
+          <label class="font-bold text-sm block mb-1">선택한 심화 주제</label>
+          <input id="inquiry-topic" class="m-input savable" placeholder="위 카드를 클릭하거나 직접 입력하세요.">
+        </div>
+
+        <div>
+          <label class="font-bold text-sm block mb-1">결론 및 제언 (Conclusion)</label>
+          <div class="editable-container">
+            <textarea id="final-conclusion" class="savable markdown-input"
+              placeholder="### 결론&#10;1. 셔틀콕의 운동은 [공기저항 모델]로 잘 설명됨&#10;2. 실험에서 추정한 항력계수 k값은 약 [   ]로 나타남&#10;3. 오차 분석: 트래커 측정 오차, 회전 등..."></textarea>
+            <div class="markdown-preview"></div>
+          </div>
+        </div>
+      </div>
+    </section>
 
     </main>
 

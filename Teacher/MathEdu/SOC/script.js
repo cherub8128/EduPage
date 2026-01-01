@@ -103,20 +103,31 @@ function setupCanvas() {
     ctx = canvas.getContext('2d');
 
     const container = canvas.parentElement;
-    const resizeObserver = new ResizeObserver(entries => {
-        for (const entry of entries) {
-            const dpr = window.devicePixelRatio || 1;
-            const rect = entry.contentRect;
-            canvas.width = rect.width * dpr;
-            canvas.height = rect.height * dpr;
-            canvas.style.width = rect.width + 'px';
-            canvas.style.height = rect.height + 'px';
-            ctx.setTransform(1, 0, 0, 1, 0, 0);
-            ctx.scale(dpr, dpr);
-            updateViz();
-        }
-    });
+    let lastWidth = 0, lastHeight = 0;
+
+    const resizeCanvas = () => {
+        const dpr = window.devicePixelRatio || 1;
+        // Use clientWidth/Height which doesn't include borders/padding
+        const w = container.clientWidth;
+        const h = container.clientHeight;
+
+        // Guard: only resize if dimensions actually changed
+        if (w === lastWidth && h === lastHeight) return;
+        lastWidth = w;
+        lastHeight = h;
+
+        canvas.width = w * dpr;
+        canvas.height = h * dpr;
+        canvas.style.width = w + 'px';
+        canvas.style.height = h + 'px';
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.scale(dpr, dpr);
+        updateViz();
+    };
+
+    const resizeObserver = new ResizeObserver(() => resizeCanvas());
     resizeObserver.observe(container);
+    resizeCanvas(); // Initial call
 }
 
 function getParams() {

@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>2D 투사체 운동 - 이론 가이드</title>
+
+    <!-- Modern Design System -->
+    <link rel="stylesheet" href="../css/main.css" />
+    <link rel="stylesheet" href="../css/components/report.css" />
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap"
+        rel="stylesheet">
+
+    <!-- KaTeX -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+</head>
+
+<body>
+    <!-- Back Button -->
+    <a href="index.html" class="m-back-btn" aria-label="Back">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+        </svg>
+    </a>
+
+    <div class="container pt-lg pb-lg">
+        <header class="modern-header mb-8 flex justify-between items-end flex-wrap gap-4">
+            <div>
+                <div class="mb-2">
+                    <span class="m-badge" style="background: var(--blue-600); color: white">교사용 가이드</span>
+                </div>
+                <h1>2D 투사체 운동 - 이론</h1>
+                <p class="text-neutral-600">포물선 운동과 공기저항 모델의 수학적 배경</p>
+            </div>
+            <div class="flex gap-2 print-hidden">
+                <button id="export-md" class="m-btn secondary small"><span>📝 MD</span></button>
+                <button id="export-html" class="m-btn secondary small"><span>🌐 HTML</span></button>
+                <button id="export-pdf" class="m-btn primary small"><span>📄 PDF</span></button>
+            </div>
+        </header>
+
+        <main class="flex flex-col gap-6">
+
+            <!-- 1. 논문 요약 -->
+            <section class="m-card">
+                <h2 class="text-xl font-bold mb-4">1. 논문 요약 (Peastrel et al., 1980)</h2>
+                <div class="bg-gray-50 p-4 rounded-lg mb-4 text-sm">
+                    <p class="mb-2"><strong>실험:</strong> 셔틀콕 수직 낙하 촬영, 속도-시간 데이터 수집</p>
+                    <p class="mb-2"><strong>모델 비교:</strong></p>
+                    <ul class="list-disc pl-4 space-y-1">
+                        <li>무저항: $\frac{dv}{dt} = g$</li>
+                        <li>선형 저항: $\frac{dv}{dt} = g - c_1 v$</li>
+                        <li>제곱 저항: $\frac{dv}{dt} = g - c_2 v^2$ ← <strong>가장 적합</strong></li>
+                    </ul>
+                    <p class="mt-2"><strong>결론:</strong> 셔틀콕은 속도 제곱에 비례하는 저항을 받음. 종단속도 $v_T = \sqrt{g/c_2} \approx 6.8$
+                        m/s</p>
+                </div>
+                <div class="bg-blue-50 p-3 rounded text-sm border border-blue-100">
+                    💡 본 수업에서는 이 1D 모델을 <strong>2D 투사체 운동</strong>으로 확장합니다.
+                </div>
+            </section>
+
+            <!-- 2. 이상적 포물선 -->
+            <section class="m-card">
+                <h2 class="text-xl font-bold mb-4">2. Model A: 이상적 포물선 (공기저항 무시)</h2>
+
+                <div class="m-grid" style="grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                    <div>
+                        <h3 class="font-bold text-sm mb-2">가정</h3>
+                        <ul class="text-sm list-disc pl-4 space-y-1">
+                            <li>공기저항 무시 ($\vec{F} = m\vec{g}$)</li>
+                            <li>중력은 일정, 아래 방향</li>
+                            <li>초기 속도 $\vec{v}_0 = (v_0 \cos\theta, v_0 \sin\theta)$</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-sm mb-2">운동 방정식</h3>
+                        <div class="bg-gray-50 p-3 rounded text-sm">
+                            $$ a_x = 0, \quad a_y = -g $$
+                            $$ x(t) = v_0 \cos\theta \cdot t $$
+                            $$ y(t) = v_0 \sin\theta \cdot t - \frac{1}{2}gt^2 $$
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-4 text-center bg-green-50 p-4 rounded-lg">
+                    <strong>궤적 (t 소거):</strong>
+                    $$ y(x) = x \tan\theta - \frac{g}{2v_0^2 \cos^2\theta} x^2 $$
+                    <p class="text-sm text-green-700 mt-2">→ $x$에 대한 <strong>이차함수 (포물선)</strong></p>
+                </div>
+            </section>
+
+            <!-- 3. 항력 모델 -->
+            <section class="m-card">
+                <h2 class="text-xl font-bold mb-4">3. Model B: 2D 항력 모델 (셔틀콕)</h2>
+
+                <div class="bg-orange-50 p-4 rounded-lg mb-4">
+                    <h3 class="font-bold text-sm mb-2">가정</h3>
+                    <ul class="text-sm list-disc pl-4 space-y-1">
+                        <li>항력은 속도 반대 방향</li>
+                        <li>크기는 속력 제곱에 비례: $|\vec{F}_d| = k m v^2$</li>
+                    </ul>
+                </div>
+
+                <h3 class="font-bold text-sm mb-2">벡터 형태 운동 방정식</h3>
+                <div class="text-center py-4 bg-gray-50 rounded-lg mb-4">
+                    $$ \vec{F} = m\vec{g} - k m |\vec{v}| \vec{v} $$
+                    <p class="text-sm text-neutral-600 mt-2">→ 가속도: $\vec{a} = \vec{g} - k |\vec{v}| \vec{v}$</p>
+                </div>
+
+                <h3 class="font-bold text-sm mb-2">성분별 분해</h3>
+                <div class="m-grid" style="grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="bg-blue-50 p-3 rounded text-center">
+                        <strong>수평:</strong>
+                        $$ a_x = -k \cdot v \cdot v_x $$
+                    </div>
+                    <div class="bg-blue-50 p-3 rounded text-center">
+                        <strong>수직:</strong>
+                        $$ a_y = -g - k \cdot v \cdot v_y $$
+                    </div>
+                </div>
+                <p class="text-xs text-neutral-600 mt-2">여기서 $v = \sqrt{v_x^2 + v_y^2}$ (속력)</p>
+            </section>
+
+            <!-- 4. 오일러 방법 -->
+            <section class="m-card">
+                <h2 class="text-xl font-bold mb-4">4. 수치 해법: 오일러 방법</h2>
+
+                <p class="text-sm text-neutral-600 mb-4">
+                    항력 모델의 미분방정식은 해석적으로 풀기 어려우므로,
+                    <strong>수치적분 (Euler Method)</strong>을 사용합니다.
+                </p>
+
+                <div class="bg-purple-50 p-4 rounded-lg">
+                    <h3 class="font-bold text-sm mb-2">알고리즘</h3>
+                    <div class="font-mono text-sm bg-white p-3 rounded border">
+                        <p class="text-purple-700">// 시간 간격 dt, 초기조건 (x, y, vx, vy)</p>
+                        <p>v = sqrt(vx² + vy²)</p>
+                        <p>ax = -k * v * vx</p>
+                        <p>ay = -g - k * v * vy</p>
+                        <p class="text-green-700">// 업데이트</p>
+                        <p>vx = vx + ax * dt</p>
+                        <p>vy = vy + ay * dt</p>
+                        <p>x = x + vx * dt</p>
+                        <p>y = y + vy * dt</p>
+                    </div>
+                </div>
+
+                <div class="mt-4 p-3 bg-yellow-50 rounded text-sm border border-yellow-100">
+                    💡 <strong>팁:</strong> dt가 작을수록 정확하지만 계산량이 늘어남. 보통 0.001~0.01초 사용.
+                </div>
+            </section>
+
+            <!-- 5. 수업 흐름 -->
+            <section class="m-card">
+                <h2 class="text-xl font-bold mb-4">5. 수업 흐름 (6차시 권장)</h2>
+
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="border-b bg-gray-50">
+                            <th class="text-left p-2">차시</th>
+                            <th class="text-left p-2">활동</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="border-b">
+                            <td class="p-2 font-bold">1</td>
+                            <td class="p-2">논문 읽기 & 연구 질문 설계</td>
+                        </tr>
+                        <tr class="border-b">
+                            <td class="p-2 font-bold">2</td>
+                            <td class="p-2">공 2D 궤적 실험 (기준 포물선)</td>
+                        </tr>
+                        <tr class="border-b">
+                            <td class="p-2 font-bold">3</td>
+                            <td class="p-2">셔틀콕 2D 궤적 실험 (항력 관찰)</td>
+                        </tr>
+                        <tr class="border-b">
+                            <td class="p-2 font-bold">4</td>
+                            <td class="p-2">시뮬레이션 구현 (오일러 방법)</td>
+                        </tr>
+                        <tr class="border-b">
+                            <td class="p-2 font-bold">5</td>
+                            <td class="p-2">데이터 피팅 & k 추정</td>
+                        </tr>
+                        <tr>
+                            <td class="p-2 font-bold">6</td>
+                            <td class="p-2">심화 탐구 발표</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <!-- 6. 심화 주제 -->
+            <section class="m-card">
+                <h2 class="text-xl font-bold mb-4">6. 심화 탐구 주제</h2>
+
+                <div class="m-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                    <div class="bg-gray-50 p-3 rounded border">
+                        <strong class="text-sm block mb-1">🎯 최적 발사 각도</strong>
+                        <p class="text-xs text-neutral-600">항력이 있을 때 사거리 최대화 각도는?</p>
+                    </div>
+                    <div class="bg-gray-50 p-3 rounded border">
+                        <strong class="text-sm block mb-1">💨 바람 효과</strong>
+                        <p class="text-xs text-neutral-600">$\vec{v} \to \vec{v} - \vec{w}$ 수정</p>
+                    </div>
+                    <div class="bg-gray-50 p-3 rounded border">
+                        <strong class="text-sm block mb-1">📏 무차원화</strong>
+                        <p class="text-xs text-neutral-600">$v/v_T$ 스케일링으로 일반화</p>
+                    </div>
+                    <div class="bg-gray-50 p-3 rounded border">
+                        <strong class="text-sm block mb-1">🔄 궤적 비대칭</strong>
+                        <p class="text-xs text-neutral-600">상승-하강 경로 차이 분석</p>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+
+        <footer class="mt-8 text-center text-sm text-muted">
+            <p>MathEdu Project 2025. Based on Peastrel et al. (1980).</p>
+        </footer>
+    </div>
+
+    <script type="module">
+        import { ReportManager } from '../js/report-core.js';
+        const report = new ReportManager('shuttlecock2d-theory');
+        report.init();
+
+        // Render KaTeX
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.renderMathInElement) {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        { left: '$$', right: '$$', display: true },
+                        { left: '$', right: '$', display: false }
+                    ]
+                });
+            }
+        });
+    </script>
+</body>
+
+</html>

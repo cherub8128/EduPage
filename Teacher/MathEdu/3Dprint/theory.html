@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>3D 프린터 궤적 최적화 - 교사 가이드</title>
+
+    <!-- Modern Design System -->
+    <link rel="stylesheet" href="../css/main.css" />
+    <link rel="stylesheet" href="../css/components/report.css" />
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap"
+        rel="stylesheet" />
+
+    <!-- KaTeX -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+</head>
+
+<body>
+    <!-- Back Button -->
+    <a href="index.html" class="m-back-btn" aria-label="Back">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+        </svg>
+    </a>
+
+    <div class="container pt-lg pb-lg">
+        <header class="modern-header mb-8 flex justify-between items-end flex-wrap gap-4">
+            <div>
+                <div class="mb-2">
+                    <span class="m-badge" style="background: var(--purple-600, #7c3aed); color: white">교사용 가이드</span>
+                </div>
+                <h1 class="text-3xl font-bold mb-2">3D 프린터 궤적 최적화 - 이론</h1>
+                <p class="text-neutral-600">NURBS 실시간 보간과 미적분 유도</p>
+            </div>
+            <div class="flex gap-2 print-hidden">
+                <button id="export-md" class="m-btn secondary small"><span>📝 MD</span></button>
+                <button id="export-html" class="m-btn secondary small"><span>🌐 HTML</span></button>
+                <button id="export-pdf" class="m-btn primary small"><span>📄 PDF</span></button>
+            </div>
+        </header>
+
+        <main class="flex flex-col gap-6">
+
+            <!-- 수업 목표 -->
+            <section class="m-card">
+                <h2 class="text-xl font-bold mb-4">0. 수업 목표</h2>
+                <div class="m-grid" style="grid-template-columns: 1fr 1fr 1fr; gap: 1rem;">
+                    <div class="bg-blue-50 p-3 rounded">
+                        <strong class="text-sm block mb-1">지식/이해</strong>
+                        <ul class="text-xs list-disc pl-4 space-y-1">
+                            <li>현 오차를 기하+근사로 유도</li>
+                            <li>연쇄법칙으로 $u$ 업데이트 연결</li>
+                            <li>곡률반경과 허용속도 관계</li>
+                        </ul>
+                    </div>
+                    <div class="bg-green-50 p-3 rounded">
+                        <strong class="text-sm block mb-1">과정/기능</strong>
+                        <ul class="text-xs list-disc pl-4 space-y-1">
+                            <li>실험 → 모델링 → 시뮬레이션</li>
+                            <li>조건 맞춤 → 검증 → 수식화</li>
+                        </ul>
+                    </div>
+                    <div class="bg-purple-50 p-3 rounded">
+                        <strong class="text-sm block mb-1">태도/가치</strong>
+                        <p class="text-xs">"정밀도"는 무조건 최대가 아니라 비용과의 최적화임을 체감</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 차시별 지도안 -->
+            <section class="m-card">
+                <h2 class="text-xl font-bold mb-4">1. 차시별 지도안 (4차시)</h2>
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="border-b bg-gray-50">
+                            <th class="text-left p-2">차시</th>
+                            <th class="text-left p-2">주제</th>
+                            <th class="text-left p-2">핵심 활동</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="border-b">
+                            <td class="p-2 font-bold">1</td>
+                            <td class="p-2">실험 & 관찰</td>
+                            <td class="p-2">인간 CNC 실험 (정n각형 그리기)</td>
+                        </tr>
+                        <tr class="border-b">
+                            <td class="p-2 font-bold">2</td>
+                            <td class="p-2">단순화 & 시뮬</td>
+                            <td class="p-2">NURBS 개념, GeoGebra 오차 측정</td>
+                        </tr>
+                        <tr class="border-b">
+                            <td class="p-2 font-bold">3</td>
+                            <td class="p-2">수식화 1</td>
+                            <td class="p-2">현 오차 증명, 곡선 길이 적분</td>
+                        </tr>
+                        <tr>
+                            <td class="p-2 font-bold">4</td>
+                            <td class="p-2">수식화 2</td>
+                            <td class="p-2">테일러 보간, 속도/저크 제한</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <!-- 현 오차 유도 -->
+            <section class="m-card">
+                <h2 class="text-xl font-bold mb-4">2. 현 오차 (Chord Error) 유도</h2>
+
+                <h3 class="font-bold text-sm mb-2">정확식 (기하)</h3>
+                <p class="text-sm mb-2">곡률반경 $R$인 원호를 길이 $L$인 현으로 근사할 때:</p>
+                <div class="p-3 bg-gray-50 rounded text-center mb-4">
+                    $$ e = R - \sqrt{R^2 - \left(\frac{L}{2}\right)^2} = R\left(1 - \sqrt{1 - \frac{L^2}{4R^2}}\right)
+                    $$
+                </div>
+
+                <h3 class="font-bold text-sm mb-2">근사식 (테일러)</h3>
+                <p class="text-sm mb-2">$x = \frac{L^2}{4R^2} \ll 1$일 때 $\sqrt{1-x} \approx 1 - \frac{x}{2}$를 사용:</p>
+                <div class="p-3 bg-purple-50 rounded text-center border-l-4 border-purple-500 mb-4">
+                    $$ \boxed{e \approx \frac{L^2}{8R}} $$
+                </div>
+
+                <h3 class="font-bold text-sm mb-2">공학 변수 연결</h3>
+                <p class="text-sm">한 보간 주기 $T$ 동안 속력 $V_s$로 이동하면 $L \approx V_s T$:</p>
+                <div class="p-3 bg-gray-50 rounded text-center">
+                    $$ e \approx \frac{(V_s T)^2}{8R} $$
+                </div>
+            </section>
+
+            <!-- 실시간 보간 -->
+            <section class="m-card">
+                <h2 class="text-xl font-bold mb-4">3. 실시간 $u$ 업데이트</h2>
+
+                <h3 class="font-bold text-sm mb-2">연쇄법칙</h3>
+                <p class="text-sm mb-2">속력 $V_s = \frac{ds}{dt}$, 곡선 길이 $\frac{ds}{du} = |C'(u)|$를 이용:</p>
+                <div class="p-3 bg-blue-50 rounded text-center mb-4">
+                    $$ V_s = |C'(u)| \frac{du}{dt} \quad \Rightarrow \quad \boxed{\frac{du}{dt} = \frac{V_s}{|C'(u)|}}
+                    $$
+                </div>
+
+                <h3 class="font-bold text-sm mb-2">테일러 전개 (2차)</h3>
+                <div class="p-3 bg-gray-50 rounded text-center mb-4">
+                    $$ u_{k+1} = u_k + T \frac{du}{dt} + \frac{T^2}{2} \frac{d^2u}{dt^2} + O(T^3) $$
+                </div>
+
+                <h3 class="font-bold text-sm mb-2">곡률반경</h3>
+                <div class="p-3 bg-gray-50 rounded text-center">
+                    $$ \rho = \frac{|C'(u)|^3}{|C'(u) \times C''(u)|} $$
+                </div>
+            </section>
+
+            <!-- 속도 제한 -->
+            <section class="m-card">
+                <h2 class="text-xl font-bold mb-4">4. 속도 제한 법칙</h2>
+                <p class="text-sm mb-2">현 오차 $e \le e_{max}$를 만족하려면:</p>
+                <div class="p-4 bg-orange-50 rounded-lg text-center border-l-4 border-orange-500">
+                    $$ \boxed{V_s \le \frac{1}{T} \sqrt{8 \rho \cdot e_{max}}} $$
+                    <p class="text-sm text-orange-700 mt-2">$\rho$가 작아지면(급커브) 속도를 줄여야 함</p>
+                </div>
+            </section>
+
+            <!-- 저크 제한 -->
+            <section class="m-card">
+                <h2 class="text-xl font-bold mb-4">5. 저크 제한과 S-curve</h2>
+                <p class="text-sm mb-2">저크 $J = \frac{da}{dt}$가 일정하면:</p>
+                <div class="p-3 bg-gray-50 rounded text-center">
+                    $$
+                    a(t) = a_0 + Jt, \quad
+                    v(t) = v_0 + a_0 t + \frac{1}{2}Jt^2, \quad
+                    s(t) = s_0 + v_0 t + \frac{1}{2}a_0 t^2 + \frac{1}{6}Jt^3
+                    $$
+                </div>
+                <p class="text-sm mt-2">
+                    S-shaped 가감속은 저크를 제한하여 진동을 줄이고 부드러운 운동을 만듭니다.
+                </p>
+            </section>
+
+            <!-- 평가 루브릭 -->
+            <section class="m-card">
+                <h2 class="text-xl font-bold mb-4">6. 평가 루브릭</h2>
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="border-b bg-gray-50">
+                            <th class="text-left p-2">요소</th>
+                            <th class="text-center p-2">상</th>
+                            <th class="text-center p-2">중</th>
+                            <th class="text-center p-2">하</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="border-b">
+                            <td class="p-2">수학적 모델링</td>
+                            <td class="text-center p-2 text-xs">정확→근사→오차항 해석</td>
+                            <td class="text-center p-2 text-xs">근사식 유도</td>
+                            <td class="text-center p-2 text-xs">식 단편 적용</td>
+                        </tr>
+                        <tr class="border-b">
+                            <td class="p-2">시뮬레이션 검증</td>
+                            <td class="text-center p-2 text-xs">$1/n^2$ 경향 확인</td>
+                            <td class="text-center p-2 text-xs">경향 관찰</td>
+                            <td class="text-center p-2 text-xs">실행만</td>
+                        </tr>
+                        <tr>
+                            <td class="p-2">공학적 의사결정</td>
+                            <td class="text-center p-2 text-xs">속도 제한 설계</td>
+                            <td class="text-center p-2 text-xs">속도 제한식 사용</td>
+                            <td class="text-center p-2 text-xs">변수 혼동</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+        </main>
+
+        <footer class="mt-8 text-center text-sm text-neutral-400">
+            MathEdu Project - 3D Print Teacher Guide
+        </footer>
+    </div>
+
+    <script type="module">
+        import { ReportManager } from '../js/report-core.js';
+        const report = new ReportManager('3dprint_theory');
+        report.init();
+    </script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            renderMathInElement(document.body, {
+                delimiters: [
+                    { left: "$$", right: "$$", display: true },
+                    { left: "$", right: "$", display: false }
+                ]
+            });
+        });
+    </script>
+</body>
+
+</html>
