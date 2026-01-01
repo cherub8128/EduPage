@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>콘코이드 탐구 - 학생 활동지</title>
+
+    <!-- Modern Design System -->
+    <link rel="stylesheet" href="../css/main.css" />
+    <link rel="stylesheet" href="../css/components/report.css" />
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/naen-nae/d2coding/d2coding-subset.css" />
+
+    <!-- Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/showdown/2.1.0/showdown.min.js"></script>
+
+    <style>
+        /* Custom styles for worksheet feel */
+        .worksheet-section {
+            border-bottom: 2px dashed #e5e7eb;
+            padding-bottom: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .worksheet-section:last-child {
+            border-bottom: none;
+        }
+
+        .question-box {
+            background: #fff;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-top: 1rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .question-label {
+            display: block;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 0.5rem;
+        }
+
+        .hint-text {
+            font-size: 0.875rem;
+            color: #64748b;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Back Button -->
+    <a href="index.html" class="m-back-btn" aria-label="Back">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+        </svg>
+    </a>
+
+    <div class="container pt-lg pb-lg">
+        <header class="modern-header mb-8">
+            <div class="mb-2">
+                <span class="m-badge" style="background: var(--blue-500); color: white">Student Worksheet</span>
+            </div>
+            <h1 class="text-3xl font-bold">니코메데스의 콘코이드와 배적 문제</h1>
+            <p class="text-neutral-600">
+                관찰 → 단순화 → 시뮬레이션 → 모델링 → 심화
+            </p>
+        </header>
+
+        <main class="flex flex-col gap-6">
+            <!-- Student Info -->
+            <section class="m-card">
+                <div class="m-grid" style="grid-template-columns: 1fr 1fr; gap: 1rem">
+                    <div>
+                        <label for="student-id" class="font-bold text-sm block mb-1">학번</label>
+                        <input id="student-id" class="m-input savable" placeholder="예: 20501" />
+                    </div>
+                    <div>
+                        <label for="student-name" class="font-bold text-sm block mb-1">이름</label>
+                        <input id="student-name" class="m-input savable" placeholder="예: 김이과" />
+                    </div>
+                </div>
+            </section>
+
+            <!-- Step 1: Definition -->
+            <section id="step1" class="m-card worksheet-section">
+                <h2 class="text-xl font-bold mb-2">Step 1. 콘코이드의 정의 이해하기</h2>
+                <p class="text-neutral-700 text-sm mb-4">
+                    다음은 콘코이드를 그리는 기계적 원리입니다. (Interactive Simulation을 참고하세요)
+                </p>
+                <div class="bg-gray-50 p-4 rounded text-sm mb-4">
+                    <ul class="list-disc pl-5 space-y-1">
+                        <li><strong>Pole (O):</strong> 고정된 회전 중심점</li>
+                        <li><strong>Axis (L):</strong> 고정된 직선 (슬라이더가 움직이는 길)</li>
+                        <li><strong>Interval (k):</strong> 막대에서 항상 일정하게 유지되는 거리</li>
+                    </ul>
+                </div>
+
+                <div class="question-box">
+                    <label class="question-label">Q1. 기계적 제약조건 분석</label>
+                    <p class="hint-text">
+                        Interactive Simulation에서 $d$와 $k$ 값을 바꿔보며 관찰하세요.
+                        $k$ 값은 변하나요, 고정인가요? 그리고 점 $Q$(직선 위 교점)는 무엇에 따라 위치가 바뀌나요?
+                    </p>
+                    <div class="editable-container">
+                        <textarea id="q1-answer" class="savable m-input w-full h-24"
+                            placeholder="답변을 작성하세요..."></textarea>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Step 2: Simulation Observation -->
+            <section id="step2" class="m-card worksheet-section">
+                <h2 class="text-xl font-bold mb-2">Step 2. 시뮬레이션 관찰</h2>
+
+                <div class="question-box">
+                    <label class="question-label">Q2. Loop (고리) 생성 조건</label>
+                    <p class="hint-text">
+                        시뮬레이션에서 $k$ 값을 $d$ 값보다 크게 ($k > d$), 그리고 작게 ($k < d$) 설정해보세요. 곡선이 꼬인 고리(Loop) 모양을 만드는 것은 어떤 조건일
+                            때인가요? </p>
+                            <div class="border not-prose p-4 mb-4 bg-white rounded">
+                                <table class="w-full text-sm text-left">
+                                    <thead>
+                                        <tr class="border-b">
+                                            <th class="py-2">조건</th>
+                                            <th>관찰 결과 (모양 특징)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr class="border-b">
+                                            <td class="py-2 font-mono">k < d</td>
+                                            <td><input class="m-input savable w-full" placeholder="예: 완만한 곡선..."></td>
+                                        </tr>
+                                        <tr class="border-b">
+                                            <td class="py-2 font-mono">k = d</td>
+                                            <td><input class="m-input savable w-full" placeholder="예: 뾰족점(Cusp) 발생...">
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="py-2 font-mono">k > d</td>
+                                            <td><input class="m-input savable w-full" placeholder="예: 내부 루프 생성..."></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                </div>
+            </section>
+
+            <!-- Step 3: Equation Modeling -->
+            <section id="step3" class="m-card worksheet-section">
+                <h2 class="text-xl font-bold mb-2">Step 3. 수학적 모델링</h2>
+                <p class="text-sm text-neutral-600 mb-4">
+                    이제 기계적 정의를 수학 공식으로 바꿔봅시다.
+                </p>
+
+                <div class="question-box">
+                    <label class="question-label">Q3. 극좌표 방정식 유도</label>
+                    <p class="hint-text">
+                        원점 $O$에서 직선 $L(x=d)$까지의 거리는 $r_1 = d \sec \theta$ 입니다.
+                        콘코이드의 정의에 따라 점 $P$까지의 거리 $r$은 어떻게 표현될까요?
+                    </p>
+                    <div class="flex items-center gap-2 mb-2 justify-center py-4 bg-gray-50 rounded">
+                        $$ r = d \sec \theta \pm \quad $$
+                        <input id="q3-variable" class="m-input savable w-16 text-center font-bold" placeholder="?">
+                    </div>
+                </div>
+
+                <div class="question-box">
+                    <label class="question-label">Q4. 암시적 방정식 (심화)</label>
+                    <p class="hint-text">
+                        위 식에서 $\sec\theta$와 $r$을 $x, y$로 치환하여 정리하면 다음 중 어떤 식이 될까요?
+                        (교사 가이드 참고 가능)
+                    </p>
+                    <div class="space-y-2 mt-2">
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="radio" name="eq-choice" value="1" class="savable">
+                            <span>$(x^2+y^2)(x-d)^2 = k^2x^2$</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="radio" name="eq-choice" value="2" class="savable">
+                            <span>$(x^2+y^2) = k^2(x-d)^2$</span>
+                        </label>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Step 4: TinkerCAD Design -->
+            <section id="step4" class="m-card">
+                <h2 class="text-xl font-bold mb-2">Step 4. 기구 설계 (Tinkercad)</h2>
+                <div class="bg-blue-50 p-4 rounded text-sm text-blue-900 mb-4">
+                    <strong>설계 미션:</strong>
+                    팅커캐드(Tinkercad)를 이용하여 콘코이드를 그릴 수 있는 3D 모델을 구상해보세요.
+                    실제 제작보다는 <strong>"어떻게 $k$라는 길이를 일정하게 유지하며 미끄러지게(Slide) 할 것인가?"</strong>가 핵심입니다.
+                </div>
+
+                <div class="dropzone p-8 border-2 border-dashed border-gray-300 rounded text-center text-gray-500 hover:border-blue-500 transition-colors cursor-pointer"
+                    id="design-dropzone">
+                    <p>설계한 모델의 스크린샷을 여기에 붙여넣거나 업로드하세요.</p>
+                    <input type="file" id="design-upload" class="hidden">
+                </div>
+                <div id="design-gallery" class="gallery-grid mt-4"></div>
+            </section>
+
+            <!-- Conclusion -->
+            <section class="m-card">
+                <h2 class="text-xl font-bold mb-2">결론 및 소감</h2>
+                <div class="editable-container">
+                    <textarea id="final-reflection" class="savable m-input w-full h-32"
+                        placeholder="이번 프로젝트를 통해 배운 점..."></textarea>
+                </div>
+            </section>
+        </main>
+
+        <footer class="mt-12 mb-8 text-center text-sm text-neutral-400">
+            MathEdu Project - Student Worksheet
+        </footer>
+    </div>
+
+    <!-- Script for Autosave & Gallery (Simplified) -->
+    <script>
+        // Autosave Mock
+        const inputs = document.querySelectorAll('.savable');
+        inputs.forEach(input => {
+            // Load
+            const saved = localStorage.getItem('conchoid_' + input.id);
+            if (saved) input.value = saved;
+
+            // Save
+            input.addEventListener('input', () => {
+                localStorage.setItem('conchoid_' + input.id, input.value);
+            });
+        });
+
+        // Gallery Mock
+        const dropzone = document.getElementById('design-dropzone');
+        if (dropzone) {
+            dropzone.addEventListener('click', () => document.getElementById('design-upload').click());
+        }
+
+        // Auto-render KaTeX
+        document.addEventListener("DOMContentLoaded", function () {
+            renderMathInElement(document.body, {
+                delimiters: [
+                    { left: "$$", right: "$$", display: true },
+                    { left: "$", right: "$", display: false }
+                ]
+            });
+        });
+    </script>
+</body>
+
+</html>

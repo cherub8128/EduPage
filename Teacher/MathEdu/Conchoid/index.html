@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>니코메데스의 콘코이드 탐구</title>
+    <!-- Modern Design System -->
+    <link rel="stylesheet" href="../css/main.css" />
+    <link rel="stylesheet" href="../css/components/report.css" />
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/naen-nae/d2coding/d2coding-subset.css" />
+    <!-- Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+</head>
+
+<body>
+    <!-- Back Button -->
+    <a href="../index.html" class="m-back-btn" aria-label="Back">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+        </svg>
+    </a>
+
+    <div class="container pt-lg pb-lg">
+        <!-- Header -->
+        <header class="modern-header mb-8">
+            <div class="mb-2">
+                <span class="m-badge" style="background: var(--grad-primary); color: white">
+                    Math & Engineering
+                </span>
+            </div>
+            <h1 class="text-3xl font-bold mb-2">니코메데스의 콘코이드 (Conchoid)</h1>
+            <p class="text-neutral-600">
+                고대 그리스 3대 난제인 '배적 문제(Doubling the Cube)'를 해결하기 위해 고안된 곡선을 탐구합니다.
+            </p>
+        </header>
+        <main class="flex flex-col gap-6">
+            <!-- Navigation Cards -->
+            <section class="m-grid" style="grid-template-columns: 1fr 1fr; gap: 1.5rem">
+                <a href="student.html" class="block text-decoration-none transform transition hover:-translate-y-1">
+                    <div class="m-card h-full hover:shadow-lg transition-shadow border-l-4 border-blue-500">
+                        <div class="flex items-center gap-3 mb-3">
+                            <span class="text-2xl">📝</span>
+                            <h2 class="text-xl font-bold m-0 text-neutral-800">학생용 활동지</h2>
+                        </div>
+                        <p class="text-sm text-neutral-600 mb-4">
+                            직접 틴커캐드로 기구를 설계하고, 지오지브라로 곡선을 그리며 배적 문제에 도전해보세요.
+                        </p>
+                        <span class="m-btn small secondary w-full block text-center">활동 시작하기 →</span>
+                    </div>
+                </a>
+
+                <a href="theory.html" class="block text-decoration-none transform transition hover:-translate-y-1">
+                    <div class="m-card h-full hover:shadow-lg transition-shadow border-l-4 border-green-500">
+                        <div class="flex items-center gap-3 mb-3">
+                            <span class="text-2xl">📚</span>
+                            <h2 class="text-xl font-bold m-0 text-neutral-800">교사 가이드 & 이론</h2>
+                        </div>
+                        <p class="text-sm text-neutral-600 mb-4">
+                            Neusis 작도법, 극좌표 방정식 유도, 역사적 배경 등 수업을 위한 상세 이론 자료입니다.
+                        </p>
+                        <span class="m-btn small secondary w-full block text-center">자료 보기 →</span>
+                    </div>
+                </a>
+            </section>
+
+            <!-- Interactive Simulation -->
+            <section class="m-card">
+                <h2 class="text-xl font-bold mb-4">Interactive Simulation</h2>
+                <div class="m-grid" style="grid-template-columns: 300px 1fr; gap: 2rem">
+
+                    <!-- Controls -->
+                    <div class="flex flex-col gap-5">
+                        <div class="p-4 bg-gray-50 rounded-lg border">
+                            <h3 class="font-bold text-sm text-neutral-700 mb-4 border-b pb-2">Parameters</h3>
+
+                            <div class="mb-4">
+                                <div class="flex justify-between mb-1">
+                                    <label class="text-xs font-bold">거리 d (Pole to Line)</label>
+                                    <span id="val-d" class="text-xs font-mono text-blue-600">4.0</span>
+                                </div>
+                                <input type="range" id="input-d" min="1" max="8" step="0.1" value="4.0" class="w-full">
+                            </div>
+
+                            <div class="mb-4">
+                                <div class="flex justify-between mb-1">
+                                    <label class="text-xs font-bold">길이 k (Interval)</label>
+                                    <span id="val-k" class="text-xs font-mono text-blue-600">5.0</span>
+                                </div>
+                                <input type="range" id="input-k" min="1" max="10" step="0.1" value="5.0" class="w-full">
+                            </div>
+
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <label class="text-xs font-bold">생성 각도 θ</label>
+                                    <span id="val-theta" class="text-xs font-mono text-blue-600">Auto</span>
+                                </div>
+                                <input type="range" id="input-theta" min="-85" max="85" step="1" value="45"
+                                    class="w-full">
+                                <div class="flex gap-2 mt-2">
+                                    <button id="btn-animate" class="m-btn small primary flex-1">▶ Animation</button>
+                                    <button id="btn-reset" class="m-btn small secondary">Reset</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="p-4 bg-blue-50 text-blue-900 rounded-lg text-sm">
+                            <strong class="block mb-2 text-blue-800">📌 수학적 정의</strong>
+                            $$ r = d \sec \theta \pm k $$
+                            <ul class="list-disc pl-4 mt-2 space-y-1 text-xs">
+                                <li><strong>Pole(O):</strong> 원점 (0,0)</li>
+                                <li><strong>Line(L):</strong> 수직선 $x=d$</li>
+                                <li><strong>Ray:</strong> 각도 $\theta$의 반직선</li>
+                                <li>콘코이드 위의 점 $P$는 직선 $L$과의 교점 $Q$에서 거리 $k$만큼 떨어진 점입니다. ($P = Q \pm k$)</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Canvas -->
+                    <div class="relative bg-white border rounded-xl overflow-hidden shadow-inner"
+                        style="height: 500px;">
+                        <canvas id="simCanvas" width="800" height="500"></canvas>
+                        <div
+                            class="absolute bottom-4 right-4 bg-white/90 backdrop-blur px-3 py-1 rounded text-xs text-neutral-500 shadow-sm border">
+                            Wheel to Zoom, Drag to Pan
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Brief Theory Info -->
+            <section class="m-card">
+                <h2 class="text-xl font-bold mb-4">왜 '배적 문제'와 연결되나요?</h2>
+                <div class="prose text-neutral-700">
+                    <p>
+                        배적 문제(Doubling the Cube)는 부피가 2배인 정육면체를 만드는 문제로, $x^3 = 2a^3$ 즉 $x = \sqrt[3]{2}a$를 작도해야 합니다.
+                        자와 컴퍼스만으로는 $\sqrt[3]{2}$를 작도할 수 없지만, 니코메데스는 이 <strong>콘코이드 곡선과 직선의 교점</strong>을 이용해
+                        기하학적으로 $\sqrt[3]{2}$를 찾아냈습니다 (Neusis 작도).
+                    </p>
+                    <div class="mt-4 p-4 bg-yellow-50 border border-yellow-100 rounded text-sm text-yellow-800">
+                        💡 자세한 증명과 작도 과정은 <a href="theory.html" class="font-bold underline text-yellow-900">교사 가이드 &
+                            이론</a> 페이지에서 확인하세요.
+                    </div>
+                </div>
+            </section>
+
+        </main>
+
+        <footer class="mt-12 mb-8 text-center text-sm text-neutral-400">
+            <p>MathEdu Project - Nicomedes' Conchoid Simulation</p>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        // Auto-render KaTeX
+        document.addEventListener("DOMContentLoaded", function () {
+            renderMathInElement(document.body, {
+                delimiters: [
+                    { left: "$$", right: "$$", display: true },
+                    { left: "$", right: "$", display: false }
+                ]
+            });
+        });
+    </script>
+</body>
+
+</html>

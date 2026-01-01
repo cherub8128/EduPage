@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>콘코이드 탐구 - 교사 가이드 & 이론</title>
+
+    <!-- Modern Design System -->
+    <link rel="stylesheet" href="../css/main.css" />
+    <link rel="stylesheet" href="../css/components/report.css" />
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/naen-nae/d2coding/d2coding-subset.css" />
+
+    <!-- Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+
+    <style>
+        .math-box {
+            background: #f8fafc;
+            border-left: 4px solid var(--color-primary);
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border-radius: 0 var(--radius-md) var(--radius-md) 0;
+        }
+
+        .proof-step {
+            margin-bottom: 2rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px dashed #e2e8f0;
+        }
+
+        .proof-step:last-child {
+            border-bottom: none;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Back Button -->
+    <a href="index.html" class="m-back-btn" aria-label="Back">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+        </svg>
+    </a>
+
+    <div class="container pt-lg pb-lg">
+        <header class="modern-header mb-8">
+            <div class="mb-2">
+                <span class="m-badge" style="background: var(--green-500); color: white">Teacher's Guide</span>
+            </div>
+            <h1 class="text-3xl font-bold">니코메데스의 콘코이드와 배적 문제</h1>
+            <p class="text-neutral-600">
+                기계적 제약이 만드는 궤적이 어떻게 고전 기하학의 난제를 해결하는가?
+            </p>
+        </header>
+
+        <main class="flex flex-col gap-8">
+            <!-- 1. Intro -->
+            <section class="m-card">
+                <h2 class="text-xl font-bold mb-4">1. 수업 개요 (One-Page Summary)</h2>
+                <div class="prose text-neutral-800">
+                    <ul class="list-disc pl-5 space-y-2">
+                        <li><strong>핵심 질문:</strong> 자와 컴퍼스로 해결할 수 없는 문제($\sqrt[3]{2}$)를 해결하기 위해 고대 수학자들은 어떤 도구(곡선)를
+                            발명했는가?</li>
+                        <li><strong>수학적 활동:</strong>
+                            <ol class="list-decimal pl-5 mt-1 space-y-1 text-sm text-neutral-600">
+                                <li><strong>관찰:</strong> 기계적 장치(Tinkercad 설계)가 그리는 궤적 관찰</li>
+                                <li><strong>단순화:</strong> "일정한 거리"라는 기계적 제약을 수학적 정의(Locus)로 번역</li>
+                                <li><strong>모델링:</strong> 극좌표 방정식 유도 및 암시적 함수($F(x,y)=0$) 도출</li>
+                                <li><strong>응용:</strong> Neusis 작도를 통한 배적 문제 해결 논리 이해</li>
+                            </ol>
+                        </li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- 2. Mathematical Definition -->
+            <section class="m-card">
+                <h2 class="text-xl font-bold mb-4">2. 콘코이드의 정의와 방정식</h2>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <h3 class="font-bold text-lg mb-2">기하학적 정의</h3>
+                        <p class="text-sm mb-4">
+                            고정점 $O$(Pole)와 고정 직선 $L$(Axis)이 주어질 때, 점 $O$를 지나는 직선이 $L$과 만나는 점을 $Q$라 하자.
+                            직선 위에서 $Q$로부터 일정한 거리 $k$(Interval)만큼 떨어진 점 $P$의 자취를 콘코이드라 한다.
+                        </p>
+                        <div class="bg-blue-50 p-4 rounded text-blue-900 text-sm">
+                            <strong>좌표 설정:</strong><br>
+                            - $O = (0,0)$<br>
+                            - $L : x = d \quad (d > 0)$<br>
+                            - Ray 각도 : $\theta$
+                        </div>
+                    </div>
+
+                    <div>
+                        <h3 class="font-bold text-lg mb-2">방정식 유도</h3>
+                        <div class="math-box text-center">
+                            $$ r = d \sec \theta \pm k $$
+                        </div>
+                        <div class="text-sm space-y-2">
+                            <p><strong>1. $Q$의 좌표:</strong> $x=d$ 이므로 $Q = (d, d \tan \theta)$</p>
+                            <p><strong>2. $OQ$ 거리:</strong> $OQ = d \sec \theta$</p>
+                            <p><strong>3. $P$의 정의:</strong> $OP = OQ \pm k$ 이므로 $r = d \sec \theta \pm k$</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-6 border-t pt-6">
+                    <h3 class="font-bold text-lg mb-2">직교좌표 방정식 (암시적 함수)</h3>
+                    <p class="text-sm mb-2">극좌표 식에서 매개변수 $\theta$를 소거하면 다음과 같은 4차 곡선 방정식을 얻는다.</p>
+                    <div class="math-box">
+                        $$ (x^2 + y^2)(x - d)^2 = k^2 x^2 $$
+                    </div>
+                    <details class="text-sm text-neutral-600 cursor-pointer">
+                        <summary class="hover:text-primary font-bold">➕ 유도 과정 보기</summary>
+                        <div class="pl-4 mt-2 border-l-2">
+                            <p>1. $x = r \cos \theta = (d \sec \theta + k) \cos \theta = d + k \cos \theta$</p>
+                            <p>2. 위 식에서 $\cos \theta = \frac{x-d}{k}$, $\sec \theta = \frac{k}{x-d}$</p>
+                            <p>3. $r = d(\frac{k}{x-d}) + k = k \frac{x}{x-d}$</p>
+                            <p>4. $r^2 = x^2 + y^2$ 이므로 $x^2 + y^2 = (k \frac{x}{x-d})^2$</p>
+                            <p>5. 정리하면 $(x^2 + y^2)(x-d)^2 = k^2 x^2$</p>
+                        </div>
+                    </details>
+                </div>
+            </section>
+
+            <!-- 3. Doubling the Cube -->
+            <section class="m-card">
+                <h2 class="text-xl font-bold mb-4">3. 배적 문제(Doubling the Cube)의 해결</h2>
+                <p class="mb-4 text-sm text-neutral-700">
+                    배적 문제는 주사위 2개를 부피 2배짜리 주사위 1개로 만드는 문제, 즉 $x^3 = 2a^3 \Rightarrow x = \sqrt[3]{2}a$를 작도하는 문제입니다.
+                    니코메데스는 콘코이드를 이용해 **뉴우시스(Neusis)** 작도를 수행함으로써 이 문제를 해결했습니다.
+                </p>
+
+                <div class="bg-yellow-50 p-5 rounded-lg border border-yellow-100 mb-6">
+                    <h3 class="font-bold text-yellow-900 mb-2">💡 핵심 논리 흐름</h3>
+                    <ol class="list-decimal pl-5 space-y-1 text-sm text-yellow-800">
+                        <li>배적 문제는 두 개의 <strong>평균비례(Mean Proportionals)</strong>를 찾는 문제로 환원된다 ($a:x = x:y = y:2a$).
+                        </li>
+                        <li>이 비례식은 기하학적으로 특정 조건을 만족하는 선분을 찾는 문제(Neusis)가 된다.</li>
+                        <li>Neusis 조건("두 직선 사이의 길이가 $k$가 되게 하라")은 <strong>콘코이드의 정의 그 자체</strong>다.</li>
+                        <li>따라서 콘코이드 곡선과 직선의 교점을 찾으면 $\sqrt[3]{2}$를 작도할 수 있다.</li>
+                    </ol>
+                </div>
+
+                <h3 class="font-bold text-lg mb-3">Neusis 작도의 원리</h3>
+                <div class="math-box">
+                    <p class="font-bold mb-2 text-sm">Neusis 문제:</p>
+                    <p class="text-sm">
+                        "임의의 각 $\angle A$와 점 $P$가 주어졌을 때, $P$를 지나는 직선이 $\angle A$의 두 변과 만나는 길이를 $k$가 되게 하라."
+                    </p>
+                    <br>
+                    <p class="text-sm">
+                        이 문제는 자와 컴퍼스로는 풀 수 없지만,
+                        <strong>"한 변을 직선 $L$로, 다른 변을 Pole $O$로 하는 콘코이드"</strong>를 그리고
+                        나머지 변과의 교점을 찾으면 해결됩니다.
+                    </p>
+                </div>
+            </section>
+
+            <!-- 4. Inquiry Topics -->
+            <section class="m-card">
+                <h2 class="text-xl font-bold mb-4">4. 심화 탐구 주제 (Student Projects)</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="p-4 border rounded hover:bg-gray-50 transition">
+                        <strong class="block mb-2">주제 A: 루프(Loop)의 존재 조건</strong>
+                        <p class="text-sm text-neutral-600 mb-2">콘코이드가 꼬인 루프를 가지기 위한 $d$와 $k$의 관계는?</p>
+                        <span class="text-xs bg-gray-200 px-2 py-1 rounded">정답: k > d</span>
+                    </div>
+                    <div class="p-4 border rounded hover:bg-gray-50 transition">
+                        <strong class="block mb-2">주제 B: 3등분 문제 (Trisection)</strong>
+                        <p class="text-sm text-neutral-600 mb-2">니코메데스는 콘코이드를 이용해 각의 3등분 문제도 해결했습니다. 어떤 원리일까요?</p>
+                        <span class="text-xs bg-gray-200 px-2 py-1 rounded">힌트: $x^3$ 방정식과의 관계</span>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer class="mt-12 mb-8 text-center text-sm text-neutral-400">
+            MathEdu Project - Conchoid Teacher's Guide
+        </footer>
+    </div>
+
+    <script>
+        // Auto-render KaTeX
+        document.addEventListener("DOMContentLoaded", function () {
+            renderMathInElement(document.body, {
+                delimiters: [
+                    { left: "$$", right: "$$", display: true },
+                    { left: "$", right: "$", display: false }
+                ]
+            });
+        });
+    </script>
+</body>
+
+</html>
