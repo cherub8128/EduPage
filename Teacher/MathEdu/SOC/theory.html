@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SOC 교사 가이드 - 자기조직화 임계성</title>
+
+    <!-- Modern Design System -->
+    <link rel="stylesheet" href="../css/main.css" />
+    <link rel="stylesheet" href="../css/components/report.css" />
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/naen-nae/d2coding/d2coding-subset.css" />
+
+    <!-- Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+
+    <style>
+        .prose h3 {
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+            color: #1e293b;
+            font-weight: 700;
+        }
+
+        .prose ul {
+            list-style-type: disc;
+            padding-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .prose li {
+            margin-bottom: 0.25rem;
+        }
+
+        .math-block {
+            background: #f8fafc;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            overflow-x: auto;
+            border-left: 4px solid #0d9488;
+        }
+
+        .ref-box {
+            background-color: #f3f4f6;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            margin-top: 2rem;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Back Button -->
+    <a href="index.html" class="m-back-btn" aria-label="Back">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+        </svg>
+    </a>
+
+    <div class="container pt-lg pb-lg">
+        <header class="modern-header mb-8">
+            <div class="mb-2">
+                <span class="m-badge" style="background: var(--cyan-700); color: white">Teacher Guide</span>
+            </div>
+            <h1 class="text-3xl font-bold mb-2">자기조직화 임계성(SOC) 수업 가이드</h1>
+            <p class="text-neutral-600">
+                아주 단순한 규칙이 복잡한 멱법칙 분포(Power Law)를 만들어낸다.
+            </p>
+            <div class="mt-4 p-4 bg-teal-50 border border-teal-200 rounded text-teal-900 text-sm">
+                <strong>핵심 아이디어:</strong> 시스템을 천천히 구동(Slow Driving)하면, 스스로 임계 상태(Critical State)를 조직하고,
+                이때 사건 크기는 척도가 없는(Scale-free) 분포를 따릅니다.
+            </div>
+        </header>
+
+        <main class="m-card prose max-w-none text-neutral-800">
+
+            <h3>0. 수업 목표</h3>
+            <ul>
+                <li><strong>현상:</strong> 아주 작은 '쌀 한 톨'이 때로는 거대한 눈사태를 일으킴을 관찰.</li>
+                <li><strong>통계:</strong> 눈사태 크기가 정규분포가 아닌 멱법칙(\(P(s) \sim s^{-\tau}\))을 따름을 확인.</li>
+                <li><strong>모델링:</strong> 복잡한 물리 현상을 '1차원 격자' 규칙으로 추상화하여 재현.</li>
+                <li><strong>심화:</strong> 유한 크기 효과(Finite Size Scaling)와 데이터 붕괴(Data Collapse).</li>
+            </ul>
+
+            <hr class="my-6 border-neutral-200">
+
+            <h3>1. 모델 설명: 1D Amaral-Lauritsen Model</h3>
+            <p>
+                이 시뮬레이션은 쌀알의 마찰과 관성을 아주 단순한 확률 규칙으로 대체한 모델입니다.
+            </p>
+            <ul>
+                <li><strong>격자 높이 \(h(i)\):</strong> 각 위치에 쌓인 쌀알 수.</li>
+                <li><strong>기울기 \(z_i = h(i) - h(i+1)\):</strong> 국소적인 경사.</li>
+                <li><strong>임계값 \(S_1, S_2\):</strong>
+                    <ul>
+                        <li>\(z_i > S_2\): 너무 가팔라서 무조건 무너짐 (prob = 1).</li>
+                        <li>\(S_1 < z_i \le S_2\): 불안정하지만 버틸 수도 있음. 확률 \(p\)로 무너짐. (메타안정성)</li>
+                        <li>\(z_i \le S_1\): 안정.</li>
+                    </ul>
+                </li>
+            </ul>
+
+            <div class="math-block">
+                <strong>Toppling Rule:</strong> \(h(i) \to h(i)-1, \quad h(i+1) \to h(i+1)+1\)
+            </div>
+
+            <hr class="my-6 border-neutral-200">
+
+            <h3>2. 수학적 배경 (증명 과제 해설)</h3>
+
+            <h4>2.1 멱법칙 정규화와 지수</h4>
+            <p>확률밀도함수 \(p(s) = C s^{-\tau}\) 가 구간 \([s_{min}, \infty)\)에서 정의된다면,</p>
+            <div class="math-block">
+                $$ \int_{s_{min}}^\infty C s^{-\tau} ds = 1 \quad \Rightarrow \quad C = (\tau-1)s_{min}^{\tau-1} $$
+            </div>
+            <p>
+                이때 누적방출분포(CCDF, P(S>s))는 지수가 1 줄어듭니다:
+                $$ P(S > s) = \int_s^\infty p(x) dx \propto s^{-(\tau-1)} $$
+                학생들이 로그-로그 그래프의 기울기를 잴 때 \(\alpha\)값이 나오면, 실제 \(\tau = \alpha + 1\) 임을 지도해주세요.
+    </div>
+
+    <h4>2.2 최대우도추정 (MLE) 유도</h4>
+    <p>
+        단순 회귀분석(Least Squares)은 꼬리 부분의 데이터 부족으로 오차가 클 수 있습니다.
+        가장 엄밀한 추정법은 MLE입니다.
+    </p>
+    <p>로그 우도 함수 \(\ln \mathcal{L}(\tau) = \sum \ln p(s_i | \tau)\) 를 \(\tau\)로 미분하여 0이 되는 점을 찾으면:</p>
+    <div class="math-block">
+        $$ \hat{\tau} = 1 + \left[ \frac{1}{n} \sum_{i=1}^n \ln \frac{s_i}{s_{min}} \right]^{-1} $$
+    </div>
+    <p>학생들이 이 식을 이용해 데이터를 넣고 계산해보게 하세요.</p>
+
+    <h4>2.3 유한 크기 스케일링 (Data Collapse)</h4>
+    <p>
+        시스템 크기 \(L\)이 유한하면 아주 큰 눈사태는 잘립니다(Cutoff).
+        $$ P(s, L) \sim s^{-\tau} f(s/L^\nu) $$
+        이때 \(x = s/L^\nu\), \(y = s^\tau P(s,L)\) 로 변수를 치환하여 그래프를 그리면,
+        서로 다른 \(L\)에 대한 곡선들이 하나로 겹쳐지는(Collapse) 현상을 볼 수 있습니다.
+    </p>
+
+    <hr class="my-6 border-neutral-200">
+
+    <h3>3. 수업 팁</h3>
+    <div class="bg-gray-100 p-4 rounded text-sm">
+        <ul class="space-y-2">
+            <li><strong>실험:</strong> 쌀알이 바닥에 튀지 않도록 조심스럽게(천천히) 붓는 것이 "느린 구동" 조건을 만족시키는 핵심입니다.</li>
+            <li><strong>시뮬레이션:</strong> 확률 \(p\)를 낮추면 시스템이 더 불안정한 상태로 높게 쌓이며, 큰 눈사태 빈도가 늘어납니다(\(\tau\) 감소).</li>
+            <li><strong>비교:</strong> 실험에서는 관성 효과로 인해 모델보다 더 큰 눈사태가 자주 발생할 수 있습니다 (모델의 한계 토론).</li>
+        </ul>
+    </div>
+
+    </main>
+
+    <footer class="mt-8 text-center text-sm text-neutral-400">
+        MathEdu Project - SOC Teacher Guide
+    </footer>
+    </div>
+
+    <!-- Script imports -->
+    <script type="module">
+        import { ReportManager } from '../js/report-core.js';
+        const report = new ReportManager('soc_theory');
+        report.init();
+    </script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            renderMathInElement(document.body, {
+                delimiters: [
+                    { left: "$$", right: "$$", display: true },
+                    { left: "\\(", right: "\\)", display: false }
+                ]
+            });
+        });
+    </script>
+</body>
+
+</html>

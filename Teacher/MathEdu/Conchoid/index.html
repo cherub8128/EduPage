@@ -32,16 +32,30 @@
 
     <div class="container pt-lg pb-lg">
         <!-- Header -->
-        <header class="modern-header mb-8">
-            <div class="mb-2">
-                <span class="m-badge" style="background: var(--grad-primary); color: white">
-                    Math & Engineering
-                </span>
+        <header class="modern-header mb-8 flex justify-between items-end flex-wrap gap-4">
+            <div>
+                <div class="mb-2">
+                    <span class="m-badge" style="background: var(--grad-primary); color: white">
+                        Math & Engineering
+                    </span>
+                </div>
+                <h1 class="text-3xl font-bold mb-2">니코메데스의 콘코이드 (Conchoid)</h1>
+                <p class="text-neutral-600">
+                    고대 그리스 3대 난제인 '배적 문제(Doubling the Cube)'를 해결하기 위해 고안된 곡선을 탐구합니다.
+                </p>
             </div>
-            <h1 class="text-3xl font-bold mb-2">니코메데스의 콘코이드 (Conchoid)</h1>
-            <p class="text-neutral-600">
-                고대 그리스 3대 난제인 '배적 문제(Doubling the Cube)'를 해결하기 위해 고안된 곡선을 탐구합니다.
-            </p>
+            <div class="flex gap-2 print-hidden">
+                <button id="export-md" class="m-btn secondary small">
+                    <span>📝 MD 저장</span>
+                </button>
+                <button id="export-html" class="m-btn secondary small">
+                    <span>🌐 HTML 저장</span>
+                </button>
+                <!-- PDF Export might not be relevant if there's no report, but adding for consistency -->
+                <button id="export-pdf" class="m-btn primary small">
+                    <span>📄 PDF 저장</span>
+                </button>
+            </div>
         </header>
         <main class="flex flex-col gap-6">
             <!-- Navigation Cards -->
@@ -171,6 +185,11 @@
                 ]
             });
         });
+    </script>
+    <script type="module">
+        import { ReportManager } from '../js/report-core.js';
+        const report = new ReportManager('conchoid_main');
+        report.init();
     </script>
 </body>
 

@@ -41,6 +41,8 @@
                 <p>주제에 대한 간단한 설명</p>
             </div>
             <div class="flex gap-2 print-hidden">
+                <button id="export-md" class="m-btn secondary small">📝 MD 저장</button>
+                <button id="export-html" class="m-btn secondary small">🌐 HTML 저장</button>
                 <button id="export-pdf" class="m-btn primary small">📄 PDF 저장</button>
             </div>
         </header>
@@ -139,7 +141,37 @@ if (window.ChartUtils) {
 
 ---
 
-## 5. 필수 디렉토리 구조
+## 5. 데이터 내보내기 (Data Export)
+
+`ReportManager`는 작성된 보고서를 다양한 형식으로 내보내는 기능을 내장하고 있습니다.
+
+### 5.1 버튼 표준 마크업
+
+헤더 우측에 `.print-hidden` 클래스로 감싸서 배치합니다.
+
+```html
+<div class="flex gap-2 print-hidden">
+    <button id="export-md" class="m-btn secondary small">📝 MD 저장</button>
+    <button id="export-html" class="m-btn secondary small">🌐 HTML 저장</button>
+    <button id="export-pdf" class="m-btn primary small">📄 PDF 저장</button>
+</div>
+```
+
+### 5.2 초기화 방법
+
+`manager.init()` 호출 시 자동으로 `#export-pdf` 버튼은 바인딩됩니다. MD와 HTML 내보내기는 별도 메소드를 명시적으로 호출하는 것을 권장하지 않고, `ReportManager` 내부에서 `#export-md`, `#export-html` ID를 가진 버튼이 존재하면 자동으로 이벤트 리스너를 연결하도록 설계되어 있습니다. (v2.0 기준)
+
+만약 수동으로 연결해야 한다면 아래 메소드를 사용합니다:
+
+```javascript
+// 수동 바인딩 예시 (필요한 경우만)
+document.getElementById('export-md').addEventListener('click', () => manager.exportMarkdown());
+document.getElementById('export-html').addEventListener('click', () => manager.exportHTML());
+```
+
+---
+
+## 6. 필수 디렉토리 구조
 
 신규 페이지 생성 시 아래 구조를 유지하십시오.
 

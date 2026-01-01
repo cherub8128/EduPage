@@ -24,7 +24,10 @@ export class ReportManager {
     init() {
         this.attachEditors();
         this.initAutoSave();
+        this.initAutoSave();
         this.initPDFExport();
+        this.initMarkdownExport();
+        this.initHTMLExport();
         this.renderGlobalMath(); // Render static math on load
         this.loadContent();
     }
@@ -355,5 +358,163 @@ export class ReportManager {
             // Restore
             document.title = prevTitle;
         });
+    }
+
+    // --- Markdown Export ---
+    initMarkdownExport() {
+        const btn = document.getElementById('export-md');
+        if (!btn) return;
+
+        btn.addEventListener('click', () => {
+            let md = `# ${document.title}\n\n`;
+
+            // Gather Student Info
+            const sId = document.getElementById('student-id')?.value || '';
+            const sNm = document.getElementById('student-name')?.value || '';
+            if (sId || sNm) md += `**Student:** ${sId} ${sNm}\n\n---\n\n`;
+
+            // Walk through main content
+            const main = document.querySelector('main');
+            if (main) {
+                md += this.elementToMarkdown(main);
+            }
+
+            this.downloadFile(md, 'report.md', 'text/markdown');
+        });
+    }
+
+    elementToMarkdown(root) {
+        let text = "";
+
+        // Helper to process children
+        const process = (node) => {
+            if (node.nodeType === Node.TEXT_NODE) {
+                let content = node.textContent.trim();
+                if (content && !node.parentNode.closest('.print-hidden')) text += content + " ";
+                return;
+            }
+            if (node.nodeType !== Node.ELEMENT_NODE) return;
+            if (node.classList.contains('print-hidden')) return; // Skip hidden
+            if (node.style.display === 'none') return;
+
+            const tag = node.tagName.toLowerCase();
+
+            // Headings
+            if (['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].includes(tag)) {
+                const level = parseInt(tag[1]);
+                text += `\n\n${'#'.repeat(level)} ${node.textContent.trim()}\n\n`;
+                return;
+            }
+
+            // Inputs / Textareas
+            if (tag === 'input' && node.type === 'text') {
+                text += ` **[Input: ${node.value}]** `;
+                return;
+            }
+            if (tag === 'textarea') {
+                text += `\n\n> ${node.value.split('\n').join('\n> ')}\n\n`;
+                return;
+            }
+
+            // Images
+            if (tag === 'img') {
+                text += `\n![Image](${node.src})\n`;
+                return;
+            }
+
+            // Paragraphs / Divs
+            if (tag === 'p' || tag === 'div' || tag === 'section' || tag === 'article') {
+                // If it's a structural container, recurse
+                // For paragraph, add newline after
+                Array.from(node.childNodes).forEach(process);
+                if (tag === 'p') text += "\n\n";
+                else if (tag !== 'span') text += "\n";
+                return;
+            }
+
+            // Lists
+            if (tag === 'ul' || tag === 'ol') {
+                Array.from(node.children).forEach(li => {
+                    text += `- ${li.textContent.trim()}\n`;
+                });
+                text += "\n";
+                return;
+            }
+
+            // Default recurse
+            Array.from(node.childNodes).forEach(process);
+        };
+
+        process(root);
+        return text;
+    }
+
+    // --- HTML Export ---
+    initHTMLExport() {
+        const btn = document.getElementById('export-html');
+        if (!btn) return;
+
+        btn.addEventListener('click', () => {
+            // Clone the document
+            const clone = document.documentElement.cloneNode(true);
+
+            // 1. Persist Input Values
+            const origInputs = document.querySelectorAll('input, textarea, select');
+            const cloneInputs = clone.querySelectorAll('input, textarea, select');
+
+            for (let i = 0; i < origInputs.length; i++) {
+                const orig = origInputs[i];
+                const cln = cloneInputs[i];
+
+                if (orig.tagName === 'TEXTAREA') {
+                    cln.innerHTML = orig.value;
+                    cln.textContent = orig.value;
+                } else if (orig.tagName === 'SELECT') {
+                    const options = cln.querySelectorAll('option');
+                    options.forEach(opt => {
+                        if (opt.value === orig.value) opt.setAttribute('selected', 'selected');
+                    });
+                } else if (orig.type === 'checkbox' || orig.type === 'radio') {
+                    if (orig.checked) cln.setAttribute('checked', 'checked');
+                } else {
+                    cln.setAttribute('value', orig.value);
+                }
+            }
+
+            // 2. Remove Print Hidden & Scripts
+            clone.querySelectorAll('.print-hidden').forEach(el => el.remove());
+            clone.querySelectorAll('script').forEach(el => el.remove());
+
+            // 3. Remove Export Buttons explicitly if they persist
+            // (Assuming they are inside print-hidden, but just in case)
+            const exportBtns = clone.querySelectorAll('#export-md, #export-html, #export-pdf');
+            exportBtns.forEach(btn => btn.remove());
+
+            let html = clone.outerHTML;
+            html = "<!DOCTYPE html>\n" + html;
+
+            this.downloadFile(html, 'report.html', 'text/html');
+        });
+    }
+
+    downloadFile(content, filename, type) {
+        const blob = new Blob([content], { type: type });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+
+        // Use student info for filename if available
+        const sId = document.getElementById('student-id')?.value || '';
+        const sNm = document.getElementById('student-name')?.value || '';
+        if (sId || sNm) {
+            const ext = filename.split('.').pop();
+            filename = `${sId}_${sNm}_Report.${ext}`;
+        }
+
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
     }
 }

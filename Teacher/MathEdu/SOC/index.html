@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SOC: 쌀 눈사태 시뮬레이션</title>
+
+    <!-- Modern Design System -->
+    <link rel="stylesheet" href="../css/main.css" />
+    <link rel="stylesheet" href="../css/components/report.css" />
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/naen-nae/d2coding/d2coding-subset.css" />
+
+    <!-- Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/showdown/2.1.0/showdown.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+</head>
+
+<body>
+    <!-- Back Button -->
+    <a href="../index.html" class="m-back-btn" aria-label="Back">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+        </svg>
+    </a>
+
+    <div class="container pt-lg pb-lg">
+        <!-- Header -->
+        <header class="modern-header mb-8 flex justify-between items-end flex-wrap gap-4">
+            <div>
+                <div class="mb-2">
+                    <span class="m-badge" style="background: var(--teal-600, #0d9488); color: white">
+                        Physics & Complexity
+                    </span>
+                </div>
+                <h1 class="text-3xl font-bold mb-2">Self-Organized Criticality (SOC)</h1>
+                <p class="text-neutral-600">
+                    작은 쌀알 하나가 거대한 눈사태를 만든다. 멱법칙(Power Law)과 임계성을 1D 모델로 탐구해보자.
+                </p>
+            </div>
+            <div class="flex gap-2 print-hidden">
+                <button id="export-md" class="m-btn secondary small">
+                    <span>📝 MD 저장</span>
+                </button>
+                <button id="export-html" class="m-btn secondary small">
+                    <span>🌐 HTML 저장</span>
+                </button>
+                <button id="export-pdf" class="m-btn primary small">
+                    <span>📄 PDF 저장</span>
+                </button>
+            </div>
+        </header>
+
+        <main class="flex flex-col gap-6">
+            <!-- Navigation Cards -->
+            <section class="m-grid" style="grid-template-columns: 1fr 1fr; gap: 1.5rem">
+                <a href="student.html" class="block text-decoration-none transform transition hover:-translate-y-1">
+                    <div class="m-card h-full hover:shadow-lg transition-shadow border-l-4 border-emerald-600">
+                        <div class="flex items-center gap-3 mb-3">
+                            <span class="text-2xl">🧪</span>
+                            <h2 class="text-xl font-bold m-0 text-neutral-800">학생 활동지 (실험+분석)</h2>
+                        </div>
+                        <p class="text-sm text-neutral-600 mb-4">
+                            쌀 눈사태 실험 데이터를 기록하고, 지수 \(\tau\)를 추정하여 시뮬레이션과 비교합니다.
+                        </p>
+                        <span class="m-btn small secondary w-full block text-center">활동 시작하기 →</span>
+                    </div>
+                </a>
+
+                <a href="theory.html" class="block text-decoration-none transform transition hover:-translate-y-1">
+                    <div class="m-card h-full hover:shadow-lg transition-shadow border-l-4 border-cyan-600">
+                        <div class="flex items-center gap-3 mb-3">
+                            <span class="text-2xl">🎓</span>
+                            <h2 class="text-xl font-bold m-0 text-neutral-800">교사 가이드 (이론)</h2>
+                        </div>
+                        <p class="text-sm text-neutral-600 mb-4">
+                            SOC의 통계물리적 배경, MLE 유도, 수업 지도안 및 평가 기준을 확인합니다.
+                        </p>
+                        <span class="m-btn small secondary w-full block text-center">자료 보기 →</span>
+                    </div>
+                </a>
+            </section>
+
+            <!-- Simulation Dashboard -->
+            <section class="m-card">
+                <h2 class="text-xl font-bold mb-4">1D Sandpile Simulation (Amaral-Lauritsen)</h2>
+
+                <div class="m-grid" style="grid-template-columns: 300px 1fr; gap: 2rem">
+
+                    <!-- Sim Controls -->
+                    <div class="flex flex-col gap-4">
+                        <div class="p-4 bg-gray-50 rounded-lg border">
+                            <h3 class="font-bold text-sm text-neutral-700 mb-4 border-b pb-2">Control Panel</h3>
+
+                            <!-- Parameters -->
+                            <div class="space-y-3 mb-6">
+                                <div>
+                                    <div class="flex justify-between mb-1">
+                                        <label class="text-xs font-bold">System Size \(L\)</label>
+                                        <span id="val-L" class="text-xs font-mono text-cyan-700">100</span>
+                                    </div>
+                                    <input type="range" id="param-L" min="50" max="500" step="50" value="100"
+                                        class="w-full">
+                                </div>
+
+                                <div>
+                                    <div class="flex justify-between mb-1">
+                                        <label class="text-xs font-bold">Probability \(p\)</label>
+                                        <span id="val-p" class="text-xs font-mono text-cyan-700">0.6</span>
+                                    </div>
+                                    <input type="range" id="param-p" min="0.1" max="1.0" step="0.05" value="0.6"
+                                        class="w-full">
+                                    <p class="text-[10px] text-neutral-500 mt-1">
+                                        Slope > S1일 때 무너질 확률 (마찰/안정성)
+                                    </p>
+                                </div>
+
+                                <div class="grid grid-cols-2 gap-2">
+                                    <div>
+                                        <label class="text-xs font-bold block mb-1">S1 (Min)</label>
+                                        <input type="number" id="param-S1" value="1"
+                                            class="m-input w-full p-1 text-center" min="1">
+                                    </div>
+                                    <div>
+                                        <label class="text-xs font-bold block mb-1">S2 (Max)</label>
+                                        <input type="number" id="param-S2" value="4"
+                                            class="m-input w-full p-1 text-center" min="2">
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <div class="flex justify-between mb-1">
+                                        <label class="text-xs font-bold">Speed</label>
+                                        <span id="val-speed" class="text-xs font-mono text-cyan-700">5x</span>
+                                    </div>
+                                    <input type="range" id="param-speed" min="1" max="50" step="1" value="5"
+                                        class="w-full">
+                                </div>
+                            </div>
+
+                            <!-- Buttons -->
+                            <div class="flex flex-col gap-2">
+                                <button id="btn-start" class="m-btn primary w-full">▶ Start</button>
+                                <div class="flex gap-2">
+                                    <button id="btn-step" class="m-btn secondary flex-1 small">Step</button>
+                                    <button id="btn-fast" class="m-btn secondary flex-1 small">Run 1k</button>
+                                </div>
+                                <button id="btn-reset"
+                                    class="m-btn secondary w-full small text-red-600 border-red-200 hover:bg-red-50">Reset</button>
+                            </div>
+                        </div>
+
+                        <!-- Stats -->
+                        <div class="p-4 bg-cyan-50 border border-cyan-100 rounded-lg text-sm">
+                            <div class="flex justify-between border-b border-cyan-200 pb-1 mb-2">
+                                <span>Total Drops:</span>
+                                <strong id="stat-drops" class="font-mono text-lg">0</strong>
+                            </div>
+                            <div class="flex justify-between text-cyan-900">
+                                <span>Last Avalanche \(s\):</span>
+                                <strong id="stat-last-s" class="font-mono">-</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Visualizations -->
+                    <div class="flex flex-col gap-4">
+                        <!-- Live Pile -->
+                        <div class="bg-white border rounded-xl overflow-hidden relative shadow-sm h-48">
+                            <div class="absolute top-2 left-3 text-xs font-bold text-neutral-500 z-10">Sandpile Profile
+                                \(h(i)\)</div>
+                            <canvas id="sim-canvas" width="600" height="200"
+                                class="w-full h-full object-contain"></canvas>
+                        </div>
+
+                        <!-- Graph -->
+                        <div class="bg-white border rounded-xl overflow-hidden shadow-sm h-64 p-2 relative">
+                            <div class="absolute top-2 left-3 text-xs font-bold text-neutral-500 z-10">Avalanche Size
+                                Dist (CCDF)</div>
+                            <canvas id="chart-ccdf"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer class="mt-12 mb-8 text-center text-sm text-neutral-400">
+            <p>Physics Education - SOC Sandpile Model</p>
+        </footer>
+    </div>
+
+    <!-- Script -->
+    <script type="module" src="script.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            renderMathInElement(document.body, {
+                delimiters: [
+                    { left: "$$", right: "$$", display: true },
+                    { left: "\\(", right: "\\)", display: false } // Fixed delimiters
+                ]
+            });
+        });
+    </script>
+</body>
+
+</html>

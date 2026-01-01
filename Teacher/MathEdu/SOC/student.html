@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SOC 학생 활동지 - 쌀 눈사태</title>
+
+    <!-- Modern Design System -->
+    <link rel="stylesheet" href="../css/main.css" />
+    <link rel="stylesheet" href="../css/components/report.css" />
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/naen-nae/d2coding/d2coding-subset.css" />
+
+    <!-- Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/showdown/2.1.0/showdown.min.js"></script>
+
+    <style>
+        .worksheet-section {
+            border-bottom: 2px dashed #e5e7eb;
+            padding-bottom: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .worksheet-section:last-child {
+            border-bottom: none;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Back Button -->
+    <a href="index.html" class="m-back-btn" aria-label="Back">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+        </svg>
+    </a>
+
+    <div class="container pt-lg pb-lg">
+        <header class="modern-header mb-8 flex justify-between items-center flex-wrap gap-4">
+            <div>
+                <div class="mb-2">
+                    <span class="m-badge" style="background: var(--teal-600, #0d9488); color: white">Student
+                        Worksheet</span>
+                </div>
+                <h1 class="text-3xl font-bold">쌀/모래 눈사태로 배우는 SOC</h1>
+                <p class="text-neutral-600">
+                    실험 → 관찰 → 단순화 → 시뮬레이션 → 비교
+                </p>
+            </div>
+            <div class="flex gap-2 print-hidden">
+                <button id="export-md" class="m-btn secondary small">
+                    <span>📝 MD 저장</span>
+                </button>
+                <button id="export-html" class="m-btn secondary small">
+                    <span>🌐 HTML 저장</span>
+                </button>
+                <button id="export-pdf" class="m-btn primary small">
+                    <span>📄 PDF 저장</span>
+                </button>
+            </div>
+        </header>
+
+        <main class="flex flex-col gap-6">
+            <!-- 0. Student Info -->
+            <section class="m-card">
+                <div class="m-grid" style="grid-template-columns: 1fr 1fr 1fr; gap: 1rem">
+                    <div>
+                        <label class="font-bold text-sm block mb-1">이름</label>
+                        <input id="student-name" class="m-input savable" placeholder="이름" />
+                    </div>
+                    <div>
+                        <label class="font-bold text-sm block mb-1">조</label>
+                        <input id="student-group" class="m-input savable" placeholder="예: 3조" />
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <label class="font-bold text-sm block mb-2">역할 분담</label>
+                    <div class="flex flex-wrap gap-4">
+                        <label class="flex items-center gap-2"><input type="checkbox" class="savable" id="role-setup">
+                            장치/안전</label>
+                        <label class="flex items-center gap-2"><input type="checkbox" class="savable" id="role-drop"> 투입
+                            담당</label>
+                        <label class="flex items-center gap-2"><input type="checkbox" class="savable" id="role-record">
+                            기록 담당</label>
+                        <label class="flex items-center gap-2"><input type="checkbox" class="savable" id="role-cam">
+                            촬영/분석</label>
+                        <label class="flex items-center gap-2"><input type="checkbox" class="savable" id="role-sim">
+                            시뮬레이션</label>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 1. Objectives -->
+            <section class="m-card worksheet-section">
+                <h2 class="text-xl font-bold mb-4">1. 학습 목표</h2>
+                <ul class="list-disc pl-5 space-y-2 text-neutral-700">
+                    <li>눈사태 크기 데이터를 <strong>확률분포(CCDF)</strong>로 나타낼 수 있다.</li>
+                    <li>멱법칙 후보 \(P(s)\propto s^{-\tau}\)를 <strong>로그-로그</strong>로 점검할 수 있다.</li>
+                    <li>단순 규칙(1D 격자 모델)로 <strong>시뮬레이션</strong>을 만들고 실험과 비교할 수 있다.</li>
+                </ul>
+            </section>
+
+            <!-- 2 & 3. Experiment Design -->
+            <section class="m-card worksheet-section">
+                <h2 class="text-xl font-bold mb-4">2 & 3. 실험 설계 (Experiment)</h2>
+
+                <h3 class="font-bold text-sm mb-2 text-red-600">※ 안전 체크</h3>
+                <div class="bg-red-50 p-3 rounded mb-4 text-sm">
+                    <label class="block"><input type="checkbox"> 쌀/모래 미끄러움 주의 (즉시 정리)</label>
+                    <label class="block"><input type="checkbox"> 장치 고정 확인 (넘어짐 방지)</label>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="font-bold text-sm block mb-1">장치 길이 (L, cm)</label>
+                        <input class="m-input savable" id="exp-L">
+                    </div>
+                    <div>
+                        <label class="font-bold text-sm block mb-1">경사각 (°)</label>
+                        <input class="m-input savable" id="exp-angle">
+                    </div>
+                </div>
+
+                <h3 class="font-bold text-sm mb-2">눈사태 크기 정의 선택</h3>
+                <div class="flex gap-4 mb-4">
+                    <label class="flex items-center gap-2 border p-3 rounded cursor-pointer hover:bg-gray-50">
+                        <input type="radio" name="def_type" class="savable" value="A">
+                        <div>
+                            <strong>정의 A: 방출량</strong><br>
+                            <span class="text-xs text-gray-500">밖으로 떨어진 질량 (\(\Delta m\))</span>
+                        </div>
+                    </label>
+                    <label class="flex items-center gap-2 border p-3 rounded cursor-pointer hover:bg-gray-50">
+                        <input type="radio" name="def_type" class="savable" value="B">
+                        <div>
+                            <strong>정의 B: 영상 변화</strong><br>
+                            <span class="text-xs text-gray-500">움직인 픽셀 면적 합</span>
+                        </div>
+                    </label>
+                </div>
+            </section>
+
+            <!-- 4. Observation Data -->
+            <section class="m-card worksheet-section">
+                <h2 class="text-xl font-bold mb-4">4. 데이터 기록 (Data Log)</h2>
+                <p class="text-sm text-gray-500 mb-2">
+                    이벤트 1개 = ‘투입 1회’ 후 발생한 눈사태 1개. (최소 200개 권장)
+                </p>
+                <textarea id="data-log" class="savable m-input font-mono text-sm h-48 w-full"
+                    placeholder="번호, 방출량(g), 메모&#10;1, 0, 무반응&#10;2, 0.5, 작음&#10;3, 2.1, 큼..."></textarea>
+            </section>
+
+            <!-- 5 & 6. Statistics & Power Law -->
+            <section class="m-card worksheet-section">
+                <h2 class="text-xl font-bold mb-4">5 & 6. 데이터 분석: 멱지수 \(\tau\) 추정</h2>
+
+                <div class="bg-gray-50 p-4 rounded mb-4">
+                    <h3 class="font-bold text-sm mb-2">방법 A: 로그-로그 회귀</h3>
+                    <p class="text-sm mb-2">CCDF를 그려보고 직선 구간을 찾아 기울기를 구하세요.</p>
+                    <div class="grid grid-cols-3 gap-2">
+                        <input class="m-input savable" id="reg-min" placeholder="직선 시작점 s_min">
+                        <input class="m-input savable" id="reg-max" placeholder="직선 끝점 s_max">
+                        <input class="m-input savable" id="reg-slope" placeholder="구한 기울기 a">
+                    </div>
+                    <p class="text-xs text-right mt-1 text-blue-600 font-bold">\(\tau = 1 - a = \) <span
+                            id="res-tau-a">?</span></p>
+                </div>
+
+                <div class="bg-gray-50 p-4 rounded">
+                    <h3 class="font-bold text-sm mb-2">방법 B: 최대우도추정 (MLE, 심화)</h3>
+                    <p class="text-sm mb-2">
+                        $$ \hat{\tau} = 1 + \frac{n}{\sum \ln(s_i/s_{\min})} $$
+                    </p>
+                    <div class="grid grid-cols-2 gap-2">
+                        <input class="m-input savable" id="mle-smin" placeholder="s_min 설정">
+                        <input class="m-input savable" id="mle-result" placeholder="계산된 tau">
+                    </div>
+                </div>
+            </section>
+
+            <!-- 8. Simulation -->
+            <section class="m-card worksheet-section">
+                <h2 class="text-xl font-bold mb-4">8. 시뮬레이션 (Simulation)</h2>
+                <p class="text-sm mb-4">
+                    1D Sandpile 모델을 실행하고 파라미터를 기록하세요.
+                </p>
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-2 mb-4">
+                    <div class="p-2 border rounded">
+                        <span class="text-xs font-bold block">격자 크기 \(L\)</span>
+                        <input class="m-input savable w-full" id="sim-L">
+                    </div>
+                    <div class="p-2 border rounded">
+                        <span class="text-xs font-bold block">확률 \(p\)</span>
+                        <input class="m-input savable w-full" id="sim-p">
+                    </div>
+                    <div class="p-2 border rounded">
+                        <span class="text-xs font-bold block">임계값 \(S_1, S_2\)</span>
+                        <input class="m-input savable w-full" id="sim-S" placeholder="1, 4">
+                    </div>
+                    <div class="p-2 border rounded">
+                        <span class="text-xs font-bold block">총 횟수 \(N\)</span>
+                        <input class="m-input savable w-full" id="sim-N">
+                    </div>
+                </div>
+            </section>
+
+            <!-- 9. Comparison & Conclusion -->
+            <section class="m-card">
+                <h2 class="text-xl font-bold mb-4">9. 비교 분석 (Validation)</h2>
+
+                <table class="w-full text-sm mb-4 border-collapse border">
+                    <tr class="bg-gray-100">
+                        <th class="p-2 border">구분</th>
+                        <th class="p-2 border">실험 (Experiment)</th>
+                        <th class="p-2 border">시뮬레이션 (Model)</th>
+                    </tr>
+                    <tr>
+                        <td class="p-2 border font-bold">지수 \(\tau\)</td>
+                        <td class="p-2 border"><input class="w-full border-none savable" placeholder="예: 1.5"></td>
+                        <td class="p-2 border"><input class="w-full border-none savable" placeholder="예: 1.55"></td>
+                    </tr>
+                    <tr>
+                        <td class="p-2 border font-bold">컷오프(꼬리)</td>
+                        <td class="p-2 border"><input class="w-full border-none savable" placeholder="어디서 떨어지나?"></td>
+                        <td class="p-2 border"><input class="w-full border-none savable"></td>
+                    </tr>
+                </table>
+
+                <div class="mb-4">
+                    <h3 class="font-bold text-sm mb-2">결론 및 고찰</h3>
+                    <textarea class="savable m-input w-full h-32"
+                        placeholder="모델이 실험을 잘 설명하나요? 다르다면 원인은 무엇일까요? (예: 관성, 3D 효과 등)"></textarea>
+                </div>
+            </section>
+
+        </main>
+
+        <footer class="mt-8 mb-8 text-center text-sm text-neutral-400 print-hidden">
+            <div id="autosave-status" class="flex items-center justify-center gap-2 opacity-0 transition-opacity mb-2">
+                <span id="autosave-icon-saving" class="hidden">💾 저장 중...</span>
+                <span id="autosave-icon-saved" class="text-green-600 hidden">✅ 저장됨</span>
+                <span id="autosave-text"></span>
+            </div>
+            MathEdu Project - SOC Worksheet
+        </footer>
+    </div>
+
+    <!-- Script imports -->
+    <script type="module">
+        import { ReportManager } from '../js/report-core.js';
+        const report = new ReportManager('soc_worksheet');
+        report.init();
+    </script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            renderMathInElement(document.body, {
+                delimiters: [
+                    { left: "$$", right: "$$", display: true },
+                    { left: "\\(", right: "\\)", display: false }
+                ]
+            });
+
+            // Calc helper
+            const calcTau = () => {
+                const a = parseFloat(document.getElementById('reg-slope').value);
+                if (!isNaN(a)) {
+                    document.getElementById('res-tau-a').innerText = (1 - a).toFixed(2);
+                }
+            };
+            document.getElementById('reg-slope').addEventListener('input', calcTau);
+        });
+    </script>
+</body>
+
+</html>
