@@ -399,36 +399,39 @@
 
       <div class="mb-6">
         <h3 class="text-lg font-bold mb-3">심화 탐구 주제 제안</h3>
-        <div class="m-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
-          <div class="card p-3 bg-gray-50 border hover:bg-white transition-colors cursor-pointer"
+        <div class="m-grid" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem;">
+          <div
+            class="m-card p-4 bg-gray-50 hover:bg-white hover:shadow-lg transition-all cursor-pointer border-l-4 border-blue-500"
             onclick="document.getElementById('inquiry-topic').value = '주제 1: 최대 사거리 각도는 45도가 아니다?';">
-            <div class="text-xl mb-2">🎯</div>
-            <strong class="text-sm block">1. 최적 발사 각도</strong>
-            <p class="text-xs text-muted">항력이 있을 때 최대 사거리를 만드는 각도는 45°보다 작을까?</p>
+            <div class="text-2xl mb-2">🎯</div>
+            <strong class="text-sm block mb-2">1. 최적 발사 각도</strong>
+            <p class="text-xs text-neutral-600">항력이 있을 때 최대 사거리를 만드는 각도는 45°보다 작을까?</p>
           </div>
-          <div class="card p-3 bg-gray-50 border hover:bg-white transition-colors cursor-pointer"
+          <div
+            class="m-card p-4 bg-gray-50 hover:bg-white hover:shadow-lg transition-all cursor-pointer border-l-4 border-green-500"
             onclick="document.getElementById('inquiry-topic').value = '주제 2: 바람이 불 때의 궤적 변화';">
-            <div class="text-xl mb-2">💨</div>
-            <strong class="text-sm block">2. 바람의 영향</strong>
-            <p class="text-xs text-muted">맞바람이나 뒷바람이 불 때 모델을 $\vec{v}-\vec{w}$로 수정해보자.</p>
+            <div class="text-2xl mb-2">💨</div>
+            <strong class="text-sm block mb-2">2. 바람의 영향</strong>
+            <p class="text-xs text-neutral-600">맞바람이나 뒷바람이 불 때 모델을 $\vec{v}-\vec{w}$로 수정해보자.</p>
           </div>
-          <div class="card p-3 bg-gray-50 border hover:bg-white transition-colors cursor-pointer"
+          <div
+            class="m-card p-4 bg-gray-50 hover:bg-white hover:shadow-lg transition-all cursor-pointer border-l-4 border-amber-500"
             onclick="document.getElementById('inquiry-topic').value = '주제 3: 무차원화와 스케일링';">
-            <div class="text-xl mb-2">📏</div>
-            <strong class="text-sm block">3. 무차원화 분석</strong>
-            <p class="text-xs text-muted">속도를 종단속도로 나누어($v/v_T$) 일반화된 그래프를 그려보자.</p>
+            <div class="text-2xl mb-2">📏</div>
+            <strong class="text-sm block mb-2">3. 무차원화 분석</strong>
+            <p class="text-xs text-neutral-600">속도를 종단속도로 나누어($v/v_T$) 일반화된 그래프를 그려보자.</p>
           </div>
         </div>
       </div>
 
       <div class="space-y-4">
         <div>
-          <label class="font-bold text-sm block mb-1">선택한 심화 주제</label>
+          <label class="font-bold text-sm block mb-2">선택한 심화 주제</label>
           <input id="inquiry-topic" class="m-input savable" placeholder="위 카드를 클릭하거나 직접 입력하세요.">
         </div>
 
         <div>
-          <label class="font-bold text-sm block mb-1">결론 및 제언 (Conclusion)</label>
+          <label class="font-bold text-sm block mb-2">결론 및 제언 (Conclusion)</label>
           <div class="editable-container">
             <textarea id="final-conclusion" class="savable markdown-input"
               placeholder="### 결론&#10;1. 셔틀콕의 운동은 [공기저항 모델]로 잘 설명됨&#10;2. 실험에서 추정한 항력계수 k값은 약 [   ]로 나타남&#10;3. 오차 분석: 트래커 측정 오차, 회전 등..."></textarea>

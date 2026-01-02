@@ -33,7 +33,7 @@
     <style>
         .chart-container {
             position: relative;
-            height: 300px;
+            /* height: 300px;  Removed to avoid conflicts */
             background: white;
             border: 1px solid var(--border-light);
             border-radius: var(--radius-md);
@@ -218,10 +218,10 @@
                     </div>
 
                     <div class="flex flex-col gap-4">
-                        <div class="chart-container">
+                        <div class="chart-container" style="height: 300px;">
                             <canvas id="chart1"></canvas>
                         </div>
-                        <div class="chart-container">
+                        <div class="chart-container" style="height: 300px;">
                             <canvas id="chart2"></canvas>
                         </div>
                     </div>
@@ -241,37 +241,93 @@
             <section id="step4" class="m-card">
                 <h2 class="text-xl font-bold mb-4">Step 4: 예측 및 시뮬레이션</h2>
 
-                <div class="m-grid" style="grid-template-columns: 1fr 2fr; gap: 2rem;">
+                <!-- 3-Column Layout: Controls | Animation | Charts -->
+                <div class="m-grid" style="grid-template-columns: 260px 200px 1fr; gap: 1.5rem;">
+
+                    <!-- Col 1: Controls -->
                     <div class="space-y-4">
-                        <div>
-                            <label class="font-bold text-sm block mb-1">저항 모델</label>
-                            <select id="simModel" class="m-input">
-                                <option value="quad">제곱 저항 (-kv²)</option>
-                                <option value="none">무저항 (자유낙하)</option>
-                            </select>
+                        <div class="p-4 bg-gray-50 rounded-lg border">
+                            <h3 class="font-bold text-sm mb-3 pb-2 border-b">설정 (Settings)</h3>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="text-xs font-bold block mb-1 text-neutral-600">저항 모델 (Drag
+                                        Model)</label>
+                                    <select id="simModel" class="m-input text-sm w-full">
+                                        <option value="quad">제곱 저항 (-kv²)</option>
+                                        <option value="none">무저항 (자유낙하)</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <div class="flex justify-between mb-1">
+                                        <label class="text-xs font-bold text-neutral-600">중력가속도 (g)</label>
+                                        <span class="text-xs font-mono text-blue-600" id="dispG">9.8</span>
+                                    </div>
+                                    <input type="range" id="simG" class="w-full accent-blue-600" min="1" max="20"
+                                        step="0.1" value="9.8"
+                                        oninput="document.getElementById('dispG').innerText=this.value">
+                                </div>
+                                <div>
+                                    <div class="flex justify-between mb-1">
+                                        <label class="text-xs font-bold text-neutral-600">저항계수 (k)</label>
+                                        <span class="text-xs font-mono text-blue-600" id="dispK">0.22</span>
+                                    </div>
+                                    <input type="range" id="simK" class="w-full accent-blue-600" min="0" max="1.0"
+                                        step="0.01" value="0.22"
+                                        oninput="document.getElementById('dispK').innerText=this.value">
+                                </div>
+
+                                <!-- Speed Control -->
+                                <div class="pt-2 border-t border-gray-200">
+                                    <div class="flex justify-between mb-1">
+                                        <label class="text-xs font-bold text-purple-700">재생 속도 (Speed)</label>
+                                        <span class="text-xs font-mono text-purple-600" id="dispSpeed">1.0x</span>
+                                    </div>
+                                    <input type="range" id="simSpeed" class="w-full accent-purple-600" min="0.1"
+                                        max="5.0" step="0.1" value="1.0"
+                                        oninput="document.getElementById('dispSpeed').innerText=this.value+'x'">
+                                </div>
+                            </div>
                         </div>
-                        <div>
-                            <label class="font-bold text-sm block mb-1">중력가속도 (g)</label>
-                            <input type="number" id="simG" class="m-input savable" value="9.8" step="0.1">
+
+                        <button id="runSim" class="m-btn secondary w-full py-3">
+                            <span class="text-lg mr-1">▶</span> 시뮬레이션 시작
+                        </button>
+
+                        <div id="simSummary" class="text-xs font-mono text-neutral-500 bg-neutral-100 p-2 rounded">
+                            Ready...
                         </div>
-                        <div>
-                            <label class="font-bold text-sm block mb-1">저항계수 (k)</label>
-                            <input type="number" id="simK" class="m-input savable" value="0.22" step="0.01">
-                        </div>
-                        <button id="runSim" class="m-btn secondary w-full">시뮬레이션 시작</button>
-                        <div id="simSummary" class="text-xs font-mono text-muted"></div>
                     </div>
 
-                    <div class="flex flex-col gap-4">
-                        <!-- Falling Animation -->
-                        <div class="relative bg-gradient-to-b from-sky-100 to-sky-50 border rounded-xl overflow-hidden shadow-inner"
-                            style="height: 200px;">
-                            <canvas id="fallCanvas" class="w-full h-full"></canvas>
-                            <div class="absolute top-2 left-3 text-xs font-bold text-sky-600">낙하 애니메이션</div>
+                    <!-- Col 2: Falling Animation -->
+                    <div class="flex flex-col gap-2" style="height: 500px;">
+                        <div class="flex items-center justify-center p-1">
+                            <strong class="text-xs font-bold text-sky-600">낙하 애니메이션</strong>
                         </div>
-                        <!-- Chart -->
-                        <div class="chart-container">
-                            <canvas id="simChart"></canvas>
+                        <div
+                            class="relative bg-gradient-to-b from-sky-100 to-sky-50 border rounded-xl overflow-hidden shadow-inner flex-grow" style="min-height: 400px;">
+                            <canvas id="fallCanvas" class="absolute inset-0 w-full h-full"></canvas>
+                            <!-- Height Markers -->
+                            <div
+                                class="absolute right-0 top-0 bottom-0 w-6 border-l border-sky-200 text-[10px] text-sky-400 flex flex-col justify-between py-2 text-center select-none pointer-events-none">
+                                <span>0m</span>
+                                <span>↓</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-center p-1">
+                            <p class="text-[11px] text-neutral-400 m-0">Scale varies by max distance</p>
+                        </div>
+                    </div>
+
+                    <!-- Col 3: Charts -->
+                    <div class="flex flex-col gap-2" style="height: 500px;">
+                        <div class="flex items-center justify-center p-1">
+                            <strong class="text-xs font-bold text-indigo-600">시뮬레이션 그래프</strong>
+                        </div>
+                        <div class="chart-container relative overflow-hidden flex-grow !p-0 !h-auto" style="min-height: 400px;">
+                            <canvas id="simChart" class="w-full h-full"></canvas>
+                        </div>
+                        <div class="flex items-center justify-center p-1">
+                            <p class="text-[11px] text-neutral-400 m-0">Position, Velocity, and Acceleration</p>
                         </div>
                     </div>
                 </div>
@@ -314,7 +370,7 @@
     </div>
 
     <!-- Logic -->
-    <script type="module" src="script.js"></script>
+    <script type="module" src="script.js?v=fixed_anim_v4"></script>
 
 </body>
 

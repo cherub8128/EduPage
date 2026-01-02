@@ -235,8 +235,10 @@
         import { ReportManager } from '../js/report-core.js';
         const report = new ReportManager('shuttlecock2d-theory');
         report.init();
+    </script>
 
-        // Render KaTeX
+    <!-- KaTeX Auto-render -->
+    <script>
         document.addEventListener('DOMContentLoaded', () => {
             if (window.renderMathInElement) {
                 renderMathInElement(document.body, {
@@ -248,6 +250,7 @@
             }
         });
     </script>
+
 </body>
 
 </html>

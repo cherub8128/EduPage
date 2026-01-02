@@ -94,65 +94,13 @@
 
             <!-- Simulation -->
             <section class="m-card">
-                <h2 class="text-xl font-bold mb-4">Monte Carlo Simulation</h2>
-                <div class="m-grid" style="grid-template-columns: 320px 1fr; gap: 2rem">
-
-                    <!-- Controls -->
-                    <div class="flex flex-col gap-5">
-                        <div class="p-4 bg-gray-50 rounded-lg border">
-                            <h3 class="font-bold text-sm text-neutral-700 mb-4 border-b pb-2">Parameters</h3>
-
-                            <div class="mb-4">
-                                <div class="flex justify-between mb-1">
-                                    <label class="text-xs font-bold">증발 파라미터 \(\lambda\)</label>
-                                    <span id="val-lambda" class="text-xs font-mono text-amber-700">0.5</span>
-                                </div>
-                                <input type="range" id="param-lambda" min="0.1" max="0.9" step="0.1" value="0.5"
-                                    class="w-full">
-                                <p class="text-xs text-neutral-500 mt-1">
-                                    \(\lambda=0.5\): 확산 지배 (Diffusive)<br>
-                                    \(\lambda \to 0\): 균일 증발 (Kinetic)
-                                </p>
-                            </div>
-
-                            <div class="mb-4">
-                                <div class="flex justify-between mb-1">
-                                    <label class="text-xs font-bold">입자 수 \(N\)</label>
-                                    <span id="val-N" class="text-xs font-mono text-amber-700">10000</span>
-                                </div>
-                                <input type="range" id="param-N" min="1000" max="50000" step="1000" value="10000"
-                                    class="w-full">
-                            </div>
-
-                            <button id="btn-run" class="m-btn primary w-full">▶ Run Simulation</button>
-                        </div>
-
-                        <div class="p-4 bg-amber-50 text-amber-900 rounded-lg text-sm">
-                            <strong class="block mb-2 text-amber-800">📊 이론적 예측</strong>
-                            $$ p = \frac{2}{1+\lambda} \approx <span id="val-th-slope">1.333</span> $$
-                            <br>
-                            <div class="mt-2 border-t border-amber-200 pt-2">
-                                <strong>시뮬레이션 결과 (기울기):</strong>
-                                <div class="text-xl mt-1 text-center" id="res-slope">-</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Visualization -->
-                    <div class="flex flex-col gap-4">
-                        <!-- Canvas Ring View -->
-                        <div
-                            class="bg-white border rounded-xl p-4 flex justify-center items-center shadow-inner h-64 relative overflow-hidden">
-                            <canvas id="sim-canvas" width="400" height="400"
-                                style="max-height: 100%; max-width: 100%;"></canvas>
-                            <span class="absolute top-2 left-2 text-xs text-neutral-400">Top-down View</span>
-                        </div>
-
-                        <!-- Graph -->
-                        <div class="bg-white border rounded-xl p-2 shadow-inner h-64">
-                            <canvas id="chart-loglog"></canvas>
-                        </div>
-                    </div>
+                <h2 class="text-xl font-bold mb-4">Paper-ish Simulation (확산 지배 증발 모델)</h2>
+                <p class="text-sm text-neutral-600 mb-4">
+                    Deegan의 논문을 기반으로 가장자리 발산 증발 플럭스와 이류-확산 경쟁을 구현한 시뮬레이션입니다.
+                    물리적 건조시간 계산과 실시간 입자 추적이 포함됩니다.
+                </p>
+                <div class="border rounded-xl overflow-hidden shadow-lg" style="height: 800px;">
+                    <iframe src="simulation.html" style="width: 100%; height: 100%; border: none;"></iframe>
                 </div>
             </section>
         </main>

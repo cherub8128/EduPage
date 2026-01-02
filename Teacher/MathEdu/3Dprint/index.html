@@ -56,7 +56,16 @@
         <main class="flex flex-col gap-6">
 
             <!-- Navigation Cards -->
-            <section class="m-grid" style="grid-template-columns: 1fr 1fr; gap: 1rem">
+            <section class="m-grid" style="grid-template-columns: 1fr 1fr 1fr; gap: 1rem">
+                <a href="simulation.html" class="block text-decoration-none transform transition hover:-translate-y-1">
+                    <div class="m-card h-full hover:shadow-lg transition-shadow border-l-4 border-blue-500 p-4">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="text-xl">🎮</span>
+                            <h3 class="font-bold m-0 text-neutral-800">인터랙티브 시뮬레이션</h3>
+                        </div>
+                        <p class="text-xs text-neutral-600">베지어 곡선 조작, 적응형 세분화</p>
+                    </div>
+                </a>
                 <a href="theory.html" class="block text-decoration-none transform transition hover:-translate-y-1">
                     <div class="m-card h-full hover:shadow-lg transition-shadow border-l-4 border-purple-500 p-4">
                         <div class="flex items-center gap-2 mb-2">
@@ -140,35 +149,42 @@
                 </div>
             </section>
 
-            <!-- Step 3: 시뮬레이션 -->
+            <!-- Step 3: 인터랙티브 시뮬레이션 -->
             <section class="m-card">
-                <h2 class="text-xl font-bold mb-4">Step 3: 시뮬레이션</h2>
+                <h2 class="text-xl font-bold mb-4">Step 3: 인터랙티브 시뮬레이션</h2>
+                <p class="text-sm text-neutral-600 mb-4">
+                    베지어 곡선을 직접 조작하며 현 오차, 적응형 세분화, NURBS 보간의 장점을 탐구하세요.
+                </p>
 
-                <div class="m-grid" style="grid-template-columns: 1fr 2fr; gap: 2rem;">
-                    <div class="flex flex-col gap-4">
-                        <div class="p-4 bg-neutral-50 rounded-xl border">
-                            <strong class="text-xs uppercase text-neutral-500 mb-3 block">파라미터</strong>
-                            <div class="space-y-3">
-                                <div>
-                                    <label class="text-xs font-bold block mb-1">분할 수 $n$</label>
-                                    <input type="range" id="simN" class="w-full savable" min="4" max="64" value="12">
-                                    <span class="text-xs text-blue-600" id="dispN">12</span>
-                                </div>
-                                <div>
-                                    <label class="text-xs font-bold block mb-1">반지름 $R$ (cm)</label>
-                                    <input type="number" id="simR" class="m-input small savable" value="5" step="0.5">
-                                </div>
-                            </div>
+                <div class="m-grid" style="grid-template-columns: 1fr 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+                    <div class="p-4 bg-gradient-to-br from-purple-50 to-blue-50 rounded-lg border border-purple-100">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="text-2xl">🖱️</span>
+                            <h3 class="font-bold text-sm text-purple-900">드래그 조작</h3>
                         </div>
-                        <button id="runSim" class="m-btn primary w-full">시뮬레이션 실행</button>
-                        <div id="simResult" class="text-xs font-mono p-3 bg-slate-800 text-green-400 rounded-lg">
-                            Ready...
-                        </div>
+                        <p class="text-xs text-purple-700">제어점을 드래그하여 곡선 모양 변경</p>
                     </div>
-                    <div class="chart-container" style="height: 300px; position: relative;">
-                        <canvas id="simCanvas"></canvas>
+                    <div class="p-4 bg-gradient-to-br from-blue-50 to-cyan-50 rounded-lg border border-blue-100">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="text-2xl">📊</span>
+                            <h3 class="font-bold text-sm text-blue-900">실시간 통계</h3>
+                        </div>
+                        <p class="text-xs text-blue-700">현 오차, 오차율, 압축률 즉시 확인</p>
+                    </div>
+                    <div class="p-4 bg-gradient-to-br from-cyan-50 to-teal-50 rounded-lg border border-cyan-100">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="text-2xl">▶️</span>
+                            <h3 class="font-bold text-sm text-cyan-900">애니메이션</h3>
+                        </div>
+                        <p class="text-xs text-cyan-700">적응형 알고리즘 과정을 단계별로 관찰</p>
                     </div>
                 </div>
+
+                <a href="simulation.html" class="block">
+                    <button class="m-btn primary w-full" style="padding: 1rem; font-size: 1rem;">
+                        🎮 인터랙티브 시뮬레이터 열기 →
+                    </button>
+                </a>
             </section>
 
             <!-- Step 4: 결론 -->
@@ -195,90 +211,6 @@
         import { ReportManager } from '../js/report-core.js';
         const report = new ReportManager('3dprint-project-v1');
         report.init();
-
-        // Simple simulation
-        const canvas = document.getElementById('simCanvas');
-        const ctx = canvas.getContext('2d');
-        const simN = document.getElementById('simN');
-        const simR = document.getElementById('simR');
-        const dispN = document.getElementById('dispN');
-        const runSim = document.getElementById('runSim');
-        const simResult = document.getElementById('simResult');
-
-        simN.addEventListener('input', e => dispN.textContent = e.target.value);
-
-        function resizeCanvas() {
-            const rect = canvas.parentElement.getBoundingClientRect();
-            const dpr = window.devicePixelRatio || 1;
-            canvas.width = rect.width * dpr;
-            canvas.height = rect.height * dpr;
-            canvas.style.width = rect.width + 'px';
-            canvas.style.height = rect.height + 'px';
-            ctx.setTransform(1, 0, 0, 1, 0, 0);
-            ctx.scale(dpr, dpr);
-        }
-
-        function drawSim() {
-            resizeCanvas();
-            const w = canvas.width / (window.devicePixelRatio || 1);
-            const h = canvas.height / (window.devicePixelRatio || 1);
-            const cx = w / 2, cy = h / 2;
-            const n = parseInt(simN.value);
-            const R = parseFloat(simR.value) * 20; // Scale
-
-            ctx.clearRect(0, 0, w, h);
-
-            // Draw circle
-            ctx.strokeStyle = '#0ea5e9';
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.arc(cx, cy, R, 0, Math.PI * 2);
-            ctx.stroke();
-
-            // Draw polygon
-            ctx.strokeStyle = '#ef4444';
-            ctx.lineWidth = 1.5;
-            ctx.beginPath();
-            for (let i = 0; i <= n; i++) {
-                const angle = (i / n) * Math.PI * 2;
-                const x = cx + R * Math.cos(angle);
-                const y = cy + R * Math.sin(angle);
-                if (i === 0) ctx.moveTo(x, y);
-                else ctx.lineTo(x, y);
-            }
-            ctx.stroke();
-
-            // Draw vertices
-            ctx.fillStyle = '#ef4444';
-            for (let i = 0; i < n; i++) {
-                const angle = (i / n) * Math.PI * 2;
-                const x = cx + R * Math.cos(angle);
-                const y = cy + R * Math.sin(angle);
-                ctx.beginPath();
-                ctx.arc(x, y, 3, 0, Math.PI * 2);
-                ctx.fill();
-            }
-
-            // Calculate max chord error
-            const L = 2 * R * Math.sin(Math.PI / n);
-            const e = (L * L) / (8 * R);
-
-            // Draw chord error
-            ctx.strokeStyle = '#22c55e';
-            ctx.lineWidth = 2;
-            ctx.setLineDash([4, 4]);
-            ctx.beginPath();
-            ctx.moveTo(cx + R, cy);
-            ctx.lineTo(cx + R * Math.cos(Math.PI / n), cy - R * Math.sin(Math.PI / n));
-            ctx.stroke();
-            ctx.setLineDash([]);
-
-            simResult.textContent = `n=${n}, L=${(L / 20).toFixed(3)}cm, e≈${(e / 20).toFixed(4)}cm\ne = L²/(8R) = ${((L * L) / (8 * R) / 20).toFixed(4)}cm`;
-        }
-
-        runSim.addEventListener('click', drawSim);
-        window.addEventListener('resize', drawSim);
-        drawSim();
     </script>
     <script>
         document.addEventListener("DOMContentLoaded", function () {

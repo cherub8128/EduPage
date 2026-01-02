@@ -1,0 +1,458 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Coffee Ring (Paper-ish) - Canvas</title>
+  <style>
+    :root { --bg:#0b0d12; --fg:#e8ecf1; --muted:#9aa6b2; --panel:#121826; }
+    html,body{height:100%; margin:0; background:var(--bg); color:var(--fg); font-family:system-ui,-apple-system,Segoe UI,Roboto,"Noto Sans KR",sans-serif;}
+    .wrap{display:grid; grid-template-columns: 1fr 360px; height:100%;}
+    canvas{width:100%; height:100%; display:block;}
+    .panel{background:rgba(18,24,38,.95); border-left:1px solid rgba(255,255,255,.08); padding:14px; overflow:auto;}
+    h1{font-size:16px; margin:0 0 8px;}
+    .desc{font-size:12px; color:var(--muted); line-height:1.45; margin-bottom:12px;}
+    .row{margin:10px 0 12px;}
+    label{display:flex; justify-content:space-between; align-items:center; font-size:12px; color:var(--muted); margin-bottom:6px;}
+    input[type="range"]{width:100%;}
+    .value{color:var(--fg); font-variant-numeric: tabular-nums;}
+    .btns{display:flex; gap:8px; margin-top:10px;}
+    button{flex:1; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.12); color:var(--fg); padding:10px; border-radius:12px; cursor:pointer;}
+    button:hover{border-color:rgba(255,255,255,.28);}
+    .chk{display:flex; align-items:center; gap:8px; font-size:12px; color:var(--muted);}
+    .hr{height:1px; background:rgba(255,255,255,.08); margin:12px 0;}
+    .tiny{font-size:11px; color:var(--muted); line-height:1.35;}
+    code{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size:11px; color:#cbd5e1;}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <canvas id="c"></canvas>
+
+  <div class="panel">
+    <h1>커피 링(논문형 단순모델) 시뮬</h1>
+    <div class="desc">
+      가장자리에서 발산하는 증발 플럭스(확산 지배) 형태를 반영하고, 초기 높이/반지름/습도에서 건조시간 <b>t<sub>f</sub></b>를 계산합니다.
+      사용자 슬라이더는 “배속(시각화)”과 “이류/확산 경쟁” 위주.
+    </div>
+
+    <div class="row">
+      <label><span>방울 반지름 R (mm)</span><span id="RmmVal" class="value"></span></label>
+      <input id="Rmm" type="range" min="1" max="10" step="0.5" value="4" />
+      <div class="tiny">픽셀 반지름은 화면에 맞게 고정, mm↔px 스케일로 물리시간을 계산합니다.</div>
+    </div>
+
+    <div class="row">
+      <label><span>초기 높이 H0 (mm)</span><span id="HmmVal" class="value"></span></label>
+      <input id="Hmm" type="range" min="0.2" max="2.0" step="0.1" value="0.9" />
+      <div class="tiny">얇은 방울(작은 접촉각) 근사: 단면이 포물선 형태라고 가정.</div>
+    </div>
+
+    <div class="row">
+      <label><span>상대습도 RH (%)</span><span id="RHVal" class="value"></span></label>
+      <input id="RH" type="range" min="10" max="90" step="1" value="40" />
+      <div class="tiny">단순 선형 근사로 (c0 - c∞)를 잡아 t<sub>f</sub> 계산(교육용).</div>
+    </div>
+
+    <div class="row">
+      <label><span>배속(시각화)</span><span id="speedVal" class="value"></span></label>
+      <input id="speed" type="range" min="1" max="80" step="1" value="20" />
+      <div class="tiny">물리적 t<sub>f</sub>는 유지하고, 화면에서만 빠르게 재생합니다.</div>
+    </div>
+
+    <div class="hr"></div>
+
+    <div class="row">
+      <label><span>가장자리 발산 지수 λ</span><span id="lamVal" class="value"></span></label>
+      <input id="lam" type="range" min="0.1" max="0.9" step="0.05" value="0.5" />
+      <div class="tiny">확산 지배 증발 플럭스의 가장자리 발산은 보통 0.5 근처(얇은 방울).</div>
+    </div>
+
+    <div class="row">
+      <label><span>이류(유동) 배율</span><span id="flowVal" class="value"></span></label>
+      <input id="flow" type="range" min="0.4" max="3.0" step="0.05" value="1.0" />
+    </div>
+
+    <div class="row">
+      <label><span>확산(흔들림) 배율</span><span id="diffVal" class="value"></span></label>
+      <input id="diff" type="range" min="0" max="2.0" step="0.05" value="0.35" />
+      <div class="tiny">확산이 커질수록 링이 약해지고 더 균일해지는 경향.</div>
+    </div>
+
+    <div class="row">
+      <label><span>입자 수</span><span id="nVal" class="value"></span></label>
+      <input id="n" type="range" min="400" max="7000" step="100" value="2600" />
+    </div>
+
+    <div class="row">
+      <div class="chk">
+        <input id="pin" type="checkbox" checked />
+        <label for="pin" style="margin:0; justify-content:flex-start; gap:8px;">
+          접촉선 핀닝(반지름 고정)
+        </label>
+      </div>
+      <div class="tiny">핀닝 OFF면 “후퇴 접촉선”처럼 반지름이 줄어드는 모드.</div>
+    </div>
+
+    <div class="row">
+      <label><span>침전 띠 폭(픽셀)</span><span id="bandVal" class="value"></span></label>
+      <input id="band" type="range" min="3" max="28" step="1" value="10" />
+    </div>
+
+    <div class="btns">
+      <button id="reset">Reset</button>
+      <button id="pause">Pause</button>
+    </div>
+
+    <div class="hr"></div>
+
+    <div class="tiny">
+      화면 상단 HUD에 계산된 <code>t_f</code>(초)와 현재 건조율이 표시됩니다.<br/>
+      “논문 그대로”로 더 가려면: 질량보존으로 v(r,t)를 적분해 만들고, 농도장(2D 축대칭 PDE)까지 풀어야 합니다(여긴 고등학교용 단순화).
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+  const canvas = document.getElementById('c');
+  const ctx = canvas.getContext('2d', { alpha: false });
+
+  const el = (id) => document.getElementById(id);
+  const ui = {
+    Rmm: el('Rmm'), Hmm: el('Hmm'), RH: el('RH'), speed: el('speed'),
+    lam: el('lam'), flow: el('flow'), diff: el('diff'),
+    n: el('n'), pin: el('pin'), band: el('band'),
+    RmmVal: el('RmmVal'), HmmVal: el('HmmVal'), RHVal: el('RHVal'), speedVal: el('speedVal'),
+    lamVal: el('lamVal'), flowVal: el('flowVal'), diffVal: el('diffVal'), nVal: el('nVal'), bandVal: el('bandVal'),
+    reset: el('reset'), pause: el('pause'),
+  };
+
+  function syncLabels(){
+    ui.RmmVal.textContent   = (+ui.Rmm.value).toFixed(1);
+    ui.HmmVal.textContent   = (+ui.Hmm.value).toFixed(1);
+    ui.RHVal.textContent    = ui.RH.value;
+    ui.speedVal.textContent = ui.speed.value + "×";
+    ui.lamVal.textContent   = (+ui.lam.value).toFixed(2);
+    ui.flowVal.textContent  = (+ui.flow.value).toFixed(2);
+    ui.diffVal.textContent  = (+ui.diff.value).toFixed(2);
+    ui.nVal.textContent     = ui.n.value;
+    ui.bandVal.textContent  = ui.band.value + " px";
+  }
+  ['input','change'].forEach(evt => {
+    ui.Rmm.addEventListener(evt, syncLabels);
+    ui.Hmm.addEventListener(evt, syncLabels);
+    ui.RH.addEventListener(evt, syncLabels);
+    ui.speed.addEventListener(evt, syncLabels);
+    ui.lam.addEventListener(evt, syncLabels);
+    ui.flow.addEventListener(evt, syncLabels);
+    ui.diff.addEventListener(evt, syncLabels);
+    ui.n.addEventListener(evt, syncLabels);
+    ui.band.addEventListener(evt, syncLabels);
+  });
+  syncLabels();
+
+  // DPR-safe resize
+  let dpr = 1;
+  function resize(){
+    dpr = Math.max(1, window.devicePixelRatio || 1);
+    canvas.width  = Math.floor(canvas.clientWidth  * dpr);
+    canvas.height = Math.floor(canvas.clientHeight * dpr);
+    ctx.setTransform(dpr,0,0,dpr,0,0); // draw in CSS pixels
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  // Random
+  function rand(){ return Math.random(); }
+  function randn(){
+    let u=0,v=0; while(u===0) u=Math.random(); while(v===0) v=Math.random();
+    return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);
+  }
+
+  // Geometry (pixels)
+  function getWorld(){
+    const W = canvas.clientWidth;
+    const H = canvas.clientHeight;
+    const cx = W*0.48, cy = H*0.52;
+    const Rpx0 = Math.min(W, H) * 0.28;
+    return {W,H,cx,cy,Rpx0};
+  }
+
+  // Physical parameters → tf 계산(교육용 근사)
+  // Diffusive evaporation strength: Jd = (4/pi) D_air (c0-c∞) / R
+  // thin-drop parabolic volume: V0 = (pi/2) H0 R^2  → tf = rho_l H0 / (2 Jd)
+  function computeTfSeconds(){
+    const rhoL = 1000;           // kg/m^3 (water)
+    const Dair = 2.4e-5;         // m^2/s (typical, room)
+    const Rm = (+ui.Rmm.value) / 1000;
+    const Hm = (+ui.Hmm.value) / 1000;
+    const RH = (+ui.RH.value) / 100;
+
+    // 교육용 선형 근사:
+    // RH=0.40일 때 (c0-c∞)=0.014 kg/m^3가 되도록 c_sat를 맞춤.
+    const c_sat = 0.014 / (1 - 0.40); // ≈0.02333 kg/m^3
+    const dc = Math.max(0.0001, c_sat * (1 - RH)); // kg/m^3
+
+    const Jd = (4/Math.PI) * Dair * dc / Math.max(1e-6, Rm); // kg/(m^2 s)
+    const tf = rhoL * Hm / (2 * Jd); // s
+    return {tf, Jd, dc, Rm, Hm, rhoL, Dair};
+  }
+
+  // Simulation state
+  let running = true;
+  let tReal = 0;               // physical time [s]
+  let last = performance.now();
+  let particles, depositedX, depositedY, depositedCount;
+
+  function reset(){
+    tReal = 0;
+    last = performance.now();
+    depositedX = [];
+    depositedY = [];
+    depositedCount = 0;
+
+    const N = +ui.n.value|0;
+    particles = { x: new Float32Array(N), y: new Float32Array(N), dep: new Uint8Array(N) };
+
+    const {cx,cy,Rpx0} = getWorld();
+    for(let i=0;i<N;i++){
+      const u = rand();
+      const th = rand()*Math.PI*2;
+      const rr = Rpx0*Math.sqrt(u)*0.98;
+      particles.x[i] = cx + rr*Math.cos(th);
+      particles.y[i] = cy + rr*Math.sin(th);
+      particles.dep[i] = 0;
+    }
+
+    running = true;
+    ui.pause.textContent = "Pause";
+  }
+
+  ui.reset.addEventListener('click', reset);
+  ui.pause.addEventListener('click', () => {
+    running = !running;
+    ui.pause.textContent = running ? "Pause" : "Resume";
+    last = performance.now();
+  });
+  ui.n.addEventListener('change', reset);
+
+  reset();
+
+  function drawDroplet(cx, cy, Rpx, Hnorm){
+    const alpha = Math.max(0, Math.min(1, 0.65*Hnorm));
+    const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, Rpx);
+    g.addColorStop(0.00, `rgba(120, 185, 255, ${0.35*alpha+0.02})`);
+    g.addColorStop(0.55, `rgba(120, 185, 255, ${0.22*alpha+0.01})`);
+    g.addColorStop(0.92, `rgba(120, 185, 255, ${0.10*alpha})`);
+    g.addColorStop(1.00, `rgba(120, 185, 255, 0)`);
+    ctx.fillStyle = g;
+    ctx.beginPath(); ctx.arc(cx, cy, Rpx, 0, Math.PI*2); ctx.fill();
+
+    ctx.strokeStyle = 'rgba(230,240,255,0.18)';
+    ctx.lineWidth = 1.2;
+    ctx.beginPath(); ctx.arc(cx, cy, Rpx, 0, Math.PI*2); ctx.stroke();
+  }
+
+  function drawDeposits(){
+    ctx.fillStyle = 'rgba(239,195,120,0.9)';
+    for(let i=0;i<depositedX.length;i++){
+      ctx.fillRect(depositedX[i], depositedY[i], 1.5, 1.5);
+    }
+  }
+
+  function drawParticles(){
+    ctx.fillStyle = 'rgba(255,245,210,0.85)';
+    const N = particles.x.length;
+    for(let i=0;i<N;i++){
+      if(particles.dep[i]) continue;
+      ctx.fillRect(particles.x[i], particles.y[i], 1.2, 1.2);
+    }
+  }
+
+  function step(dtAnim){
+    const {cx,cy,Rpx0,W,H} = getWorld();
+
+    // physical parameters & tf
+    const phys = computeTfSeconds();
+    const tf = phys.tf;
+
+    // animation speed-up
+    const speed = +ui.speed.value;
+    const dt = Math.min(0.05, dtAnim) * speed; // real seconds progressed
+    tReal = Math.min(tf, tReal + dt);
+
+    // radius
+    const pin = ui.pin.checked;
+    let Rpx = Rpx0;
+    if(!pin){
+      const shrink = 0.35;
+      Rpx = Rpx0*(1 - shrink*(tReal/tf));
+    }
+
+    const Hnorm = Math.max(0, 1 - tReal/tf);
+
+    // velocity model (paper-ish):
+    // v ~ (R-r)^(-lam) * (tf/(tf-t))  (regularized)
+    const lam  = +ui.lam.value;
+    const flow = +ui.flow.value;
+    const diff = +ui.diff.value;
+    const band = +ui.band.value;
+
+    // convert a crude physical velocity scale to px/s:
+    // U0 ~ (Jd/rho) * (R/H0)
+    const Rm = phys.Rm, Hm = phys.Hm;
+    const jv = phys.Jd / phys.rhoL; // m/s (volume flux scale)
+    const U0 = jv * (Rm / Math.max(1e-6, Hm)); // m/s
+    const mPerPx = Rm / Rpx0;                  // m/px
+    let Upx = (U0 / mPerPx) * flow;            // px/s
+
+    const epsGap = 2.0; // px
+    const timeBlow = tf / (tf - tReal + 0.02*tf); // regularized (tf-t)^-1
+
+    // diffusion as random walk in px: sigma^2 ~ 2D dt
+    const Dpx = 40 * diff; // (toy) px^2/s, scaled
+    const sigma = Math.sqrt(Math.max(0, 2*Dpx*dt));
+
+    const N = particles.x.length;
+    for(let i=0;i<N;i++){
+      if(particles.dep[i]) continue;
+
+      let x = particles.x[i] - cx;
+      let y = particles.y[i] - cy;
+      let r = Math.hypot(x,y);
+
+      if(r >= Rpx - 0.5){
+        const th = Math.atan2(y,x);
+        const rr = (Rpx - 0.5) + (rand()-0.5)*band*0.25;
+        depositedX.push(cx + rr*Math.cos(th));
+        depositedY.push(cy + rr*Math.sin(th));
+        particles.dep[i] = 1;
+        depositedCount++;
+        continue;
+      }
+
+      const gap = Math.max(epsGap, (Rpx - r));
+      const edgeBoost = Math.pow(gap/epsGap, -lam);
+      const v = Upx * edgeBoost * timeBlow * Math.max(0.05, Hnorm);
+
+      const invr = 1/(r+1e-6);
+      let vx = x*invr * v + sigma*randn()/Math.max(1e-6, dt);
+      let vy = y*invr * v + sigma*randn()/Math.max(1e-6, dt);
+
+      x += vx*dt;
+      y += vy*dt;
+
+      r = Math.hypot(x,y);
+      if(r > Rpx - 0.75){
+        const th = Math.atan2(y,x);
+        x = (Rpx - 0.75) * Math.cos(th);
+        y = (Rpx - 0.75) * Math.sin(th);
+      }
+
+      // stickiness late in drying
+      const inBand = (Rpx - r) <= band;
+      const sticky = (Hnorm < 0.35);
+      if(inBand && sticky){
+        const th = Math.atan2(y,x);
+        const rr = (Rpx - 0.5) + (rand()-0.5)*band*0.3;
+        depositedX.push(cx + rr*Math.cos(th));
+        depositedY.push(cy + rr*Math.sin(th));
+        particles.dep[i] = 1;
+        depositedCount++;
+        continue;
+      }
+
+      particles.x[i] = cx + x;
+      particles.y[i] = cy + y;
+    }
+
+    // finish
+    if(tReal >= tf || Hnorm <= 0.001){
+      for(let i=0;i<N;i++){
+        if(particles.dep[i]) continue;
+        const x = particles.x[i] - cx;
+        const y = particles.y[i] - cy;
+        const th = Math.atan2(y,x);
+        const rr = (Rpx - 0.5) + (rand()-0.5)*(+ui.band.value)*0.35;
+        depositedX.push(cx + rr*Math.cos(th));
+        depositedY.push(cy + rr*Math.sin(th));
+        particles.dep[i] = 1;
+        depositedCount++;
+      }
+      running = false;
+      ui.pause.textContent = "Resume";
+    }
+
+    return {W,H,cx,cy,Rpx,Hnorm,tf,phys,Upx};
+  }
+
+  function clearAll(){
+    // device-pixel clear (robust)
+    ctx.setTransform(1,0,0,1,0,0);
+    ctx.fillStyle = '#0b0d12';
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+  }
+
+  function drawFrame(world){
+    clearAll();
+
+    const {W,H,cx,cy,Rpx,Hnorm,tf,phys,Upx} = world;
+
+    // subtle grid
+    ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+    ctx.lineWidth = 1;
+    const step = 40;
+    for(let x=0; x<=W; x+=step){ ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke(); }
+    for(let y=0; y<=H; y+=step){ ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke(); }
+
+    // droplet
+    if(Hnorm > 0.002) drawDroplet(cx, cy, Rpx, Hnorm);
+
+    // deposits & particles
+    drawDeposits();
+    drawParticles();
+
+    // HUD panel (pre-fill to avoid ghosting)
+    ctx.fillStyle = 'rgba(0,0,0,0.55)';
+    ctx.fillRect(10, 10, 310, 110);
+
+    ctx.fillStyle = 'rgba(255,255,255,0.90)';
+    ctx.font = '12px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace';
+    const dryPct = Math.max(0, 1 - tReal/tf);
+    ctx.fillText(`t = ${tReal.toFixed(2)} s / tf = ${tf.toFixed(1)} s`, 18, 30);
+    ctx.fillText(`dry = ${(dryPct*100).toFixed(1)}%  deposited = ${depositedCount}/${particles.x.length}`, 18, 48);
+    ctx.fillText(`Jd=${phys.Jd.toExponential(2)} kg/m^2/s  dc=${phys.dc.toFixed(4)} kg/m^3`, 18, 66);
+    ctx.fillText(`U(px/s)≈${Upx.toFixed(1)}  λ=${(+ui.lam.value).toFixed(2)}  mode=${ui.pin.checked?'pinned':'receding'}`, 18, 84);
+  }
+
+  function loop(now){
+    const dtAnim = Math.min(0.033, (now - last)/1000);
+    last = now;
+
+    let world;
+    if(running){
+      world = step(dtAnim);
+    } else {
+      const {cx,cy,Rpx0,W,H} = getWorld();
+      const phys = computeTfSeconds();
+      const tf = phys.tf;
+      const pin = ui.pin.checked;
+      let Rpx = Rpx0;
+      if(!pin){
+        const shrink = 0.35;
+        Rpx = Rpx0*(1 - shrink*(tReal/tf));
+      }
+      const Hnorm = Math.max(0, 1 - tReal/tf);
+      world = {W,H,cx,cy,Rpx,Hnorm,tf,phys,Upx:0};
+    }
+    drawFrame(world);
+    requestAnimationFrame(loop);
+  }
+
+  requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>

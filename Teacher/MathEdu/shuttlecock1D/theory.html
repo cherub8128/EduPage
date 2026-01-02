@@ -225,8 +225,10 @@
         import { ReportManager } from '../js/report-core.js';
         const report = new ReportManager('shuttlecock1d-theory');
         report.init();
+    </script>
 
-        // Render KaTeX
+    <!-- KaTeX Auto-render -->
+    <script>
         document.addEventListener('DOMContentLoaded', () => {
             if (window.renderMathInElement) {
                 renderMathInElement(document.body, {

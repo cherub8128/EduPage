@@ -73,6 +73,7 @@ const MathUtils = {
 };
 
 // ============ Chart Helper ============
+// ============ Chart Helper ============
 const GraphUtils = {
     createLineChart: (canvasId, title) => {
         const canvas = document.getElementById(canvasId);
@@ -86,26 +87,56 @@ const GraphUtils = {
             return null;
         }
 
+        Chart.defaults.font.family = "'Inter', 'Noto Sans KR', sans-serif";
+        Chart.defaults.color = '#64748b';
+
         return new Chart(ctx, {
             type: 'scatter',
             data: { datasets: [] },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                layout: {
+                    padding: { top: 10, right: 20, bottom: 0, left: 0 }
+                },
                 plugins: {
-                    title: { display: !!title, text: title, color: '#1f2937', font: { size: 14, weight: 'bold' } },
-                    legend: { display: true, labels: { color: '#4b5563' } }
+                    title: {
+                        display: !!title,
+                        text: title,
+                        color: '#1e293b',
+                        font: { size: 14, weight: '600' },
+                        padding: { bottom: 20 }
+                    },
+                    legend: {
+                        display: true,
+                        labels: {
+                            usePointStyle: true,
+                            boxWidth: 8,
+                            padding: 15,
+                            font: { size: 11 }
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(30, 41, 59, 0.9)',
+                        titleFont: { size: 12 },
+                        bodyFont: { size: 11 },
+                        padding: 10,
+                        cornerRadius: 6,
+                        displayColors: false
+                    }
                 },
                 scales: {
                     x: {
                         type: 'linear',
                         position: 'bottom',
-                        grid: { color: '#e5e7eb' },
-                        ticks: { color: '#6b7280' }
+                        grid: { color: '#f1f5f9', tickLength: 8 },
+                        ticks: { color: '#94a3b8', font: { size: 10 } },
+                        border: { display: false }
                     },
                     y: {
-                        grid: { color: '#e5e7eb' },
-                        ticks: { color: '#6b7280' }
+                        grid: { color: '#f1f5f9', tickLength: 8 },
+                        ticks: { color: '#94a3b8', font: { size: 10 } },
+                        border: { display: false } // clean look
                     }
                 }
             }
@@ -119,9 +150,12 @@ const GraphUtils = {
             borderColor: getColor(i),
             backgroundColor: getColor(i),
             showLine: ds.showLine !== false,
-            borderWidth: ds.borderWidth || 1.5,
-            pointRadius: ds.pointRadius !== undefined ? ds.pointRadius : 1.5,
-            pointHoverRadius: 4
+            borderWidth: 2,
+            pointRadius: ds.pointRadius !== undefined ? ds.pointRadius : 2,
+            pointHoverRadius: 5,
+            pointBackgroundColor: '#ffffff', // hollow point effect
+            pointBorderWidth: 2,
+            tension: 0.1 // slight curve for smoothness
         }));
         chart.update();
     },
@@ -131,8 +165,14 @@ const GraphUtils = {
 };
 
 function getColor(i) {
-    // Vivid colors for Charcoal theme: Orange, Sky Blue, Purple, Emerald, Rose
-    const colors = ['#ea580c', '#0ea5e9', '#8b5cf6', '#10b981', '#f43f5e'];
+    // Harmonious modern palette
+    const colors = [
+        '#6366f1', // Indigo
+        '#10b981', // Emerald
+        '#f59e0b', // Amber
+        '#ec4899', // Pink
+        '#0ea5e9', // Sky
+    ];
     return colors[i % colors.length];
 }
 
@@ -271,23 +311,92 @@ function setupSimulation() {
     const fallCanvas = document.getElementById('fallCanvas');
     let fallCtx = null;
     let animId = null;
+    let lastSimResult = null;
+    let currentStepIndex = 0;
+
+    const drawFallingFrame = () => {
+        if (!fallCanvas || !fallCtx || !lastSimResult) return;
+        const { T, Y, V, maxY } = lastSimResult;
+        const dpr = window.devicePixelRatio || 1;
+        const w = fallCanvas.width / dpr;
+        const h = fallCanvas.height / dpr;
+
+        const idx = Math.min(Math.floor(currentStepIndex), Y.length - 1);
+        const posY = (Y[idx] / maxY) * (h - 40) + 20;
+
+        fallCtx.clearRect(0, 0, w, h);
+        const cx = w / 2;
+
+        // Feathers
+        fallCtx.fillStyle = '#e0f2fe';
+        fallCtx.beginPath();
+        fallCtx.moveTo(cx - 5, posY - 7);
+        fallCtx.quadraticCurveTo(cx - 10, posY - 20, cx - 16, posY - 32);
+        fallCtx.quadraticCurveTo(cx, posY - 36, cx + 16, posY - 32);
+        fallCtx.quadraticCurveTo(cx + 10, posY - 20, cx + 5, posY - 7);
+        fallCtx.closePath();
+        fallCtx.fill();
+        fallCtx.strokeStyle = '#94a3b8';
+        fallCtx.stroke();
+
+        // Cork
+        fallCtx.fillStyle = '#f8fafc';
+        fallCtx.beginPath();
+        fallCtx.arc(cx, posY, 8, 0, Math.PI * 2);
+        fallCtx.fill();
+        fallCtx.strokeStyle = '#64748b';
+        fallCtx.stroke();
+
+        // Info
+        const playbackSpeed = Number(document.getElementById('simSpeed')?.value) || 1.0;
+        fallCtx.fillStyle = '#0ea5e9';
+        fallCtx.font = '11px Inter, sans-serif';
+        fallCtx.textAlign = 'right';
+        fallCtx.fillText(`x${playbackSpeed.toFixed(1)} t=${T[idx].toFixed(2)}s  v=${V[idx].toFixed(2)}m/s`, w - 10, 18);
+    };
 
     if (fallCanvas) {
         fallCtx = fallCanvas.getContext('2d');
         const container = fallCanvas.parentElement;
-        const resizeObserver = new ResizeObserver(entries => {
-            for (const entry of entries) {
-                const dpr = window.devicePixelRatio || 1;
-                const rect = entry.contentRect;
-                fallCanvas.width = rect.width * dpr;
-                fallCanvas.height = rect.height * dpr;
-                fallCanvas.style.width = rect.width + 'px';
-                fallCanvas.style.height = rect.height + 'px';
+
+        // Critical Fix: Prevent container from growing with canvas
+        container.style.position = 'relative';
+        container.style.overflow = 'hidden';
+        fallCanvas.style.position = 'absolute';
+        fallCanvas.style.top = '0';
+        fallCanvas.style.left = '0';
+        fallCanvas.style.width = '100%';
+        fallCanvas.style.height = '100%';
+
+        const updateCanvasSize = () => {
+            if (!container) return;
+            const rect = container.getBoundingClientRect();
+            const dpr = window.devicePixelRatio || 1;
+
+            // Use Math.round to avoid sub-pixel oscillation
+            const newW = Math.round(rect.width * dpr);
+            const newH = Math.round(rect.height * dpr);
+
+            // Only update buffer size if significantly different (threshold > 2px)
+            if (Math.abs(fallCanvas.width - newW) > 2 || Math.abs(fallCanvas.height - newH) > 2) {
+                fallCanvas.width = newW;
+                fallCanvas.height = newH;
                 fallCtx.setTransform(1, 0, 0, 1, 0, 0);
                 fallCtx.scale(dpr, dpr);
+                // Force a redraw of the current frame
+                if (lastSimResult && !animId) {
+                    drawFallingFrame();
+                }
             }
+        };
+
+        // Use ResizeObserver for robust sizing, but debounce with rAF to avoid loops
+        let resizeTimeout;
+        const observer = new ResizeObserver(() => {
+            if (resizeTimeout) cancelAnimationFrame(resizeTimeout);
+            resizeTimeout = requestAnimationFrame(updateCanvasSize);
         });
-        resizeObserver.observe(container);
+        observer.observe(container);
     }
 
     runSim.addEventListener('click', () => {
@@ -295,12 +404,13 @@ function setupSimulation() {
         const dt = 0.01;
         const k = Number(document.getElementById('simK')?.value) || 0.22;
         const model = document.getElementById('simModel')?.value || 'none';
+        const playbackSpeed = Number(document.getElementById('simSpeed')?.value) || 1.0;
 
         // Pre-compute trajectory
         let t = 0, y = 0, v = 0;
         const T = [], Y = [], V = [], A = [];
 
-        while (t < 10) {
+        while (t < 10 && y < 2000) { // Safety limit
             let a = g;
             if (model === 'quad') a = g - k * v * v;
             else if (model === 'linear') a = g - k * v;
@@ -318,56 +428,27 @@ function setupSimulation() {
         ]);
 
         const simSummary = document.getElementById('simSummary');
-        if (simSummary) simSummary.textContent = `Simulation End: t=${t.toFixed(1)}s, v=${v.toFixed(2)}m/s`;
+        if (simSummary) simSummary.textContent = `Simulation End: t=${t.toFixed(1)}s, v=${v.toFixed(2)}m/s, y=${y.toFixed(1)}m`;
 
         // Animate falling shuttlecock
         if (fallCanvas && fallCtx) {
             if (animId) cancelAnimationFrame(animId);
 
-            const dpr = window.devicePixelRatio || 1;
-            const w = fallCanvas.width / dpr;
-            const h = fallCanvas.height / dpr;
-            const maxY = Math.max(...Y);
-            let frame = 0;
-            const speed = 5; // frames per step
+            lastSimResult = { T, Y, V, maxY: Math.max(...Y) };
+            currentStepIndex = 0;
+            const stepsPerFrame = (1 / 60) / dt * playbackSpeed;
 
-            const drawFrame = () => {
-                const idx = Math.min(Math.floor(frame / speed), Y.length - 1);
-                const posY = (Y[idx] / maxY) * (h - 40) + 20;
+            const animate = () => {
+                drawFallingFrame();
+                currentStepIndex += stepsPerFrame;
 
-                fallCtx.clearRect(0, 0, w, h);
-
-                // Draw shuttlecock (simple shape)
-                const cx = w / 2;
-                // Cork (head)
-                fallCtx.fillStyle = '#f8fafc';
-                fallCtx.beginPath();
-                fallCtx.arc(cx, posY, 8, 0, Math.PI * 2);
-                fallCtx.fill();
-                fallCtx.strokeStyle = '#64748b';
-                fallCtx.lineWidth = 1;
-                fallCtx.stroke();
-
-                // Feathers (cone)
-                fallCtx.fillStyle = '#e0f2fe';
-                fallCtx.beginPath();
-                fallCtx.moveTo(cx - 12, posY - 8);
-                fallCtx.lineTo(cx, posY - 30);
-                fallCtx.lineTo(cx + 12, posY - 8);
-                fallCtx.closePath();
-                fallCtx.fill();
-                fallCtx.stroke();
-
-                // Info text
-                fallCtx.fillStyle = '#0ea5e9';
-                fallCtx.font = '11px Inter, sans-serif';
-                fallCtx.textAlign = 'right';
-                fallCtx.fillText(`t=${T[idx].toFixed(2)}s  v=${V[idx].toFixed(2)}m/s`, w - 10, 18);
-
-                frame++;
-                if (idx < Y.length - 1) animId = requestAnimationFrame(drawFrame);
+                if (currentStepIndex < lastSimResult.Y.length) {
+                    animId = requestAnimationFrame(animate);
+                } else {
+                    animId = null;
+                }
             };
-            drawFrame();
+            animate();
         }
     });
 }

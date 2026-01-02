@@ -34,36 +34,57 @@ class Sandpile1D {
 
     relax() {
         let avalancheSize = 0, duration = 0, discharge = 0;
-        let active = true;
+        let activeSet = new Set([1]); // Start with position 1 (where grain was added)
 
-        while (active) {
-            active = false;
-            const topples = new Int8Array(this.L + 1);
-            let unstableFound = false;
+        while (activeSet.size > 0) {
+            const nextActive = new Set();
+            const topples = [];
 
-            for (let i = 1; i <= this.L; i++) {
-                const slope = this.h[i] - this.h[i + 1];
+            // Check all active positions for instability
+            for (let i of activeSet) {
+                if (i < 1 || i > this.L) continue; // Bounds check
+
+                // For boundary: h[L+1] is effectively 0 (open boundary)
+                const rightHeight = (i === this.L) ? 0 : this.h[i + 1];
+                const slope = this.h[i] - rightHeight;
+
+                let shouldTopple = false;
                 if (slope > this.S2) {
-                    topples[i] = 1;
-                    unstableFound = true;
+                    shouldTopple = true; // Unconditional toppling
                 } else if (slope > this.S1 && Math.random() < this.p) {
-                    topples[i] = 1;
-                    unstableFound = true;
+                    shouldTopple = true; // Probabilistic toppling
+                }
+
+                if (shouldTopple) {
+                    topples.push(i);
                 }
             }
 
-            if (unstableFound) {
-                duration++;
-                active = true;
-                for (let i = 1; i <= this.L; i++) {
-                    if (topples[i]) {
-                        this.h[i]--;
-                        if (i === this.L) discharge++;
-                        else this.h[i + 1]++;
-                        avalancheSize++;
+            // Execute all topples
+            if (topples.length > 0) {
+                duration++; // Only increment when toppling actually occurs
+
+                for (let i of topples) {
+                    this.h[i]--;
+                    avalancheSize++;
+
+                    if (i === this.L) {
+                        // Grain falls off the edge
+                        discharge++;
+                    } else {
+                        // Grain moves to next position
+                        this.h[i + 1]++;
+                        // Add neighbors to active set
+                        nextActive.add(i + 1);
                     }
+
+                    // Also check positions that might be affected
+                    if (i > 1) nextActive.add(i - 1);
+                    nextActive.add(i);
                 }
             }
+
+            activeSet = nextActive;
         }
 
         if (avalancheSize > 0) {
@@ -102,32 +123,9 @@ function setupCanvas() {
     if (!canvas) return;
     ctx = canvas.getContext('2d');
 
-    const container = canvas.parentElement;
-    let lastWidth = 0, lastHeight = 0;
-
-    const resizeCanvas = () => {
-        const dpr = window.devicePixelRatio || 1;
-        // Use clientWidth/Height which doesn't include borders/padding
-        const w = container.clientWidth;
-        const h = container.clientHeight;
-
-        // Guard: only resize if dimensions actually changed
-        if (w === lastWidth && h === lastHeight) return;
-        lastWidth = w;
-        lastHeight = h;
-
-        canvas.width = w * dpr;
-        canvas.height = h * dpr;
-        canvas.style.width = w + 'px';
-        canvas.style.height = h + 'px';
-        ctx.setTransform(1, 0, 0, 1, 0, 0);
-        ctx.scale(dpr, dpr);
-        updateViz();
-    };
-
-    const resizeObserver = new ResizeObserver(() => resizeCanvas());
-    resizeObserver.observe(container);
-    resizeCanvas(); // Initial call
+    // Canvas size is set in HTML - don't touch it!
+    // Just initialize the context
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
 }
 
 function getParams() {
@@ -142,19 +140,34 @@ function getParams() {
 
 // ============ UI ============
 document.addEventListener("DOMContentLoaded", () => {
-    report.init();
+    console.log('SOC: Initializing...');
+
+    try {
+        report.init();
+    } catch (e) {
+        console.warn('Report init failed:', e);
+    }
+
     setupCanvas();
 
     const params = getParams();
     sim = new Sandpile1D(params.L, params.S1, params.S2, params.p);
+    console.log('SOC: Simulation created', sim);
 
     initChart();
     drawLoop();
 
-    document.getElementById('btn-start').addEventListener('click', toggleRun);
-    document.getElementById('btn-step').addEventListener('click', stepOnce);
-    document.getElementById('btn-reset').addEventListener('click', resetSim);
-    document.getElementById('btn-fast').addEventListener('click', runFastBatch);
+    const btnStart = document.getElementById('btn-start');
+    const btnStep = document.getElementById('btn-step');
+    const btnReset = document.getElementById('btn-reset');
+    const btnFast = document.getElementById('btn-fast');
+
+    console.log('Buttons found:', { btnStart, btnStep, btnReset, btnFast });
+
+    if (btnStart) btnStart.addEventListener('click', toggleRun);
+    if (btnStep) btnStep.addEventListener('click', stepOnce);
+    if (btnReset) btnReset.addEventListener('click', resetSim);
+    if (btnFast) btnFast.addEventListener('click', runFastBatch);
 
     ['param-L', 'param-S1', 'param-S2', 'param-p'].forEach(id => {
         document.getElementById(id).addEventListener('change', resetSim);
@@ -165,6 +178,19 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById('param-speed').addEventListener('input', (e) => updateLabel('val-speed', e.target.value + 'x'));
 
     updateStats();
+    updateViz();
+    updateChart();
+
+    console.log('SOC: Initialization complete. Buttons ready.');
+
+    // Expose test function
+    window.testSOC = {
+        toggleRun,
+        stepOnce,
+        isRunning: () => isRunning,
+        sim: () => sim
+    };
+    console.log('Test functions available: window.testSOC');
 });
 
 function updateLabel(id, val) {
@@ -172,10 +198,12 @@ function updateLabel(id, val) {
 }
 
 function toggleRun() {
+    console.log('toggleRun called, isRunning:', isRunning);
     isRunning = !isRunning;
     const btn = document.getElementById('btn-start');
     btn.innerText = isRunning ? "⏸ Pause" : "▶ Start";
     btn.className = isRunning ? "m-btn secondary w-full" : "m-btn primary w-full";
+    console.log('Now isRunning:', isRunning);
 }
 
 function stepOnce() {
@@ -222,11 +250,10 @@ function updateStats() {
 }
 
 function updateViz() {
-    if (!canvas || !ctx) return;
+    if (!canvas || !ctx || !sim) return;
 
-    const dpr = window.devicePixelRatio || 1;
-    const w = canvas.width / dpr;
-    const h = canvas.height / dpr;
+    const w = canvas.width;
+    const h = canvas.height;
 
     ctx.clearRect(0, 0, w, h);
 
@@ -271,7 +298,7 @@ function initChart() {
             }]
         },
         options: {
-            responsive: true,
+            responsive: false,
             maintainAspectRatio: false,
             animation: false,
             scales: {
